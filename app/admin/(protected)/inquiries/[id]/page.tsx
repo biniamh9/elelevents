@@ -1,0 +1,162 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
+import ConsultationManagementForm from "@/components/forms/admin/consultation-management-form";
+import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
+import CreateContractButton from "@/components/forms/admin/create-contract-button";
+export const dynamic = "force-dynamic";
+
+export default async function InquiryDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const { data: inquiry, error } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !inquiry) {
+    console.error("Inquiry lookup failed:", { id, error });
+    notFound();
+  }
+
+  const timeline = [
+    {
+      label: "Inquiry Received",
+      value: inquiry.created_at ? new Date(inquiry.created_at).toLocaleString() : "—",
+      tone: "neutral",
+    },
+    {
+      label: "Quoted",
+      value: inquiry.quoted_at ? new Date(inquiry.quoted_at).toLocaleString() : "Not yet",
+      tone: inquiry.quoted_at ? "active" : "muted",
+    },
+    {
+      label: "Booked",
+      value: inquiry.booked_at ? new Date(inquiry.booked_at).toLocaleString() : "Not yet",
+      tone: inquiry.booked_at ? "success" : "muted",
+    },
+  ];
+
+  return (
+    <main className="container section">
+      <div style={{ marginBottom: "20px" }}>
+        <Link href="/admin/inquiries" className="btn secondary">
+          ← Back to Inquiries
+        </Link>
+      </div>
+
+      <h2>Inquiry CRM View</h2>
+      <p className="lead">
+        Review the client, event scope, and next sales action in one place.
+      </p>
+
+      <div className="crm-overview">
+        <div className="crm-hero-card card">
+          <p className="eyebrow">Lead summary</p>
+          <h3>{inquiry.first_name} {inquiry.last_name}</h3>
+          <p className="muted">
+            {inquiry.event_type} {inquiry.event_date ? `• ${inquiry.event_date}` : ""} {inquiry.venue_name ? `• ${inquiry.venue_name}` : ""}
+          </p>
+          <div className="summary-pills">
+            <span className="summary-chip">Status: {inquiry.status ?? "new"}</span>
+            <span className="summary-chip">Quote: ${Number(inquiry.estimated_price ?? 0).toLocaleString()}</span>
+            <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
+            <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
+          </div>
+        </div>
+
+        <div className="crm-timeline card">
+          <p className="eyebrow">Pipeline timeline</p>
+          {timeline.map((item) => (
+            <div key={item.label} className={`timeline-row ${item.tone}`}>
+              <strong>{item.label}</strong>
+              <span>{item.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="card">
+          <h3>Client Information</h3>
+          <p><strong>Name:</strong> {inquiry.first_name} {inquiry.last_name}</p>
+          <p><strong>Email:</strong> {inquiry.email}</p>
+          <p><strong>Phone:</strong> {inquiry.phone}</p>
+          <p><strong>Preferred Contact:</strong> {inquiry.preferred_contact_method ?? "—"}</p>
+          <p><strong>Referral Source:</strong> {inquiry.referral_source ?? "—"}</p>
+        </div>
+
+        <div className="card">
+          <h3>Event Information</h3>
+          <p><strong>Event Type:</strong> {inquiry.event_type}</p>
+          <p><strong>Event Date:</strong> {inquiry.event_date ?? "—"}</p>
+          <p><strong>Guest Count:</strong> {inquiry.guest_count ?? "—"}</p>
+          <p><strong>Venue Name:</strong> {inquiry.venue_name ?? "—"}</p>
+          <p><strong>Venue Status:</strong> {inquiry.venue_status ?? "—"}</p>
+          <p><strong>Indoor / Outdoor:</strong> {inquiry.indoor_outdoor ?? "—"}</p>
+          <p><strong>Consultation Type:</strong> {inquiry.consultation_type ?? "—"}</p>
+          <p><strong>Consultation At:</strong> {inquiry.consultation_at ? new Date(inquiry.consultation_at).toLocaleString() : "—"}</p>
+          <p><strong>Follow-Up At:</strong> {inquiry.follow_up_at ? new Date(inquiry.follow_up_at).toLocaleString() : "—"}</p>
+        </div>
+
+        <div className="card">
+          <h3>Decor Scope</h3>
+          <p><strong>Colors / Theme:</strong> {inquiry.colors_theme ?? "—"}</p>
+          <div className="summary-pills">
+            {inquiry.services?.length
+              ? inquiry.services.map((service: string) => (
+                  <span key={service} className="summary-chip">{service}</span>
+                ))
+              : <p className="muted">No decor items selected.</p>}
+          </div>
+          <p><strong>Needs Delivery / Setup:</strong> {inquiry.needs_delivery_setup ? "Yes" : "No"}</p>
+          <p><strong>Current Quote Amount:</strong> ${inquiry.estimated_price ?? 0}</p>
+          <p><strong>Quote Response:</strong> {inquiry.quote_response_status ?? "not_sent"}</p>
+        </div>
+
+        <div className="card">
+          <h3>Notes from Client</h3>
+          <p><strong>Inspiration Notes:</strong></p>
+          <p>{inquiry.inspiration_notes ?? "—"}</p>
+          <p><strong>Additional Info:</strong></p>
+          <p>{inquiry.additional_info ?? "—"}</p>
+        </div>
+      </div>
+
+      <div style={{ marginTop: "24px" }} className="card">
+        <h3>Next Action</h3>
+        <p className="muted">
+          Move the lead through the pipeline, add context for the consultation,
+          and create a contract once scope is clear.
+        </p>
+
+        <InquiryStatusForm
+          inquiryId={inquiry.id}
+          currentStatus={inquiry.status ?? "new"}
+          currentNotes={inquiry.admin_notes ?? ""}
+        />
+        <ConsultationManagementForm
+          inquiryId={inquiry.id}
+          initialConsultationStatus={inquiry.consultation_status ?? "not_scheduled"}
+          initialConsultationType={inquiry.consultation_type ?? null}
+          initialConsultationAt={inquiry.consultation_at ?? null}
+          initialFollowUpAt={inquiry.follow_up_at ?? null}
+          initialQuoteResponseStatus={inquiry.quote_response_status ?? "not_sent"}
+        />
+        <QuoteManagementForm
+          inquiryId={inquiry.id}
+          currentAmount={inquiry.estimated_price ?? null}
+          clientEmail={inquiry.email ?? null}
+          clientName={`${inquiry.first_name} ${inquiry.last_name}`}
+        />
+        <CreateContractButton inquiryId={inquiry.id} />
+      </div>
+    </main>
+  );
+}
