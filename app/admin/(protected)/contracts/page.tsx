@@ -150,6 +150,47 @@ export default async function ContractsPage() {
           </tbody>
         </table>
       </div>
+
+      <div className="admin-mobile-records">
+        {data?.map((row) => (
+          <Link
+            key={row.id}
+            href={`/admin/contracts/${row.id}`}
+            className="admin-mobile-record"
+          >
+            <div className="admin-mobile-record-head">
+              <div>
+                <strong>{row.client_name}</strong>
+                <span>{row.event_type ?? "Event contract"}</span>
+              </div>
+              <ContractStatusBadge status={row.contract_status ?? "draft"} />
+            </div>
+
+            <div className="admin-mobile-record-grid">
+              <p>
+                <span>Created</span>
+                {new Date(row.created_at).toLocaleDateString()}
+              </p>
+              <p>
+                <span>Event date</span>
+                {row.event_date ?? "—"}
+              </p>
+              <p>
+                <span>Total</span>
+                ${row.contract_total ?? 0}
+              </p>
+              <p>
+                <span>DocuSign</span>
+                {row.docusign_envelope_status ?? "—"}
+              </p>
+              <p>
+                <span>Deposit</span>
+                {row.deposit_paid ? "Paid" : "Pending"}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
       </div>
     </main>
   );

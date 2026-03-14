@@ -554,6 +554,52 @@ export default async function AdminInquiriesPage({
             </tbody>
           </table>
         </div>
+
+        <div className="admin-mobile-records">
+          {data?.map((row) => (
+            <Link
+              key={row.id}
+              href={`/admin/inquiries/${row.id}`}
+              className="admin-mobile-record"
+            >
+              <div className="admin-mobile-record-head">
+                <div>
+                  <strong>{row.first_name} {row.last_name}</strong>
+                  <span>{row.event_type}</span>
+                </div>
+                <StatusBadge status={row.status ?? "new"} />
+              </div>
+
+              <div className="admin-mobile-record-grid">
+                <p>
+                  <span>Date</span>
+                  {new Date(row.created_at).toLocaleDateString()}
+                </p>
+                <p>
+                  <span>Event</span>
+                  {row.event_date ?? "—"}
+                </p>
+                <p>
+                  <span>Venue</span>
+                  {row.venue_name ?? "—"}
+                </p>
+                <p>
+                  <span>Estimate</span>${formatMoney(Number(row.estimated_price ?? 0))}
+                </p>
+                <p>
+                  <span>Consultation</span>
+                  {row.consultation_status ?? "not_scheduled"}
+                </p>
+                <p>
+                  <span>Follow-up</span>
+                  {row.follow_up_at
+                    ? new Date(row.follow_up_at).toLocaleDateString()
+                    : "—"}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </main>
   );
