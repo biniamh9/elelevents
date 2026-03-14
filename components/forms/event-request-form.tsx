@@ -84,6 +84,27 @@ function buildReviewNotes(form: typeof initialState) {
   return detailLines.join("\n\n");
 }
 
+function normalizeVendorCategory(category: string) {
+  return category.startsWith("Other:")
+    ? category.replace(/^Other:\s*/, "").trim()
+    : category;
+}
+
+function getAvailableVendorCategories(vendors: PublicVendorRecommendation[]) {
+  const builtIn = VENDOR_SERVICE_CATEGORIES.filter((item) => item !== "Other");
+  const custom = Array.from(
+    new Set(
+      vendors.flatMap((vendor) =>
+        (vendor.service_categories ?? [])
+          .map(normalizeVendorCategory)
+          .filter(Boolean)
+      )
+    )
+  );
+
+  return Array.from(new Set([...builtIn, ...custom]));
+}
+
 function getMatchingVendors(
   vendors: PublicVendorRecommendation[],
   requestedCategories: string[]
@@ -95,7 +116,7 @@ function getMatchingVendors(
   return vendors.filter((vendor) =>
     requestedCategories.some((category) =>
       (vendor.service_categories ?? []).some(
-        (item) => item === category || item.startsWith(`${category}:`)
+        (item) => normalizeVendorCategory(item) === category
       )
     )
   );
@@ -116,6 +137,7 @@ export default function EventRequestForm({
   const missingEventInfo = !form.eventType || !form.eventDate;
   const missingScope = form.services.length === 0;
   const hasFullDecoration = form.services.includes("Full decoration");
+  const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
 
   function updateField(name: string, value: string | boolean | string[]) {
@@ -366,6 +388,60 @@ export default function EventRequestForm({
                   <label className="label">Colors / Theme</label>
                   <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Examples: blush and gold, modern white, royal blue, garden glam" />
                 </div>
+
+                <div className="field">
+                  <label className="label">Need help with trusted partner vendors too?</label>
+                  <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
+                    This belongs with event planning, not decor only. Venue, catering, photography, sound, and other partner vendors can be requested here.
+                  </p>
+                  <div className="option-pills">
+                    {vendorCategories.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
+                        onClick={() => toggleVendorCategory(category)}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {form.requestedVendorCategories.length ? (
+                  <div className="review-card vendor-recommendations">
+                    <h4>Approved partner recommendations</h4>
+                    <p className="muted">
+                      These are approved partners we can coordinate with based on the type of help you requested.
+                    </p>
+                    <div className="vendor-card-grid">
+                      {matchingVendors.length ? (
+                        matchingVendors.slice(0, 6).map((vendor) => (
+                          <div key={vendor.id} className="vendor-card">
+                            <strong>{vendor.business_name}</strong>
+                            <p className="muted">
+                              {(vendor.service_categories ?? [])
+                                .map(normalizeVendorCategory)
+                                .join(", ") || "Vendor partner"}
+                            </p>
+                            <p className="muted">
+                              {vendor.service_area || [vendor.city, vendor.state].filter(Boolean).join(", ") || "Service area not listed"}
+                            </p>
+                            {vendor.website_url ? (
+                              <a href={vendor.website_url} target="_blank" rel="noreferrer" className="link-inline">
+                                View website
+                              </a>
+                            ) : null}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="muted">
+                          We do not have a visible approved vendor listed for those categories yet, but you can still request help and we can recommend manually.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </section>
             ) : null}
 
@@ -418,54 +494,6 @@ export default function EventRequestForm({
                   </label>
                 </div>
 
-                <div className="field">
-                  <label className="label">Need help with trusted partner vendors too?</label>
-                  <div className="option-pills">
-                    {VENDOR_SERVICE_CATEGORIES.filter((item) => item !== "Other").map((category) => (
-                      <button
-                        key={category}
-                        type="button"
-                        className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
-                        onClick={() => toggleVendorCategory(category)}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {form.requestedVendorCategories.length ? (
-                  <div className="review-card vendor-recommendations">
-                    <h4>Approved partner recommendations</h4>
-                    <p className="muted">
-                      These are approved partners we can also coordinate with if you want vendor help.
-                    </p>
-                    <div className="vendor-card-grid">
-                      {matchingVendors.length ? (
-                        matchingVendors.slice(0, 6).map((vendor) => (
-                          <div key={vendor.id} className="vendor-card">
-                            <strong>{vendor.business_name}</strong>
-                            <p className="muted">
-                              {(vendor.service_categories ?? []).join(", ") || "Vendor partner"}
-                            </p>
-                            <p className="muted">
-                              {vendor.service_area || [vendor.city, vendor.state].filter(Boolean).join(", ") || "Service area not listed"}
-                            </p>
-                            {vendor.website_url ? (
-                              <a href={vendor.website_url} target="_blank" rel="noreferrer" className="link-inline">
-                                View website
-                              </a>
-                            ) : null}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="muted">
-                          We do not have a visible approved vendor listed for those categories yet, but you can still request help and we can recommend manually.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
               </section>
             ) : null}
 
