@@ -45,9 +45,8 @@ const consultationOptions = ["Phone call", "Video meeting", "In-person meeting",
 const referralOptions = ["Instagram", "Facebook", "Google", "Friend / referral", "Repeat client", "Other"];
 const steps = [
   { id: "contact", label: "Contact" },
-  { id: "event", label: "Event" },
-  { id: "scope", label: "Decor scope" },
-  { id: "review", label: "Review" },
+  { id: "event", label: "Event + Partners" },
+  { id: "scope", label: "Decor + Notes" },
 ];
 
 const initialState = {
@@ -189,11 +188,6 @@ export default function EventRequestForm({
       return;
     }
 
-    if (step === 2 && missingScope) {
-      setError("Select at least one decor area so the request is useful.");
-      return;
-    }
-
     setError("");
     setStep((current) => Math.min(current + 1, steps.length - 1));
   }
@@ -205,6 +199,11 @@ export default function EventRequestForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (missingScope) {
+      setError("Select at least one decor area so the request is useful.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -451,7 +450,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 3</p>
                   <h3>What parts of the decor do you want help with?</h3>
                   <p className="muted">
-                    This is where the form becomes useful. If a feature doesn’t affect quoting or planning, it does not belong here yet.
+                    This is where the form becomes useful. Keep it focused on the decor scope and the notes that actually shape the consultation.
                   </p>
                 </div>
 
@@ -492,19 +491,6 @@ export default function EventRequestForm({
                     />
                     <span>We need delivery, setup, or teardown support built into the quote.</span>
                   </label>
-                </div>
-
-              </section>
-            ) : null}
-
-            {step === 3 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 4</p>
-                  <h3>Final notes before we review your request.</h3>
-                  <p className="muted">
-                    Keep this focused on inspiration, priorities, and any venue limitations.
-                  </p>
                 </div>
 
                 <div className="field">
@@ -551,6 +537,7 @@ export default function EventRequestForm({
                     <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
                   </div>
                 </div>
+
               </section>
             ) : null}
 
