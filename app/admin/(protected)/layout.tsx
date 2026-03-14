@@ -15,13 +15,22 @@ export default async function AdminLayout({
 
       <div className="admin-main">
         <div className="admin-topbar">
-          <div>
-            <p className="eyebrow">CRM Workspace</p>
+          <div className="admin-topbar-copy">
+            <p className="eyebrow">Dashboard</p>
             <h2>Business operations</h2>
+            <p className="admin-breadcrumbs">Admin CRM • Daily workspace</p>
           </div>
-          <Link href="/admin/inquiries" className="btn secondary">
-            Open dashboard
-          </Link>
+          <div className="admin-topbar-actions">
+            <Link href="/admin/packages" className="admin-topbar-pill">
+              Packages
+            </Link>
+            <Link href="/admin/gallery" className="admin-topbar-pill">
+              Gallery
+            </Link>
+            <Link href="/request" className="btn">
+              Open public form
+            </Link>
+          </div>
         </div>
         {children}
       </div>

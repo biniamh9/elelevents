@@ -8,6 +8,14 @@ function formatMoney(value: number) {
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
+function buildShare(count: number | null | undefined, total: number | null | undefined) {
+  if (!count || !total) {
+    return 0;
+  }
+
+  return Math.round((count / total) * 100);
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
@@ -183,109 +191,128 @@ export default async function AdminInquiriesPage({
     "Graduation",
   ];
 
+  const reportCards = [
+    {
+      label: "Open pipeline",
+      value: `$${formatMoney(pipelineValue)}`,
+      note: "Potential value across active leads",
+    },
+    {
+      label: "Consultations",
+      value: String(scheduledConsultations ?? 0),
+      note: "Meetings currently scheduled",
+    },
+    {
+      label: "Follow-ups",
+      value: String(followUpsDue ?? 0),
+      note: "Need attention in the next 7 days",
+    },
+    {
+      label: "Booked this month",
+      value: String(bookedThisMonth ?? 0),
+      note: `${conversionRate.toFixed(1)}% conversion this month`,
+    },
+  ];
+
+  const stageCards = [
+    { label: "New", value: newCount ?? 0, share: buildShare(newCount, totalCount) },
+    {
+      label: "Contacted",
+      value: contactedCount ?? 0,
+      share: buildShare(contactedCount, totalCount),
+    },
+    { label: "Quoted", value: quotedCount ?? 0, share: buildShare(quotedCount, totalCount) },
+    { label: "Booked", value: bookedCount ?? 0, share: buildShare(bookedCount, totalCount) },
+    { label: "Lost", value: lostCount ?? 0, share: buildShare(lostCount, totalCount) },
+  ];
+
   return (
     <main className="section admin-page">
-      <div className="admin-dashboard-hero">
-        <div className="card admin-hero-card">
-          <p className="eyebrow">Sales Dashboard</p>
-          <h1>Inquiries Pipeline</h1>
+      <div className="admin-page-head">
+        <div>
+          <p className="eyebrow">Sales dashboard</p>
+          <h1>Inquiries overview</h1>
           <p className="lead">
-            Track new leads, consultation workload, pipeline value, and booked
-            business from one screen.
+            Review new leads, consultation workload, quote progress, and booked
+            business in one cleaner workspace.
           </p>
-          <div className="summary-pills">
-            <span className="summary-chip">Total inquiries: {totalCount ?? 0}</span>
-            <span className="summary-chip">Pipeline value: ${formatMoney(pipelineValue)}</span>
-            <span className="summary-chip">Conversion: {conversionRate.toFixed(1)}%</span>
-          </div>
         </div>
-
-        <div className="card admin-focus-card">
-          <p className="eyebrow">This Week</p>
-          <div className="admin-mini-metrics">
-            <div>
-              <strong>{scheduledConsultations ?? 0}</strong>
-              <span>Consultations scheduled</span>
-            </div>
-            <div>
-              <strong>{followUpsDue ?? 0}</strong>
-              <span>Follow-ups due</span>
-            </div>
-            <div>
-              <strong>{bookedCount ?? 0}</strong>
-              <span>Booked events</span>
-            </div>
-          </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Total inquiries: {totalCount ?? 0}</span>
+          <span className="admin-head-pill">Pipeline: ${formatMoney(pipelineValue)}</span>
+          <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
         </div>
       </div>
 
-      <div className="admin-kpi-grid">
-        <div className="card metric-card metric-card--amber">
-          <p className="muted">New Leads</p>
-          <strong>{newCount ?? 0}</strong>
+      <section className="admin-mini-report">
+        <div className="admin-section-title">
+          <h3>Mini Report</h3>
+          <p className="muted">The most useful numbers for today’s workflow.</p>
         </div>
-        <div className="card metric-card metric-card--blue">
-          <p className="muted">Contacted</p>
-          <strong>{contactedCount ?? 0}</strong>
+        <div className="admin-kpi-grid admin-kpi-grid--compact">
+          {reportCards.map((card) => (
+            <div key={card.label} className="card metric-card metric-card--neutral">
+              <p className="muted">{card.label}</p>
+              <strong>{card.value}</strong>
+              <span>{card.note}</span>
+            </div>
+          ))}
         </div>
-        <div className="card metric-card metric-card--violet">
-          <p className="muted">Quoted</p>
-          <strong>{quotedCount ?? 0}</strong>
-        </div>
-        <div className="card metric-card metric-card--green">
-          <p className="muted">Booked</p>
-          <strong>{bookedCount ?? 0}</strong>
-        </div>
-        <div className="card metric-card">
-          <p className="muted">Booked This Month</p>
-          <strong>{bookedThisMonth ?? 0}</strong>
-        </div>
-        <div className="card metric-card">
-          <p className="muted">Booked Revenue</p>
-          <strong>${formatMoney(bookedRevenueThisMonth)}</strong>
-        </div>
-        <div className="card metric-card">
-          <p className="muted">Average Inquiry</p>
-          <strong>${formatMoney(averageInquiryValue)}</strong>
-        </div>
-        <div className="card metric-card metric-card--red">
-          <p className="muted">Closed Lost</p>
-          <strong>{lostCount ?? 0}</strong>
-        </div>
+      </section>
+
+      <div className="admin-dashboard-grid">
+        <section className="card admin-panel admin-panel--wide">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Pipeline Overview</p>
+              <h3>Where current leads are sitting</h3>
+            </div>
+          </div>
+
+          <div className="admin-stage-grid">
+            {stageCards.map((card) => (
+              <div key={card.label} className="admin-stage-card">
+                <div className="admin-stage-top">
+                  <span>{card.label}</span>
+                  <strong>{card.value}</strong>
+                </div>
+                <div className="admin-stage-bar">
+                  <div style={{ width: `${card.share}%` }} />
+                </div>
+                <small>{card.share}% of all inquiries</small>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card admin-panel">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Performance</p>
+              <h3>Revenue and conversion</h3>
+            </div>
+          </div>
+          <div className="admin-list">
+            <div className="admin-list-item">
+              <strong>${formatMoney(bookedRevenueThisMonth)}</strong>
+              <span>Booked revenue this month</span>
+              <small>Confirmed business only</small>
+            </div>
+            <div className="admin-list-item">
+              <strong>${formatMoney(averageInquiryValue)}</strong>
+              <span>Average inquiry value</span>
+              <small>Across this month’s incoming leads</small>
+            </div>
+            <div className="admin-list-item">
+              <strong>{bookedCount ?? 0}</strong>
+              <span>Total booked events</span>
+              <small>{bookedThisMonth ?? 0} booked this month</small>
+            </div>
+          </div>
+        </section>
       </div>
 
       <div className="admin-board-grid">
-        <div className="card admin-panel">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Pipeline Funnel</p>
-              <h3>Where leads are sitting</h3>
-            </div>
-          </div>
-          <div className="funnel-grid">
-            <div className="funnel-step">
-              <span>New</span>
-              <strong>{newCount ?? 0}</strong>
-            </div>
-            <div className="funnel-step">
-              <span>Contacted</span>
-              <strong>{contactedCount ?? 0}</strong>
-            </div>
-            <div className="funnel-step">
-              <span>Quoted</span>
-              <strong>{quotedCount ?? 0}</strong>
-            </div>
-            <div className="funnel-step">
-              <span>Booked</span>
-              <strong>{bookedCount ?? 0}</strong>
-            </div>
-            <div className="funnel-step">
-              <span>Lost</span>
-              <strong>{lostCount ?? 0}</strong>
-            </div>
-          </div>
-        </div>
-
         <div className="card admin-panel">
           <div className="admin-panel-head">
             <div>
