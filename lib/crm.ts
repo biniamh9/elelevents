@@ -12,7 +12,7 @@ type ClientInput = {
 };
 
 type ActivityInput = {
-  entityType: "client" | "inquiry" | "contract" | "payment";
+  entityType: "client" | "inquiry" | "contract" | "payment" | "vendor" | "referral";
   entityId: string;
   action: string;
   summary?: string | null;

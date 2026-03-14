@@ -40,6 +40,13 @@ const navItems: NavItem[] = [
     description: "Public offers",
     icon: "box",
   },
+  {
+    href: "/admin/vendors",
+    label: "Vendors",
+    shortLabel: "Vendors",
+    description: "Referral partners",
+    icon: "users",
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -72,6 +79,15 @@ function SidebarIcon({ icon }: { icon: string }) {
           <rect x="4" y="5" width="16" height="14" rx="2" />
           <path d="m8 14 3-3 3 3 2-2 4 4" />
           <circle cx="9" cy="9" r="1.4" />
+        </svg>
+      );
+    case "users":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1" />
+          <circle cx="10" cy="8" r="3" />
+          <path d="M20 19v-1a4 4 0 0 0-3-3.87" />
+          <path d="M16 5.13a3 3 0 0 1 0 5.74" />
         </svg>
       );
     default:

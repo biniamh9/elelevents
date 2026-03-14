@@ -42,7 +42,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, follow_up_at, quote_response_status")
+      .select("id, client_id, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes")
       .eq("id", id)
       .single();
 
@@ -104,6 +104,14 @@ export async function PATCH(
       updates.quote_response_status = body.quote_response_status;
     }
 
+    if (Array.isArray(body.requested_vendor_categories)) {
+      updates.requested_vendor_categories = body.requested_vendor_categories;
+    }
+
+    if (body.vendor_request_notes === null || typeof body.vendor_request_notes === "string") {
+      updates.vendor_request_notes = body.vendor_request_notes ? String(body.vendor_request_notes) : null;
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: "No valid updates provided" },
@@ -137,6 +145,8 @@ export async function PATCH(
         consultation_at: data.consultation_at,
         follow_up_at: data.follow_up_at,
         quote_response_status: data.quote_response_status,
+        requested_vendor_categories: data.requested_vendor_categories,
+        vendor_request_notes: data.vendor_request_notes,
       },
     });
 

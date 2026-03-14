@@ -5,6 +5,7 @@ import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
 import ConsultationManagementForm from "@/components/forms/admin/consultation-management-form";
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
+import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
 export const dynamic = "force-dynamic";
 
 export default async function InquiryDetailPage({
@@ -24,6 +25,19 @@ export default async function InquiryDetailPage({
     console.error("Inquiry lookup failed:", { id, error });
     notFound();
   }
+
+  const { data: vendors } = await supabaseAdmin
+    .from("vendor_accounts")
+    .select("id, business_name, service_categories, default_referral_fee")
+    .eq("approval_status", "approved")
+    .eq("is_active", true)
+    .order("business_name", { ascending: true });
+
+  const { data: vendorReferrals } = await supabaseAdmin
+    .from("vendor_referrals")
+    .select("id, category, status, fee_amount, created_at, vendor:vendor_accounts(business_name)")
+    .eq("inquiry_id", id)
+    .order("created_at", { ascending: false });
 
   const timeline = [
     {
@@ -154,6 +168,13 @@ export default async function InquiryDetailPage({
           currentAmount={inquiry.estimated_price ?? null}
           clientEmail={inquiry.email ?? null}
           clientName={`${inquiry.first_name} ${inquiry.last_name}`}
+        />
+        <VendorReferralForm
+          inquiryId={inquiry.id}
+          initialRequestedCategories={inquiry.requested_vendor_categories ?? []}
+          initialVendorRequestNotes={inquiry.vendor_request_notes ?? null}
+          vendors={vendors ?? []}
+          existingReferrals={vendorReferrals ?? []}
         />
         <CreateContractButton inquiryId={inquiry.id} />
       </div>
