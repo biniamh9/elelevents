@@ -17,6 +17,7 @@ type VendorApplicationState = {
   bio: string;
   pricingTier: string;
   serviceCategories: string[];
+  otherServiceCategory: string;
 };
 
 const initialState: VendorApplicationState = {
@@ -33,12 +34,14 @@ const initialState: VendorApplicationState = {
   bio: "",
   pricingTier: "",
   serviceCategories: [],
+  otherServiceCategory: "",
 };
 
 export default function VendorApplicationForm() {
   const [form, setForm] = useState(initialState);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const hasOtherCategory = form.serviceCategories.includes("Other");
 
   function updateField<K extends keyof VendorApplicationState>(
     key: K,
@@ -60,6 +63,12 @@ export default function VendorApplicationForm() {
     event.preventDefault();
     setLoading(true);
     setMessage("");
+
+    if (hasOtherCategory && !form.otherServiceCategory.trim()) {
+      setMessage("If you choose Other, add the actual type of business or service.");
+      setLoading(false);
+      return;
+    }
 
     const res = await fetch("/api/vendors/apply", {
       method: "POST",
@@ -151,6 +160,19 @@ export default function VendorApplicationForm() {
             ))}
           </div>
         </div>
+
+        {hasOtherCategory ? (
+          <div className="field">
+            <label className="label">What kind of business is it?</label>
+            <input
+              className="input"
+              value={form.otherServiceCategory}
+              onChange={(e) => updateField("otherServiceCategory", e.target.value)}
+              placeholder="Florist, henna artist, custom rentals, etc."
+              required
+            />
+          </div>
+        ) : null}
 
         <div className="field">
           <label className="label">Short Bio</label>

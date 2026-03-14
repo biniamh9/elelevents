@@ -9,10 +9,23 @@ export async function POST(request: Request) {
     const password = typeof body.password === "string" ? body.password : "";
     const businessName = typeof body.businessName === "string" ? body.businessName.trim() : "";
     const contactName = typeof body.contactName === "string" ? body.contactName.trim() : "";
+    const baseCategories = Array.isArray(body.serviceCategories) ? body.serviceCategories : [];
+    const otherServiceCategory =
+      typeof body.otherServiceCategory === "string" ? body.otherServiceCategory.trim() : "";
+    const serviceCategories = baseCategories.includes("Other")
+      ? [...baseCategories.filter((item) => item !== "Other"), `Other: ${otherServiceCategory}`].filter(Boolean)
+      : baseCategories;
 
     if (!email || !password || password.length < 8 || !businessName || !contactName) {
       return NextResponse.json(
         { error: "Business name, contact name, email, and a password of at least 8 characters are required." },
+        { status: 400 }
+      );
+    }
+
+    if (baseCategories.includes("Other") && !otherServiceCategory) {
+      return NextResponse.json(
+        { error: "Add the business type when choosing Other." },
         { status: 400 }
       );
     }
@@ -39,7 +52,7 @@ export async function POST(request: Request) {
       contact_name: contactName,
       email,
       phone: typeof body.phone === "string" ? body.phone.trim() || null : null,
-      service_categories: Array.isArray(body.serviceCategories) ? body.serviceCategories : [],
+      service_categories: serviceCategories,
       city: typeof body.city === "string" ? body.city.trim() || null : null,
       state: typeof body.state === "string" ? body.state.trim() || null : null,
       service_area: typeof body.serviceArea === "string" ? body.serviceArea.trim() || null : null,
@@ -64,7 +77,7 @@ export async function POST(request: Request) {
       summary: "Vendor application submitted",
       metadata: {
         business_name: businessName,
-        service_categories: Array.isArray(body.serviceCategories) ? body.serviceCategories : [],
+        service_categories: serviceCategories,
       },
     });
 
