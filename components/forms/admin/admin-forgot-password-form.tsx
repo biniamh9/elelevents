@@ -1,15 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-export default function AdminLoginForm() {
-  const router = useRouter();
+export default function AdminForgotPasswordForm() {
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +14,13 @@ export default function AdminLoginForm() {
     setLoading(true);
     setMessage("");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const origin =
+      window.location.origin ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000";
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${origin}/admin/reset-password`,
     });
 
     if (error) {
@@ -29,15 +29,15 @@ export default function AdminLoginForm() {
       return;
     }
 
-    router.push("/admin/inquiries");
-    router.refresh();
+    setMessage("Password reset email sent. Use the newest email link.");
+    setLoading(false);
   }
 
   return (
     <div className="card form-card" style={{ maxWidth: "520px", margin: "32px auto" }}>
-      <h2>Admin Sign In</h2>
+      <h2>Reset Admin Password</h2>
       <p className="muted">
-        Only approved admin accounts can access the CRM.
+        Enter the admin email and we&apos;ll send a password reset link.
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -52,27 +52,12 @@ export default function AdminLoginForm() {
           />
         </div>
 
-        <div className="field">
-          <label className="label">Password</label>
-          <input
-            className="input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <p style={{ marginTop: "-4px", marginBottom: "18px" }}>
-          <Link href="/admin/forgot-password" className="link-inline">
-            Forgot password?
-          </Link>
-        </p>
-
-        {message ? <p className="error">{message}</p> : null}
+        {message ? (
+          <p className={message.includes("sent") ? "success" : "error"}>{message}</p>
+        ) : null}
 
         <button className="btn" type="submit" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? "Sending..." : "Send Reset Email"}
         </button>
       </form>
     </div>
