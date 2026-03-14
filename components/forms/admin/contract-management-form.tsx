@@ -8,12 +8,12 @@ import {
 
 const statuses = ["draft", "sent", "signed", "deposit_paid", "closed"];
 const sections = [
-  { id: "essentials", label: "Essentials" },
-  { id: "coverage", label: "Coverage" },
-  { id: "logistics", label: "Logistics" },
-  { id: "decor", label: "Decor" },
-  { id: "payment", label: "Payment" },
-  { id: "notes", label: "Notes" },
+  { id: "essentials", label: "Overview", description: "Status, totals, due dates, and the agreement date." },
+  { id: "coverage", label: "Coverage", description: "What event dates and venue coverage are actually included." },
+  { id: "logistics", label: "Logistics", description: "Setup windows, access rules, and guest/style planning." },
+  { id: "decor", label: "Decor", description: "The itemized decor scope the client is approving." },
+  { id: "payment", label: "Payment", description: "Deposit tracking, remaining balance, and method details." },
+  { id: "notes", label: "Signing + Notes", description: "Manual signing fallback, clauses, and internal notes." },
 ] as const;
 
 function asInputNumber(value: number | null | undefined) {
@@ -50,6 +50,34 @@ export default function ContractManagementForm({
   const [syncing, setSyncing] = useState(false);
   const [activeSection, setActiveSection] =
     useState<(typeof sections)[number]["id"]>("essentials");
+  const activeSectionIndex = sections.findIndex((item) => item.id === activeSection);
+  const activeSectionConfig =
+    sections[activeSectionIndex] ?? sections[0];
+  const contractTotalNumber = Number(contractTotal || 0);
+  const depositAmountNumber = Number(depositAmount || 0);
+  const balanceNumber = Math.max(contractTotalNumber - depositAmountNumber, 0);
+  const overviewCards = [
+    {
+      label: "Status",
+      value: status,
+      subtext: contract.contract_sent_at ? "Contract already sent" : "Still in draft flow",
+    },
+    {
+      label: "Contract total",
+      value: `$${contractTotalNumber.toLocaleString()}`,
+      subtext: depositAmountNumber ? `Deposit $${depositAmountNumber.toLocaleString()}` : "Deposit not set",
+    },
+    {
+      label: "Remaining balance",
+      value: `$${balanceNumber.toLocaleString()}`,
+      subtext: balanceDueDate || "No due date set",
+    },
+    {
+      label: "Signing",
+      value: contract.docusign_envelope_status || "not_sent",
+      subtext: contract.docusign_envelope_id ? "DocuSign linked" : "No envelope linked",
+    },
+  ];
 
   function updateDetails<K extends keyof ContractDetails>(
     section: K,
@@ -170,6 +198,49 @@ export default function ContractManagementForm({
 
   return (
     <div style={{ marginTop: "16px" }}>
+      <div className="contract-action-bar">
+        <div className="contract-action-group">
+          <button
+            type="button"
+            className="btn"
+            onClick={handleSave}
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save Contract"}
+          </button>
+
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={sendContract}
+            disabled={sending}
+          >
+            {sending ? "Sending..." : "Send Contract"}
+          </button>
+
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={syncDocusignStatus}
+            disabled={syncing}
+          >
+            {syncing ? "Syncing..." : "Sync DocuSign"}
+          </button>
+        </div>
+
+        {message ? <p className="contract-inline-message">{message}</p> : null}
+      </div>
+
+      <div className="contract-editor-overview">
+        {overviewCards.map((item) => (
+          <div key={item.label} className="contract-overview-tile">
+            <p>{item.label}</p>
+            <strong>{item.value}</strong>
+            <span>{item.subtext}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="contract-section-tabs">
         {sections.map((section) => (
           <button
@@ -181,6 +252,14 @@ export default function ContractManagementForm({
             {section.label}
           </button>
         ))}
+      </div>
+
+      <div className="contract-section-intro">
+        <p className="eyebrow">
+          Section {activeSectionIndex + 1} of {sections.length}
+        </p>
+        <h4>{activeSectionConfig.label}</h4>
+        <p className="muted">{activeSectionConfig.description}</p>
       </div>
 
       <div className="contract-form-grid contract-form-grid--single">
@@ -769,13 +848,13 @@ export default function ContractManagementForm({
         <button
           type="button"
           className="btn secondary"
-          disabled={sections.findIndex((item) => item.id === activeSection) === 0}
+          disabled={activeSectionIndex === 0}
           onClick={() =>
             setActiveSection(
               sections[
                 Math.max(
                   0,
-                  sections.findIndex((item) => item.id === activeSection) - 1
+                  activeSectionIndex - 1
                 )
               ].id
             )
@@ -787,16 +866,13 @@ export default function ContractManagementForm({
         <button
           type="button"
           className="btn secondary"
-          disabled={
-            sections.findIndex((item) => item.id === activeSection) ===
-            sections.length - 1
-          }
+          disabled={activeSectionIndex === sections.length - 1}
           onClick={() =>
             setActiveSection(
               sections[
                 Math.min(
                   sections.length - 1,
-                  sections.findIndex((item) => item.id === activeSection) + 1
+                  activeSectionIndex + 1
                 )
               ].id
             )
@@ -805,44 +881,6 @@ export default function ContractManagementForm({
           Next Section
         </button>
       </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginTop: "12px",
-        }}
-      >
-        <button
-          type="button"
-          className="btn"
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? "Saving..." : "Save Contract Changes"}
-        </button>
-
-        <button
-          type="button"
-          className="btn secondary"
-          onClick={sendContract}
-          disabled={sending}
-        >
-          {sending ? "Sending..." : "Send Contract"}
-        </button>
-
-        <button
-          type="button"
-          className="btn secondary"
-          onClick={syncDocusignStatus}
-          disabled={syncing}
-        >
-          {syncing ? "Syncing..." : "Sync DocuSign Status"}
-        </button>
-      </div>
-
-      {message ? <p style={{ marginTop: "12px" }}>{message}</p> : null}
     </div>
   );
 }

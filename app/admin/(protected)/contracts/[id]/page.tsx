@@ -29,6 +29,12 @@ export default async function ContractDetailPage({
 
   const scope = contract.scope_json || {};
   const details = normalizeContractDetails(contract.contract_details_json, contract);
+  const coverageLabel = [
+    details.event_coverage.includes_reception ? "Reception" : null,
+    details.event_coverage.includes_melsi ? "Melsi" : null,
+  ]
+    .filter(Boolean)
+    .join(" + ");
   const timeline = [
     {
       label: "Created",
@@ -51,22 +57,83 @@ export default async function ContractDetailPage({
       tone: contract.deposit_paid_at ? "success" : "muted",
     },
   ];
+  const warnings = [
+    !contract.contract_sent_at ? "Contract has not been sent yet." : null,
+    !contract.deposit_amount ? "Deposit amount is missing." : null,
+    !contract.balance_due_date ? "Balance due date is missing." : null,
+    contract.contract_status === "signed" && !contract.deposit_paid
+      ? "Signed, but deposit is still unpaid."
+      : null,
+    contract.docusign_envelope_id && !contract.docusign_envelope_status
+      ? "DocuSign envelope exists, but status has not been synced yet."
+      : null,
+  ].filter(Boolean);
+  const overviewCards = [
+    {
+      label: "Contract status",
+      value: contract.contract_status ?? "draft",
+      subtext: contract.contract_sent_at
+        ? `Sent ${new Date(contract.contract_sent_at).toLocaleDateString()}`
+        : "Not sent yet",
+    },
+    {
+      label: "Signing",
+      value: contract.docusign_envelope_status ?? "not_sent",
+      subtext: contract.docusign_envelope_id ? "DocuSign linked" : "No envelope yet",
+    },
+    {
+      label: "Deposit",
+      value: contract.deposit_paid ? "Paid" : "Outstanding",
+      subtext: `$${Number(contract.deposit_amount ?? 0).toLocaleString()}`,
+    },
+    {
+      label: "Balance due",
+      value: contract.balance_due_date ?? "Missing",
+      subtext: `$${Number(contract.balance_due ?? 0).toLocaleString()}`,
+    },
+  ];
 
   return (
     <main className="container section">
-      <div style={{ marginBottom: "20px" }}>
-        <Link href="/admin/contracts" className="btn secondary">
-          ← Back to Contracts
-        </Link>
+      <div className="contract-page-header">
+        <div>
+          <Link href="/admin/contracts" className="btn secondary">
+            ← Back to Contracts
+          </Link>
+          <p className="eyebrow" style={{ marginTop: "18px" }}>
+            Contract workspace
+          </p>
+          <div className="contract-title-row">
+            <h2>{contract.client_name}</h2>
+            <ContractStatusBadge status={contract.contract_status ?? "draft"} />
+          </div>
+          <p className="lead">
+            Keep the contract, payment, and signing state in one place without
+            forcing the user to scroll through a wall of fields.
+          </p>
+        </div>
+        <div className="contract-header-meta card">
+          <p><strong>Event:</strong> {contract.event_type ?? "—"}</p>
+          <p><strong>Date:</strong> {contract.event_date ?? "—"}</p>
+          <p><strong>Venue:</strong> {contract.venue_name ?? "—"}</p>
+          <p><strong>Coverage:</strong> {coverageLabel || "Not defined"}</p>
+        </div>
       </div>
 
-      <h2>Contract CRM View</h2>
-      <p className="lead">Manage contract status, payment progress, and the signed-event workflow.</p>
+      <div className="contract-kpi-grid">
+        {overviewCards.map((item) => (
+          <div key={item.label} className="card contract-kpi-card">
+            <p className="eyebrow">{item.label}</p>
+            <strong>{item.value}</strong>
+            <span>{item.subtext}</span>
+          </div>
+        ))}
+      </div>
 
       <div className="contract-workspace">
         <aside className="contract-sidebar">
           <div className="crm-hero-card card contract-sticky-card">
-            <p className="eyebrow">Contract summary</p>
+            <p className="eyebrow">Core deal</p>
             <h3>{contract.client_name}</h3>
             <p className="muted">
               {contract.event_type ?? "Event"} {contract.event_date ? `• ${contract.event_date}` : ""} {contract.venue_name ? `• ${contract.venue_name}` : ""}
@@ -101,8 +168,25 @@ export default async function ContractDetailPage({
           </div>
 
           <div className="card contract-sticky-card">
-            <p className="eyebrow">Quick Context</p>
-            <p><strong>Coverage:</strong> {details.event_coverage.includes_reception ? "Reception" : ""}{details.event_coverage.includes_reception && details.event_coverage.includes_melsi ? " + " : ""}{details.event_coverage.includes_melsi ? "Melsi" : ""}</p>
+            <p className="eyebrow">Needs attention</p>
+            <div className="contract-alert-list">
+              {warnings.length ? (
+                warnings.map((warning) => (
+                  <p key={warning} className="contract-alert-item">
+                    {warning}
+                  </p>
+                ))
+              ) : (
+                <p className="muted" style={{ margin: 0 }}>
+                  No obvious gaps right now.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="card contract-sticky-card">
+            <p className="eyebrow">Quick context</p>
+            <p><strong>Coverage:</strong> {coverageLabel || "—"}</p>
             <p><strong>Envelope:</strong> {contract.docusign_envelope_id ?? "Not sent yet"}</p>
             <p><strong>Payment method:</strong> {details.payment_record.payment_method ?? "—"}</p>
             <div className="summary-pills">
@@ -116,22 +200,27 @@ export default async function ContractDetailPage({
         </aside>
 
         <div className="contract-main">
-          <div className="card">
-            <h3>Contract Actions</h3>
-            <p className="muted">
-              Work one section at a time. The summary stays visible on the left so you do not lose the core deal information while editing.
-            </p>
-            <ContractManagementForm contract={contract} />
-          </div>
+          <div className="contract-editor-shell">
+            <div className="card contract-editor-card">
+              <h3>Edit Contract</h3>
+              <p className="muted">
+                Work one section at a time. Save, send, and sync from the same
+                workspace without losing the contract basics.
+              </p>
+              <ContractManagementForm contract={contract} />
+            </div>
 
-          <details className="card contract-preview-shell">
-            <summary className="contract-preview-toggle">
-              Preview Agreement Before Sending
-            </summary>
-            <div style={{ marginTop: "18px" }}>
+            <div className="card contract-preview-shell contract-preview-shell--sticky">
+              <div className="contract-preview-heading">
+                <div>
+                  <p className="eyebrow">Preview</p>
+                  <h3>Agreement draft</h3>
+                </div>
+                <span className="summary-chip">Before sending</span>
+              </div>
               <ContractPreview contract={contract} details={details} />
             </div>
-          </details>
+          </div>
         </div>
       </div>
     </main>
