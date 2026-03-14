@@ -138,6 +138,9 @@ export default function EventRequestForm({
   const hasFullDecoration = form.services.includes("Full decoration");
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
+  const visibleServiceSections = hasFullDecoration
+    ? serviceSections.filter((section) => section.title === "Package direction")
+    : serviceSections;
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -455,7 +458,7 @@ export default function EventRequestForm({
                 </div>
 
                 <div className="scope-sections">
-                  {serviceSections.map((section) => (
+                  {visibleServiceSections.map((section) => (
                     <div key={section.title} className="scope-card">
                       <h4>{section.title}</h4>
                       <div className="option-pills">
@@ -464,7 +467,6 @@ export default function EventRequestForm({
                             key={service}
                             type="button"
                             className={`pill ${form.services.includes(service) ? "selected" : ""}`}
-                            disabled={hasFullDecoration && service !== "Full decoration"}
                             onClick={() => toggleService(service)}
                           >
                             {service}

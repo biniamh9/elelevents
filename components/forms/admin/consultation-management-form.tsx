@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const consultationStatuses = [
   "not_scheduled",
@@ -65,6 +65,44 @@ export default function ConsultationManagementForm({
   );
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const showConsultationType =
+    consultationStatus === "requested" ||
+    consultationStatus === "scheduled" ||
+    consultationStatus === "reschedule_needed" ||
+    consultationStatus === "completed" ||
+    consultationStatus === "no_show";
+  const showConsultationAt =
+    consultationStatus === "scheduled" ||
+    consultationStatus === "reschedule_needed" ||
+    consultationStatus === "completed" ||
+    consultationStatus === "no_show";
+  const showFollowUpAt =
+    consultationStatus !== "completed" &&
+    consultationStatus !== "not_scheduled";
+  const showQuoteResponse = consultationStatus === "completed";
+
+  useEffect(() => {
+    if (!showConsultationType) {
+      setConsultationType("");
+    }
+
+    if (!showConsultationAt) {
+      setConsultationAt("");
+    }
+
+    if (!showFollowUpAt) {
+      setFollowUpAt("");
+    }
+
+    if (!showQuoteResponse) {
+      setQuoteResponseStatus("not_sent");
+    }
+  }, [
+    showConsultationAt,
+    showConsultationType,
+    showFollowUpAt,
+    showQuoteResponse,
+  ]);
 
   async function handleSave() {
     setSaving(true);
@@ -75,10 +113,16 @@ export default function ConsultationManagementForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         consultation_status: consultationStatus,
-        consultation_type: consultationType || null,
-        consultation_at: consultationAt ? new Date(consultationAt).toISOString() : null,
-        follow_up_at: followUpAt ? new Date(followUpAt).toISOString() : null,
-        quote_response_status: quoteResponseStatus,
+        consultation_type: showConsultationType ? consultationType || null : null,
+        consultation_at:
+          showConsultationAt && consultationAt
+            ? new Date(consultationAt).toISOString()
+            : null,
+        follow_up_at:
+          showFollowUpAt && followUpAt
+            ? new Date(followUpAt).toISOString()
+            : null,
+        quote_response_status: showQuoteResponse ? quoteResponseStatus : "not_sent",
       }),
     });
 
@@ -112,56 +156,64 @@ export default function ConsultationManagementForm({
           </select>
         </div>
 
-        <div className="field">
-          <label className="label">Consultation Type</label>
-          <select
-            className="input"
-            value={consultationType}
-            onChange={(e) => setConsultationType(e.target.value)}
-          >
-            <option value="">Not set</option>
-            {consultationTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
+        {showConsultationType ? (
+          <div className="field">
+            <label className="label">Consultation Type</label>
+            <select
+              className="input"
+              value={consultationType}
+              onChange={(e) => setConsultationType(e.target.value)}
+            >
+              <option value="">Not set</option>
+              {consultationTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
 
-        <div className="field">
-          <label className="label">Consultation Date & Time</label>
-          <input
-            className="input"
-            type="datetime-local"
-            value={consultationAt}
-            onChange={(e) => setConsultationAt(e.target.value)}
-          />
-        </div>
+        {showConsultationAt ? (
+          <div className="field">
+            <label className="label">Consultation Date & Time</label>
+            <input
+              className="input"
+              type="datetime-local"
+              value={consultationAt}
+              onChange={(e) => setConsultationAt(e.target.value)}
+            />
+          </div>
+        ) : null}
 
-        <div className="field">
-          <label className="label">Follow-Up Date & Time</label>
-          <input
-            className="input"
-            type="datetime-local"
-            value={followUpAt}
-            onChange={(e) => setFollowUpAt(e.target.value)}
-          />
-        </div>
+        {showFollowUpAt ? (
+          <div className="field">
+            <label className="label">Follow-Up Date & Time</label>
+            <input
+              className="input"
+              type="datetime-local"
+              value={followUpAt}
+              onChange={(e) => setFollowUpAt(e.target.value)}
+            />
+          </div>
+        ) : null}
 
-        <div className="field">
-          <label className="label">Quote Response</label>
-          <select
-            className="input"
-            value={quoteResponseStatus}
-            onChange={(e) => setQuoteResponseStatus(e.target.value)}
-          >
-            {quoteResponseStatuses.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
+        {showQuoteResponse ? (
+          <div className="field">
+            <label className="label">Quote Response</label>
+            <select
+              className="input"
+              value={quoteResponseStatus}
+              onChange={(e) => setQuoteResponseStatus(e.target.value)}
+            >
+              {quoteResponseStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
       </div>
 
       <button type="button" className="btn secondary" onClick={handleSave} disabled={saving}>
