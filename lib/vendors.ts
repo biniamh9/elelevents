@@ -35,3 +35,16 @@ export const VENDOR_REFERRAL_STATUSES = [
   "declined",
   "charged",
 ] as const;
+
+export type PublicVendorRecommendation = {
+  id: string;
+  business_name: string;
+  service_categories: string[] | null;
+  city: string | null;
+  state: string | null;
+  service_area: string | null;
+  instagram_handle: string | null;
+  website_url: string | null;
+  bio: string | null;
+  pricing_tier: string | null;
+};

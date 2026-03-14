@@ -59,6 +59,8 @@ export async function POST(request: Request) {
         colors_theme: data.colorsTheme || null,
         inspiration_notes: data.inspirationNotes || null,
         additional_info: data.additionalInfo || null,
+        requested_vendor_categories: data.requestedVendorCategories ?? [],
+        vendor_request_notes: data.vendorRequestNotes || null,
         preferred_contact_method: data.preferredContactMethod || null,
         referral_source: data.referralSource || "website_quote_request",
         needs_delivery_setup: data.needsDeliverySetup ?? false,
@@ -81,6 +83,7 @@ export async function POST(request: Request) {
         client_id: client.id,
         event_type: inserted.event_type,
         estimated_price: inserted.estimated_price,
+        requested_vendor_categories: inserted.requested_vendor_categories,
       },
     });
 

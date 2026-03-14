@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { PublicVendorRecommendation } from "@/lib/vendors";
+import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
 
 const serviceSections = [
   {
@@ -62,6 +64,8 @@ const initialState = {
   colorsTheme: "",
   inspirationNotes: "",
   additionalInfo: "",
+  requestedVendorCategories: [] as string[],
+  vendorRequestNotes: "",
   preferredContactMethod: "",
   referralSource: "",
   needsDeliverySetup: false,
@@ -80,7 +84,28 @@ function buildReviewNotes(form: typeof initialState) {
   return detailLines.join("\n\n");
 }
 
-export default function EventRequestForm() {
+function getMatchingVendors(
+  vendors: PublicVendorRecommendation[],
+  requestedCategories: string[]
+) {
+  if (requestedCategories.length === 0) {
+    return [];
+  }
+
+  return vendors.filter((vendor) =>
+    requestedCategories.some((category) =>
+      (vendor.service_categories ?? []).some(
+        (item) => item === category || item.startsWith(`${category}:`)
+      )
+    )
+  );
+}
+
+export default function EventRequestForm({
+  vendors,
+}: {
+  vendors: PublicVendorRecommendation[];
+}) {
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
   const [success, setSuccess] = useState("");
@@ -91,6 +116,7 @@ export default function EventRequestForm() {
   const missingEventInfo = !form.eventType || !form.eventDate;
   const missingScope = form.services.length === 0;
   const hasFullDecoration = form.services.includes("Full decoration");
+  const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -119,6 +145,15 @@ export default function EventRequestForm() {
           : [...nextServices, service],
       };
     });
+  }
+
+  function toggleVendorCategory(category: string) {
+    setForm((prev) => ({
+      ...prev,
+      requestedVendorCategories: prev.requestedVendorCategories.includes(category)
+        ? prev.requestedVendorCategories.filter((item) => item !== category)
+        : [...prev.requestedVendorCategories, category],
+    }));
   }
 
   function nextStep() {
@@ -382,6 +417,55 @@ export default function EventRequestForm() {
                     <span>We need delivery, setup, or teardown support built into the quote.</span>
                   </label>
                 </div>
+
+                <div className="field">
+                  <label className="label">Need help with trusted partner vendors too?</label>
+                  <div className="option-pills">
+                    {VENDOR_SERVICE_CATEGORIES.filter((item) => item !== "Other").map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
+                        onClick={() => toggleVendorCategory(category)}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {form.requestedVendorCategories.length ? (
+                  <div className="review-card vendor-recommendations">
+                    <h4>Approved partner recommendations</h4>
+                    <p className="muted">
+                      These are approved partners we can also coordinate with if you want vendor help.
+                    </p>
+                    <div className="vendor-card-grid">
+                      {matchingVendors.length ? (
+                        matchingVendors.slice(0, 6).map((vendor) => (
+                          <div key={vendor.id} className="vendor-card">
+                            <strong>{vendor.business_name}</strong>
+                            <p className="muted">
+                              {(vendor.service_categories ?? []).join(", ") || "Vendor partner"}
+                            </p>
+                            <p className="muted">
+                              {vendor.service_area || [vendor.city, vendor.state].filter(Boolean).join(", ") || "Service area not listed"}
+                            </p>
+                            {vendor.website_url ? (
+                              <a href={vendor.website_url} target="_blank" rel="noreferrer" className="link-inline">
+                                View website
+                              </a>
+                            ) : null}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="muted">
+                          We do not have a visible approved vendor listed for those categories yet, but you can still request help and we can recommend manually.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </section>
             ) : null}
 
@@ -415,6 +499,18 @@ export default function EventRequestForm() {
                   />
                 </div>
 
+                {form.requestedVendorCategories.length ? (
+                  <div className="field">
+                    <label className="label">Any notes about the vendors you want?</label>
+                    <textarea
+                      className="textarea"
+                      value={form.vendorRequestNotes}
+                      onChange={(e) => updateField("vendorRequestNotes", e.target.value)}
+                      placeholder="Budget range, style preference, location, language, or anything we should know before recommending vendors."
+                    />
+                  </div>
+                ) : null}
+
                 <div className="review-card">
                   <h4>Review before submitting</h4>
                   <div className="review-grid">
@@ -424,6 +520,7 @@ export default function EventRequestForm() {
                     <p><strong>Venue:</strong> {form.venueName || "—"}</p>
                     <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
                     <p><strong>Scope items:</strong> {form.services.length}</p>
+                    <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
                   </div>
                 </div>
               </section>
@@ -486,6 +583,20 @@ export default function EventRequestForm() {
                   ))
                 ) : (
                   <p className="muted">No scope selected yet.</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <strong>Partner vendors</strong>
+              <div className="summary-pills">
+                {form.requestedVendorCategories.length > 0 ? (
+                  form.requestedVendorCategories.map((category) => (
+                    <span key={category} className="summary-chip">
+                      {category}
+                    </span>
+                  ))
+                ) : (
+                  <p className="muted">No vendor recommendations requested.</p>
                 )}
               </div>
             </div>

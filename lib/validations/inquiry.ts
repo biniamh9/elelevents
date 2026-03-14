@@ -15,6 +15,8 @@ export const inquirySchema = z.object({
   colorsTheme: z.string().optional().nullable(),
   inspirationNotes: z.string().optional().nullable(),
   additionalInfo: z.string().optional().nullable(),
+  requestedVendorCategories: z.array(z.string()).optional().default([]),
+  vendorRequestNotes: z.string().optional().nullable(),
   preferredContactMethod: z.string().optional().nullable(),
   referralSource: z.string().optional().nullable(),
   needsDeliverySetup: z.boolean().optional().default(false),

@@ -1,6 +1,14 @@
 import EventRequestForm from "@/components/forms/event-request-form";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
-export default function RequestPage() {
+export default async function RequestPage() {
+  const { data: vendors } = await supabaseAdmin
+    .from("vendor_accounts")
+    .select("id, business_name, service_categories, city, state, service_area, instagram_handle, website_url, bio, pricing_tier")
+    .eq("approval_status", "approved")
+    .eq("is_active", true)
+    .order("business_name", { ascending: true });
+
   return (
     <main className="container section">
       <section className="booking-intro">
@@ -39,7 +47,7 @@ export default function RequestPage() {
         </div>
       </section>
 
-      <EventRequestForm />
+      <EventRequestForm vendors={vendors ?? []} />
 
       <div style={{ marginTop: "24px" }} className="grid-2">
         <div className="card">
