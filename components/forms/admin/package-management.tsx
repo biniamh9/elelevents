@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type PackageItem = {
   id: string;
@@ -20,7 +21,14 @@ function normalizeFeatures(value: string) {
     .filter(Boolean);
 }
 
-function PackageRow({ item }: { item: PackageItem }) {
+function PackageEditor({
+  item,
+  onDeleted,
+}: {
+  item: PackageItem;
+  onDeleted: (id: string) => void;
+}) {
+  const router = useRouter();
   const [name, setName] = useState(item.name);
   const [bestFor, setBestFor] = useState(item.best_for ?? "");
   const [summary, setSummary] = useState(item.summary ?? "");
@@ -58,10 +66,19 @@ function PackageRow({ item }: { item: PackageItem }) {
       return;
     }
 
-    setMessage("Saved.");
+    setMessage("Package updated.");
+    router.refresh();
   }
 
   async function deleteItem() {
+    const confirmed = window.confirm(
+      `Delete "${item.name}" from the site? This cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     setDeleting(true);
     setMessage("");
 
@@ -77,19 +94,35 @@ function PackageRow({ item }: { item: PackageItem }) {
       return;
     }
 
-    window.location.reload();
+    onDeleted(item.id);
+    router.refresh();
   }
 
   return (
-    <div className="card">
-      <div className="field">
-        <label className="label">Package Name</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+    <div className="card admin-package-editor">
+      <div className="admin-panel-head">
+        <div>
+          <p className="eyebrow">Editing Package</p>
+          <h3>{item.name}</h3>
+        </div>
+        <div className="admin-package-status">
+          <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
+            {isActive ? "Visible" : "Hidden"}
+          </span>
+          {featured ? <span className="admin-status-pill">Featured</span> : null}
+        </div>
       </div>
 
-      <div className="field">
-        <label className="label">Best For</label>
-        <input className="input" value={bestFor} onChange={(e) => setBestFor(e.target.value)} />
+      <div className="form-grid">
+        <div className="field">
+          <label className="label">Package Name</label>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label className="label">Best For</label>
+          <input className="input" value={bestFor} onChange={(e) => setBestFor(e.target.value)} />
+        </div>
       </div>
 
       <div className="field">
@@ -98,48 +131,64 @@ function PackageRow({ item }: { item: PackageItem }) {
       </div>
 
       <div className="field">
-        <label className="label">Features</label>
+        <label className="label">Package Details</label>
         <textarea
           className="textarea"
           value={features}
           onChange={(e) => setFeatures(e.target.value)}
-          placeholder="One feature per line"
+          placeholder="One feature or package detail per line"
         />
       </div>
 
       <div className="form-grid">
         <div className="field">
           <label className="label">Sort Order</label>
-          <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+          <input
+            className="input"
+            type="number"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+          />
         </div>
 
-        <div className="field" style={{ display: "grid", gap: "12px", alignContent: "start" }}>
+        <div className="field admin-package-toggle-group">
           <label className="checkline">
-            <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={featured}
+              onChange={(e) => setFeatured(e.target.checked)}
+            />
             <span>Featured package</span>
           </label>
           <label className="checkline">
-            <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
             <span>Visible on public site</span>
           </label>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+      <div className="admin-package-actions">
         <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
         <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
-          {deleting ? "Deleting..." : "Delete"}
+          {deleting ? "Deleting..." : "Delete Package"}
         </button>
       </div>
 
-      {message ? <p style={{ marginTop: "12px" }}>{message}</p> : null}
+      {message ? <p className={message.includes("updated") ? "success" : "error"}>{message}</p> : null}
     </div>
   );
 }
 
 export default function PackageManagement({ items }: { items: PackageItem[] }) {
+  const router = useRouter();
+  const [packages, setPackages] = useState(items);
+  const [selectedId, setSelectedId] = useState(items[0]?.id ?? "");
   const [name, setName] = useState("");
   const [bestFor, setBestFor] = useState("");
   const [summary, setSummary] = useState("");
@@ -148,6 +197,11 @@ export default function PackageManagement({ items }: { items: PackageItem[] }) {
   const [sortOrder, setSortOrder] = useState("");
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
+
+  const selectedItem = useMemo(
+    () => packages.find((item) => item.id === selectedId) ?? packages[0] ?? null,
+    [packages, selectedId]
+  );
 
   async function createPackage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -175,72 +229,149 @@ export default function PackageManagement({ items }: { items: PackageItem[] }) {
       return;
     }
 
-    window.location.reload();
+    setMessage("Package created. Refreshing the list...");
+    setName("");
+    setBestFor("");
+    setSummary("");
+    setFeatures("");
+    setFeatured(false);
+    setSortOrder("");
+    router.refresh();
+  }
+
+  function handleDeleted(id: string) {
+    const nextPackages = packages.filter((item) => item.id !== id);
+    setPackages(nextPackages);
+    setSelectedId(nextPackages[0]?.id ?? "");
   }
 
   return (
-    <div style={{ display: "grid", gap: "24px" }}>
-      <div className="card">
-        <h3>Create Package</h3>
-        <p className="muted">
-          Manage public package descriptions here instead of changing source files.
+    <div className="admin-package-shell">
+      <div className="card admin-package-intro">
+        <div>
+          <p className="eyebrow">Package Admin</p>
+          <h3>Update your public offers without touching code</h3>
+        </div>
+        <p className="lead">
+          Yes, you can edit existing packages here, hide them from the site, or
+          remove them completely.
         </p>
-
-        <form onSubmit={createPackage}>
-          <div className="form-grid">
-            <div className="field">
-              <label className="label">Package Name</label>
-              <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-
-            <div className="field">
-              <label className="label">Best For</label>
-              <input className="input" value={bestFor} onChange={(e) => setBestFor(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="field">
-            <label className="label">Summary</label>
-            <textarea className="textarea" value={summary} onChange={(e) => setSummary(e.target.value)} />
-          </div>
-
-          <div className="field">
-            <label className="label">Features</label>
-            <textarea
-              className="textarea"
-              value={features}
-              onChange={(e) => setFeatures(e.target.value)}
-              placeholder="One feature per line"
-            />
-          </div>
-
-          <div className="form-grid">
-            <div className="field">
-              <label className="label">Sort Order</label>
-              <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
-            </div>
-            <div className="field" style={{ display: "grid", alignContent: "end" }}>
-              <label className="checkline">
-                <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
-                <span>Featured package</span>
-              </label>
-            </div>
-          </div>
-
-          <button className="btn" type="submit" disabled={creating}>
-            {creating ? "Creating..." : "Create Package"}
-          </button>
-        </form>
-
-        {message ? <p style={{ marginTop: "12px" }}>{message}</p> : null}
       </div>
 
-      <div>
-        <h3>Existing Packages</h3>
-        <div className="package-grid">
-          {items.map((item) => (
-            <PackageRow key={item.id} item={item} />
-          ))}
+      <div className="admin-package-workspace">
+        <div className="admin-package-list-wrap">
+          <div className="card admin-package-list">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Existing Packages</p>
+                <h3>Choose one to edit</h3>
+              </div>
+            </div>
+
+            {packages.length ? (
+              <div className="admin-package-list-items">
+                {packages.map((item) => {
+                  const active = selectedItem?.id === item.id;
+
+                  return (
+                    <button
+                      type="button"
+                      key={item.id}
+                      className={`admin-package-list-item${active ? " is-active" : ""}`}
+                      onClick={() => setSelectedId(item.id)}
+                    >
+                      <div>
+                        <strong>{item.name}</strong>
+                        <span>{item.best_for || "Package details"}</span>
+                      </div>
+                      <small>{item.is_active ? "Visible" : "Hidden"}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="muted">No packages yet. Create one below.</p>
+            )}
+          </div>
+
+          <div className="card admin-package-create">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Create Package</p>
+                <h3>Add a new offer</h3>
+              </div>
+            </div>
+
+            <form onSubmit={createPackage}>
+              <div className="form-grid">
+                <div className="field">
+                  <label className="label">Package Name</label>
+                  <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+                </div>
+
+                <div className="field">
+                  <label className="label">Best For</label>
+                  <input className="input" value={bestFor} onChange={(e) => setBestFor(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="field">
+                <label className="label">Summary</label>
+                <textarea className="textarea" value={summary} onChange={(e) => setSummary(e.target.value)} />
+              </div>
+
+              <div className="field">
+                <label className="label">Package Details</label>
+                <textarea
+                  className="textarea"
+                  value={features}
+                  onChange={(e) => setFeatures(e.target.value)}
+                  placeholder="One feature or package detail per line"
+                />
+              </div>
+
+              <div className="form-grid">
+                <div className="field">
+                  <label className="label">Sort Order</label>
+                  <input
+                    className="input"
+                    type="number"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                  />
+                </div>
+                <div className="field admin-package-toggle-group">
+                  <label className="checkline">
+                    <input
+                      type="checkbox"
+                      checked={featured}
+                      onChange={(e) => setFeatured(e.target.checked)}
+                    />
+                    <span>Featured package</span>
+                  </label>
+                </div>
+              </div>
+
+              <button className="btn" type="submit" disabled={creating}>
+                {creating ? "Creating..." : "Create Package"}
+              </button>
+            </form>
+
+            {message ? <p className={message.includes("created") ? "success" : "error"}>{message}</p> : null}
+          </div>
+        </div>
+
+        <div className="admin-package-editor-wrap">
+          {selectedItem ? (
+            <PackageEditor item={selectedItem} onDeleted={handleDeleted} />
+          ) : (
+            <div className="card admin-package-empty">
+              <h3>No package selected</h3>
+              <p className="muted">
+                Create your first package or choose one from the list to edit it.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -11,11 +11,15 @@ export default async function AdminPackagesPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="container section">
-      <h2>Package Management</h2>
-      <p className="lead">
-        Create, edit, feature, and archive public package content.
-      </p>
+    <main className="admin-page section">
+      <div className="section-heading">
+        <p className="eyebrow">Packages</p>
+        <h1>Manage public packages</h1>
+        <p className="lead">
+          Keep the package list clean, update package details, hide anything you
+          no longer want public, or delete a package entirely.
+        </p>
+      </div>
 
       {error ? <p className="error">Failed to load packages: {error.message}</p> : null}
       <PackageManagement items={data ?? []} />
