@@ -5,16 +5,16 @@ import { getPackages } from "@/lib/packages";
 
 const promisePoints = [
   {
-    title: "Full-room styling",
-    text: "Head table, backdrop, guest tables, entrance decor, and the visual rhythm of the whole space.",
+    title: "Curated room composition",
+    text: "Head table, backdrop, guest tables, entrance decor, and the visual rhythm of the whole room.",
   },
   {
-    title: "Consultation-first quoting",
-    text: "The quote follows the real conversation, not a fake calculator on the website.",
+    title: "Pinterest-worthy without chaos",
+    text: "Layered, romantic, and polished, but still usable for a real event day and real venue rules.",
   },
   {
-    title: "Clean process",
-    text: "Inquiry, consultation, quote, contract, and payment tracking in one organized flow.",
+    title: "Luxury feel, clear process",
+    text: "Inquiry, consultation, quote, contract, and payment flow without making the client feel lost.",
   },
 ];
 
@@ -101,38 +101,52 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="editorial-banner">
-          <p className="eyebrow">Why It Works</p>
+        <div className="editorial-banner editorial-banner--lookbook">
+          <div>
+            <p className="eyebrow">Brand direction</p>
+            <h2>Part mood board. Part concierge. Part booking system.</h2>
+          </div>
           <div className="editorial-banner-copy">
-            <h2>One message. One focus. One clear next step.</h2>
             <p>
-              Clients do not need ten sections fighting for attention. They need
-              to understand your taste, trust your work, and know where to begin.
+              The website should feel like inspiration first, then move cleanly
+              into booking. That means fewer brochure blocks and more curated
+              scenes, stronger imagery, and one confident path into the quote flow.
             </p>
           </div>
         </div>
       </section>
 
       <section className="container section">
-        <div className="service-ribbon">
-          {promisePoints.map((item) => (
-            <div key={item.title} className="service-ribbon-card">
-              <h3>{item.title}</h3>
-              <p className="muted">{item.text}</p>
-            </div>
-          ))}
+        <div className="brand-mosaic">
+          <div className="brand-mosaic-copy card">
+            <p className="eyebrow">What clients should feel</p>
+            <h2>They should imagine the room before they even call.</h2>
+            <p className="lead">
+              The visual tone needs to do some of the selling for you. Not by
+              shouting, but by making the work feel elevated, curated, and worth
+              inquiring about.
+            </p>
+          </div>
+
+          <div className="brand-mosaic-grid">
+            {promisePoints.map((item, index) => (
+              <div key={item.title} className={`service-ribbon-card brand-mosaic-card brand-mosaic-card--${index + 1}`}>
+                <h3>{item.title}</h3>
+                <p className="muted">{item.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="container section">
-        <div className="process-shell card">
+        <div className="process-shell card process-shell--luxury">
           <div className="process-copy">
-            <span className="eyebrow">How It Works</span>
-            <h2>Simple for the customer. Organized for you.</h2>
+            <span className="eyebrow">Booking journey</span>
+            <h2>A booking system that still feels personal.</h2>
             <p className="lead">
-              The website captures the request, you review the scope, agree on
-              the quote after the consultation, and send the contract only when
-              the details make sense.
+              Clients come for the style. They stay because the process feels
+              guided, premium, and easy to understand.
             </p>
           </div>
 
@@ -171,34 +185,39 @@ export default async function HomePage() {
       </section>
 
       <section className="container section section--gallery-highlight">
-        <div className="card cta-shell cta-shell--light">
-          <div>
-            <span className="eyebrow">What You Can Expect</span>
-            <h2>A room that feels styled with intention, not crowded with random pieces.</h2>
+        <div className="lookbook-strip">
+          <div className="lookbook-copy card">
+            <span className="eyebrow">Lookbook energy</span>
+            <h2>More like a saved board of dream rooms. Less like a local directory listing.</h2>
             <p className="lead">
-              We focus on the visual flow of the event: the entrance, the focal
-              tables, the guest experience, and the way every element works
-              together once the room is full.
+              Couples and families should be able to picture their own event in
+              the work, then move into the quote flow without friction.
             </p>
           </div>
 
-          <div className="btn-row">
-            <Link href="/gallery" className="btn secondary">
-              View Gallery
-            </Link>
-            <Link href="/packages" className="btn secondary">
-              Compare Packages
-            </Link>
+          <div className="lookbook-actions card">
+            <div>
+              <strong>Browse rooms, focal points, and styling moments.</strong>
+              <p className="muted">Then decide whether you want a full-room concept or selected details only.</p>
+            </div>
+            <div className="btn-row">
+              <Link href="/gallery" className="btn secondary">
+                Open Gallery
+              </Link>
+              <Link href="/packages" className="btn secondary">
+                See Packages
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="container section">
-        <div className="grid-3">
+        <div className="grid-3 package-teaser-grid">
           {packages.map((pkg, index) => (
             <div
               key={pkg.id}
-              className={`package-card ${index === 1 ? "featured" : ""}`}
+              className={`package-card package-card--teaser ${index === 1 ? "featured" : ""}`}
             >
               <p className="eyebrow">{pkg.best_for ?? "Decor package"}</p>
               <h3>{pkg.name}</h3>
@@ -207,6 +226,7 @@ export default async function HomePage() {
                   pkg.best_for ??
                   "Custom decor support tailored to your event."}
               </p>
+              <span className="package-card-link">Explore package</span>
             </div>
           ))}
         </div>

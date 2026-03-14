@@ -3,59 +3,56 @@ import EventRequestForm from "@/components/forms/event-request-form";
 export default function RequestPage() {
   return (
     <main className="container section">
-      <h2>Start Your Decor Booking</h2>
-      <p className="lead">
-        This flow is designed to collect the details we actually need before a
-        consultation. It is not a generic contact form and it does not book the
-        event automatically. It helps us review your scope, confirm availability,
-        and prepare for a real planning conversation.
-      </p>
-
-      <div className="grid-2" style={{ marginBottom: "24px" }}>
-        <div className="card">
-          <h3>How This Booking Flow Works</h3>
-          <p className="muted">
-            Good leads are built on specifics. The form now walks through the
-            event, the decor scope, and the preferred consultation path.
+      <section className="booking-intro">
+        <div className="booking-intro-copy">
+          <p className="eyebrow">Request a Quote</p>
+          <h1>Start with the room you want, not just the event date.</h1>
+          <p className="lead">
+            This is where the booking system meets the brand. It should still
+            feel refined and visual, but it also needs to gather the details
+            that make the consultation and quote process stronger.
           </p>
-          <ul>
-            <li>Share your event details and decor priorities</li>
-            <li>Select the areas you want styled or rented</li>
-            <li>Tell us how you want the consultation to happen</li>
-            <li>We review the request before quoting or scheduling</li>
-          </ul>
         </div>
 
-        <div className="card">
-          <h3>What Makes a Request Strong</h3>
-          <p className="muted">
-            The best inquiries make the consultation easier, the quote faster,
-            and the contract cleaner.
-          </p>
-          <ul>
-            <li>Event date, guest count, and venue status</li>
-            <li>Specific decor zones like head table or buffet styling</li>
-            <li>Theme direction, inspiration, and must-have details</li>
-            <li>Setup, teardown, and rental support needs</li>
-          </ul>
+        <div className="booking-intro-notes card">
+          <div className="booking-note">
+            <span>01</span>
+            <div>
+              <strong>Share the event basics</strong>
+              <p className="muted">Date, venue status, guest count, and event type.</p>
+            </div>
+          </div>
+          <div className="booking-note">
+            <span>02</span>
+            <div>
+              <strong>Pick full decor or selected areas</strong>
+              <p className="muted">Backdrop, head table, guest tables, entrance, buffet, and more.</p>
+            </div>
+          </div>
+          <div className="booking-note">
+            <span>03</span>
+            <div>
+              <strong>Move into consultation</strong>
+              <p className="muted">We review the request first, then quote after the real conversation.</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       <EventRequestForm />
 
       <div style={{ marginTop: "24px" }} className="grid-2">
         <div className="card">
-          <h3>Estimate First, Consultation Second</h3>
+          <h3>No fake instant pricing</h3>
           <p className="muted">
-            The estimate shown in the form is only a starting point. Final
-            pricing may vary depending on design complexity, rentals, venue
-            restrictions, setup requirements, teardown logistics, and staffing
-            needs.
+            Quotes happen after the consultation. The website should feel more
+            like a luxury booking experience than a cheap calculator for a
+            custom decor service.
           </p>
         </div>
 
         <div className="card">
-          <h3>What Happens Next?</h3>
+          <h3>What happens after submission?</h3>
           <p className="muted">
             After you submit, we review the request internally, reach out for a
             consultation if needed, confirm scope, and then move to quote,
