@@ -4,7 +4,7 @@ export default function RequestPage() {
   return (
     <main className="container section">
       <section className="booking-intro">
-        <div className="booking-intro-copy">
+        <div className="booking-intro-copy page-hero-copy">
           <p className="eyebrow">Request a Quote</p>
           <h1>Start with the room you want, not just the event date.</h1>
           <p className="lead">

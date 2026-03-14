@@ -6,7 +6,7 @@ export default async function GalleryPage() {
 
   return (
     <main className="container section">
-      <div className="section-heading gallery-page-head">
+      <div className="section-heading gallery-page-head page-hero-copy">
         <p className="eyebrow">Gallery</p>
         <h1>Browse the work like a saved board of rooms, details, and focal points.</h1>
         <p className="lead">

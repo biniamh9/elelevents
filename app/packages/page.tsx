@@ -5,7 +5,7 @@ export default async function PackagesPage() {
 
   return (
     <main className="container section">
-      <div className="section-heading package-page-head">
+      <div className="section-heading package-page-head page-hero-copy">
         <p className="eyebrow">Packages</p>
         <h1>Choose the level of styling, then tailor the room after the consultation.</h1>
         <p className="lead">

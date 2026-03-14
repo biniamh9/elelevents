@@ -143,7 +143,7 @@ export default async function HomePage() {
 
       <section className="container section">
         <div className="promise-gallery">
-          <div className="promise-gallery-copy card">
+          <div className="promise-gallery-copy">
             <p className="eyebrow">What makes it different</p>
             <h2>
               A decor brand should look curated before the client ever fills out
