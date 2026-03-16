@@ -53,6 +53,8 @@ export default async function HomePage() {
   const testimonials = await getTestimonials(3);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const leadImage = galleryPreview[0]?.image_url;
+  const detailImage = galleryPreview[1]?.image_url ?? leadImage;
+  const accentImage = galleryPreview[2]?.image_url ?? leadImage;
 
   return (
     <main className="home-shell home-shell--simple">
@@ -101,8 +103,34 @@ export default async function HomePage() {
           </div>
 
           <div className="hero-stage-visual hero-stage-visual--simple">
-            <div className="hero-stage-card hero-stage-card--tall">
-              <img src={leadImage} alt="Luxury event setup by Elel Events" />
+            <div className="hero-stage-showcase">
+              <div className="hero-stage-card hero-stage-card--tall hero-stage-card--lead">
+                <img src={leadImage} alt="Luxury event setup by Elel Events" />
+                <div className="hero-stage-card-caption">
+                  <span>Reception reveal</span>
+                  <strong>Elegant rooms with focal detail and a clean finish.</strong>
+                </div>
+              </div>
+
+              <div className="hero-stage-side-stack">
+                <div className="hero-stage-card hero-stage-card--detail hero-stage-card--accent">
+                  <img src={detailImage} alt="Styled head table by Elel Events" />
+                </div>
+
+                <div className="hero-stage-mood-note card">
+                  <p className="eyebrow">Visual direction</p>
+                  <h3>Layered styling, warm lighting, and focal points that photograph well.</h3>
+                  <div className="hero-stage-mood-tags">
+                    <span>Head table</span>
+                    <span>Backdrop</span>
+                    <span>Melsi</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hero-stage-card hero-stage-card--wide hero-stage-card--floating">
+                <img src={accentImage} alt="Decor detail by Elel Events" />
+              </div>
             </div>
           </div>
         </div>
