@@ -34,6 +34,9 @@ export default async function AdminLayout({
               <Link href="/admin/vendors" className="admin-topbar-tab">
                 Vendors
               </Link>
+              <Link href="/admin/testimonials" className="admin-topbar-tab">
+                Testimonials
+              </Link>
             </div>
           </div>
           <div className="admin-topbar-actions">

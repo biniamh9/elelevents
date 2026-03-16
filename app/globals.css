@@ -497,6 +497,68 @@ a { color: inherit; text-decoration: none; }
   margin: 0;
   font-size: 1.5rem;
 }
+.simple-testimonial-shell {
+  display: grid;
+  gap: 22px;
+  padding: 28px;
+}
+.simple-testimonial-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+}
+.simple-testimonial-head h2 {
+  margin: 8px 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+.simple-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.testimonial-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.testimonial-stars {
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  font-size: 0.95rem;
+}
+.testimonial-source {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.testimonial-quote {
+  margin: 18px 0 22px;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+.testimonial-meta {
+  display: grid;
+  gap: 4px;
+}
+.testimonial-meta small {
+  color: var(--muted);
+}
+.admin-testimonial-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  color: var(--accent-dark);
+}
+.admin-testimonial-preview span {
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
 .package-salon {
   display: grid;
   gap: 20px;
@@ -2229,7 +2291,7 @@ th { background: var(--surface-soft); }
   50% { transform: translateY(-10px); }
 }
 @media (max-width: 900px) {
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

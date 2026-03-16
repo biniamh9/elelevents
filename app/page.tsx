@@ -2,6 +2,7 @@ import Link from "next/link";
 import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import { getGalleryItems } from "@/lib/gallery";
 import { getPackages } from "@/lib/packages";
+import { getTestimonials } from "@/lib/testimonials";
 
 const planningPaths = [
   {
@@ -47,6 +48,7 @@ const processSteps = [
 export default async function HomePage() {
   const galleryPreview = await getGalleryItems(6);
   const packages = await getPackages(3);
+  const testimonials = await getTestimonials(3);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const leadImage = galleryPreview[0]?.image_url;
 
@@ -179,6 +181,45 @@ export default async function HomePage() {
             <Link href="/request" className="link-inline">
               Request your quote
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="container section">
+        <div className="simple-testimonial-shell card">
+          <div className="simple-testimonial-head">
+            <div>
+              <p className="eyebrow">Client trust</p>
+              <h2>5-star feedback from real celebrations</h2>
+            </div>
+            <a
+              href="https://www.google.com/search?q=Elel+Events+and+Design+reviews"
+              target="_blank"
+              rel="noreferrer"
+              className="link-inline"
+            >
+              View Google reviews
+            </a>
+          </div>
+
+          <div className="simple-testimonial-grid">
+            {testimonials.map((item) => (
+              <article key={item.id} className="testimonial-card card">
+                <div className="testimonial-card-top">
+                  <span className="testimonial-stars">
+                    {"★".repeat(item.rating ?? 5)}
+                  </span>
+                  <span className="testimonial-source">
+                    {item.source_label || "Google review"}
+                  </span>
+                </div>
+                <p className="testimonial-quote">“{item.highlight || item.quote}”</p>
+                <div className="testimonial-meta">
+                  <strong>{item.reviewer_name}</strong>
+                  <small>{item.event_type || "Event client"}</small>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>

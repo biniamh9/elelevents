@@ -41,6 +41,12 @@ const navItems: NavItem[] = [
     description: "Referral partners",
     icon: "users",
   },
+  {
+    href: "/admin/testimonials",
+    label: "Testimonials",
+    description: "Homepage reviews",
+    icon: "quote",
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -82,6 +88,13 @@ function SidebarIcon({ icon }: { icon: string }) {
           <circle cx="10" cy="8" r="3" />
           <path d="M20 19v-1a4 4 0 0 0-3-3.87" />
           <path d="M16 5.13a3 3 0 0 1 0 5.74" />
+        </svg>
+      );
+    case "quote":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M10 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
+          <path d="M19 9h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
         </svg>
       );
     default:
