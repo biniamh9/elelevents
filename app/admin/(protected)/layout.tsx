@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/auth/admin";
 import AdminSidebar from "@/components/admin/admin-sidebar";
+import AdminNotificationBell from "@/components/admin/admin-notification-bell";
 
 export default async function AdminLayout({
   children,
@@ -40,6 +41,7 @@ export default async function AdminLayout({
             </div>
           </div>
           <div className="admin-topbar-actions">
+            <AdminNotificationBell />
             <Link href="/admin/gallery" className="admin-topbar-pill">
               Gallery
             </Link>

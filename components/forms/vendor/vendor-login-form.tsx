@@ -26,6 +26,10 @@ export default function VendorLoginForm() {
       return;
     }
 
+    await fetch("/api/vendors/session-log", {
+      method: "POST",
+    }).catch(() => undefined);
+
     router.push("/vendors/dashboard");
     router.refresh();
   }
