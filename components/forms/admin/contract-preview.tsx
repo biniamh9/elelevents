@@ -22,6 +22,20 @@ export default function ContractPreview({
   contract: any;
   details: ContractDetails;
 }) {
+  const visualReferences = [
+    {
+      label: "Head table reference",
+      url: details.visual_references.head_table_image_url,
+    },
+    {
+      label: "Centerpiece reference",
+      url: details.visual_references.centerpiece_image_url,
+    },
+    {
+      label: "Traditional (Melsi) reference",
+      url: details.visual_references.melsi_image_url,
+    },
+  ].filter((item) => item.url);
   const coverageLabel =
     details.event_coverage.includes_reception && details.event_coverage.includes_melsi
       ? "Reception and Melsi"
@@ -149,6 +163,16 @@ export default function ContractPreview({
           {details.counts.bridal_party_count ?? "________________"}
         </p>
 
+        {details.event_coverage.includes_melsi ? (
+          <>
+            <h4>Melsi Coverage</h4>
+            <p>
+              This agreement also includes the Traditional (Melsi) setup and styling
+              scheduled for <strong>{formatDate(details.event_coverage.melsi_date)}</strong>.
+            </p>
+          </>
+        ) : null}
+
         <h4>Decoration Details</h4>
         <div className="contract-preview-list">
           {details.decor_items.map((item, index) => (
@@ -158,6 +182,20 @@ export default function ContractPreview({
             </div>
           ))}
         </div>
+
+        {visualReferences.length ? (
+          <>
+            <h4>Visual References</h4>
+            <div className="contract-reference-preview-grid">
+              {visualReferences.map((item) => (
+                <div key={item.label} className="contract-reference-preview-item">
+                  <strong>{item.label}</strong>
+                  <img src={item.url ?? ""} alt={item.label} />
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
 
         {details.custom_clauses ? (
           <>

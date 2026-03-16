@@ -25,6 +25,11 @@ export type ContractDetails = {
     bridal_party_count: number | null;
   };
   decor_items: DecorLineItem[];
+  visual_references: {
+    head_table_image_url: string | null;
+    centerpiece_image_url: string | null;
+    melsi_image_url: string | null;
+  };
   materials_and_colors: string | null;
   payment_record: {
     deposit_received_amount: number | null;
@@ -248,6 +253,10 @@ export function normalizeContractDetails(
     record.payment_record && typeof record.payment_record === "object"
       ? (record.payment_record as Record<string, unknown>)
       : {};
+  const visualReferences =
+    record.visual_references && typeof record.visual_references === "object"
+      ? (record.visual_references as Record<string, unknown>)
+      : {};
 
   return {
     agreement_date:
@@ -290,6 +299,13 @@ export function normalizeContractDetails(
       bridal_party_count: toNullableNumber(counts.bridal_party_count),
     },
     decor_items: normalizeDecorItems(record.decor_items, services),
+    visual_references: {
+      head_table_image_url: toNullableString(visualReferences.head_table_image_url),
+      centerpiece_image_url: toNullableString(
+        visualReferences.centerpiece_image_url
+      ),
+      melsi_image_url: toNullableString(visualReferences.melsi_image_url),
+    },
     materials_and_colors:
       toNullableString(record.materials_and_colors) ??
       toNullableString(scope.colors_theme),
@@ -334,6 +350,42 @@ export function renderContractHtml(
       `
     )
     .join("");
+  const referenceImages = [
+    {
+      label: "Head table reference",
+      url: details.visual_references.head_table_image_url,
+    },
+    {
+      label: "Centerpiece reference",
+      url: details.visual_references.centerpiece_image_url,
+    },
+    {
+      label: "Traditional (Melsi) reference",
+      url: details.visual_references.melsi_image_url,
+    },
+  ]
+    .filter((item) => item.url)
+    .map(
+      (item) => `
+        <div class="reference-card">
+          <strong>${escapeHtml(item.label)}</strong>
+          <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label)}" />
+        </div>
+      `
+    )
+    .join("");
+  const melsiSection = details.event_coverage.includes_melsi
+    ? `
+    <div class="box">
+      <p><strong>Melsi coverage included:</strong> Yes</p>
+      <p><strong>Melsi date:</strong> ${formatDate(details.event_coverage.melsi_date)}</p>
+      <p>
+        This agreement also covers the Traditional (Melsi) setup and styling discussed
+        with the client, including any next-day setup scope documented in the contract details.
+      </p>
+    </div>
+    `
+    : "";
 
   return `<!doctype html>
 <html>
@@ -349,6 +401,10 @@ export function renderContractHtml(
       .box { border: 1px solid #d8c1ca; border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
       .decor-row { border: 1px solid #e7d4db; border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
       .decor-row p { margin: 6px 0 0; }
+      .reference-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+      .reference-card { border: 1px solid #e7d4db; border-radius: 12px; padding: 12px; }
+      .reference-card strong { display: block; margin-bottom: 8px; }
+      .reference-card img { width: 100%; height: auto; border-radius: 10px; display: block; }
       .signature-block { margin-top: 24px; }
       .signature-line { margin: 20px 0; }
     </style>
@@ -442,8 +498,16 @@ export function renderContractHtml(
       <p><strong>Coverage notes:</strong> ${escapeHtml(details.event_coverage.coverage_notes ?? "________________")}</p>
     </div>
 
+    ${melsiSection}
+
     <h2>Decoration Details</h2>
     ${decorRows}
+
+    ${
+      referenceImages
+        ? `<h2>Visual References</h2><div class="reference-grid">${referenceImages}</div>`
+        : ""
+    }
 
     ${
       details.custom_clauses

@@ -200,27 +200,28 @@ export default async function ContractDetailPage({
         </aside>
 
         <div className="contract-main">
-          <div className="contract-editor-shell">
-            <div className="card contract-editor-card">
-              <h3>Edit Contract</h3>
-              <p className="muted">
-                Work one section at a time. Save, send, and sync from the same
-                workspace without losing the contract basics.
-              </p>
-              <ContractManagementForm contract={contract} />
-            </div>
+          <div className="card contract-editor-card">
+            <h3>Edit Contract</h3>
+            <p className="muted">
+              Work one section at a time. Save, send, and sync from the same
+              workspace without losing the contract basics.
+            </p>
+            <ContractManagementForm contract={contract} />
+          </div>
 
-            <div className="card contract-preview-shell contract-preview-shell--sticky">
-              <div className="contract-preview-heading">
-                <div>
-                  <p className="eyebrow">Preview</p>
-                  <h3>Agreement draft</h3>
-                </div>
-                <span className="summary-chip">Before sending</span>
+          <details className="card contract-preview-shell">
+            <summary className="contract-preview-toggle">
+              <span>Preview agreement draft</span>
+              <span className="summary-chip">Before sending</span>
+            </summary>
+            <div className="contract-preview-heading">
+              <div>
+                <p className="eyebrow">Preview</p>
+                <h3>Agreement draft</h3>
               </div>
               <ContractPreview contract={contract} details={details} />
             </div>
-          </div>
+          </details>
         </div>
       </div>
     </main>

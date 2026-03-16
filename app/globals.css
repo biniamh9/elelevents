@@ -1215,6 +1215,12 @@ th { background: var(--surface-soft); }
 .contract-line-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 16px; }
 .contract-line-list { display: grid; gap: 16px; }
 .contract-line-item { padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: #fffdfd; }
+.contract-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
 .contract-preview-list { display: grid; gap: 12px; margin-top: 14px; }
 .contract-preview-item { padding: 14px 16px; border: 1px solid var(--border); border-radius: 18px; background: #fffdfd; }
 .contract-preview-item strong { display: block; margin-bottom: 6px; }
@@ -1222,26 +1228,10 @@ th { background: var(--surface-soft); }
 .contract-workspace { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
 .contract-sidebar { display: grid; gap: 18px; }
 .contract-main { display: grid; gap: 24px; min-width: 0; }
-.contract-editor-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
-  gap: 20px;
-  align-items: start;
-}
 .contract-editor-card {
   padding: 24px;
 }
-.contract-preview-shell--sticky {
-  position: sticky;
-  top: 94px;
-  max-height: calc(100vh - 120px);
-  overflow: auto;
-}
 .contract-preview-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: start;
   margin-bottom: 18px;
 }
 .contract-preview-heading h3 {
@@ -1263,24 +1253,43 @@ th { background: var(--surface-soft); }
   border: 1px solid rgba(var(--accent-rgb), 0.15);
 }
 .contract-preview-shell { padding: 24px; }
-.contract-preview-toggle { cursor: pointer; font-weight: 700; list-style: none; }
+.contract-preview-toggle {
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
 .contract-preview-toggle::-webkit-details-marker { display: none; }
 .contract-agreement-preview h3 { margin-top: 0; margin-bottom: 18px; }
 .contract-preview-copy { display: grid; gap: 12px; line-height: 1.7; }
 .contract-preview-copy h4 { margin: 12px 0 0; font-size: 1rem; }
 .contract-preview-copy p { margin: 0; }
+.contract-reference-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.contract-reference-preview-item {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fffdfd;
+}
+.contract-reference-preview-item strong {
+  display: block;
+  margin-bottom: 10px;
+}
+.contract-reference-preview-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+}
 
 @media (max-width: 1560px) {
-  .contract-editor-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .contract-preview-shell--sticky {
-    position: static;
-    max-height: none;
-    overflow: visible;
-  }
-
   .contract-page-header,
   .contract-kpi-grid,
   .contract-editor-overview {
@@ -1292,7 +1301,9 @@ th { background: var(--surface-soft); }
   .contract-workspace,
   .contract-page-header,
   .contract-kpi-grid,
-  .contract-editor-overview {
+  .contract-editor-overview,
+  .contract-reference-grid,
+  .contract-reference-preview-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1888,7 +1899,7 @@ th { background: var(--surface-soft); }
   50% { transform: translateY(-10px); }
 }
 @media (max-width: 900px) {
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .contract-editor-shell { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .nav { flex-direction: column; align-items: flex-start; }
@@ -1936,7 +1947,6 @@ th { background: var(--surface-soft); }
   .booking-actions { flex-direction: column; }
   .contract-line-header { flex-direction: column; align-items: stretch; }
   .contract-section-tabs { position: static; padding-top: 0; }
-  .contract-preview-shell--sticky,
   .contract-sticky-card {
     position: static;
     max-height: none;

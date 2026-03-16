@@ -657,6 +657,53 @@ export default function ContractManagementForm({
               </div>
             ))}
           </div>
+
+          <div className="contract-reference-grid">
+            <div className="field">
+              <label className="label">Head Table Reference Image</label>
+              <input
+                className="input"
+                value={details.visual_references.head_table_image_url || ""}
+                onChange={(e) =>
+                  updateDetails("visual_references", {
+                    ...details.visual_references,
+                    head_table_image_url: e.target.value || null,
+                  })
+                }
+                placeholder="Paste an image URL the client should see in the contract"
+              />
+            </div>
+
+            <div className="field">
+              <label className="label">Centerpiece Reference Image</label>
+              <input
+                className="input"
+                value={details.visual_references.centerpiece_image_url || ""}
+                onChange={(e) =>
+                  updateDetails("visual_references", {
+                    ...details.visual_references,
+                    centerpiece_image_url: e.target.value || null,
+                  })
+                }
+                placeholder="Paste an image URL for centerpiece expectations"
+              />
+            </div>
+
+            <div className="field">
+              <label className="label">Traditional (Melsi) Reference Image</label>
+              <input
+                className="input"
+                value={details.visual_references.melsi_image_url || ""}
+                onChange={(e) =>
+                  updateDetails("visual_references", {
+                    ...details.visual_references,
+                    melsi_image_url: e.target.value || null,
+                  })
+                }
+                placeholder="Paste an image URL for the Melsi setup"
+              />
+            </div>
+          </div>
         </div>
         ) : null}
 
