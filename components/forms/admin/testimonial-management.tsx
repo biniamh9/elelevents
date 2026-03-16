@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { TestimonialItem } from "@/lib/testimonials";
 
@@ -194,6 +194,16 @@ export default function TestimonialManagement({ items }: { items: TestimonialIte
     [testimonials, selectedId]
   );
 
+  useEffect(() => {
+    setTestimonials(items);
+    setSelectedId((current) => {
+      if (items.some((item) => item.id === current)) {
+        return current;
+      }
+      return items[0]?.id ?? "";
+    });
+  }, [items]);
+
   async function createTestimonial(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreating(true);
@@ -220,6 +230,10 @@ export default function TestimonialManagement({ items }: { items: TestimonialIte
     if (!res.ok) {
       setMessage(data.error || "Failed to create testimonial.");
       return;
+    }
+
+    if (data.id) {
+      setSelectedId(data.id);
     }
 
     setMessage("Testimonial created. Refreshing the list...");
@@ -355,7 +369,11 @@ export default function TestimonialManagement({ items }: { items: TestimonialIte
 
         <div className="admin-package-editor-wrap">
           {selectedItem ? (
-            <TestimonialEditor item={selectedItem} onDeleted={handleDeleted} />
+            <TestimonialEditor
+              key={selectedItem.id}
+              item={selectedItem}
+              onDeleted={handleDeleted}
+            />
           ) : (
             <div className="card admin-package-empty">
               <p className="eyebrow">No testimonial selected</p>

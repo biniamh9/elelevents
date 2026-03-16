@@ -4,6 +4,8 @@ import { getGalleryItems } from "@/lib/gallery";
 import { getPackages } from "@/lib/packages";
 import { getTestimonials } from "@/lib/testimonials";
 
+export const dynamic = "force-dynamic";
+
 const planningPaths = [
   {
     title: "Wedding reception",
