@@ -11,11 +11,14 @@ export default async function AdminGalleryPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="container section">
-      <h2>Gallery Management</h2>
-      <p className="lead">
-        Upload images, control public visibility, and manage gallery order.
-      </p>
+    <main className="admin-page section">
+      <div className="section-heading">
+        <p className="eyebrow">Gallery</p>
+        <h1>Manage gallery images</h1>
+        <p className="lead">
+          Upload images, control public visibility, and keep the portfolio clean.
+        </p>
+      </div>
 
       {error ? <p className="error">Failed to load gallery items: {error.message}</p> : null}
       <GalleryManagement items={data ?? []} />
