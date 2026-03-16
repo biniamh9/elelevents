@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
+import type { Viewport } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import SiteHeader from "@/components/site/site-header";
 
 const displayFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -19,34 +19,26 @@ const bodyFont = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Elel Events",
   description: "Quote-first event planning and decor website",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Elel Events",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f6ede3",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${displayFont.variable} ${bodyFont.variable}`}>
-        <header className="site-header">
-          <div className="container nav">
-            <Link href="/" className="brand brand-logo" aria-label="Elel Events home">
-              <Image
-                src="/logo.png"
-                alt="Elel Events logo"
-                width={320}
-                height={120}
-                priority
-                className="brand-logo-image"
-              />
-            </Link>
-            <nav className="nav-links">
-              <Link href="/">Home</Link>
-              <Link href="/request">Request Quote</Link>
-              <Link href="/gallery">Gallery</Link>
-              <Link href="/packages">Packages</Link>
-              <Link href="/vendors">Vendors</Link>
-              <Link href="/admin/login">Admin</Link>
-            </nav>
-          </div>
-        </header>
+        <SiteHeader />
         {children}
       </body>
     </html>
