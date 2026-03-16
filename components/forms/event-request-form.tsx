@@ -62,6 +62,7 @@ const initialState = {
   indoorOutdoor: "",
   colorsTheme: "",
   inspirationNotes: "",
+  visionBoardUrls: [] as string[],
   additionalInfo: "",
   requestedVendorCategories: [] as string[],
   vendorRequestNotes: "",
@@ -131,6 +132,7 @@ export default function EventRequestForm({
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingVisionBoard, setUploadingVisionBoard] = useState(false);
 
   const missingCoreInfo = !form.firstName || !form.lastName || !form.email || !form.phone;
   const missingEventInfo = !form.eventType || !form.eventDate;
@@ -144,6 +146,59 @@ export default function EventRequestForm({
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleVisionBoardUpload(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const files = Array.from(e.target.files ?? []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    if (form.visionBoardUrls.length + files.length > 5) {
+      setError("Upload up to 5 inspiration images.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadingVisionBoard(true);
+    setError("");
+
+    try {
+      const payload = new FormData();
+      files.forEach((file) => payload.append("files", file));
+
+      const res = await fetch("/api/inquiries/vision-board", {
+        method: "POST",
+        body: payload,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to upload vision board images.");
+        return;
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        visionBoardUrls: [...prev.visionBoardUrls, ...(data.urls ?? [])],
+      }));
+    } catch {
+      setError("Something went wrong while uploading inspiration images.");
+    } finally {
+      setUploadingVisionBoard(false);
+      e.target.value = "";
+    }
+  }
+
+  function removeVisionBoardImage(url: string) {
+    setForm((prev) => ({
+      ...prev,
+      visionBoardUrls: prev.visionBoardUrls.filter((item) => item !== url),
+    }));
   }
 
   function toggleService(service: string) {
@@ -503,6 +558,47 @@ export default function EventRequestForm({
                     onChange={(e) => updateField("inspirationNotes", e.target.value)}
                     placeholder="Tell us the look you want, what matters most, and anything we should plan around."
                   />
+                </div>
+
+                <div className="field">
+                  <label className="label">Upload inspiration or vision-board images</label>
+                  <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
+                    Keep this easy. Upload up to 5 images so we can see the look
+                    you are trying to achieve without forcing you to describe
+                    everything in text.
+                  </p>
+                  <label className="vision-board-dropzone">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleVisionBoardUpload}
+                      disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                    />
+                    <strong>
+                      {uploadingVisionBoard ? "Uploading..." : "Add inspiration images"}
+                    </strong>
+                    <span>
+                      {form.visionBoardUrls.length}/5 uploaded
+                    </span>
+                  </label>
+
+                  {form.visionBoardUrls.length ? (
+                    <div className="vision-board-grid">
+                      {form.visionBoardUrls.map((url, index) => (
+                        <div key={url} className="vision-board-item">
+                          <img src={url} alt={`Vision board ${index + 1}`} />
+                          <button
+                            type="button"
+                            className="vision-board-remove"
+                            onClick={() => removeVisionBoardImage(url)}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="field">

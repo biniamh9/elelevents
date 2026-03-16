@@ -138,6 +138,24 @@ export default async function InquiryDetailPage({
           <h3>Notes from Client</h3>
           <p><strong>Inspiration Notes:</strong></p>
           <p>{inquiry.inspiration_notes ?? "—"}</p>
+          <p><strong>Vision Board:</strong></p>
+          {inquiry.vision_board_urls?.length ? (
+            <div className="vision-board-grid vision-board-grid--admin">
+              {inquiry.vision_board_urls.map((url: string) => (
+                <a
+                  key={url}
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="vision-board-item vision-board-item--admin"
+                >
+                  <img src={url} alt="Client inspiration upload" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p>—</p>
+          )}
           <p><strong>Additional Info:</strong></p>
           <p>{inquiry.additional_info ?? "—"}</p>
         </div>

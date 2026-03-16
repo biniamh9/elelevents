@@ -1130,6 +1130,60 @@ th { background: var(--surface-soft); }
 .vendor-card p {
   margin: 0;
 }
+.vision-board-dropzone {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px dashed rgba(var(--accent-rgb), 0.35);
+  background: rgba(255,255,255,0.74);
+  cursor: pointer;
+}
+.vision-board-dropzone input {
+  display: none;
+}
+.vision-board-dropzone strong {
+  font-size: 1rem;
+}
+.vision-board-dropzone span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.vision-board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.vision-board-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.9);
+}
+.vision-board-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+.vision-board-remove {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.96);
+  padding: 10px 12px;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 600;
+}
+.vision-board-grid--admin {
+  margin: 8px 0 14px;
+}
+.vision-board-item--admin {
+  display: block;
+}
 .crm-overview { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-bottom: 24px; }
 .crm-hero-card { background: linear-gradient(135deg, #ffffff 0%, #fff2f6 100%); }
 .crm-hero-card h3 { margin: 0 0 8px; font-size: 2rem; }
@@ -1967,6 +2021,7 @@ th { background: var(--surface-soft); }
   .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
+  .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav {
     position: relative;
     align-items: center;

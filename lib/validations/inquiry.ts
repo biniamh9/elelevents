@@ -14,6 +14,7 @@ export const inquirySchema = z.object({
   indoorOutdoor: z.string().optional().nullable(),
   colorsTheme: z.string().optional().nullable(),
   inspirationNotes: z.string().optional().nullable(),
+  visionBoardUrls: z.array(z.string().url()).optional().default([]),
   additionalInfo: z.string().optional().nullable(),
   requestedVendorCategories: z.array(z.string()).optional().default([]),
   vendorRequestNotes: z.string().optional().nullable(),

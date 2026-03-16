@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         indoor_outdoor: data.indoorOutdoor || null,
         colors_theme: data.colorsTheme || null,
         inspiration_notes: data.inspirationNotes || null,
+        vision_board_urls: data.visionBoardUrls ?? [],
         additional_info: data.additionalInfo || null,
         requested_vendor_categories: data.requestedVendorCategories ?? [],
         vendor_request_notes: data.vendorRequestNotes || null,
