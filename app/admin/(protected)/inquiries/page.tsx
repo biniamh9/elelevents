@@ -16,6 +16,16 @@ function buildShare(count: number | null | undefined, total: number | null | und
   return Math.round((count / total) * 100);
 }
 
+function humanizeLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Not set";
+  }
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
@@ -225,6 +235,24 @@ export default async function AdminInquiriesPage({
     { label: "Booked", value: bookedCount ?? 0, share: buildShare(bookedCount, totalCount) },
     { label: "Lost", value: lostCount ?? 0, share: buildShare(lostCount, totalCount) },
   ];
+  const boardStages = [
+    { key: "new", label: "New", items: (data ?? []).filter((item) => item.status === "new") },
+    {
+      key: "contacted",
+      label: "Contacted",
+      items: (data ?? []).filter((item) => item.status === "contacted"),
+    },
+    {
+      key: "quoted",
+      label: "Quoted",
+      items: (data ?? []).filter((item) => item.status === "quoted"),
+    },
+    {
+      key: "booked",
+      label: "Booked",
+      items: (data ?? []).filter((item) => item.status === "booked"),
+    },
+  ];
 
   return (
     <main className="section admin-page">
@@ -311,6 +339,57 @@ export default async function AdminInquiriesPage({
           </div>
         </section>
       </div>
+
+      <section className="admin-board-shell">
+        <div className="admin-section-title">
+          <h3>Lead Board</h3>
+          <p className="muted">A faster way to see who needs attention next.</p>
+        </div>
+        <div className="admin-kanban-grid">
+          {boardStages.map((stage) => (
+            <div key={stage.key} className="card admin-kanban-column">
+              <div className="admin-kanban-head">
+                <div>
+                  <p className="eyebrow">{stage.label}</p>
+                  <h4>{stage.items.length} leads</h4>
+                </div>
+              </div>
+              <div className="admin-kanban-list">
+                {stage.items.length ? (
+                  stage.items.slice(0, 5).map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/admin/inquiries/${item.id}`}
+                      className="admin-kanban-card"
+                    >
+                      <strong>
+                        {item.first_name} {item.last_name}
+                      </strong>
+                      <span>{item.event_type}</span>
+                      <small>
+                        {item.event_date ?? "No event date"} · $
+                        {formatMoney(Number(item.estimated_price ?? 0))}
+                      </small>
+                      <div className="summary-pills">
+                        <span className="summary-chip">
+                          {humanizeLabel(item.consultation_status ?? "not_scheduled")}
+                        </span>
+                        {item.follow_up_at ? (
+                          <span className="summary-chip">
+                            Follow-up {new Date(item.follow_up_at).toLocaleDateString()}
+                          </span>
+                        ) : null}
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="muted">No leads in this stage.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="admin-board-grid">
         <div className="card admin-panel">

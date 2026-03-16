@@ -1838,6 +1838,49 @@ th { background: var(--surface-soft); }
   gap: 16px;
   margin-bottom: 22px;
 }
+.admin-board-shell {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.admin-kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.admin-kanban-column {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,238,232,0.96));
+}
+.admin-kanban-head h4 {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+}
+.admin-kanban-list {
+  display: grid;
+  gap: 12px;
+}
+.admin-kanban-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(251,246,241,0.96));
+  box-shadow: 0 12px 26px rgba(61, 40, 27, 0.05);
+}
+.admin-kanban-card strong {
+  font-size: 1rem;
+}
+.admin-kanban-card span,
+.admin-kanban-card small {
+  color: var(--muted);
+}
 .admin-panel {
   display: grid;
   align-content: start;
@@ -2083,7 +2126,7 @@ th { background: var(--surface-soft); }
   50% { transform: translateY(-10px); }
 }
 @media (max-width: 900px) {
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -4,6 +4,16 @@ import ContractStatusBadge from "@/components/forms/admin/contract-status-badge"
 
 export const dynamic = "force-dynamic";
 
+function humanizeLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Not set";
+  }
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default async function ContractsPage() {
   const { data, error } = await supabaseAdmin
     .from("contracts")
@@ -38,6 +48,28 @@ export default async function ContractsPage() {
     .from("contracts")
     .select("*", { count: "exact", head: true })
     .eq("docusign_envelope_status", "sent");
+  const boardStages = [
+    {
+      key: "draft",
+      label: "Draft",
+      items: (data ?? []).filter((row) => row.contract_status === "draft"),
+    },
+    {
+      key: "sent",
+      label: "Sent",
+      items: (data ?? []).filter((row) => row.contract_status === "sent"),
+    },
+    {
+      key: "signed",
+      label: "Signed",
+      items: (data ?? []).filter((row) => row.contract_status === "signed"),
+    },
+    {
+      key: "deposit_paid",
+      label: "Deposit Paid",
+      items: (data ?? []).filter((row) => row.deposit_paid),
+    },
+  ];
 
   return (
     <main className="section admin-page">
@@ -100,6 +132,52 @@ export default async function ContractsPage() {
           <strong>{depositPaidCount ?? 0}</strong>
         </div>
       </div>
+
+      <section className="admin-board-shell">
+        <div className="admin-section-title">
+          <h3>Contract Board</h3>
+          <p className="muted">See which agreements are still moving and which are already secured.</p>
+        </div>
+        <div className="admin-kanban-grid">
+          {boardStages.map((stage) => (
+            <div key={stage.key} className="card admin-kanban-column">
+              <div className="admin-kanban-head">
+                <div>
+                  <p className="eyebrow">{stage.label}</p>
+                  <h4>{stage.items.length} contracts</h4>
+                </div>
+              </div>
+              <div className="admin-kanban-list">
+                {stage.items.length ? (
+                  stage.items.slice(0, 5).map((row) => (
+                    <Link
+                      key={row.id}
+                      href={`/admin/contracts/${row.id}`}
+                      className="admin-kanban-card"
+                    >
+                      <strong>{row.client_name}</strong>
+                      <span>{row.event_type ?? "Event contract"}</span>
+                      <small>
+                        {row.event_date ?? "No event date"} · ${row.contract_total ?? 0}
+                      </small>
+                      <div className="summary-pills">
+                        <span className="summary-chip">
+                          {humanizeLabel(row.contract_status ?? "draft")}
+                        </span>
+                        <span className="summary-chip">
+                          {humanizeLabel(row.docusign_envelope_status ?? "not_sent")}
+                        </span>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="muted">No contracts in this stage.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {error ? <p className="error">Failed to load contracts: {error.message}</p> : null}
 
