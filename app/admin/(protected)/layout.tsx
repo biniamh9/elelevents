@@ -41,7 +41,7 @@ export default async function AdminLayout({
             </div>
           </div>
           <div className="admin-topbar-actions">
-            <AdminNotificationBell />
+            <AdminNotificationBell adminId={user.id} />
             <Link href="/admin/gallery" className="admin-topbar-pill">
               Gallery
             </Link>

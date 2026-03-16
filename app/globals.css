@@ -1913,6 +1913,17 @@ th { background: var(--surface-soft); }
 .admin-notifications-head small {
   color: var(--muted);
 }
+.admin-notifications-markall {
+  align-self: start;
+  margin-bottom: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
 .admin-notifications-list {
   display: grid;
   gap: 10px;
@@ -1926,6 +1937,10 @@ th { background: var(--surface-soft); }
   border-radius: 18px;
   border: 1px solid rgba(73, 49, 31, 0.08);
   background: rgba(73,49,31,0.03);
+}
+.admin-notification-item.is-unread {
+  border-color: rgba(var(--accent-rgb), 0.24);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,236,226,0.92));
 }
 .admin-notification-item strong,
 .admin-notification-item span,
