@@ -3,26 +3,44 @@ import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import { getGalleryItems } from "@/lib/gallery";
 import { getPackages } from "@/lib/packages";
 
-const luxuryNotes = [
-  "Reception styling",
-  "Traditional Melsi decor",
-  "Luxury sweetheart tables",
-  "Entrance moments",
-  "Guest-table rhythm",
+const planningPaths = [
+  {
+    title: "Wedding reception",
+    text: "Head table, backdrop, guest tables, and a full-room atmosphere.",
+  },
+  {
+    title: "Traditional Melsi",
+    text: "Traditional setup, next-day styling, and details that need care.",
+  },
+  {
+    title: "Full decoration",
+    text: "For clients who want one complete decor direction instead of item-by-item planning.",
+  },
+  {
+    title: "Vendor help too",
+    text: "Need catering, photography, venue, sound, or planning referrals as well.",
+  },
 ];
 
-const promisePoints = [
+const trustPoints = [
+  "5-star Google review reputation",
+  "Reception and Melsi experience",
+  "Consultation before quote",
+  "Quote, contract, and follow-up handled cleanly",
+];
+
+const processSteps = [
   {
-    title: "Luxury rooms, not random pieces",
-    text: "The room should feel composed from the entrance to the head table, not assembled item by item with no visual rhythm.",
+    title: "Tell us the event",
+    text: "Share the date, venue status, guest count, decor direction, and the must-have focal points.",
   },
   {
-    title: "Consultation before quote",
-    text: "The process stays personal. We talk through the room, the venue, and the priorities first, then quote with clarity.",
+    title: "Upload the vision",
+    text: "Add inspiration images or a vision board so we understand the look without endless back and forth.",
   },
   {
-    title: "Booking flow that feels premium",
-    text: "Inquire, consult, quote, contract, and confirm without turning the client journey into admin clutter.",
+    title: "Refine and secure",
+    text: "We consult, quote, send the contract, and confirm the event without making the process feel messy.",
   },
 ];
 
@@ -31,37 +49,29 @@ export default async function HomePage() {
   const packages = await getPackages(3);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const leadImage = galleryPreview[0]?.image_url;
-  const sideImage = galleryPreview[1]?.image_url;
-  const detailImage = galleryPreview[2]?.image_url;
-  const storyImage = galleryPreview[3]?.image_url;
-  const mosaicImages = galleryPreview.slice(0, 4);
 
   return (
-    <main className="home-shell home-shell--editorial">
+    <main className="home-shell home-shell--simple">
       <div className="home-veil" />
 
-      <section className="hero-stage">
+      <section className="hero-stage hero-stage--simple">
         <HeroBackdropRotator images={heroBackdropImages} />
 
-        <div className="container hero-stage-grid">
+        <div className="container hero-stage-grid hero-stage-grid--simple">
           <div className="hero-stage-copy">
             <p className="eyebrow">Elel Events & Design</p>
             <div className="hero-stage-kicker">
               <span>Luxury decor studio</span>
-              <span>Wedding, reception, and Melsi</span>
+              <span>Reception, wedding, and Melsi</span>
             </div>
             <h1>
-              Rooms that look
+              Simple to book.
               <br />
-              <em>saved to a board</em>
-              <br />
-              before the event
-              <br />
-              even begins.
+              <em>Beautiful to walk into.</em>
             </h1>
             <p className="hero-stage-lead">
-              This should feel less like a local brochure and more like an
-              elevated decor brand with a clean booking system attached to it.
+              Luxury decor for receptions, Melsi, and milestone events with a
+              cleaner process from inquiry to quote to contract.
             </p>
 
             <div className="btn-row">
@@ -73,96 +83,47 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="hero-stage-meta">
-              <div>
-                <span>Focus</span>
-                <strong>Head tables, backdrops, guest-table styling, entrance decor, and full-room atmosphere.</strong>
-              </div>
-              <div>
-                <span>Process</span>
-                <strong>Inquiry, consultation, quote, contract, and confirmation without losing the luxury feel.</strong>
+            <div className="hero-quick-search card">
+              <p className="eyebrow">What are you planning?</p>
+              <div className="hero-quick-grid">
+                {planningPaths.map((item) => (
+                  <Link key={item.title} href="/request" className="hero-quick-card">
+                    <strong>{item.title}</strong>
+                    <span>{item.text}</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="hero-stage-visual">
+          <div className="hero-stage-visual hero-stage-visual--simple">
             <div className="hero-stage-card hero-stage-card--tall">
               <img src={leadImage} alt="Luxury event setup by Elel Events" />
-            </div>
-            <div className="hero-stage-stack">
-              <div className="hero-stage-card hero-stage-card--wide">
-                <img src={sideImage} alt="Styled reception design" />
-              </div>
-              <div className="hero-stage-note card">
-                <p className="eyebrow">What should stand out</p>
-                <strong>
-                  The room should feel finished, layered, and calm, not busy.
-                </strong>
-              </div>
-              <div className="hero-stage-card hero-stage-card--detail">
-                <img src={detailImage} alt="Styled decor detail" />
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       <section className="container section">
-        <div className="luxury-marquee" aria-label="Decor categories">
-          {luxuryNotes.map((item) => (
+        <div className="luxury-marquee" aria-label="Trust highlights">
+          {trustPoints.map((item) => (
             <span key={item}>{item}</span>
           ))}
         </div>
       </section>
 
       <section className="container section">
-        <div className="story-split">
-          <div className="story-split-copy">
-            <p className="eyebrow">The pitch</p>
-            <h2>
-              Pinterest energy,
-              <br />
-              luxury restraint,
-              <br />
-              and a booking path
-              <br />
-              that still makes sense.
-            </h2>
-            <p className="lead">
-              The website should sell the mood as much as the service. That
-              means stronger imagery, more editorial spacing, less generic
-              “business site” structure, and one clear path into the quote flow.
-            </p>
+        <div className="simple-process-shell card">
+          <div className="simple-process-head">
+            <p className="eyebrow">How it works</p>
+            <h2>Fast enough to choose. Clear enough to trust.</h2>
           </div>
-
-          <div className="story-split-visual">
-            <img src={storyImage} alt="Event room styled by Elel Events" />
-          </div>
-        </div>
-      </section>
-
-      <section className="container section">
-        <div className="promise-gallery">
-          <div className="promise-gallery-copy">
-            <p className="eyebrow">What makes it different</p>
-            <h2>
-              A decor brand should look curated before the client ever fills out
-              the form.
-            </h2>
-            <div className="promise-stack">
-              {promisePoints.map((item) => (
-                <div key={item.title} className="promise-item">
-                  <h3>{item.title}</h3>
-                  <p className="muted">{item.text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="promise-gallery-mosaic">
-            {mosaicImages.map((item, index) => (
-              <div key={item.id} className={`promise-photo promise-photo--${index + 1}`}>
-                <img src={item.image_url} alt={item.title} />
+          <div className="simple-process-grid">
+            {processSteps.map((item, index) => (
+              <div key={item.title} className="simple-process-card">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{item.title}</h3>
+                <p className="muted">{item.text}</p>
               </div>
             ))}
           </div>
@@ -170,45 +131,14 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="process-runway card">
-          <div className="process-runway-head">
-            <p className="eyebrow">Booking system</p>
-            <h2>Visual enough to sell. Clear enough to book.</h2>
-          </div>
-
-          <div className="process-runway-grid">
-            <div className="process-runway-step">
-              <span>01</span>
-              <h3>Submit the event request</h3>
-              <p className="muted">Share the room, the date, the guest count, and the decor direction.</p>
-            </div>
-            <div className="process-runway-step">
-              <span>02</span>
-              <h3>Refine during consultation</h3>
-              <p className="muted">Talk through venue rules, priorities, focal points, and the final room direction.</p>
-            </div>
-            <div className="process-runway-step">
-              <span>03</span>
-              <h3>Quote, contract, and secure</h3>
-              <p className="muted">Once the details are real, the quote and contract move fast and cleanly.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="container section">
-        <div className="package-salon">
-          <div className="package-salon-intro">
+        <div className="simple-package-shell">
+          <div className="simple-package-head">
             <p className="eyebrow">Packages</p>
-            <h2>Start with a styling direction, then tailor the room from there.</h2>
+            <h2>Start with a direction, then tailor the room from there.</h2>
           </div>
-
-          <div className="package-salon-grid">
-            {packages.map((pkg, index) => (
-              <div
-                key={pkg.id}
-                className={`package-card package-card--salon ${index === 1 ? "featured" : ""}`}
-              >
+          <div className="simple-package-grid">
+            {packages.map((pkg) => (
+              <div key={pkg.id} className="package-card package-card--simple">
                 <p className="eyebrow">{pkg.best_for ?? "Decor package"}</p>
                 <h3>{pkg.name}</h3>
                 <p className="muted">
@@ -216,9 +146,39 @@ export default async function HomePage() {
                     pkg.best_for ??
                     "Custom decor support tailored to your event."}
                 </p>
-                <span className="package-card-link">See package details</span>
+                <Link href="/packages" className="package-card-link">
+                  See package details
+                </Link>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="container section">
+        <div className="simple-proof-band">
+          <div className="card simple-proof-card">
+            <p className="eyebrow">Gallery</p>
+            <h3>See the room before you book it.</h3>
+            <Link href="/gallery" className="link-inline">
+              Browse the work
+            </Link>
+          </div>
+
+          <div className="card simple-proof-card">
+            <p className="eyebrow">Vendor support</p>
+            <h3>Need vendor help beyond decor?</h3>
+            <Link href="/vendors" className="link-inline">
+              Explore vendor partners
+            </Link>
+          </div>
+
+          <div className="card simple-proof-card">
+            <p className="eyebrow">Start here</p>
+            <h3>Upload the vision and we’ll shape the right next step.</h3>
+            <Link href="/request" className="link-inline">
+              Request your quote
+            </Link>
           </div>
         </div>
       </section>
@@ -227,10 +187,10 @@ export default async function HomePage() {
         <div className="card cta-shell cta-shell--editorial">
           <div>
             <span className="eyebrow">Ready to begin</span>
-            <h2>Tell us about the event and we’ll shape the next step around the room you want.</h2>
+            <h2>Tell us the event and we’ll take it from there.</h2>
             <p className="lead">
-              Start the request. We’ll review the scope, confirm the consultation,
-              and move you toward quote and contract without losing the feeling.
+              The homepage should not make people work hard. The real detail belongs
+              inside the request form, not in a crowded landing page.
             </p>
           </div>
 
