@@ -1153,10 +1153,12 @@ th { background: var(--surface-soft); }
   padding: 20px;
 }
 .contract-kpi-card strong {
-  font-size: clamp(1.15rem, 2vw, 1.85rem);
-  line-height: 1.08;
+  font-size: clamp(1.05rem, 1.55vw, 1.55rem);
+  line-height: 1.02;
   max-width: 100%;
   overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 .contract-kpi-card span {
   color: var(--muted);
@@ -1220,8 +1222,7 @@ th { background: var(--surface-soft); }
 .contract-preview-body {
   margin-top: 18px;
 }
-.contract-sticky-card { position: sticky; top: 94px; }
-.contract-sidebar .card:not(:first-child) { position: static; }
+.contract-sticky-card { position: static; }
 .contract-meta-list { display: grid; gap: 8px; margin-top: 18px; }
 .contract-meta-list p { margin: 0; }
 .contract-alert-list {

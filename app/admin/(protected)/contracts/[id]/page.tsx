@@ -226,10 +226,10 @@ export default async function ContractDetailPage({
             </summary>
             <div className="contract-preview-body">
               <div className="contract-preview-heading">
-              <div>
-                <p className="eyebrow">Preview</p>
-                <h3>Agreement draft</h3>
-              </div>
+                <div>
+                  <p className="eyebrow">Preview</p>
+                  <h3>Agreement draft</h3>
+                </div>
               </div>
               <ContractPreview contract={contract} details={details} />
             </div>
