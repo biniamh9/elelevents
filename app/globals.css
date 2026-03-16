@@ -1975,7 +1975,7 @@ th { background: var(--surface-soft); }
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: min(380px, 88vw);
+  width: min(520px, 92vw);
   padding: 18px;
   z-index: 50;
   border-radius: 24px;
@@ -2010,8 +2010,8 @@ th { background: var(--surface-soft); }
   gap: 10px;
 }
 .admin-notification-item {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: start;
   padding: 14px;
@@ -2035,6 +2035,10 @@ th { background: var(--surface-soft); }
 .admin-notification-item span {
   margin-top: 4px;
   line-height: 1.5;
+}
+.admin-notification-item small {
+  white-space: nowrap;
+  text-align: right;
 }
 .admin-topbar-pill {
   padding: 12px 16px;
@@ -2546,23 +2550,23 @@ th { background: var(--surface-soft); }
   .hero-stage-visual {
     grid-template-columns: 1fr;
   }
+  .hero-stage-visual--simple {
+    order: -1;
+  }
   .hero-stage-showcase {
     grid-template-columns: 1fr;
   }
   .hero-stage-side-stack {
     padding-top: 0;
   }
-  .hero-stage-card--accent {
-    transform: none;
+  .hero-stage-card--accent,
+  .hero-stage-card--floating,
+  .hero-stage-mood-note {
+    display: none;
   }
-  .hero-stage-card--floating {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: auto;
-    border-width: 1px;
-    border-color: rgba(255,255,255,0.48);
-    box-shadow: var(--shadow-strong);
+  .hero-stage-card--lead {
+    min-height: 360px;
+    max-height: 52vh;
   }
   .hero-stage-card--tall,
   .hero-stage-card--wide,
@@ -2630,7 +2634,7 @@ th { background: var(--surface-soft); }
   .admin-notifications-panel {
     left: 0;
     right: auto;
-    width: min(100%, 420px);
+    width: min(100%, 560px);
   }
   .admin-topbar-pill,
   .admin-topbar-tab,
@@ -2709,5 +2713,32 @@ th { background: var(--surface-soft); }
   }
   .gallery-lightbox-nav--prev { left: 16px; }
   .gallery-lightbox-nav--next { right: 16px; }
-  .testimonial-card--1, .testimonial-card--2, .testimonial-card--3 { transform: none; }
+.testimonial-card--1, .testimonial-card--2, .testimonial-card--3 { transform: none; }
+}
+@media (max-width: 640px) {
+  .hero-stage {
+    padding-top: 82px;
+  }
+  .hero-stage-visual--simple {
+    order: 0;
+  }
+  .hero-stage-card--lead {
+    min-height: 300px;
+    max-height: 44vh;
+  }
+  .hero-stage-card-caption {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    padding: 14px 16px;
+  }
+  .hero-stage-card-caption strong {
+    font-size: 1rem;
+  }
+  .admin-notification-item {
+    grid-template-columns: 1fr;
+  }
+  .admin-notification-item small {
+    text-align: left;
+  }
 }
