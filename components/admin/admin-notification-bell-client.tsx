@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { AdminNotificationItem } from "@/lib/admin-notifications";
 
 function timeAgo(value: string) {
@@ -76,11 +77,19 @@ export default function AdminNotificationBellClient({
   initialItems: AdminNotificationItem[];
   initialUnreadCount: number;
 }) {
+  const pathname = usePathname();
+  const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const [items, setItems] = useState(initialItems);
   const unreadCount = useMemo(
     () => items.filter((item) => !item.is_read).length || initialUnreadCount,
     [items, initialUnreadCount]
   );
+
+  useEffect(() => {
+    if (detailsRef.current) {
+      detailsRef.current.open = false;
+    }
+  }, [pathname]);
 
   async function markRead(activityIds: string[]) {
     if (!activityIds.length) {
@@ -104,7 +113,7 @@ export default function AdminNotificationBellClient({
   const hasUnread = items.some((item) => !item.is_read);
 
   return (
-    <details className="admin-notifications">
+    <details ref={detailsRef} className="admin-notifications">
       <summary className="admin-notifications-trigger" aria-label="Recent activity">
         <span className="admin-notifications-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
@@ -146,6 +155,9 @@ export default function AdminNotificationBellClient({
                   href={buildNotificationLink(item)}
                   className={`admin-notification-item${item.is_read ? "" : " is-unread"}`}
                   onClick={() => {
+                    if (detailsRef.current) {
+                      detailsRef.current.open = false;
+                    }
                     if (!item.is_read) {
                       void markRead([item.id]);
                     }
