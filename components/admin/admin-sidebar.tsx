@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 type NavItem = {
   href: string;
   label: string;
-  shortLabel: string;
   description: string;
   icon: string;
 };
@@ -14,36 +13,31 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     href: "/admin/inquiries",
-    label: "Dashboard",
-    shortLabel: "Dashboard",
+    label: "Overview",
     description: "Leads, consultations, follow-ups",
     icon: "chart",
   },
   {
     href: "/admin/contracts",
     label: "Contracts",
-    shortLabel: "Contracts",
-    description: "Quotes, signature flow, payments",
+    description: "Quotes, signatures, payments",
     icon: "doc",
   },
   {
     href: "/admin/gallery",
     label: "Gallery",
-    shortLabel: "Gallery",
     description: "Portfolio images",
     icon: "image",
   },
   {
     href: "/admin/packages",
     label: "Packages",
-    shortLabel: "Packages",
     description: "Public offers",
     icon: "box",
   },
   {
     href: "/admin/vendors",
     label: "Vendors",
-    shortLabel: "Vendors",
     description: "Referral partners",
     icon: "users",
   },
@@ -100,56 +94,35 @@ function SidebarIcon({ icon }: { icon: string }) {
   }
 }
 
-export default function AdminSidebar({ userEmail }: { userEmail: string | null | undefined }) {
+export default function AdminSidebar({
+  userEmail,
+}: {
+  userEmail: string | null | undefined;
+}) {
   const pathname = usePathname();
 
   return (
     <aside className="admin-sidebar-shell">
-      <div className="card admin-sidebar admin-sidebar-rail">
-        <div className="admin-rail-brand">EE</div>
-        <div className="admin-rail-links">
-          {navItems.map((item) => {
-            const active = isActivePath(pathname, item.href);
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`admin-rail-link${active ? " is-active" : ""}`}
-                aria-label={item.label}
-                title={item.label}
-              >
-                <SidebarIcon icon={item.icon} />
-              </Link>
-            );
-          })}
+      <div className="admin-sidebar admin-sidebar-panel">
+        <div className="admin-sidebar-brand">
+          <div className="admin-sidebar-brandmark">EE</div>
+          <div>
+            <p className="eyebrow">Workspace</p>
+            <h3>Elel Events</h3>
+          </div>
         </div>
 
-        <form action="/auth/signout" method="post" className="admin-rail-signout">
-          <button type="submit" className="admin-rail-link" aria-label="Sign out" title="Sign out">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M10 7H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h3" />
-              <path d="m14 8 4 4-4 4" />
-              <path d="M18 12H9" />
-            </svg>
-          </button>
-        </form>
-      </div>
-
-      <div className="card admin-sidebar admin-sidebar-panel">
-        <div className="admin-sidebar-head">
-          <p className="eyebrow">Admin CRM</p>
-          <h3>Elel Events</h3>
-          <p className="muted">{userEmail || "Admin access"}</p>
+        <div className="admin-workspace-card">
+          <div className="admin-workspace-avatar">ED</div>
+          <div>
+            <span>Active workspace</span>
+            <strong>Decor CRM</strong>
+            <small>{userEmail || "Admin access"}</small>
+          </div>
         </div>
-
-        <Link href="/request" className="admin-create-link">
-          <span>+</span>
-          <strong>Create New</strong>
-        </Link>
 
         <div className="admin-sidebar-section">
-          <p className="admin-sidebar-label">Workspace</p>
+          <p className="admin-sidebar-label">Navigation</p>
           <nav className="admin-nav" aria-label="Admin navigation">
             {navItems.map((item) => {
               const active = isActivePath(pathname, item.href);
@@ -164,7 +137,7 @@ export default function AdminSidebar({ userEmail }: { userEmail: string | null |
                     <SidebarIcon icon={item.icon} />
                   </div>
                   <div>
-                    <strong>{item.shortLabel}</strong>
+                    <strong>{item.label}</strong>
                     <span>{item.description}</span>
                   </div>
                 </Link>
@@ -174,14 +147,29 @@ export default function AdminSidebar({ userEmail }: { userEmail: string | null |
         </div>
 
         <div className="admin-sidebar-section">
-          <p className="admin-sidebar-label">Notes</p>
+          <p className="admin-sidebar-label">Workflow</p>
           <div className="admin-sidebar-note">
-            <strong>Keep the workflow simple</strong>
+            <strong>Simple path</strong>
             <p className="muted">
-              Start with new leads, schedule consultations, send quotes, then move
-              approved clients into contracts.
+              Lead, consultation, quote, contract, payment. Anything outside that
+              path should stay secondary.
             </p>
           </div>
+          <Link href="/request" className="admin-create-link">
+            <span>+</span>
+            <strong>New request</strong>
+          </Link>
+        </div>
+
+        <div className="admin-sidebar-footer">
+          <Link href="/" className="admin-support-link">
+            View website
+          </Link>
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="admin-signout-button">
+              Sign out
+            </button>
+          </form>
         </div>
       </div>
     </aside>

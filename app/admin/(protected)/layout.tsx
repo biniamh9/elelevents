@@ -15,20 +15,36 @@ export default async function AdminLayout({
 
       <div className="admin-main">
         <div className="admin-topbar">
-          <div className="admin-topbar-copy">
-            <p className="eyebrow">Dashboard</p>
-            <h2>Business operations</h2>
-            <p className="admin-breadcrumbs">Admin CRM • Daily workspace</p>
+          <div className="admin-topbar-main">
+            <div className="admin-topbar-copy">
+              <p className="eyebrow">Admin workspace</p>
+              <h2>Business operations</h2>
+              <p className="admin-breadcrumbs">CRM board • Contracts • Gallery • Vendors</p>
+            </div>
+            <div className="admin-topbar-tabs" aria-label="Workspace sections">
+              <Link href="/admin/inquiries" className="admin-topbar-tab">
+                Overview
+              </Link>
+              <Link href="/admin/contracts" className="admin-topbar-tab">
+                Contracts
+              </Link>
+              <Link href="/admin/packages" className="admin-topbar-tab">
+                Packages
+              </Link>
+              <Link href="/admin/vendors" className="admin-topbar-tab">
+                Vendors
+              </Link>
+            </div>
           </div>
           <div className="admin-topbar-actions">
-            <Link href="/admin/packages" className="admin-topbar-pill">
-              Packages
-            </Link>
             <Link href="/admin/gallery" className="admin-topbar-pill">
               Gallery
             </Link>
+            <Link href="/request" className="admin-topbar-pill">
+              Public form
+            </Link>
             <Link href="/request" className="btn">
-              Open public form
+              Create inquiry
             </Link>
           </div>
         </div>
