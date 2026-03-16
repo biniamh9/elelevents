@@ -6,6 +6,16 @@ import ContractStatusBadge from "@/components/forms/admin/contract-status-badge"
 import { normalizeContractDetails } from "@/lib/contracts";
 export const dynamic = "force-dynamic";
 
+function humanizeLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Not set";
+  }
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default async function ContractDetailPage({
   params,
 }: {
@@ -71,14 +81,14 @@ export default async function ContractDetailPage({
   const overviewCards = [
     {
       label: "Contract status",
-      value: contract.contract_status ?? "draft",
+      value: humanizeLabel(contract.contract_status ?? "draft"),
       subtext: contract.contract_sent_at
         ? `Sent ${new Date(contract.contract_sent_at).toLocaleDateString()}`
         : "Not sent yet",
     },
     {
       label: "Signing",
-      value: contract.docusign_envelope_status ?? "not_sent",
+      value: humanizeLabel(contract.docusign_envelope_status ?? "not_sent"),
       subtext: contract.docusign_envelope_id ? "DocuSign linked" : "No envelope yet",
     },
     {
@@ -142,7 +152,7 @@ export default async function ContractDetailPage({
               <span className="summary-chip">Status: {contract.contract_status ?? "draft"}</span>
               <span className="summary-chip">Total: ${Number(contract.contract_total ?? 0).toLocaleString()}</span>
               <span className="summary-chip">Balance due: ${Number(contract.balance_due ?? 0).toLocaleString()}</span>
-              <span className="summary-chip">DocuSign: {contract.docusign_envelope_status ?? "not_sent"}</span>
+              <span className="summary-chip">DocuSign: {humanizeLabel(contract.docusign_envelope_status ?? "not_sent")}</span>
             </div>
 
             <div className="contract-meta-list">
@@ -214,10 +224,12 @@ export default async function ContractDetailPage({
               <span>Preview agreement draft</span>
               <span className="summary-chip">Before sending</span>
             </summary>
-            <div className="contract-preview-heading">
+            <div className="contract-preview-body">
+              <div className="contract-preview-heading">
               <div>
                 <p className="eyebrow">Preview</p>
                 <h3>Agreement draft</h3>
+              </div>
               </div>
               <ContractPreview contract={contract} details={details} />
             </div>

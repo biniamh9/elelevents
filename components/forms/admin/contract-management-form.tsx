@@ -20,6 +20,12 @@ function asInputNumber(value: number | null | undefined) {
   return value ?? "";
 }
 
+function humanizeLabel(value: string) {
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default function ContractManagementForm({
   contract,
 }: {
@@ -53,31 +59,6 @@ export default function ContractManagementForm({
   const activeSectionIndex = sections.findIndex((item) => item.id === activeSection);
   const activeSectionConfig =
     sections[activeSectionIndex] ?? sections[0];
-  const contractTotalNumber = Number(contractTotal || 0);
-  const depositAmountNumber = Number(depositAmount || 0);
-  const balanceNumber = Math.max(contractTotalNumber - depositAmountNumber, 0);
-  const overviewCards = [
-    {
-      label: "Status",
-      value: status,
-      subtext: contract.contract_sent_at ? "Contract already sent" : "Still in draft flow",
-    },
-    {
-      label: "Contract total",
-      value: `$${contractTotalNumber.toLocaleString()}`,
-      subtext: depositAmountNumber ? `Deposit $${depositAmountNumber.toLocaleString()}` : "Deposit not set",
-    },
-    {
-      label: "Remaining balance",
-      value: `$${balanceNumber.toLocaleString()}`,
-      subtext: balanceDueDate || "No due date set",
-    },
-    {
-      label: "Signing",
-      value: contract.docusign_envelope_status || "not_sent",
-      subtext: contract.docusign_envelope_id ? "DocuSign linked" : "No envelope linked",
-    },
-  ];
 
   function updateDetails<K extends keyof ContractDetails>(
     section: K,
@@ -231,16 +212,6 @@ export default function ContractManagementForm({
         {message ? <p className="contract-inline-message">{message}</p> : null}
       </div>
 
-      <div className="contract-editor-overview">
-        {overviewCards.map((item) => (
-          <div key={item.label} className="contract-overview-tile">
-            <p>{item.label}</p>
-            <strong>{item.value}</strong>
-            <span>{item.subtext}</span>
-          </div>
-        ))}
-      </div>
-
       <div className="contract-section-tabs">
         {sections.map((section) => (
           <button
@@ -260,6 +231,12 @@ export default function ContractManagementForm({
         </p>
         <h4>{activeSectionConfig.label}</h4>
         <p className="muted">{activeSectionConfig.description}</p>
+        {activeSection === "decor" ? (
+          <p className="muted contract-section-note">
+            Visual reference image fields for head table, centerpiece, and
+            Traditional (Melsi) are at the bottom of this section.
+          </p>
+        ) : null}
       </div>
 
       <div className="contract-form-grid contract-form-grid--single">
@@ -276,7 +253,7 @@ export default function ContractManagementForm({
             >
               {statuses.map((item) => (
                 <option key={item} value={item}>
-                  {item}
+                  {humanizeLabel(item)}
                 </option>
               ))}
             </select>
