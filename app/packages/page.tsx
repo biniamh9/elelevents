@@ -4,8 +4,8 @@ export default async function PackagesPage() {
   const packages = await getPackages();
 
   return (
-    <main className="container section">
-      <div className="section-heading package-page-head page-hero-copy">
+    <main className="container section public-page-shell public-page-shell--packages">
+      <div className="section-heading package-page-head page-hero-copy public-page-head">
         <p className="eyebrow">Packages</p>
         <h1>Choose the level of styling, then tailor the room after the consultation.</h1>
         <p className="lead">
@@ -15,7 +15,7 @@ export default async function PackagesPage() {
         </p>
       </div>
 
-      <div className="package-editorial-band">
+      <div className="package-editorial-band public-page-band">
         <div className="card package-editorial-copy">
           <h3>Luxury without confusion</h3>
           <p className="muted">

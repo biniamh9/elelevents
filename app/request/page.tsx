@@ -10,8 +10,8 @@ export default async function RequestPage() {
     .order("business_name", { ascending: true });
 
   return (
-    <main className="container section">
-      <section className="booking-intro">
+    <main className="container section public-page-shell public-page-shell--request">
+      <section className="booking-intro public-page-hero public-page-hero--ritual">
         <div className="booking-intro-copy page-hero-copy">
           <p className="eyebrow">Request a Quote</p>
           <h1>Start with the room you want, not just the event date.</h1>
@@ -49,7 +49,7 @@ export default async function RequestPage() {
 
       <EventRequestForm vendors={vendors ?? []} />
 
-      <div style={{ marginTop: "24px" }} className="grid-2">
+      <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
         <div className="card">
           <h3>No fake instant pricing</h3>
           <p className="muted">

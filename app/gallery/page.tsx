@@ -7,8 +7,8 @@ export default async function GalleryPage() {
   const images = await getGalleryItems();
 
   return (
-    <main className="container section">
-      <div className="section-heading gallery-page-head page-hero-copy">
+    <main className="container section public-page-shell public-page-shell--gallery">
+      <div className="section-heading gallery-page-head page-hero-copy public-page-head">
         <p className="eyebrow">Gallery</p>
         <h1>Browse the work like a saved board of rooms, details, and focal points.</h1>
         <p className="lead">
@@ -17,7 +17,7 @@ export default async function GalleryPage() {
           library than a plain image grid.
         </p>
       </div>
-      <div className="gallery-page-band">
+      <div className="gallery-page-band public-page-band">
         <div className="card gallery-page-note">
           <strong>How to use this page</strong>
           <p className="muted">
