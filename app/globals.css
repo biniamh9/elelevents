@@ -1410,7 +1410,7 @@ a { color: inherit; text-decoration: none; }
 .public-page-shell {
   display: grid;
   gap: 28px;
-  padding-top: calc(var(--site-header-height) + 64px);
+  padding-top: calc(var(--site-header-height) + 132px);
 }
 .public-page-hero {
   display: grid;
@@ -2968,7 +2968,7 @@ th { background: var(--surface-soft); }
     padding-top: 8px;
   }
   .public-page-shell {
-    padding-top: calc(var(--site-header-height) + 40px);
+    padding-top: calc(var(--site-header-height) + 84px);
   }
   .hero-stage-card--tall,
   .hero-stage-card--wide,
