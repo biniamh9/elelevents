@@ -1,5 +1,8 @@
-import PageHero from "@/components/site/page-hero";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
+import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
 import { getPackages } from "@/lib/packages";
+import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
@@ -24,13 +27,17 @@ const serviceAreas = [
 
 export default async function ServicesPage() {
   const packages = await getPackages(3);
+  const images = await getGalleryItems(6);
 
   return (
     <main className="container section public-page-shell">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="Services"
-        title="Decor services built around the room, the event flow, and the guest experience."
-        description="From wedding receptions to Traditional Melsi celebrations and milestone events, Elel Events designs rooms that feel polished, welcoming, and memorable."
+        title="Decor services designed to transform the full experience of the room."
+        description="From wedding receptions to Traditional Melsi celebrations and milestone events, we shape spaces that feel layered, welcoming, and beautifully finished."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Reception decor by Elel Events"
+        tags={["Reception", "Melsi", "Milestone events"]}
         aside={
           <Card className="gallery-page-note">
             <strong>What to expect</strong>
@@ -40,6 +47,16 @@ export default async function ServicesPage() {
             </p>
           </Card>
         }
+      />
+
+      <StorySection
+        eyebrow="What we design"
+        title="From focal tables to the full atmosphere of the room."
+        description="Some clients need a few beautifully styled focal points. Others want full-room decor direction. We help shape the level of styling that fits the event, the venue, and the experience you want guests to remember."
+        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
+        imageAlt="Backdrop and table styling by Elel Events"
+        reverse
+        tags={["Backdrop", "Tablescape", "Lighting"]}
       />
 
       <section className="simple-proof-band">
@@ -90,6 +107,16 @@ export default async function ServicesPage() {
           <Button href="/request">Book Consultation</Button>
         </div>
       </section>
+
+      <GalleryStrip
+        title="Visual references from real celebrations."
+        items={images.slice(2, 5).map((item) => ({
+          id: item.id,
+          imageUrl: item.image_url,
+          title: item.title,
+          label: item.category,
+        }))}
+      />
     </main>
   );
 }

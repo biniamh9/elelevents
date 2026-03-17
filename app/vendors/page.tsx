@@ -1,16 +1,22 @@
-import PageHero from "@/components/site/page-hero";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
+import { getGalleryItems } from "@/lib/gallery";
 
 export const dynamic = "force-dynamic";
 
-export default function VendorsLandingPage() {
+export default async function VendorsLandingPage() {
+  const images = await getGalleryItems(2);
+
   return (
     <main className="container section public-page-shell">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="Vendor partners"
         title="Join the referral network behind Elel Events."
         description="Approved partners can receive curated leads for catering, photography, venues, planning, sound, and related event services."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Vendor support visual"
+        tags={["Curated network", "Approved partners"]}
         aside={
           <Card className="gallery-page-note">
             <strong>Curated, not open marketplace</strong>

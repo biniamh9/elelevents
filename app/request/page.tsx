@@ -1,6 +1,8 @@
 import EventRequestForm from "@/components/forms/event-request-form";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import PageHero from "@/components/site/page-hero";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
+import StorySection from "@/components/site/story-section";
+import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 
 export default async function RequestPage() {
@@ -10,13 +12,17 @@ export default async function RequestPage() {
     .eq("approval_status", "approved")
     .eq("is_active", true)
     .order("business_name", { ascending: true });
+  const images = await getGalleryItems(3);
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="Book Consultation"
         title="Tell us about the event and the atmosphere you want to create."
         description="This short form helps us prepare for a thoughtful consultation. Share the basics, the decor direction, and any inspiration images you already have."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Request page event decor hero"
+        tags={["Vision board", "Decor direction", "Consultation"]}
         aside={
           <Card className="booking-intro-notes">
           <div className="booking-note">
@@ -42,6 +48,16 @@ export default async function RequestPage() {
           </div>
           </Card>
         }
+      />
+
+      <StorySection
+        eyebrow="Why this form matters"
+        title="A little visual direction up front leads to a better consultation."
+        description="When you share the venue status, decor priorities, and inspiration images, we can prepare the right conversation and move into quote planning more smoothly."
+        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
+        imageAlt="Styled room inspiration"
+        reverse
+        tags={["Venue", "Focal points", "Inspiration"]}
       />
 
       <EventRequestForm vendors={vendors ?? []} />

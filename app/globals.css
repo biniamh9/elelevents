@@ -1412,6 +1412,173 @@ a { color: inherit; text-decoration: none; }
   gap: 28px;
   padding-top: calc(var(--site-header-height) + 132px);
 }
+.immersive-page-hero {
+  display: grid;
+  gap: 24px;
+}
+.immersive-page-hero-media {
+  position: relative;
+  min-height: 480px;
+  border-radius: 34px;
+  overflow: hidden;
+  box-shadow: var(--shadow-strong);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+}
+.immersive-page-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.immersive-page-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(26, 18, 14, 0.78) 8%, rgba(26, 18, 14, 0.26) 48%, rgba(26, 18, 14, 0.12) 100%),
+    radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.22), transparent 28%);
+}
+.immersive-page-hero-copy {
+  position: absolute;
+  left: clamp(28px, 5vw, 56px);
+  right: clamp(28px, 5vw, 56px);
+  bottom: clamp(30px, 5vw, 56px);
+  z-index: 1;
+  max-width: 760px;
+  display: grid;
+  gap: 14px;
+}
+.immersive-page-hero-copy .eyebrow {
+  color: #ffe1bf;
+}
+.immersive-page-hero-copy h1 {
+  margin: 0;
+  color: #fff8f1;
+  font-size: clamp(3.2rem, 6vw, 5.8rem);
+  line-height: 0.92;
+  text-shadow: 0 18px 36px rgba(13, 8, 5, 0.34);
+}
+.immersive-page-hero-copy .lead {
+  margin: 0;
+  max-width: 58ch;
+  color: rgba(255, 245, 236, 0.88);
+  font-size: 1.04rem;
+  line-height: 1.75;
+}
+.immersive-page-hero-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.immersive-page-hero-tags span,
+.story-feature-tags span,
+.gallery-strip-caption span {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 248, 241, 0.14);
+  border: 1px solid rgba(255, 232, 214, 0.22);
+  color: #fff5ea;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.immersive-page-hero-aside {
+  display: grid;
+  width: min(420px, 100%);
+  margin-left: auto;
+  margin-top: -96px;
+  position: relative;
+  z-index: 2;
+}
+.story-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+  gap: 26px;
+  align-items: center;
+}
+.story-feature.is-reversed {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+}
+.story-feature.is-reversed .story-feature-media {
+  order: 2;
+}
+.story-feature.is-reversed .story-feature-copy {
+  order: 1;
+}
+.story-feature-media {
+  position: relative;
+  min-height: 440px;
+  overflow: hidden;
+  border-radius: 30px;
+  box-shadow: var(--shadow);
+}
+.story-feature-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.story-feature-tags {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.story-feature-copy {
+  display: grid;
+  gap: 16px;
+}
+.story-feature-copy h2 {
+  margin: 0;
+  font-size: clamp(2.3rem, 4vw, 4rem);
+  color: var(--accent-dark);
+}
+.story-feature-copy .lead {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--text-secondary);
+}
+.story-feature-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.gallery-strip-shell {
+  display: grid;
+  gap: 18px;
+}
+.gallery-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.gallery-strip-item {
+  position: relative;
+  min-height: 310px;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.gallery-strip-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gallery-strip-caption {
+  position: absolute;
+  inset: auto 18px 18px 18px;
+  display: grid;
+  gap: 8px;
+}
+.gallery-strip-caption strong {
+  color: #fff8f1;
+  text-shadow: 0 12px 26px rgba(15, 10, 8, 0.3);
+}
 .public-page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
@@ -2969,6 +3136,29 @@ th { background: var(--surface-soft); }
   }
   .public-page-shell {
     padding-top: calc(var(--site-header-height) + 84px);
+  }
+  .immersive-page-hero-media {
+    min-height: 360px;
+  }
+  .immersive-page-hero-aside {
+    width: 100%;
+    margin-top: 0;
+  }
+  .story-feature,
+  .story-feature.is-reversed,
+  .story-feature-points,
+  .gallery-strip {
+    grid-template-columns: 1fr;
+  }
+  .story-feature.is-reversed .story-feature-media,
+  .story-feature.is-reversed .story-feature-copy {
+    order: initial;
+  }
+  .story-feature-media {
+    min-height: 320px;
+  }
+  .gallery-strip-item {
+    min-height: 260px;
   }
   .hero-stage-card--tall,
   .hero-stage-card--wide,

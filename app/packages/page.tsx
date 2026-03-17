@@ -1,17 +1,23 @@
 import { getPackages } from "@/lib/packages";
-import PageHero from "@/components/site/page-hero";
+import { getGalleryItems } from "@/lib/gallery";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
+import StorySection from "@/components/site/story-section";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
 export default async function PackagesPage() {
   const packages = await getPackages();
+  const images = await getGalleryItems(4);
 
   return (
     <main className="container section public-page-shell public-page-shell--packages">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="Packages"
-        title="Choose the level of styling, then tailor the room after the consultation."
+        title="Choose the styling level, then shape the room with us."
         description="Each package is a starting point designed to help you choose the right level of styling. During the consultation, we refine the scope around your venue, guest count, and event priorities."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Luxury decor package inspiration"
+        tags={["Essential", "Signature", "Luxury"]}
         aside={
           <div className="package-editorial-band public-page-band">
             <Card className="package-editorial-copy">
@@ -30,6 +36,16 @@ export default async function PackagesPage() {
             </Card>
           </div>
         }
+      />
+
+      <StorySection
+        eyebrow="How to choose"
+        title="Start with the package that feels closest to your event."
+        description="Packages help you choose the right level of styling without locking you into a rigid template. During the consultation, we refine focal points, rentals, guest tables, and venue considerations together."
+        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
+        imageAlt="Styled wedding decor by Elel Events"
+        reverse
+        tags={["Guest tables", "Focal styling", "Venue flow"]}
       />
 
       <div className="package-grid package-grid--editorial">

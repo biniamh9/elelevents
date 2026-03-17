@@ -4,6 +4,8 @@ import { getPackages } from "@/lib/packages";
 import { getTestimonials } from "@/lib/testimonials";
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
+import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
 
 export const dynamic = "force-dynamic";
 
@@ -141,6 +143,18 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
+        <StorySection
+          eyebrow="The experience"
+          title="Rooms that feel layered, welcoming, and ready to be remembered."
+          description="From head tables and backdrops to guest tables and full-room styling, we create spaces that feel polished when guests arrive and photograph beautifully throughout the event."
+          imageUrl={detailImage}
+          imageAlt="Head table styling by Elel Events"
+          tags={["Head table", "Backdrop", "Lighting"]}
+          reverse
+        />
+      </section>
+
+      <section className="container section">
         <section className="simple-process-shell">
           <div className="simple-process-head">
             <p className="eyebrow">How it works</p>
@@ -181,6 +195,18 @@ export default async function HomePage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="container section">
+        <GalleryStrip
+          title="Visual moments that help clients imagine their own event."
+          items={galleryPreview.slice(0, 4).map((item) => ({
+            id: item.id,
+            imageUrl: item.image_url,
+            title: item.title,
+            label: item.category,
+          }))}
+        />
       </section>
 
       <section className="container section">

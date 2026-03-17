@@ -1,15 +1,22 @@
 import Link from "next/link";
-import PageHero from "@/components/site/page-hero";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
+import StorySection from "@/components/site/story-section";
+import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const images = await getGalleryItems(4);
+
   return (
     <main className="container section public-page-shell">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="Contact"
         title="Start the conversation, then we’ll guide the next step clearly."
         description="If you are planning a wedding reception, Traditional Melsi celebration, or milestone event, we would love to hear from you. The best first step is to book a consultation so we can understand your event clearly."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Elegant event detail"
+        tags={["Atlanta", "Consultation", "Design guidance"]}
         aside={
           <Card className="booking-intro-notes">
             <div className="booking-note">
@@ -35,6 +42,16 @@ export default function ContactPage() {
             </div>
           </Card>
         }
+      />
+
+      <StorySection
+        eyebrow="What the process feels like"
+        title="A calmer, clearer start to planning your event."
+        description="We begin with the details that matter, talk through the atmosphere you want to create, and guide the next step in a way that feels thoughtful rather than rushed."
+        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
+        imageAlt="Decor consultation inspiration"
+        reverse
+        tags={["Vision", "Planning", "Atmosphere"]}
       />
 
       <section className="grid-2 public-note-grid">

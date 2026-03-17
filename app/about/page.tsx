@@ -1,14 +1,22 @@
-import PageHero from "@/components/site/page-hero";
+import ImmersivePageHero from "@/components/site/immersive-page-hero";
+import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
+import { getGalleryItems } from "@/lib/gallery";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const images = await getGalleryItems(6);
+
   return (
     <main className="container section public-page-shell">
-      <PageHero
+      <ImmersivePageHero
         eyebrow="About Elel Events"
-        title="At Elel Events & Design, we believe every event should feel effortless, intentional, and unforgettable."
-        description="With over 12 years of experience in event decor and design, our journey began in Minnesota, where we built a strong foundation rooted in creativity, precision, and client satisfaction. Since relocating to Atlanta in 2019, we have continued to elevate celebrations across the city, bringing refined design and seamless execution to every event we touch."
+        title="Elegant celebrations shaped with warmth, precision, and visual care."
+        description="Elel Events & Design creates wedding receptions, Traditional Melsi celebrations, and milestone events that feel intentional, welcoming, and unforgettable."
+        imageUrl={images[0]?.image_url}
+        imageAlt="Elel Events luxury reception setup"
+        tags={["12+ years", "Minnesota roots", "Atlanta since 2019"]}
         aside={
           <Card className="booking-intro-notes">
             <div className="booking-note">
@@ -36,26 +44,29 @@ export default function AboutPage() {
         }
       />
 
-      <section className="grid-2 public-note-grid">
-        <Card>
-          <h3>Why clients trust Elel Events</h3>
-          <p className="muted">
-            At Elel Events &amp; Design, we don&apos;t just design events. We create
-            experiences people remember. Every celebration is approached with
-            intentional styling, calm execution, and a standard of excellence that
-            clients can feel from the first consultation to the final reveal.
-          </p>
-        </Card>
-
-        <Card>
-          <h3>Founder-led design with follow-through</h3>
-          <p className="muted">
-            Led by Yordi, the studio is known for warm communication, thoughtful
-            design decisions, and a dependable process that keeps clients informed
-            from consultation through event day.
-          </p>
-        </Card>
-      </section>
+      <StorySection
+        eyebrow="Our story"
+        title="From Minnesota beginnings to Atlanta celebrations."
+        description="Our journey began in Minnesota, where we built a strong foundation rooted in creativity, client care, and dependable execution. Since relocating to Atlanta in 2019, we have continued to design celebrations with the same professionalism and detail-led approach."
+        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
+        imageAlt="Decorated head table by Elel Events"
+        tags={["Head table", "Room reveal", "Guest experience"]}
+      >
+        <div className="story-feature-points">
+          <Card>
+            <h3>Emotion first</h3>
+            <p className="muted">
+              We design rooms that feel calm, beautiful, and memorable the moment clients walk in.
+            </p>
+          </Card>
+          <Card>
+            <h3>Founder-led care</h3>
+            <p className="muted">
+              Led by Yordi, each event is guided with thoughtful communication and close attention to detail.
+            </p>
+          </Card>
+        </div>
+      </StorySection>
 
       <section className="simple-proof-band">
         <Card className="simple-proof-card">
@@ -84,6 +95,16 @@ export default function AboutPage() {
           </p>
         </Card>
       </section>
+
+      <GalleryStrip
+        title="A closer look at the details that shape the room."
+        items={images.slice(2, 5).map((item) => ({
+          id: item.id,
+          imageUrl: item.image_url,
+          title: item.title,
+          label: item.category,
+        }))}
+      />
 
       <section className="cta-shell cta-shell--editorial">
         <div>
