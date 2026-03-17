@@ -36,12 +36,19 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
-    const file = formData.get("file");
+    const fileEntries = formData.getAll("files");
+    const legacyFile = formData.get("file");
     const title = String(formData.get("title") ?? "").trim();
     const category = String(formData.get("category") ?? "").trim();
     const sortOrderValue = String(formData.get("sort_order") ?? "").trim();
+    const sortOrderBase = sortOrderValue ? Number(sortOrderValue) : null;
+    const files = fileEntries.length
+      ? fileEntries.filter((entry): entry is File => entry instanceof File)
+      : legacyFile instanceof File
+        ? [legacyFile]
+        : [];
 
-    if (!(file instanceof File)) {
+    if (!files.length) {
       return NextResponse.json({ error: "Image file is required" }, { status: 400 });
     }
 
@@ -49,66 +56,75 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const insertedIds: string[] = [];
 
-    if (!["jpg", "jpeg", "png", "webp"].includes(extension)) {
-      return NextResponse.json(
-        { error: "Only JPG, JPEG, PNG, and WEBP files are allowed." },
-        { status: 400 }
-      );
-    }
+    for (const [index, file] of files.entries()) {
+      const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
 
-    const contentType = getContentType(file, extension);
-    const filePath = `${Date.now()}-${randomUUID()}.${extension}`;
+      if (!["jpg", "jpeg", "png", "webp"].includes(extension)) {
+        return NextResponse.json(
+          { error: "Only JPG, JPEG, PNG, and WEBP files are allowed." },
+          { status: 400 }
+        );
+      }
 
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from(GALLERY_BUCKET)
-      .upload(filePath, file, {
-        contentType,
-        upsert: false,
+      const contentType = getContentType(file, extension);
+      const filePath = `${Date.now()}-${randomUUID()}.${extension}`;
+
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from(GALLERY_BUCKET)
+        .upload(filePath, file, {
+          contentType,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabaseAdmin.storage.from(GALLERY_BUCKET).getPublicUrl(filePath);
+
+      const itemTitle =
+        files.length === 1 ? title : `${title} ${index + 1}`;
+
+      const { data: inserted, error: insertError } = await supabaseAdmin
+        .from("gallery_items")
+        .insert({
+          title: itemTitle,
+          category: category || null,
+          image_url: publicUrl,
+          image_path: filePath,
+          sort_order: sortOrderBase !== null ? sortOrderBase + index : null,
+          is_active: true,
+        })
+        .select("id")
+        .single();
+
+      if (insertError || !inserted) {
+        return NextResponse.json(
+          { error: insertError?.message || "Failed to save gallery item" },
+          { status: 500 }
+        );
+      }
+
+      insertedIds.push(inserted.id);
+
+      await logActivity(supabaseAdmin, {
+        entityType: "client",
+        entityId: inserted.id,
+        action: "gallery.uploaded",
+        summary: "Gallery image uploaded",
+        metadata: {
+          title: itemTitle,
+          category: category || null,
+          image_path: filePath,
+        },
       });
-
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
-    const {
-      data: { publicUrl },
-    } = supabaseAdmin.storage.from(GALLERY_BUCKET).getPublicUrl(filePath);
-
-    const { data: inserted, error: insertError } = await supabaseAdmin
-      .from("gallery_items")
-      .insert({
-        title,
-        category: category || null,
-        image_url: publicUrl,
-        image_path: filePath,
-        sort_order: sortOrderValue ? Number(sortOrderValue) : null,
-        is_active: true,
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !inserted) {
-      return NextResponse.json(
-        { error: insertError?.message || "Failed to save gallery item" },
-        { status: 500 }
-      );
-    }
-
-    await logActivity(supabaseAdmin, {
-      entityType: "client",
-      entityId: inserted.id,
-      action: "gallery.uploaded",
-      summary: "Gallery image uploaded",
-      metadata: {
-        title,
-        category: category || null,
-        image_path: filePath,
-      },
-    });
-
-    return NextResponse.json({ success: true, id: inserted.id });
+    return NextResponse.json({ success: true, ids: insertedIds });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });

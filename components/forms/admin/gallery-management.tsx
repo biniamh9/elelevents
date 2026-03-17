@@ -111,7 +111,7 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [sortOrder, setSortOrder] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
 
@@ -120,14 +120,16 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
     setUploading(true);
     setMessage("");
 
-    if (!file) {
-      setMessage("Choose an image first.");
+    if (!files.length) {
+      setMessage("Choose at least one image first.");
       setUploading(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
     formData.append("title", title);
     formData.append("category", category);
     formData.append("sort_order", sortOrder);
@@ -145,6 +147,11 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
       return;
     }
 
+    setTitle("");
+    setCategory("");
+    setSortOrder("");
+    setFiles([]);
+    setMessage(`Uploaded ${files.length} image${files.length === 1 ? "" : "s"}. Refreshing...`);
     window.location.reload();
   }
 
@@ -174,14 +181,18 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
             </div>
 
             <div className="field">
-              <label className="label">Image File</label>
+              <label className="label">Image Files</label>
               <input
                 className="input"
                 type="file"
                 accept={allowedImageTypes}
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                multiple
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
                 required
               />
+              <p className="muted" style={{ marginTop: "8px" }}>
+                JPG, PNG, or WEBP. If you choose multiple files, the same title/category/sort base will be used.
+              </p>
             </div>
           </div>
 

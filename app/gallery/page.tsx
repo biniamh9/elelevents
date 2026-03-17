@@ -1,6 +1,8 @@
 import { getGalleryItems } from "@/lib/gallery";
 import GalleryBrowser from "@/components/gallery/gallery-browser";
 
+export const dynamic = "force-dynamic";
+
 export default async function GalleryPage() {
   const images = await getGalleryItems();
 
