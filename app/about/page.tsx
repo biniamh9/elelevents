@@ -8,49 +8,52 @@ export default function AboutPage() {
     <main className="container section public-page-shell">
       <PageHero
         eyebrow="About Elel Events"
-        title="Designing rooms that feel warm, elevated, and memorable."
-        description="Elel Events & Design creates wedding and celebration spaces that feel polished without losing warmth. The process is consultation-led, visually driven, and built around the atmosphere each client wants guests to walk into."
+        title="At Elel Events & Design, we believe every event should feel effortless, intentional, and unforgettable."
+        description="With over 12 years of experience in event decor and design, our journey began in Minnesota, where we built a strong foundation rooted in creativity, precision, and client satisfaction. Since relocating to Atlanta in 2019, we have continued to elevate celebrations across the city, bringing refined design and seamless execution to every event we touch."
         aside={
           <Card className="booking-intro-notes">
-          <div className="booking-note">
-            <span>01</span>
-            <div>
-              <strong>Reception and Melsi experience</strong>
-              <p className="muted">Traditional events and modern celebrations handled with the same care.</p>
+            <div className="booking-note">
+              <span>01</span>
+              <div>
+              <strong>Story-led event atmospheres</strong>
+              <p className="muted">From elegant wedding receptions to traditional Melsi celebrations and milestone events, every detail is thoughtfully curated to reflect each client&apos;s vision.</p>
+              </div>
             </div>
-          </div>
-          <div className="booking-note">
-            <span>02</span>
-            <div>
-              <strong>Design-first approach</strong>
-              <p className="muted">Mood, focal points, and room flow come before generic package thinking.</p>
+            <div className="booking-note">
+              <span>02</span>
+              <div>
+              <strong>Reputation built on trust</strong>
+              <p className="muted">Clients consistently highlight our professionalism, reliability, and attention to detail, and we are proud to say our work speaks for itself.</p>
+              </div>
             </div>
-          </div>
-          <div className="booking-note">
-            <span>03</span>
-            <div>
-              <strong>Clear client process</strong>
-              <p className="muted">Inquiry, consultation, quote, contract, and follow-up handled in one clean flow.</p>
+            <div className="booking-note">
+              <span>03</span>
+              <div>
+              <strong>Consistency without compromise</strong>
+              <p className="muted">We have built our reputation on trust, consistency, and delivering exactly what we promise, with zero complaints and countless satisfied clients.</p>
+              </div>
             </div>
-          </div>
           </Card>
         }
       />
 
       <section className="grid-2 public-note-grid">
         <Card>
-          <h3>What clients can expect</h3>
+          <h3>What sets us apart</h3>
           <p className="muted">
-            A refined process, collaborative consultation, and styling that feels
-            intentional from the entrance to the head table to the final room reveal.
+            At Elel Events &amp; Design, we don&apos;t just design events. We create
+            experiences people remember. Every celebration is approached with
+            intentional styling, calm execution, and a standard of excellence that
+            clients can feel from the first consultation to the final reveal.
           </p>
         </Card>
 
         <Card>
           <h3>How to begin</h3>
           <p className="muted">
-            Start with the inquiry form, upload the vision if you have one, then
-            move into consultation before the quote and contract stage.
+            Start with the inquiry form, share your vision, and move into consultation.
+            From there, we refine the decor direction, confirm the scope, and guide
+            you cleanly into quote, contract, and event-day execution.
           </p>
           <div style={{ marginTop: "16px" }}>
             <Button href="/request">Book Consultation</Button>
