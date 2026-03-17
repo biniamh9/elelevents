@@ -207,7 +207,7 @@ a { color: inherit; text-decoration: none; }
 .hero-stage {
   position: relative;
   min-height: 100vh;
-  padding: 172px 0 72px;
+  padding: 214px 0 72px;
   overflow: hidden;
 }
 .hero-stage--simple {
@@ -233,7 +233,7 @@ a { color: inherit; text-decoration: none; }
 }
 .home-hero-copy {
   max-width: 560px;
-  padding-top: 28px;
+  padding-top: 44px;
 }
 .hero-stage-kicker {
   display: flex;
@@ -1400,7 +1400,7 @@ a { color: inherit; text-decoration: none; }
 .public-page-shell {
   display: grid;
   gap: 28px;
-  padding-top: 118px;
+  padding-top: 136px;
 }
 .public-page-hero {
   display: grid;
@@ -2920,7 +2920,7 @@ th { background: var(--surface-soft); }
   }
   .hero-stage {
     min-height: auto;
-    padding: 128px 0 36px;
+    padding: 156px 0 36px;
   }
   .hero-stage-copy h1 {
     max-width: none;
@@ -2954,7 +2954,7 @@ th { background: var(--surface-soft); }
     padding-top: 8px;
   }
   .public-page-shell {
-    padding-top: 104px;
+    padding-top: 118px;
   }
   .hero-stage-card--tall,
   .hero-stage-card--wide,
