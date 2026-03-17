@@ -267,10 +267,6 @@ export default async function HomePage() {
           </div>
         </section>
       </section>
-
-      <div className="footer container">
-        © 2026 Elel Events. Elegant design for meaningful celebrations.
-      </div>
     </main>
   );
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { Viewport } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 import SiteHeader from "@/components/site/site-header";
+import SiteFooter from "@/components/site/site-footer";
 
 const displayFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${displayFont.variable} ${bodyFont.variable}`}>
         <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );
