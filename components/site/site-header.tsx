@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import Button from "@/components/ui/button";
 
 const links = [
   { href: "/", label: "Home" },
@@ -67,9 +68,7 @@ export default function SiteHeader() {
         </Link>
 
         <div className="nav-main">
-          <Link href="/request" className="btn nav-cta">
-            Book Consultation
-          </Link>
+          <Button href="/request" className="nav-cta">Book Consultation</Button>
 
           <button
             type="button"

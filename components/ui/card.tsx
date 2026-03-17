@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { ElementType, HTMLAttributes, ReactNode } from "react";
 
 function joinClasses(...values: Array<string | undefined | false>) {
   return values.filter(Boolean).join(" ");
@@ -7,12 +7,19 @@ function joinClasses(...values: Array<string | undefined | false>) {
 type CardProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
   soft?: boolean;
+  as?: ElementType;
 };
 
-export default function Card({ children, className, soft = false, ...rest }: CardProps) {
+export default function Card({
+  children,
+  className,
+  soft = false,
+  as: Component = "div",
+  ...rest
+}: CardProps) {
   return (
-    <div className={joinClasses("card", soft && "card--soft", className)} {...rest}>
+    <Component className={joinClasses("card", soft && "card--soft", className)} {...rest}>
       {children}
-    </div>
+    </Component>
   );
 }

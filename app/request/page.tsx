@@ -1,5 +1,7 @@
 import EventRequestForm from "@/components/forms/event-request-form";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import PageHero from "@/components/site/page-hero";
+import Card from "@/components/ui/card";
 
 export default async function RequestPage() {
   const { data: vendors } = await supabaseAdmin
@@ -11,18 +13,12 @@ export default async function RequestPage() {
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
-      <section className="public-page-banner">
-        <div className="public-page-banner-copy page-hero-copy">
-          <p className="eyebrow">Request a Quote</p>
-          <h1>Start with the room you want, not just the event date.</h1>
-          <p className="lead">
-            This is where the booking system meets the brand. It should still
-            feel refined and visual, but it also needs to gather the details
-            that make the consultation and quote process stronger.
-          </p>
-        </div>
-
-        <div className="public-page-banner-side booking-intro-notes card">
+      <PageHero
+        eyebrow="Request a Quote"
+        title="Start with the room you want, not just the event date."
+        description="This is where the booking system meets the brand. It should still feel refined and visual, but it also needs to gather the details that make the consultation and quote process stronger."
+        aside={
+          <Card className="booking-intro-notes">
           <div className="booking-note">
             <span>01</span>
             <div>
@@ -44,29 +40,30 @@ export default async function RequestPage() {
               <p className="muted">We review the request first, then quote after the real conversation.</p>
             </div>
           </div>
-        </div>
-      </section>
+          </Card>
+        }
+      />
 
       <EventRequestForm vendors={vendors ?? []} />
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
-        <div className="card">
+        <Card>
           <h3>No fake instant pricing</h3>
           <p className="muted">
             Quotes happen after the consultation. The website should feel more
             like a luxury booking experience than a cheap calculator for a
             custom decor service.
           </p>
-        </div>
+        </Card>
 
-        <div className="card">
+        <Card>
           <h3>What happens after submission?</h3>
           <p className="muted">
             After you submit, we review the request internally, reach out for a
             consultation if needed, confirm scope, and then move to quote,
             contract, and booking steps.
           </p>
-        </div>
+        </Card>
       </div>
     </main>
   );

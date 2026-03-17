@@ -1,5 +1,7 @@
-import Link from "next/link";
+import PageHero from "@/components/site/page-hero";
 import { getPackages } from "@/lib/packages";
+import Card from "@/components/ui/card";
+import Button from "@/components/ui/button";
 
 const serviceAreas = [
   {
@@ -21,34 +23,28 @@ export default async function ServicesPage() {
 
   return (
     <main className="container section public-page-shell">
-      <section className="public-page-banner">
-        <div className="section-heading page-hero-copy public-page-head public-page-banner-copy">
-          <p className="eyebrow">Services</p>
-          <h1>Decor services built around the room, the event flow, and the guest experience.</h1>
-          <p className="lead">
-            This is a customer-facing overview of what Elel Events handles. Packages are
-            starting points, but the real work happens through consultation and thoughtful
-            room planning.
-          </p>
-        </div>
-        <div className="public-page-banner-side">
-          <div className="card gallery-page-note">
+      <PageHero
+        eyebrow="Services"
+        title="Decor services built around the room, the event flow, and the guest experience."
+        description="This is a customer-facing overview of what Elel Events handles. Packages are starting points, but the real work happens through consultation and thoughtful room planning."
+        aside={
+          <Card className="gallery-page-note">
             <strong>What this includes</strong>
             <p className="muted">
               Reception styling, Traditional Melsi design, focal table treatments,
               room atmosphere planning, and consultation-led decor refinement.
             </p>
-          </div>
-        </div>
-      </section>
+          </Card>
+        }
+      />
 
       <section className="simple-proof-band">
         {serviceAreas.map((item) => (
-          <div key={item.title} className="card simple-proof-card">
+          <Card key={item.title} className="simple-proof-card">
             <p className="eyebrow">Service area</p>
             <h3>{item.title}</h3>
             <p className="muted">{item.text}</p>
-          </div>
+          </Card>
         ))}
       </section>
 
@@ -67,12 +63,8 @@ export default async function ServicesPage() {
           ))}
         </div>
         <div className="btn-row">
-          <Link href="/packages" className="btn secondary">
-            View Packages
-          </Link>
-          <Link href="/request" className="btn">
-            Book Consultation
-          </Link>
+          <Button href="/packages" variant="secondary">View Packages</Button>
+          <Button href="/request">Book Consultation</Button>
         </div>
       </section>
     </main>

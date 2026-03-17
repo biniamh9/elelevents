@@ -203,7 +203,7 @@ a { color: inherit; text-decoration: none; }
 .hero-stage {
   position: relative;
   min-height: 100vh;
-  padding: 156px 0 72px;
+  padding: 172px 0 72px;
   overflow: hidden;
 }
 .hero-stage--simple {
@@ -229,7 +229,7 @@ a { color: inherit; text-decoration: none; }
 }
 .home-hero-copy {
   max-width: 560px;
-  padding-top: 20px;
+  padding-top: 28px;
 }
 .hero-stage-kicker {
   display: flex;
@@ -269,15 +269,17 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.8;
 }
 .hero-quick-search {
+  --card-text: var(--text-primary);
+  --card-muted: var(--text-secondary);
+  display: grid;
+  gap: 14px;
   padding: 24px;
-  background:
-    linear-gradient(180deg, rgba(36, 21, 14, 0.9), rgba(56, 30, 18, 0.88)),
-    radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.18), transparent 34%);
-  border: 1px solid rgba(255, 225, 197, 0.14);
-  box-shadow: 0 26px 60px rgba(22, 11, 7, 0.24);
+  background: linear-gradient(180deg, #fffdf9 0%, #f6ede2 100%);
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  box-shadow: 0 18px 36px rgba(48, 24, 11, 0.08);
 }
 .hero-quick-search .eyebrow {
-  color: rgba(255, 235, 217, 0.82);
+  color: var(--accent-dark);
 }
 .hero-quick-grid {
   display: grid;
@@ -285,26 +287,32 @@ a { color: inherit; text-decoration: none; }
   gap: 12px;
 }
 .hero-quick-card {
-  display: grid;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 22px;
-  background: rgba(255, 248, 241, 0.08);
-  border: 1px solid rgba(255, 228, 206, 0.12);
+  min-height: 100px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+  white-space: normal;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(93, 39, 4, 0.08);
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
+.hero-quick-card-content {
+  display: grid;
+  gap: 8px;
+}
 .hero-quick-card strong {
-  color: #fff7ef;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 .hero-quick-card span {
-  color: rgba(255, 235, 217, 0.82);
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 .hero-quick-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(var(--accent-rgb), 0.38);
-  background: rgba(255, 248, 241, 0.12);
+  border-color: rgba(var(--accent-rgb), 0.26);
+  background: #fff8f1;
 }
 .hero-stage-meta {
   display: grid;
@@ -1360,23 +1368,32 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   gap: 28px;
 }
-.public-page-banner {
+.public-page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
   gap: 28px;
   align-items: stretch;
   padding: 30px 0 8px;
 }
-.public-page-banner-copy {
+.public-page-hero-copy {
   display: grid;
   align-content: center;
   gap: 10px;
   min-width: 0;
 }
-.public-page-banner-side {
+.public-page-hero-aside {
   display: grid;
   gap: 18px;
   align-content: stretch;
+}
+.public-page-banner {
+  display: contents;
+}
+.public-page-banner-copy {
+  display: contents;
+}
+.public-page-banner-side {
+  display: contents;
 }
 .public-page-head {
   padding: 0;
@@ -1549,19 +1566,11 @@ th { background: var(--surface-soft); }
 .booking-intro-notes {
   display: grid;
   gap: 14px;
-  background:
-    linear-gradient(135deg, rgba(36, 21, 14, 0.95), rgba(71, 38, 23, 0.92)),
-    radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.2), transparent 30%);
-  border: 1px solid rgba(255, 223, 196, 0.12);
-  box-shadow: 0 28px 64px rgba(23, 12, 7, 0.18);
-  --card-text: #fff3e7;
-  --card-muted: rgba(255, 243, 231, 0.76);
-}
-.public-page-hero--ritual .booking-intro-copy h1 {
-  max-width: 10ch;
-}
-.public-page-hero--ritual .booking-intro-copy .lead {
-  max-width: 62ch;
+  background: linear-gradient(180deg, #fffdf9 0%, #f7efe4 100%);
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  box-shadow: 0 18px 36px rgba(48, 24, 11, 0.08);
+  --card-text: var(--text-primary);
+  --card-muted: var(--text-secondary);
 }
 .booking-note {
   display: grid;
@@ -2779,7 +2788,7 @@ th { background: var(--surface-soft); }
   50% { transform: translateY(-10px); }
 }
 @media (max-width: 900px) {
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-banner { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-hero { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2841,7 +2850,7 @@ th { background: var(--surface-soft); }
   }
   .hero-stage {
     min-height: auto;
-    padding: 96px 0 36px;
+    padding: 128px 0 36px;
   }
   .hero-stage-copy h1 {
     max-width: none;
@@ -2871,7 +2880,7 @@ th { background: var(--surface-soft); }
     min-height: 360px;
     max-height: 52vh;
   }
-  .public-page-banner {
+  .public-page-hero {
     padding-top: 8px;
   }
   .hero-stage-card--tall,

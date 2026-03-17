@@ -1,8 +1,9 @@
-import Link from "next/link";
 import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import { getGalleryItems } from "@/lib/gallery";
 import { getPackages } from "@/lib/packages";
 import { getTestimonials } from "@/lib/testimonials";
+import Button from "@/components/ui/button";
+import Card from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -80,12 +81,8 @@ export default async function HomePage() {
             </p>
 
             <div className="btn-row">
-              <Link href="/request" className="btn">
-                Book Consultation
-              </Link>
-              <Link href="/gallery" className="btn secondary">
-                View Portfolio
-              </Link>
+              <Button href="/request">Book Consultation</Button>
+              <Button href="/gallery" variant="secondary">View Portfolio</Button>
             </div>
           </div>
 
@@ -104,7 +101,7 @@ export default async function HomePage() {
                   <img src={detailImage} alt="Styled head table by Elel Events" />
                 </div>
 
-                <div className="hero-stage-mood-note card home-hero-note">
+                <Card className="hero-stage-mood-note home-hero-note">
                   <p className="eyebrow">Visual direction</p>
                   <h3>Layered styling, warm lighting, and focal points that photograph well.</h3>
                   <div className="hero-stage-mood-tags">
@@ -112,7 +109,7 @@ export default async function HomePage() {
                     <span>Backdrop</span>
                     <span>Melsi</span>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           </div>
@@ -120,17 +117,19 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="hero-quick-search card">
+        <Card className="hero-quick-search">
           <p className="eyebrow">What are you planning?</p>
           <div className="hero-quick-grid">
             {planningPaths.map((item) => (
-              <Link key={item.title} href="/request" className="hero-quick-card">
-                <strong>{item.title}</strong>
-                <span>{item.text}</span>
-              </Link>
+              <Button key={item.title} href="/request" variant="secondary" className="hero-quick-card">
+                <span className="hero-quick-card-content">
+                  <strong>{item.title}</strong>
+                  <span>{item.text}</span>
+                </span>
+              </Button>
             ))}
           </div>
-        </div>
+        </Card>
       </section>
 
       <section className="container section">
@@ -142,21 +141,21 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="simple-process-shell card">
+        <section className="simple-process-shell">
           <div className="simple-process-head">
             <p className="eyebrow">How it works</p>
             <h2>Fast enough to choose. Clear enough to trust.</h2>
           </div>
           <div className="simple-process-grid">
             {processSteps.map((item, index) => (
-              <div key={item.title} className="simple-process-card">
+              <Card key={item.title} className="simple-process-card">
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <h3>{item.title}</h3>
                 <p className="muted">{item.text}</p>
-              </div>
+              </Card>
             ))}
           </div>
-        </div>
+        </section>
       </section>
 
       <section className="container section">
@@ -167,7 +166,7 @@ export default async function HomePage() {
           </div>
           <div className="simple-package-grid">
             {packages.map((pkg) => (
-              <div key={pkg.id} className="package-card package-card--simple">
+              <Card key={pkg.id} className="package-card package-card--simple">
                 <p className="eyebrow">{pkg.best_for ?? "Decor package"}</p>
                 <h3>{pkg.name}</h3>
                 <p className="muted">
@@ -175,10 +174,10 @@ export default async function HomePage() {
                     pkg.best_for ??
                     "Custom decor support tailored to your event."}
                 </p>
-                <Link href="/packages" className="package-card-link">
+                <Button href="/packages" variant="secondary" className="package-card-link">
                   See package details
-                </Link>
-              </div>
+                </Button>
+              </Card>
             ))}
           </div>
         </div>
@@ -186,34 +185,34 @@ export default async function HomePage() {
 
       <section className="container section">
         <div className="simple-proof-band">
-          <div className="card simple-proof-card">
+          <Card className="simple-proof-card">
             <p className="eyebrow">Gallery</p>
             <h3>See the room before you book it.</h3>
-            <Link href="/gallery" className="link-inline">
+            <Button href="/gallery" variant="secondary">
               Browse the work
-            </Link>
-          </div>
+            </Button>
+          </Card>
 
-          <div className="card simple-proof-card">
+          <Card className="simple-proof-card">
             <p className="eyebrow">Vendor support</p>
             <h3>Need vendor help beyond decor?</h3>
-            <Link href="/vendors" className="link-inline">
+            <Button href="/vendors" variant="secondary">
               Explore vendor partners
-            </Link>
-          </div>
+            </Button>
+          </Card>
 
-          <div className="card simple-proof-card">
+          <Card className="simple-proof-card">
             <p className="eyebrow">Start here</p>
             <h3>Upload the vision and we’ll shape the right next step.</h3>
-            <Link href="/request" className="link-inline">
+            <Button href="/request" variant="secondary">
               Request your quote
-            </Link>
-          </div>
+            </Button>
+          </Card>
         </div>
       </section>
 
       <section className="container section">
-        <div className="simple-testimonial-shell card">
+        <section className="simple-testimonial-shell">
           <div className="simple-testimonial-head">
             <div>
               <p className="eyebrow">Client trust</p>
@@ -231,7 +230,7 @@ export default async function HomePage() {
 
           <div className="simple-testimonial-grid">
             {testimonials.map((item) => (
-              <article key={item.id} className="testimonial-card card">
+              <Card key={item.id} as="article" className="testimonial-card">
                 <div className="testimonial-card-top">
                   <span className="testimonial-stars">
                     {"★".repeat(item.rating ?? 5)}
@@ -245,14 +244,14 @@ export default async function HomePage() {
                   <strong>{item.reviewer_name}</strong>
                   <small>{item.event_type || "Event client"}</small>
                 </div>
-              </article>
+              </Card>
             ))}
           </div>
-        </div>
+        </section>
       </section>
 
       <section className="container section">
-        <div className="card cta-shell cta-shell--editorial">
+        <section className="cta-shell cta-shell--editorial">
           <div>
             <span className="eyebrow">Ready to begin</span>
             <h2>Tell us the event and we’ll take it from there.</h2>
@@ -263,14 +262,10 @@ export default async function HomePage() {
           </div>
 
           <div className="btn-row">
-            <Link href="/request" className="btn">
-              Request a Quote
-            </Link>
-            <Link href="/gallery" className="btn secondary">
-              View Gallery
-            </Link>
+            <Button href="/request">Request a Quote</Button>
+            <Button href="/gallery" variant="secondary">View Gallery</Button>
           </div>
-        </div>
+        </section>
       </section>
 
       <div className="footer container">

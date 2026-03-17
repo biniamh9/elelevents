@@ -1,21 +1,17 @@
 import Link from "next/link";
+import PageHero from "@/components/site/page-hero";
+import Card from "@/components/ui/card";
+import Button from "@/components/ui/button";
 
 export default function AboutPage() {
   return (
     <main className="container section public-page-shell">
-      <section className="public-page-banner">
-        <div className="public-page-banner-copy page-hero-copy">
-          <p className="eyebrow">About Elel Events</p>
-          <h1>Designing rooms that feel warm, elevated, and memorable.</h1>
-          <p className="lead">
-            Elel Events & Design creates wedding and celebration spaces that feel
-            polished without losing warmth. The process is consultation-led, visually
-            driven, and built around the atmosphere each client wants guests to walk
-            into.
-          </p>
-        </div>
-
-        <div className="public-page-banner-side booking-intro-notes card">
+      <PageHero
+        eyebrow="About Elel Events"
+        title="Designing rooms that feel warm, elevated, and memorable."
+        description="Elel Events & Design creates wedding and celebration spaces that feel polished without losing warmth. The process is consultation-led, visually driven, and built around the atmosphere each client wants guests to walk into."
+        aside={
+          <Card className="booking-intro-notes">
           <div className="booking-note">
             <span>01</span>
             <div>
@@ -37,30 +33,29 @@ export default function AboutPage() {
               <p className="muted">Inquiry, consultation, quote, contract, and follow-up handled in one clean flow.</p>
             </div>
           </div>
-        </div>
-      </section>
+          </Card>
+        }
+      />
 
       <section className="grid-2 public-note-grid">
-        <div className="card">
+        <Card>
           <h3>What clients can expect</h3>
           <p className="muted">
             A refined process, collaborative consultation, and styling that feels
             intentional from the entrance to the head table to the final room reveal.
           </p>
-        </div>
+        </Card>
 
-        <div className="card">
+        <Card>
           <h3>How to begin</h3>
           <p className="muted">
             Start with the inquiry form, upload the vision if you have one, then
             move into consultation before the quote and contract stage.
           </p>
           <div style={{ marginTop: "16px" }}>
-            <Link href="/request" className="btn">
-              Book Consultation
-            </Link>
+            <Button href="/request">Book Consultation</Button>
           </div>
-        </div>
+        </Card>
       </section>
     </main>
   );
