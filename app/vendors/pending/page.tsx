@@ -13,7 +13,7 @@ export default async function VendorPendingPage() {
   }
 
   return (
-    <main className="container section">
+    <main className="container section public-page-shell">
       <div className="card form-card" style={{ maxWidth: "720px", margin: "32px auto" }}>
         <p className="eyebrow">Vendor approval</p>
         <h2>Your account is still under review.</h2>

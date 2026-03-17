@@ -14,7 +14,7 @@ export default async function VendorLoginPage() {
   }
 
   return (
-    <main className="container section">
+    <main className="container section public-page-shell">
       <div className="section-heading page-hero-copy">
         <p className="eyebrow">Vendor portal</p>
         <h1>Sign in to review referral leads.</h1>

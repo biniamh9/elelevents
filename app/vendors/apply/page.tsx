@@ -2,7 +2,7 @@ import VendorApplicationForm from "@/components/forms/vendor/vendor-application-
 
 export default function VendorApplyPage() {
   return (
-    <main className="container section">
+    <main className="container section public-page-shell">
       <div className="section-heading page-hero-copy">
         <p className="eyebrow">Vendor partners</p>
         <h1>Apply to join the referral network.</h1>
