@@ -11,6 +11,8 @@ type GalleryItem = {
   is_active: boolean | null;
 };
 
+const allowedImageTypes = "image/jpeg,image/jpg,image/png,image/webp";
+
 function GalleryRow({ item }: { item: GalleryItem }) {
   const [title, setTitle] = useState(item.title);
   const [category, setCategory] = useState(item.category ?? "");
@@ -173,7 +175,13 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
 
             <div className="field">
               <label className="label">Image File</label>
-              <input className="input" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required />
+              <input
+                className="input"
+                type="file"
+                accept={allowedImageTypes}
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                required
+              />
             </div>
           </div>
 

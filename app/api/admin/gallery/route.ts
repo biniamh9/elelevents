@@ -5,6 +5,28 @@ import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const GALLERY_BUCKET = "gallery";
+const allowedMimeTypes = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
+
+function getContentType(file: File, extension: string) {
+  if (file.type && allowedMimeTypes.has(file.type)) {
+    return file.type;
+  }
+
+  if (extension === "png") {
+    return "image/png";
+  }
+
+  if (extension === "webp") {
+    return "image/webp";
+  }
+
+  return "image/jpeg";
+}
 
 export async function POST(request: Request) {
   try {
@@ -28,12 +50,21 @@ export async function POST(request: Request) {
     }
 
     const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
+
+    if (!["jpg", "jpeg", "png", "webp"].includes(extension)) {
+      return NextResponse.json(
+        { error: "Only JPG, JPEG, PNG, and WEBP files are allowed." },
+        { status: 400 }
+      );
+    }
+
+    const contentType = getContentType(file, extension);
     const filePath = `${Date.now()}-${randomUUID()}.${extension}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from(GALLERY_BUCKET)
       .upload(filePath, file, {
-        contentType: file.type,
+        contentType,
         upsert: false,
       });
 
