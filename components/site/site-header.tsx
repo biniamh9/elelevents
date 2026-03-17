@@ -67,6 +67,10 @@ export default function SiteHeader() {
         </Link>
 
         <div className="nav-main">
+          <Link href="/request" className="btn nav-cta">
+            Book Consultation
+          </Link>
+
           <button
             type="button"
             className={`nav-toggle${open ? " is-open" : ""}`}
@@ -99,15 +103,7 @@ export default function SiteHeader() {
                 </Link>
               );
             })}
-
-            <Link href="/request" className="btn nav-cta nav-cta--mobile">
-              Book Consultation
-            </Link>
           </nav>
-
-          <Link href="/request" className="btn nav-cta nav-cta--desktop">
-            Book Consultation
-          </Link>
         </div>
       </div>
     </header>
