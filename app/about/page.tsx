@@ -1,4 +1,3 @@
-import Link from "next/link";
 import PageHero from "@/components/site/page-hero";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
@@ -39,7 +38,7 @@ export default function AboutPage() {
 
       <section className="grid-2 public-note-grid">
         <Card>
-          <h3>What sets us apart</h3>
+          <h3>Why clients trust Elel Events</h3>
           <p className="muted">
             At Elel Events &amp; Design, we don&apos;t just design events. We create
             experiences people remember. Every celebration is approached with
@@ -49,16 +48,56 @@ export default function AboutPage() {
         </Card>
 
         <Card>
-          <h3>How to begin</h3>
+          <h3>Founder-led design with follow-through</h3>
           <p className="muted">
-            Start with the inquiry form, share your vision, and move into consultation.
-            From there, we refine the decor direction, confirm the scope, and guide
-            you cleanly into quote, contract, and event-day execution.
+            Led by Yordi, the studio is known for warm communication, thoughtful
+            design decisions, and a dependable process that keeps clients informed
+            from consultation through event day.
           </p>
-          <div style={{ marginTop: "16px" }}>
-            <Button href="/request">Book Consultation</Button>
-          </div>
         </Card>
+      </section>
+
+      <section className="simple-proof-band">
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Origin story</p>
+          <h3>Minnesota foundation</h3>
+          <p className="muted">
+            Our early work in Minnesota established the creative discipline,
+            professionalism, and client care that still define the brand today.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Atlanta presence</p>
+          <h3>Serving Atlanta since 2019</h3>
+          <p className="muted">
+            Since relocating to Atlanta, we have continued designing wedding
+            receptions, Traditional Melsi celebrations, and milestone events with
+            a refined, client-centered approach.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Reputation</p>
+          <h3>Professional, reliable, detail-driven</h3>
+          <p className="muted">
+            Clients consistently highlight our professionalism, reliability, and
+            attention to detail, and our five-star feedback reflects that trust.
+          </p>
+        </Card>
+      </section>
+
+      <section className="cta-shell cta-shell--editorial">
+        <div>
+          <span className="eyebrow">Work with us</span>
+          <h2>Bring your event vision into a consultation that feels calm and clear.</h2>
+          <p className="lead">
+            Share the event details, the atmosphere you want to create, and the
+            focal points that matter most. We will guide the rest.
+          </p>
+        </div>
+        <div className="btn-row">
+          <Button href="/request">Book Consultation</Button>
+          <Button href="/gallery" variant="secondary">View Portfolio</Button>
+        </div>
       </section>
     </main>
   );

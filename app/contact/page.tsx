@@ -9,28 +9,28 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="Start the conversation, then we’ll guide the next step clearly."
-        description="The fastest way to reach Elel Events is through the inquiry and consultation flow. That keeps the event details, vision, and follow-up in one place."
+        description="If you are planning a wedding reception, Traditional Melsi celebration, or milestone event, we would love to hear from you. The best first step is to book a consultation so we can understand your event clearly."
         aside={
           <Card className="booking-intro-notes">
             <div className="booking-note">
               <span>01</span>
               <div>
-                <strong>Best first step</strong>
-                <p className="muted">Use the inquiry form to share your event date, venue status, and decor direction.</p>
+                <strong>Email</strong>
+                <p className="muted">yordecor@gmail.com</p>
               </div>
             </div>
             <div className="booking-note">
               <span>02</span>
               <div>
-                <strong>Consultation before quote</strong>
-                <p className="muted">Quotes are shaped after the real conversation, not from a generic instant calculator.</p>
+                <strong>Phone</strong>
+                <p className="muted">612-964-3553</p>
               </div>
             </div>
             <div className="booking-note">
               <span>03</span>
               <div>
-                <strong>Visual references welcome</strong>
-                <p className="muted">You can share inspiration images and mood direction during the booking flow.</p>
+                <strong>Service area</strong>
+                <p className="muted">Based in Atlanta and serving celebrations across the metro area.</p>
               </div>
             </div>
           </Card>
@@ -39,10 +39,11 @@ export default function ContactPage() {
 
       <section className="grid-2 public-note-grid">
         <Card>
-          <h3>For design inquiries</h3>
+          <h3>What happens after you reach out?</h3>
           <p className="muted">
-            Reception styling, Melsi setup, full decoration, and room transformation
-            requests should all start through the consultation form.
+            We review the event details, follow up to confirm the consultation, and
+            guide you through design direction, scope, and quote preparation. Most
+            responses go out within 1 to 2 business days.
           </p>
         </Card>
 

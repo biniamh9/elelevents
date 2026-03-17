@@ -284,7 +284,7 @@ export default function EventRequestForm({
       return;
     }
 
-    setSuccess("Quote request submitted successfully.");
+    setSuccess("Your consultation request has been received.");
     setForm(initialState);
     setStep(0);
     setLoading(false);
@@ -294,11 +294,11 @@ export default function EventRequestForm({
     <div className="booking-shell">
       <section className="booking-hero card">
         <div>
-          <p className="eyebrow">Booking flow</p>
-          <h3>Guide the client through the decisions that actually shape the quote.</h3>
+          <p className="eyebrow">Consultation request</p>
+          <h3>Share the event details clearly, then we will guide the next step.</h3>
           <p className="muted">
-            A flat inquiry form is weak. Clients forget important decor areas, and then you end up doing discovery by phone anyway.
-            This version collects the high-signal details up front without forcing contract-level complexity too early.
+            This form keeps the process simple while giving us the information we
+            need to prepare for your consultation and design direction.
           </p>
         </div>
         <div className="booking-stepbar" aria-label="Booking steps">
@@ -386,7 +386,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 2</p>
                   <h3>Tell us about the event itself.</h3>
                   <p className="muted">
-                    This is the minimum context needed before anyone should spend time quoting.
+                    Share the key details so we can understand the celebration and plan the right conversation.
                   </p>
                 </div>
 
@@ -449,7 +449,7 @@ export default function EventRequestForm({
                 <div className="field">
                   <label className="label">Need help with trusted partner vendors too?</label>
                   <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
-                    This belongs with event planning, not decor only. Venue, catering, photography, sound, and other partner vendors can be requested here.
+                    If you also need help with venues, catering, photography, planning, or sound, you can request trusted recommendations here.
                   </p>
                   <div className="option-pills">
                     {vendorCategories.map((category) => (
@@ -508,7 +508,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 3</p>
                   <h3>What parts of the decor do you want help with?</h3>
                   <p className="muted">
-                    This is where the form becomes useful. Keep it focused on the decor scope and the notes that actually shape the consultation.
+                    Choose the decor areas that matter most so we can prepare for a more useful consultation.
                   </p>
                 </div>
 
@@ -534,8 +534,7 @@ export default function EventRequestForm({
 
                 {hasFullDecoration ? (
                   <p className="muted">
-                    Full decoration is selected, so the individual decor items are intentionally ignored for now.
-                    You can break the scope down later after the consultation.
+                    You selected full decoration. We can refine the individual details together during the consultation.
                   </p>
                 ) : null}
 
@@ -563,9 +562,8 @@ export default function EventRequestForm({
                 <div className="field">
                   <label className="label">Upload inspiration or vision-board images</label>
                   <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
-                    Keep this easy. Upload up to 5 images so we can see the look
-                    you are trying to achieve without forcing you to describe
-                    everything in text.
+                    Upload up to 5 inspiration images so we can understand your
+                    style quickly and prepare more thoughtfully for the consultation.
                   </p>
                   <label className="vision-board-dropzone">
                     <input
@@ -649,11 +647,11 @@ export default function EventRequestForm({
 
               {step < steps.length - 1 ? (
                 <button type="button" className="btn" onClick={nextStep}>
-                  Continue
+                  Next Step
                 </button>
               ) : (
                 <button className="btn" type="submit" disabled={loading}>
-                  {loading ? "Submitting..." : "Submit Quote Request"}
+                  {loading ? "Submitting..." : "Send Consultation Request"}
                 </button>
               )}
             </div>
@@ -661,12 +659,11 @@ export default function EventRequestForm({
         </div>
 
         <aside className="card sidebar-box booking-summary">
-          <p className="eyebrow">Request summary</p>
-          <h3 style={{ marginTop: 0 }}>No public pricing shown</h3>
+          <p className="eyebrow">What to expect</p>
+          <h3 style={{ marginTop: 0 }}>A consultation before the quote</h3>
           <p className="muted">
-            Pricing is reviewed after we understand the scope, rentals, labor,
-            and venue logistics. That is the right workflow for a negotiable
-            service business.
+            Once we understand the scope, venue, and styling priorities, we can
+            prepare a quote that reflects the event accurately.
           </p>
 
           <div className="summary-stack">
@@ -683,7 +680,7 @@ export default function EventRequestForm({
             </div>
             <div>
               <strong>Consultation</strong>
-              <p className="muted">{form.preferredContactMethod || "We will contact you based on your preference"}</p>
+              <p className="muted">{form.preferredContactMethod || "We will follow up using your preferred contact method"}</p>
             </div>
             <div>
               <strong>Selected decor areas</strong>

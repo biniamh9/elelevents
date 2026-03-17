@@ -41,8 +41,8 @@ export default function VendorsLandingPage() {
           <p className="eyebrow">What to expect</p>
           <h3>Curated lead access</h3>
           <p className="muted">
-            This is not an open marketplace. Vendors are reviewed first so clients
-            see a smaller, more trusted list of partners.
+            We review each partner application carefully so clients can receive
+            recommendations from a smaller, more trusted network.
           </p>
         </Card>
       </section>

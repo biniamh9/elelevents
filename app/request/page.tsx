@@ -14,9 +14,9 @@ export default async function RequestPage() {
   return (
     <main className="container section public-page-shell public-page-shell--request">
       <PageHero
-        eyebrow="Request a Quote"
-        title="Start with the room you want, not just the event date."
-        description="This is where the booking system meets the brand. It should still feel refined and visual, but it also needs to gather the details that make the consultation and quote process stronger."
+        eyebrow="Book Consultation"
+        title="Tell us about the event and the atmosphere you want to create."
+        description="This short form helps us prepare for a thoughtful consultation. Share the basics, the decor direction, and any inspiration images you already have."
         aside={
           <Card className="booking-intro-notes">
           <div className="booking-note">
@@ -48,20 +48,18 @@ export default async function RequestPage() {
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
         <Card>
-          <h3>No fake instant pricing</h3>
+          <h3>Custom quote after consultation</h3>
           <p className="muted">
-            Quotes happen after the consultation. The website should feel more
-            like a luxury booking experience than a cheap calculator for a
-            custom decor service.
+            Your quote is shaped around the venue, scope, rentals, labor, and the
+            focal details that matter most to your event.
           </p>
         </Card>
 
         <Card>
           <h3>What happens after submission?</h3>
           <p className="muted">
-            After you submit, we review the request internally, reach out for a
-            consultation if needed, confirm scope, and then move to quote,
-            contract, and booking steps.
+            After you submit, we review the request, confirm the consultation,
+            refine the scope together, and then move into quote and booking steps.
           </p>
         </Card>
       </div>

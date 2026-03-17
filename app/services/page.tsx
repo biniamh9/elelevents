@@ -5,16 +5,20 @@ import Button from "@/components/ui/button";
 
 const serviceAreas = [
   {
-    title: "Wedding reception styling",
-    text: "Head table, backdrop, guest tables, entrance details, buffet styling, and the full room direction.",
+    title: "Wedding receptions",
+    text: "Full-room styling with focal tables, guest tables, entrance details, backdrops, and an elegant overall atmosphere.",
   },
   {
-    title: "Traditional Melsi design",
-    text: "Traditional layouts, next-day styling, and culturally specific details handled with care and clarity.",
+    title: "Traditional Melsi celebrations",
+    text: "Traditional layouts, next-day styling, and culturally specific decor details handled with care, respect, and experience.",
   },
   {
-    title: "Consultation-led decor planning",
-    text: "Clients start with the room they want, then refine scope after a real conversation instead of guessing online.",
+    title: "Milestone events",
+    text: "Bridal showers, birthdays, anniversaries, and other celebrations styled with the same polished design approach.",
+  },
+  {
+    title: "Vendor support when needed",
+    text: "If your event needs trusted referrals for venues, catering, photography, planning, or sound, we can help connect you to approved partners.",
   },
 ];
 
@@ -26,13 +30,13 @@ export default async function ServicesPage() {
       <PageHero
         eyebrow="Services"
         title="Decor services built around the room, the event flow, and the guest experience."
-        description="This is a customer-facing overview of what Elel Events handles. Packages are starting points, but the real work happens through consultation and thoughtful room planning."
+        description="From wedding receptions to Traditional Melsi celebrations and milestone events, Elel Events designs rooms that feel polished, welcoming, and memorable."
         aside={
           <Card className="gallery-page-note">
-            <strong>What this includes</strong>
+            <strong>What to expect</strong>
             <p className="muted">
-              Reception styling, Traditional Melsi design, focal table treatments,
-              room atmosphere planning, and consultation-led decor refinement.
+              Every service begins with a consultation so we can understand the
+              room, the venue, and the details that matter most to your celebration.
             </p>
           </Card>
         }
@@ -41,29 +45,48 @@ export default async function ServicesPage() {
       <section className="simple-proof-band">
         {serviceAreas.map((item) => (
           <Card key={item.title} className="simple-proof-card">
-            <p className="eyebrow">Service area</p>
+            <p className="eyebrow">Service</p>
             <h3>{item.title}</h3>
             <p className="muted">{item.text}</p>
           </Card>
         ))}
       </section>
 
+      <section className="grid-2 public-note-grid">
+        <Card>
+          <h3>Designed around your event, not a template</h3>
+          <p className="muted">
+            We help clients choose the right focal points, guest-table styling,
+            and room details based on the event flow, venue limitations, and the
+            atmosphere they want guests to experience.
+          </p>
+        </Card>
+        <Card>
+          <h3>Vendor support, only when it adds value</h3>
+          <p className="muted">
+            Some clients already have their team in place. Others need help finding
+            trusted professionals. When needed, we can recommend approved vendor
+            partners to make planning feel easier and more connected.
+          </p>
+        </Card>
+      </section>
+
       <section className="simple-package-shell">
         <div className="simple-package-head">
           <p className="eyebrow">Package directions</p>
-          <h2>Choose the closest styling direction, then refine it after consultation.</h2>
+          <h2>Choose the styling level that fits your event best.</h2>
         </div>
         <div className="simple-package-grid">
           {packages.map((pkg) => (
             <div key={pkg.id} className="package-card package-card--simple">
-              <p className="eyebrow">{pkg.best_for ?? "Decor package"}</p>
+              <p className="eyebrow">Best for</p>
               <h3>{pkg.name}</h3>
-              <p className="muted">{pkg.summary}</p>
+              <p className="muted">{pkg.best_for ?? pkg.summary}</p>
             </div>
           ))}
         </div>
         <div className="btn-row">
-          <Button href="/packages" variant="secondary">View Packages</Button>
+          <Button href="/packages" variant="secondary">Explore Packages</Button>
           <Button href="/request">Book Consultation</Button>
         </div>
       </section>

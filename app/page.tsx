@@ -27,10 +27,10 @@ const planningPaths = [
 ];
 
 const trustPoints = [
+  "12+ years in event decor and design",
+  "Minnesota roots, Atlanta since 2019",
   "5-star Google review reputation",
-  "Reception and Melsi experience",
-  "Consultation before quote",
-  "Quote, contract, and follow-up handled cleanly",
+  "Reception, Melsi, and milestone event experience",
 ];
 
 const processSteps = [
@@ -43,8 +43,8 @@ const processSteps = [
     text: "Add inspiration images or a vision board so we understand the look without endless back and forth.",
   },
   {
-    title: "Refine and secure",
-    text: "We consult, quote, send the contract, and confirm the event without making the process feel messy.",
+    title: "Refine and confirm",
+    text: "We review the vision together, confirm the scope, and prepare the quote and next steps clearly.",
   },
 ];
 
@@ -76,12 +76,12 @@ export default async function HomePage() {
               <em>Beautiful to walk into.</em>
             </h1>
             <p className="hero-stage-lead">
-              Luxury decor for receptions, Melsi, and milestone events with a
-              cleaner process from inquiry to quote to contract.
+              Luxury event decor for receptions, Melsi, and milestone celebrations,
+              designed with care and guided through a clear consultation process.
             </p>
 
             <div className="btn-row">
-              <Button href="/request">Book Consultation</Button>
+            <Button href="/request">Book Consultation</Button>
               <Button href="/gallery" variant="secondary">View Portfolio</Button>
             </div>
           </div>
@@ -162,16 +162,16 @@ export default async function HomePage() {
         <div className="simple-package-shell">
           <div className="simple-package-head">
             <p className="eyebrow">Packages</p>
-            <h2>Start with a direction, then tailor the room from there.</h2>
+            <h2>Choose the package that feels closest to your event, then refine it together.</h2>
           </div>
           <div className="simple-package-grid">
             {packages.map((pkg) => (
               <Card key={pkg.id} className="package-card package-card--simple">
-                <p className="eyebrow">{pkg.best_for ?? "Decor package"}</p>
+                <p className="eyebrow">Best for</p>
                 <h3>{pkg.name}</h3>
                 <p className="muted">
-                  {pkg.summary ??
-                    pkg.best_for ??
+                  {pkg.best_for ??
+                    pkg.summary ??
                     "Custom decor support tailored to your event."}
                 </p>
                 <Button href="/packages" variant="secondary" className="package-card-link">
@@ -186,26 +186,27 @@ export default async function HomePage() {
       <section className="container section">
         <div className="simple-proof-band">
           <Card className="simple-proof-card">
-            <p className="eyebrow">Gallery</p>
-            <h3>See the room before you book it.</h3>
+            <p className="eyebrow">Portfolio</p>
+            <h3>Explore the rooms, focal points, and finishing details.</h3>
             <Button href="/gallery" variant="secondary">
-              Browse the work
+              View Portfolio
             </Button>
           </Card>
 
           <Card className="simple-proof-card">
             <p className="eyebrow">Vendor support</p>
-            <h3>Need vendor help beyond decor?</h3>
+            <h3>Need trusted help beyond decor?</h3>
+            <p className="muted">We can recommend vetted partners for photography, catering, venues, planning, and more when your event needs added support.</p>
             <Button href="/vendors" variant="secondary">
-              Explore vendor partners
+              Explore vendor support
             </Button>
           </Card>
 
           <Card className="simple-proof-card">
             <p className="eyebrow">Start here</p>
-            <h3>Upload the vision and we’ll shape the right next step.</h3>
+            <h3>Share the vision and we’ll prepare the right next step.</h3>
             <Button href="/request" variant="secondary">
-              Request your quote
+              Book Consultation
             </Button>
           </Card>
         </div>
@@ -254,16 +255,16 @@ export default async function HomePage() {
         <section className="cta-shell cta-shell--editorial">
           <div>
             <span className="eyebrow">Ready to begin</span>
-            <h2>Tell us the event and we’ll take it from there.</h2>
+            <h2>Tell us about the event and we’ll guide the next step with care.</h2>
             <p className="lead">
-              The homepage should not make people work hard. The real detail belongs
-              inside the request form, not in a crowded landing page.
+              Share the date, the venue, and the style you love. We will follow up
+              with a consultation and shape the decor direction from there.
             </p>
           </div>
 
           <div className="btn-row">
-            <Button href="/request">Request a Quote</Button>
-            <Button href="/gallery" variant="secondary">View Gallery</Button>
+            <Button href="/request">Book Consultation</Button>
+            <Button href="/gallery" variant="secondary">View Portfolio</Button>
           </div>
         </section>
       </section>

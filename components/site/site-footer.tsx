@@ -18,7 +18,7 @@ export default function SiteFooter() {
         <p>© 2026 Elel Events. Elegant design for meaningful celebrations.</p>
         <div className="site-footer-links" aria-label="Footer links">
           <Link href="/contact">Contact</Link>
-          <Link href="/vendors">Vendors</Link>
+          <Link href="/vendors">Vendor Support</Link>
           <Link href="/admin/login" className="site-footer-admin-link">
             Admin Login
           </Link>

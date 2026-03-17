@@ -8,9 +8,29 @@ export default function GalleryBrowser({
 }: {
   items: GalleryItem[];
 }) {
+  function normalizeLabel(value: string | null | undefined, fallback: string) {
+    if (!value) {
+      return fallback;
+    }
+
+    const cleaned = value
+      .replace(/\bbride shower\b/gi, "Bridal Shower")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return cleaned
+      .split(" ")
+      .map((part) =>
+        part.length <= 3 && part === part.toUpperCase()
+          ? part
+          : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      )
+      .join(" ");
+  }
+
   const categories = useMemo(() => {
     const unique = Array.from(
-      new Set(items.map((item) => item.category).filter(Boolean))
+      new Set(items.map((item) => normalizeLabel(item.category, "")).filter(Boolean))
     ) as string[];
 
     return ["All", ...unique];
@@ -24,7 +44,7 @@ export default function GalleryBrowser({
       return items;
     }
 
-    return items.filter((item) => item.category === activeCategory);
+    return items.filter((item) => normalizeLabel(item.category, "") === activeCategory);
   }, [activeCategory, items]);
 
   const activeItem =
@@ -100,7 +120,7 @@ export default function GalleryBrowser({
           ))}
         </div>
         <p className="muted">
-          {filteredItems.length} image{filteredItems.length === 1 ? "" : "s"}
+          {filteredItems.length} {filteredItems.length === 1 ? "image" : "images"}
         </p>
       </div>
 
@@ -112,10 +132,10 @@ export default function GalleryBrowser({
             className="gallery-item gallery-item-button"
             onClick={() => setActiveIndex(index)}
           >
-            <img src={item.image_url} alt={item.title} />
+            <img src={item.image_url} alt={normalizeLabel(item.title, "Portfolio image")} />
             <div className="meta">
-              <strong>{item.title}</strong>
-              <div className="muted">{item.category}</div>
+              <strong>{normalizeLabel(item.title, "Portfolio image")}</strong>
+              <div className="muted">{normalizeLabel(item.category, "Portfolio")}</div>
             </div>
           </button>
         ))}
@@ -126,7 +146,7 @@ export default function GalleryBrowser({
           className="gallery-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={activeItem.title}
+          aria-label={normalizeLabel(activeItem.title, "Portfolio image")}
           onClick={closeLightbox}
         >
           <button
@@ -154,10 +174,10 @@ export default function GalleryBrowser({
             className="gallery-lightbox-stage"
             onClick={(event) => event.stopPropagation()}
           >
-            <img src={activeItem.image_url} alt={activeItem.title} />
+            <img src={activeItem.image_url} alt={normalizeLabel(activeItem.title, "Portfolio image")} />
             <div className="gallery-lightbox-meta">
-              <strong>{activeItem.title}</strong>
-              <span>{activeItem.category ?? "Gallery"}</span>
+              <strong>{normalizeLabel(activeItem.title, "Portfolio image")}</strong>
+              <span>{normalizeLabel(activeItem.category, "Portfolio")}</span>
               <small>
                 {activeIndex! + 1} / {filteredItems.length}
               </small>

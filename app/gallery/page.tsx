@@ -12,14 +12,14 @@ export default async function GalleryPage() {
     <main className="container section public-page-shell public-page-shell--gallery">
       <PageHero
         eyebrow="Portfolio"
-        title="Browse the work like a saved board of rooms, details, and focal points."
-        description="Browse by category, open images full-screen, and move through the work without leaving the page. This should feel closer to a curated visual library than a plain image grid."
+        title="Browse rooms, focal points, and details that can shape your event vision."
+        description="Browse by event type, open images full-screen, and save the rooms, focal points, and styling details that feel closest to your celebration."
         aside={
           <Card className="gallery-page-note">
-            <strong>How to use this page</strong>
+            <strong>Use this page for inspiration</strong>
             <p className="muted">
-              Look for rooms, tables, backdrops, and details that match the mood you
-              want, then bring that direction into your quote request.
+              Look for rooms, tables, backdrops, and details that match the mood
+              you want, then reference those ideas when you book your consultation.
             </p>
           </Card>
         }
