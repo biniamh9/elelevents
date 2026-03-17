@@ -11,8 +11,8 @@ export default async function RequestPage() {
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
-      <section className="booking-intro public-page-hero public-page-hero--ritual">
-        <div className="booking-intro-copy page-hero-copy">
+      <section className="public-page-banner">
+        <div className="public-page-banner-copy page-hero-copy">
           <p className="eyebrow">Request a Quote</p>
           <h1>Start with the room you want, not just the event date.</h1>
           <p className="lead">
@@ -22,7 +22,7 @@ export default async function RequestPage() {
           </p>
         </div>
 
-        <div className="booking-intro-notes card">
+        <div className="public-page-banner-side booking-intro-notes card">
           <div className="booking-note">
             <span>01</span>
             <div>

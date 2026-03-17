@@ -54,7 +54,6 @@ export default async function HomePage() {
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const leadImage = galleryPreview[0]?.image_url;
   const detailImage = galleryPreview[1]?.image_url ?? leadImage;
-  const accentImage = galleryPreview[2]?.image_url ?? leadImage;
 
   return (
     <main className="home-shell home-shell--simple">
@@ -64,7 +63,7 @@ export default async function HomePage() {
         <HeroBackdropRotator images={heroBackdropImages} />
 
         <div className="container hero-stage-grid hero-stage-grid--simple">
-          <div className="hero-stage-copy">
+          <div className="hero-stage-copy home-hero-copy">
             <p className="eyebrow">Elel Events & Design</p>
             <div className="hero-stage-kicker">
               <span>Luxury decor studio</span>
@@ -82,28 +81,16 @@ export default async function HomePage() {
 
             <div className="btn-row">
               <Link href="/request" className="btn">
-                Start Your Quote
+                Book Consultation
               </Link>
               <Link href="/gallery" className="btn secondary">
-                Browse the Work
+                View Portfolio
               </Link>
-            </div>
-
-            <div className="hero-quick-search card">
-              <p className="eyebrow">What are you planning?</p>
-              <div className="hero-quick-grid">
-                {planningPaths.map((item) => (
-                  <Link key={item.title} href="/request" className="hero-quick-card">
-                    <strong>{item.title}</strong>
-                    <span>{item.text}</span>
-                  </Link>
-                ))}
-              </div>
             </div>
           </div>
 
-          <div className="hero-stage-visual hero-stage-visual--simple">
-            <div className="hero-stage-showcase">
+          <div className="hero-stage-visual hero-stage-visual--simple home-hero-visual">
+            <div className="hero-stage-showcase home-hero-showcase">
               <div className="hero-stage-card hero-stage-card--tall hero-stage-card--lead">
                 <img src={leadImage} alt="Luxury event setup by Elel Events" />
                 <div className="hero-stage-card-caption">
@@ -117,7 +104,7 @@ export default async function HomePage() {
                   <img src={detailImage} alt="Styled head table by Elel Events" />
                 </div>
 
-                <div className="hero-stage-mood-note card">
+                <div className="hero-stage-mood-note card home-hero-note">
                   <p className="eyebrow">Visual direction</p>
                   <h3>Layered styling, warm lighting, and focal points that photograph well.</h3>
                   <div className="hero-stage-mood-tags">
@@ -127,11 +114,21 @@ export default async function HomePage() {
                   </div>
                 </div>
               </div>
-
-              <div className="hero-stage-card hero-stage-card--wide hero-stage-card--floating">
-                <img src={accentImage} alt="Decor detail by Elel Events" />
-              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container section">
+        <div className="hero-quick-search card">
+          <p className="eyebrow">What are you planning?</p>
+          <div className="hero-quick-grid">
+            {planningPaths.map((item) => (
+              <Link key={item.title} href="/request" className="hero-quick-card">
+                <strong>{item.title}</strong>
+                <span>{item.text}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

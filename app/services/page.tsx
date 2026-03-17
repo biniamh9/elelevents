@@ -21,14 +21,25 @@ export default async function ServicesPage() {
 
   return (
     <main className="container section public-page-shell">
-      <section className="section-heading page-hero-copy public-page-head">
-        <p className="eyebrow">Services</p>
-        <h1>Decor services built around the room, the event flow, and the guest experience.</h1>
-        <p className="lead">
-          This is a customer-facing overview of what Elel Events handles. Packages are
-          starting points, but the real work happens through consultation and thoughtful
-          room planning.
-        </p>
+      <section className="public-page-banner">
+        <div className="section-heading page-hero-copy public-page-head public-page-banner-copy">
+          <p className="eyebrow">Services</p>
+          <h1>Decor services built around the room, the event flow, and the guest experience.</h1>
+          <p className="lead">
+            This is a customer-facing overview of what Elel Events handles. Packages are
+            starting points, but the real work happens through consultation and thoughtful
+            room planning.
+          </p>
+        </div>
+        <div className="public-page-banner-side">
+          <div className="card gallery-page-note">
+            <strong>What this includes</strong>
+            <p className="muted">
+              Reception styling, Traditional Melsi design, focal table treatments,
+              room atmosphere planning, and consultation-led decor refinement.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="simple-proof-band">

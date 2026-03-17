@@ -180,12 +180,12 @@ a { color: inherit; text-decoration: none; }
 .hero-stage {
   position: relative;
   min-height: 100vh;
-  padding: 120px 0 56px;
+  padding: 156px 0 72px;
   overflow: hidden;
 }
 .hero-stage--simple {
   min-height: auto;
-  padding-bottom: 28px;
+  padding-bottom: 40px;
 }
 .hero-stage-grid {
   position: relative;
@@ -196,11 +196,17 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
 }
 .hero-stage-grid--simple {
-  align-items: start;
+  grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
+  gap: 56px;
+  align-items: center;
 }
 .hero-stage-copy {
   display: grid;
   gap: 18px;
+}
+.home-hero-copy {
+  max-width: 560px;
+  padding-top: 20px;
 }
 .hero-stage-kicker {
   display: flex;
@@ -309,6 +315,9 @@ a { color: inherit; text-decoration: none; }
 .hero-stage-visual--simple {
   grid-template-columns: 1fr;
 }
+.home-hero-visual {
+  align-self: stretch;
+}
 .hero-stage-showcase {
   position: relative;
   display: grid;
@@ -316,11 +325,15 @@ a { color: inherit; text-decoration: none; }
   gap: 18px;
   align-items: stretch;
 }
+.home-hero-showcase {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 22px;
+}
 .hero-stage-side-stack {
   display: grid;
   gap: 18px;
   align-content: start;
-  padding-top: 26px;
+  padding-top: 0;
 }
 .hero-stage-stack {
   display: grid;
@@ -344,7 +357,7 @@ a { color: inherit; text-decoration: none; }
   transform: scale(1.03);
 }
 .hero-stage-card--tall {
-  min-height: 700px;
+  min-height: 620px;
 }
 .hero-stage-card--wide {
   min-height: 240px;
@@ -353,7 +366,7 @@ a { color: inherit; text-decoration: none; }
   min-height: 300px;
 }
 .hero-stage-card--accent {
-  transform: translateY(28px);
+  transform: none;
 }
 .hero-stage-card--floating {
   position: absolute;
@@ -396,6 +409,10 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.12), transparent 32%);
   box-shadow: 0 22px 48px rgba(42, 25, 15, 0.12);
 }
+.home-hero-note {
+  min-height: 100%;
+  align-content: start;
+}
 .hero-stage-mood-note h3 {
   margin: 0;
   font-size: 1.3rem;
@@ -432,6 +449,7 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.18), transparent 34%);
   border: 1px solid rgba(255, 225, 197, 0.14);
   box-shadow: 0 26px 60px rgba(22, 11, 7, 0.24);
+  border-radius: 30px;
 }
 .hero-quick-grid {
   display: grid;
@@ -1268,8 +1286,26 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   gap: 28px;
 }
+.public-page-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 28px;
+  align-items: stretch;
+  padding: 30px 0 8px;
+}
+.public-page-banner-copy {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-width: 0;
+}
+.public-page-banner-side {
+  display: grid;
+  gap: 18px;
+  align-content: stretch;
+}
 .public-page-head {
-  padding: 18px 0 0;
+  padding: 0;
 }
 .public-page-band {
   align-items: stretch;
@@ -1296,9 +1332,9 @@ a { color: inherit; text-decoration: none; }
 .gallery-page-band,
 .package-editorial-band {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1fr;
   gap: 18px;
-  margin-bottom: 22px;
+  margin-bottom: 0;
 }
 .gallery-page-note,
 .package-editorial-copy,
@@ -2655,7 +2691,7 @@ th { background: var(--surface-soft); }
   50% { transform: translateY(-10px); }
 }
 @media (max-width: 900px) {
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-banner { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2735,9 +2771,6 @@ th { background: var(--surface-soft); }
   .hero-stage-visual {
     grid-template-columns: 1fr;
   }
-  .hero-stage-visual--simple {
-    order: -1;
-  }
   .hero-stage-showcase {
     grid-template-columns: 1fr;
   }
@@ -2752,6 +2785,9 @@ th { background: var(--surface-soft); }
   .hero-stage-card--lead {
     min-height: 360px;
     max-height: 52vh;
+  }
+  .public-page-banner {
+    padding-top: 8px;
   }
   .hero-stage-card--tall,
   .hero-stage-card--wide,

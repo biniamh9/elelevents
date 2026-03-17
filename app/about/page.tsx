@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function AboutPage() {
   return (
     <main className="container section public-page-shell">
-      <section className="booking-intro public-page-hero public-page-hero--ritual">
-        <div className="booking-intro-copy page-hero-copy">
+      <section className="public-page-banner">
+        <div className="public-page-banner-copy page-hero-copy">
           <p className="eyebrow">About Elel Events</p>
           <h1>Designing rooms that feel warm, elevated, and memorable.</h1>
           <p className="lead">
@@ -15,7 +15,7 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <div className="booking-intro-notes card">
+        <div className="public-page-banner-side booking-intro-notes card">
           <div className="booking-note">
             <span>01</span>
             <div>
