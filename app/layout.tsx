@@ -1,14 +1,20 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import type { Viewport } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { Bodoni_Moda, Great_Vibes, Plus_Jakarta_Sans } from "next/font/google";
 import SiteHeader from "@/components/site/site-header";
 import SiteFooter from "@/components/site/site-footer";
 
-const displayFont = Cormorant_Garamond({
+const displayFont = Bodoni_Moda({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-display",
+});
+
+const accentFont = Great_Vibes({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-accent",
 });
 
 const bodyFont = Plus_Jakarta_Sans({
@@ -38,7 +44,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable}`}>
+      <body className={`${displayFont.variable} ${accentFont.variable} ${bodyFont.variable}`}>
         <SiteHeader />
         {children}
         <SiteFooter />

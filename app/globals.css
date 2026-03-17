@@ -38,7 +38,8 @@ body {
 }
 h1, h2, h3, h4, .brand {
   font-family: var(--font-display), serif;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
 }
 body,
 input,
@@ -98,6 +99,12 @@ a { color: inherit; text-decoration: none; }
   display: block;
 }
 .nav-links { display: flex; align-items: center; gap: 24px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.2em; color: rgba(93, 39, 4, 0.78); }
+.nav-links,
+.hero-stage-kicker span,
+.eyebrow,
+.site-footer-links a {
+  font-family: var(--font-body), sans-serif;
+}
 .nav-toggle {
   display: none;
   width: 48px;
@@ -253,10 +260,16 @@ a { color: inherit; text-decoration: none; }
   max-width: 9ch;
   color: #fff6ef;
   text-shadow: 0 20px 45px rgba(18, 12, 10, 0.3);
+  font-weight: 600;
 }
 .hero-stage-copy h1 em {
-  font-style: italic;
-  color: color-mix(in srgb, var(--accent) 52%, white);
+  font-style: normal;
+  font-family: var(--font-accent), cursive;
+  color: color-mix(in srgb, var(--accent) 60%, white);
+  font-weight: 400;
+  letter-spacing: 0;
+  display: inline-block;
+  transform: translateY(0.08em);
 }
 .hero-stage-lead {
   max-width: 540px;
@@ -736,6 +749,7 @@ a { color: inherit; text-decoration: none; }
 .simple-proof-card h3 {
   margin: 0;
   font-size: 1.5rem;
+  font-weight: 600;
 }
 .simple-testimonial-shell {
   --card-text: #fff5ea;
@@ -762,6 +776,7 @@ a { color: inherit; text-decoration: none; }
   margin: 8px 0 0;
   font-size: clamp(2rem, 4vw, 3rem);
   color: #fff9f3;
+  font-weight: 600;
 }
 .simple-testimonial-grid {
   display: grid;
@@ -906,6 +921,7 @@ a { color: inherit; text-decoration: none; }
 .hero-card h4,
 .hero-card strong {
   color: var(--card-text);
+  font-weight: 600;
 }
 .card p,
 .card li,
@@ -1412,11 +1428,15 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.05em;
   max-width: 12ch;
   color: var(--accent-dark);
+  font-weight: 600;
 }
 .page-hero-copy h1 em,
 .page-hero-copy h2 em {
-  font-style: italic;
+  font-style: normal;
+  font-family: var(--font-accent), cursive;
   color: var(--accent);
+  font-weight: 400;
+  letter-spacing: 0;
 }
 .page-hero-copy .lead {
   max-width: 720px;
