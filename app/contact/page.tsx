@@ -1,6 +1,8 @@
 import Link from "next/link";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
@@ -105,6 +107,21 @@ export default async function ContactPage() {
           </p>
         </Card>
       </section>
+
+      <GalleryStrip
+        title="A glimpse of the atmosphere we help clients create."
+        items={images.slice(0, 4).map((item) => ({
+          id: item.id,
+          imageUrl: item.image_url,
+          title: item.title,
+          label: item.category,
+        }))}
+      />
+
+      <PageCTA
+        title="Reach out with the event details and we’ll guide the next step clearly."
+        description="If you already know the date, venue, or decor direction, booking the consultation now helps secure the best path forward."
+      />
     </main>
   );
 }

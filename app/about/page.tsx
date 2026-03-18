@@ -1,8 +1,8 @@
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
-import Button from "@/components/ui/button";
 import { getGalleryItems } from "@/lib/gallery";
 import { getTestimonials } from "@/lib/testimonials";
 
@@ -147,20 +147,11 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="cta-shell cta-shell--editorial">
-        <div>
-          <span className="eyebrow">Work with us</span>
-          <h2>Bring your event vision into a consultation that feels calm and clear.</h2>
-          <p className="lead">
-            Share the event details, the atmosphere you want to create, and the
-            focal points that matter most. We will guide the rest.
-          </p>
-        </div>
-        <div className="btn-row">
-          <Button href="/request">Book Consultation</Button>
-          <Button href="/gallery" variant="secondary">View Portfolio</Button>
-        </div>
-      </section>
+      <PageCTA
+        eyebrow="Work with us"
+        title="Bring your event vision into a consultation that feels calm and clear."
+        description="Share the event details, the atmosphere you want to create, and the focal points that matter most. We will guide the rest."
+      />
     </main>
   );
 }

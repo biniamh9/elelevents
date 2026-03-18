@@ -1,6 +1,7 @@
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import { getPackages } from "@/lib/packages";
 import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
@@ -140,6 +141,11 @@ export default async function ServicesPage() {
           title: item.title,
           label: item.category,
         }))}
+      />
+
+      <PageCTA
+        title="Choose the service direction that fits your event, then refine it with us."
+        description="From reception styling to Traditional Melsi and milestone events, we help shape the room with clarity, beauty, and thoughtful event flow."
       />
     </main>
   );

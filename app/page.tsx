@@ -6,6 +6,7 @@ import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 
 export const dynamic = "force-dynamic";
 
@@ -306,21 +307,11 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <section className="cta-shell cta-shell--editorial">
-          <div>
-            <span className="eyebrow">Ready to begin</span>
-            <h2>Tell us about the event and we’ll guide the next step with care.</h2>
-            <p className="lead">
-              Share the date, the venue, and the style you love. We will follow up
-              with a consultation and shape the decor direction from there.
-            </p>
-          </div>
-
-          <div className="btn-row">
-            <Button href="/request">Book Consultation</Button>
-            <Button href="/gallery" variant="secondary">View Portfolio</Button>
-          </div>
-        </section>
+        <PageCTA
+          eyebrow="Ready to begin"
+          title="Tell us about the event and we’ll guide the next step with care."
+          description="Share the date, the venue, and the style you love. We will follow up with a consultation and shape the decor direction from there."
+        />
       </section>
     </main>
   );

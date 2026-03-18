@@ -2,6 +2,8 @@ import { getPackages } from "@/lib/packages";
 import { getGalleryItems } from "@/lib/gallery";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
@@ -89,6 +91,21 @@ export default async function PackagesPage() {
           </p>
         </Card>
       </section>
+
+      <GalleryStrip
+        title="Styled spaces that show how each package direction can come to life."
+        items={images.slice(0, 4).map((item) => ({
+          id: item.id,
+          imageUrl: item.image_url,
+          title: item.title,
+          label: item.category,
+        }))}
+      />
+
+      <PageCTA
+        title="Choose the package that feels closest, then let us shape the details with you."
+        description="Packages are a starting point. The consultation is where the venue, focal styling, and room atmosphere come together."
+      />
     </main>
   );
 }

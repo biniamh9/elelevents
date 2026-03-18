@@ -2,6 +2,8 @@ import EventRequestForm from "@/components/forms/event-request-form";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
+import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 
@@ -103,6 +105,22 @@ export default async function RequestPage() {
           </p>
         </Card>
       </section>
+
+      <GalleryStrip
+        title="Visual references that help shape stronger consultations."
+        items={images.map((item) => ({
+          id: item.id,
+          imageUrl: item.image_url,
+          title: item.title,
+          label: item.category,
+        }))}
+      />
+
+      <PageCTA
+        eyebrow="Need inspiration first?"
+        title="Browse the portfolio, then come back with the rooms and details you love."
+        description="The best consultations start with a clear feeling. Save the visual cues that match your event and we’ll build from there."
+      />
     </main>
   );
 }

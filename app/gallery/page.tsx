@@ -2,6 +2,7 @@ import { getGalleryItems } from "@/lib/gallery";
 import GalleryBrowser from "@/components/gallery/gallery-browser";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import GalleryStrip from "@/components/site/gallery-strip";
+import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,11 @@ export default async function GalleryPage() {
         }))}
       />
       <GalleryBrowser items={images} />
+
+      <PageCTA
+        title="Save the visual direction you love, then bring it into your consultation."
+        description="Use the portfolio to identify the mood, focal points, and room details that feel right for your celebration."
+      />
     </main>
   );
 }
