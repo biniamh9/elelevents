@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingCatalogItem } from "@/lib/admin-pricing";
 import { formatCatalogLabel } from "@/lib/admin-pricing";
@@ -28,6 +28,22 @@ function PricingCatalogEditor({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    setName(item.name);
+    setCategory(item.category ?? "");
+    setVariant(item.variant ?? "");
+    setUnitLabel(item.unit_label ?? "each");
+    setUnitPrice(String(item.unit_price ?? 0));
+    setSortOrder(
+      item.sort_order !== null && item.sort_order !== undefined
+        ? String(item.sort_order)
+        : ""
+    );
+    setNotes(item.notes ?? "");
+    setIsActive(Boolean(item.is_active));
+    setMessage("");
+  }, [item]);
 
   async function saveItem() {
     setSaving(true);
@@ -320,7 +336,11 @@ export default function PricingCatalogManagement({
 
         <div className="admin-package-editor-wrap">
           {selectedItem ? (
-            <PricingCatalogEditor item={selectedItem} onDeleted={handleDeleted} />
+            <PricingCatalogEditor
+              key={selectedItem.id}
+              item={selectedItem}
+              onDeleted={handleDeleted}
+            />
           ) : (
             <div className="card admin-package-empty">
               <h3>No pricing item selected</h3>
