@@ -5,29 +5,6 @@ import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
 
-const serviceSections = [
-  {
-    title: "Package direction",
-    options: ["Full decoration"],
-  },
-  {
-    title: "Signature focal points",
-    options: ["Head table styling", "Backdrop / back drape", "Sweetheart table", "Welcome sign area"],
-  },
-  {
-    title: "Guest tables and seating",
-    options: ["Guest tablescape styling", "Tablecloths and linens", "Napkins", "Charger plates", "Chair covers / styling", "Centerpieces"],
-  },
-  {
-    title: "Room and service areas",
-    options: ["Entrance decor", "Buffet table styling", "Cake table", "Ceiling draping", "Full room decor"],
-  },
-  {
-    title: "Operations and support",
-    options: ["Delivery", "Setup", "Breakdown / teardown", "On-site styling support"],
-  },
-];
-
 const eventTypeOptions = [
   "Wedding",
   "Traditional (Melsi)",
@@ -58,10 +35,10 @@ const venueStatusOptions = ["Booked", "Still looking", "Home", "Church", "Hall",
 const consultationOptions = ["Phone call", "Video meeting", "In-person meeting", "Text or email first"];
 const referralOptions = ["Instagram", "Facebook", "Google", "Friend / referral", "Repeat client", "Other"];
 const guestCountRangeOptions = [
-  { label: "Under 50", value: "Under 50", hint: "Intimate rooms and focused styling." },
-  { label: "50-100", value: "50–100", hint: "Balanced room styling with guest tables and focal pieces." },
-  { label: "100-200", value: "100–200", hint: "Larger room layout with stronger visual anchors." },
-  { label: "200+", value: "200+", hint: "Full-room atmosphere and guest-flow planning." },
+  { label: "Under 50", value: "Under 50", hint: "Intimate celebration" },
+  { label: "50-100", value: "50–100", hint: "Mid-size room" },
+  { label: "100-200", value: "100–200", hint: "Large guest floor" },
+  { label: "200+", value: "200+", hint: "Full-scale setup" },
 ];
 const decorStyleOptions = [
   "Classic elegance",
@@ -94,9 +71,10 @@ const paletteSuggestions = [
   "Emerald + gold",
 ];
 const steps = [
-  { id: "contact", label: "Contact" },
-  { id: "event", label: "Event + Partners" },
-  { id: "scope", label: "Decor + Notes" },
+  { id: "event-type", label: "Event Type" },
+  { id: "basics", label: "Event Basics" },
+  { id: "visual-builder", label: "Visual Builder" },
+  { id: "summary", label: "Summary" },
 ];
 
 type GuidedPreviewCategoryConfig = {
@@ -268,6 +246,24 @@ function getGuidedPreviewOptions(eventType: string, portfolioItems: GalleryItem[
   });
 }
 
+function deriveRequestedServices(
+  selectedCategories: string[],
+  hasUploadsOrNotes: boolean,
+  needsDeliverySetup: boolean
+) {
+  const labels = selectedCategories.map((key) => guidedPreviewCategories[key]?.title).filter(Boolean);
+
+  if (hasUploadsOrNotes) {
+    labels.push("Custom inspiration");
+  }
+
+  if (needsDeliverySetup) {
+    labels.push("Delivery and setup");
+  }
+
+  return Array.from(new Set(labels));
+}
+
 function buildReviewNotes(
   form: typeof initialState,
   visualSelectionNotes?: string
@@ -342,29 +338,46 @@ export default function EventRequestForm({
   const [selectedPreviewImages, setSelectedPreviewImages] = useState<Record<string, string>>({});
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
-  const [visibleCategoryCount, setVisibleCategoryCount] = useState(2);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
 
-  const missingCoreInfo = !form.firstName || !form.lastName || !form.email || !form.phone;
-  const missingEventInfo = !form.eventType || !form.eventDate;
-  const missingScope = form.services.length === 0;
-  const hasFullDecoration = form.services.includes("Full decoration");
+  const missingEventType = !form.eventType;
+  const missingBasics = !form.firstName || !form.lastName || !form.email || !form.phone || !form.eventDate;
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
-  const visibleServiceSections = hasFullDecoration
-    ? serviceSections.filter((section) => section.title === "Package direction")
-    : serviceSections;
   const guidedPreviewOptions = useMemo(
     () => getGuidedPreviewOptions(form.eventType, portfolioItems),
     [form.eventType, portfolioItems]
   );
-  const visibleGuidedPreviewOptions = guidedPreviewOptions.slice(0, visibleCategoryCount);
+  const activeGuidedCategory = guidedPreviewOptions[activeCategoryIndex] ?? null;
+  const selectedCategoryKeys = Object.entries(selectedPreviewImages)
+    .filter(([, value]) => Boolean(value))
+    .map(([key]) => key);
+  const hasCategoryNotesOrUploads =
+    Object.values(categoryNotes).some((value) => value?.trim()) ||
+    Object.values(categoryUploads).some((urls) => urls.length > 0) ||
+    form.visionBoardUrls.length > 0;
+  const derivedServices = useMemo(
+    () =>
+      deriveRequestedServices(
+        selectedCategoryKeys,
+        hasCategoryNotesOrUploads,
+        form.needsDeliverySetup
+      ),
+    [selectedCategoryKeys, hasCategoryNotesOrUploads, form.needsDeliverySetup]
+  );
 
   useEffect(() => {
     setSelectedPreviewImages({});
     setCategoryNotes({});
     setCategoryUploads({});
-    setVisibleCategoryCount(2);
+    setActiveCategoryIndex(0);
   }, [form.eventType]);
+
+  useEffect(() => {
+    if (activeCategoryIndex > guidedPreviewOptions.length - 1) {
+      setActiveCategoryIndex(0);
+    }
+  }, [activeCategoryIndex, guidedPreviewOptions.length]);
 
   const preview = useMemo(() => {
     const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
@@ -410,17 +423,16 @@ export default function EventRequestForm({
     const guestLabel = form.guestCountRange || (form.guestCount ? `${form.guestCount} guests` : "the guest count");
     const styleDescription = `${eventLabel} with a ${styleLabel.toLowerCase()} direction, ${paletteLabel.toLowerCase()}, and layout choices shaped around ${venueLabel.toLowerCase()} for ${guestLabel.toLowerCase()}.`;
 
-    const decorDirection = hasFullDecoration
-      ? "Full-room styling with a strong focal installation, guest-table rhythm, and coordinated setup support."
+    const decorDirection = derivedServices.includes("Delivery and setup")
+      ? "A guided room direction with styling selections, setup planning, and a cleaner path into consultation."
       : selectedImages.length
         ? `Selected inspiration across ${selectedImages.length} decor categories to guide the room direction during consultation.`
-      : form.services.length
-        ? `${form.services.slice(0, 3).join(", ")}${form.services.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
+      : derivedServices.length
+        ? `${derivedServices.slice(0, 3).join(", ")}${derivedServices.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
         : "A focal-point-led room with one hero installation and polished guest-facing details.";
 
-    const packageRecommendation = hasFullDecoration
-      ? "Best fit: a full-design package with room styling, focal installations, and setup support."
-      : (form.guestCountRange === "200+" || form.budgetRange === "$8,000+")
+    const packageRecommendation =
+      form.guestCountRange === "200+" || form.budgetRange === "$8,000+"
         ? "Best fit: a custom large-event package with layered room styling and logistics support."
         : "Best fit: a focused decor package centered on your main focal points and guest-table styling.";
 
@@ -437,11 +449,10 @@ export default function EventRequestForm({
     form.eventType,
     form.guestCount,
     form.guestCountRange,
-    form.services,
     form.venueStatus,
     form.venueType,
     guidedPreviewOptions,
-    hasFullDecoration,
+    derivedServices,
     portfolioItems,
     selectedPreviewImages,
     categoryUploads,
@@ -511,33 +522,6 @@ export default function EventRequestForm({
     }
   }
 
-  async function handleVisionBoardUpload(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const files = Array.from(e.target.files ?? []);
-
-    if (files.length === 0) {
-      return;
-    }
-
-    if (form.visionBoardUrls.length + files.length > 5) {
-      setError("Upload up to 5 inspiration images.");
-      e.target.value = "";
-      return;
-    }
-
-    const urls = await uploadInspirationFiles(files);
-
-    if (urls.length) {
-      setForm((prev) => ({
-        ...prev,
-        visionBoardUrls: [...prev.visionBoardUrls, ...urls],
-      }));
-    }
-
-    e.target.value = "";
-  }
-
   async function handleCategoryUpload(
     categoryKey: string,
     e: React.ChangeEvent<HTMLInputElement>
@@ -570,46 +554,6 @@ export default function EventRequestForm({
     e.target.value = "";
   }
 
-  function removeVisionBoardImage(url: string) {
-    setForm((prev) => ({
-      ...prev,
-      visionBoardUrls: prev.visionBoardUrls.filter((item) => item !== url),
-    }));
-    setCategoryUploads((current) => {
-      const nextEntries = Object.entries(current).map(([key, urls]) => [
-        key,
-        urls.filter((item) => item !== url),
-      ]);
-
-      return Object.fromEntries(nextEntries);
-    });
-  }
-
-  function toggleService(service: string) {
-    if (service === "Full decoration") {
-      setForm((prev) => ({
-        ...prev,
-        services: prev.services.includes("Full decoration")
-          ? []
-          : ["Full decoration"],
-      }));
-      return;
-    }
-
-    setForm((prev) => {
-      const nextServices = prev.services.includes("Full decoration")
-        ? []
-        : prev.services;
-
-      return {
-        ...prev,
-        services: nextServices.includes(service)
-          ? nextServices.filter((s) => s !== service)
-          : [...nextServices, service],
-      };
-    });
-  }
-
   function toggleVendorCategory(category: string) {
     setForm((prev) => ({
       ...prev,
@@ -619,14 +563,41 @@ export default function EventRequestForm({
     }));
   }
 
+  function clearCategorySelection(categoryKey: string) {
+    const uploads = categoryUploads[categoryKey] ?? [];
+
+    setSelectedPreviewImages((current) => {
+      const next = { ...current };
+      delete next[categoryKey];
+      return next;
+    });
+    setCategoryNotes((current) => {
+      const next = { ...current };
+      delete next[categoryKey];
+      return next;
+    });
+    setCategoryUploads((current) => {
+      const next = { ...current };
+      delete next[categoryKey];
+      return next;
+    });
+
+    if (uploads.length) {
+      setForm((prev) => ({
+        ...prev,
+        visionBoardUrls: prev.visionBoardUrls.filter((url) => !uploads.includes(url)),
+      }));
+    }
+  }
+
   function nextStep() {
-    if (step === 0 && missingCoreInfo) {
-      setError("Add your name, email, and phone before continuing.");
+    if (step === 0 && missingEventType) {
+      setError("Select the event type before continuing.");
       return;
     }
 
-    if (step === 1 && missingEventInfo) {
-      setError("Add the event type and date before continuing.");
+    if (step === 1 && missingBasics) {
+      setError("Add your contact details and event date before continuing.");
       return;
     }
 
@@ -641,8 +612,8 @@ export default function EventRequestForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (missingScope) {
-      setError("Select at least one decor area so the request is useful.");
+    if (missingBasics || missingEventType) {
+      setError("Complete the event basics before submitting.");
       return;
     }
 
@@ -655,6 +626,7 @@ export default function EventRequestForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        services: derivedServices,
         guestCount: form.guestCount ? Number(form.guestCount) : null,
         additionalInfo: buildReviewNotes(form, visualSelectionNotes),
       }),
@@ -689,12 +661,12 @@ export default function EventRequestForm({
       <section className="booking-hero card">
         <div>
           <p className="eyebrow">Consultation request</p>
-          <h3>Share the essentials, then we’ll guide the next step.</h3>
+          <h3>Build the event direction in four simple steps.</h3>
           <p className="muted">
-            Keep the form light, choose the decor direction, and let the live preview help you picture the room.
+            Choose the event type, add the essentials, then shape the visual direction with real portfolio references.
           </p>
           <p className="booking-preview-intro">
-            As you choose event details, the live preview updates with real portfolio images and a matching decor direction.
+            The preview updates live as you choose images, upload inspiration, and define the room direction.
           </p>
         </div>
         <div className="booking-stepbar" aria-label="Booking steps">
@@ -717,10 +689,81 @@ export default function EventRequestForm({
               <section className="booking-panel">
                 <div className="panel-head">
                   <p className="eyebrow">Step 1</p>
-                  <h3>Who is planning the event?</h3>
-                  <p className="muted">
-                    Let us know who to contact and how you want the first conversation to happen.
-                  </p>
+                  <h3>Select the event type.</h3>
+                </div>
+
+                <div className="visual-choice-grid visual-choice-grid--event-types">
+                  {eventTypeOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className={`choice-card choice-card--event-type ${form.eventType === option ? "selected" : ""}`}
+                      onClick={() => updateField("eventType", option)}
+                      aria-pressed={form.eventType === option}
+                    >
+                      <span className="choice-card-icon" aria-hidden="true">
+                        {eventTypeIcons[option] ?? option.charAt(0)}
+                      </span>
+                      <strong>{option}</strong>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {step === 1 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 2</p>
+                  <h3>Add the essentials.</h3>
+                  <p className="muted">Keep this part light. We only need the event basics and your contact details.</p>
+                </div>
+
+                <div className="form-grid">
+                  <div className="field">
+                    <label className="label">Event Date</label>
+                    <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
+                  </div>
+                  <div className="field">
+                    <label className="label">Exact Guest Count, if known</label>
+                    <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
+                  </div>
+                  <div className="field">
+                    <label className="label">Location / Venue</label>
+                    <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label className="label">Budget Range</label>
+                    <div className="option-pills">
+                      {budgetRangeOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`pill ${form.budgetRange === option ? "selected" : ""}`}
+                          onClick={() => updateField("budgetRange", option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Guest Count Range</label>
+                  <div className="visual-choice-grid visual-choice-grid--compact">
+                    {guestCountRangeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`choice-card choice-card--compact ${form.guestCountRange === option.value ? "selected" : ""}`}
+                        onClick={() => updateField("guestCountRange", option.value)}
+                      >
+                        <strong>{option.label}</strong>
+                        <span>{option.hint}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="form-grid">
@@ -776,70 +819,12 @@ export default function EventRequestForm({
               </section>
             ) : null}
 
-            {step === 1 ? (
+            {step === 2 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 2</p>
-                  <h3>Tell us about the event itself.</h3>
-                  <p className="muted">
-                    Share the key details so we can understand the celebration and guide the right consultation.
-                  </p>
-                </div>
-
-                <div className="field">
-                  <label className="label">Event Type</label>
-                  <div className="visual-choice-grid visual-choice-grid--event-types">
-                    {eventTypeOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`choice-card choice-card--event-type ${form.eventType === option ? "selected" : ""}`}
-                        onClick={() => updateField("eventType", option)}
-                        aria-pressed={form.eventType === option}
-                      >
-                        <span className="choice-card-icon" aria-hidden="true">
-                          {eventTypeIcons[option] ?? option.charAt(0)}
-                        </span>
-                        <strong>{option}</strong>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="form-grid">
-                  <div className="field">
-                    <label className="label">Event Date</label>
-                    <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label className="label">Exact Guest Count, if known</label>
-                    <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
-                  </div>
-                  <div className="field">
-                    <label className="label">Venue Name</label>
-                    <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label className="label">Indoor / Outdoor</label>
-                    <input className="input" value={form.indoorOutdoor} onChange={(e) => updateField("indoorOutdoor", e.target.value)} placeholder="Indoor, outdoor, or mixed" />
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">Guest Count Range</label>
-                  <div className="visual-choice-grid visual-choice-grid--compact">
-                    {guestCountRangeOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`choice-card choice-card--compact ${form.guestCountRange === option.value ? "selected" : ""}`}
-                        onClick={() => updateField("guestCountRange", option.value)}
-                      >
-                        <strong>{option.label}</strong>
-                        <span>{option.hint}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <p className="eyebrow">Step 3</p>
+                  <h3>Build the visual direction.</h3>
+                  <p className="muted">Choose the references that feel closest to your event. You can skip any category.</p>
                 </div>
 
                 <div className="field">
@@ -904,128 +889,128 @@ export default function EventRequestForm({
                       </button>
                     ))}
                   </div>
-                  <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette or theme" style={{ marginTop: "12px" }} />
-                </div>
-
-                <div className="field">
-                  <label className="label">Budget Direction</label>
-                  <div className="option-pills">
-                    {budgetRangeOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.budgetRange === option ? "selected" : ""}`}
-                        onClick={() => updateField("budgetRange", option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+                  <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
                 </div>
 
                 {guidedPreviewOptions.length ? (
                   <div className="guided-preview-builder">
-                    <div className="panel-head">
-                      <div>
-                        <p className="eyebrow">Build the visual direction</p>
-                        <h3>Choose the decor references that feel closest to your event.</h3>
-                        <p className="muted">
-                          Pick one inspiration image per category, skip anything that does not matter, and let the live preview update as you go.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="guided-preview-category-list">
-                      {visibleGuidedPreviewOptions.map((category) => (
-                        <div key={category.key} className="guided-preview-category">
-                          <div className="guided-preview-category-head">
-                            <div>
-                              <h4>{category.title}</h4>
-                              <p className="muted">{category.helper}</p>
-                            </div>
-                            {selectedPreviewImages[category.key] ? (
-                              <span className="admin-status-pill is-live">Selected</span>
-                            ) : null}
-                          </div>
-
-                          {category.images.length ? (
-                            <div className="guided-preview-options">
-                              {category.images.map((item) => (
-                                <button
-                                  key={item.id}
-                                  type="button"
-                                  className={`guided-preview-option ${selectedPreviewImages[category.key] === item.id ? "selected" : ""}`}
-                                  onClick={() =>
-                                    setSelectedPreviewImages((current) => ({
-                                      ...current,
-                                      [category.key]:
-                                        current[category.key] === item.id ? "" : item.id,
-                                    }))
-                                  }
-                                >
-                                  <img
-                                    src={item.image_url}
-                                    alt={item.title}
-                                    loading="lazy"
-                                  />
-                                  <span>{item.title}</span>
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="guided-preview-empty">
-                              <p className="muted">{category.emptyState}</p>
-                              <textarea
-                                className="textarea"
-                                value={categoryNotes[category.key] ?? ""}
-                                onChange={(e) =>
-                                  setCategoryNotes((current) => ({
-                                    ...current,
-                                    [category.key]: e.target.value,
-                                  }))
-                                }
-                                placeholder={`Describe your ${category.title.toLowerCase()} preference`}
-                              />
-                              <label className="guided-preview-upload">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  multiple
-                                  onChange={(e) => handleCategoryUpload(category.key, e)}
-                                  disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
-                                />
-                                <strong>Add inspiration</strong>
-                                <span>
-                                  {(categoryUploads[category.key] ?? []).length} uploaded
-                                </span>
-                              </label>
-                            </div>
-                          )}
-                        </div>
+                    <div className="guided-preview-tabs" role="tablist" aria-label="Decor categories">
+                      {guidedPreviewOptions.map((category, index) => (
+                        <button
+                          key={category.key}
+                          type="button"
+                          role="tab"
+                          aria-selected={activeCategoryIndex === index}
+                          className={`guided-preview-tab ${activeCategoryIndex === index ? "selected" : ""}`}
+                          onClick={() => setActiveCategoryIndex(index)}
+                        >
+                          <span>{category.title}</span>
+                          {selectedPreviewImages[category.key] || (categoryUploads[category.key] ?? []).length || categoryNotes[category.key]?.trim() ? (
+                            <small>Added</small>
+                          ) : null}
+                        </button>
                       ))}
                     </div>
 
-                    {guidedPreviewOptions.length > visibleGuidedPreviewOptions.length ? (
-                      <button
-                        type="button"
-                        className="btn secondary"
-                        onClick={() =>
-                          setVisibleCategoryCount((current) =>
-                            Math.min(current + 2, guidedPreviewOptions.length)
-                          )
-                        }
-                      >
-                        Show More Categories
-                      </button>
+                    {activeGuidedCategory ? (
+                      <div className="guided-preview-stage">
+                        <div className="guided-preview-category-head">
+                          <div>
+                            <h4>{activeGuidedCategory.title}</h4>
+                            <p className="muted">{activeGuidedCategory.helper}</p>
+                          </div>
+                          <div className="guided-preview-stage-nav">
+                            <button
+                              type="button"
+                              className="btn secondary"
+                              onClick={() => setActiveCategoryIndex((current) => Math.max(current - 1, 0))}
+                              disabled={activeCategoryIndex === 0}
+                            >
+                              Previous
+                            </button>
+                            <button
+                              type="button"
+                              className="btn secondary"
+                              onClick={() =>
+                                setActiveCategoryIndex((current) =>
+                                  Math.min(current + 1, guidedPreviewOptions.length - 1)
+                                )
+                              }
+                              disabled={activeCategoryIndex === guidedPreviewOptions.length - 1}
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+
+                        {activeGuidedCategory.images.length ? (
+                          <div className="guided-preview-options">
+                            {activeGuidedCategory.images.map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                className={`guided-preview-option ${selectedPreviewImages[activeGuidedCategory.key] === item.id ? "selected" : ""}`}
+                                onClick={() =>
+                                  setSelectedPreviewImages((current) => ({
+                                    ...current,
+                                    [activeGuidedCategory.key]:
+                                      current[activeGuidedCategory.key] === item.id ? "" : item.id,
+                                  }))
+                                }
+                              >
+                                <img src={item.image_url} alt={item.title} loading="lazy" />
+                                <span>{item.title}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="guided-preview-empty">
+                            <p className="muted">{activeGuidedCategory.emptyState}</p>
+                          </div>
+                        )}
+
+                        <div className="guided-preview-support">
+                          <textarea
+                            className="textarea"
+                            value={categoryNotes[activeGuidedCategory.key] ?? ""}
+                            onChange={(e) =>
+                              setCategoryNotes((current) => ({
+                                ...current,
+                                [activeGuidedCategory.key]: e.target.value,
+                              }))
+                            }
+                            placeholder={`Optional note for ${activeGuidedCategory.title.toLowerCase()}`}
+                          />
+                          <label className="guided-preview-upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handleCategoryUpload(activeGuidedCategory.key, e)}
+                              disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                            />
+                            <strong>Upload inspiration</strong>
+                            <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
+                          </label>
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 ) : null}
 
                 <div className="field">
-                  <label className="label">Need help with trusted partner vendors too?</label>
-                  <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
-                    If you also need help with venues, catering, photography, planning, or sound, you can request trusted recommendations here.
-                  </p>
+                  <label className="checkline">
+                    <input
+                      type="checkbox"
+                      checked={form.needsDeliverySetup}
+                      onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
+                    />
+                    <span>Include delivery, setup, or teardown support in the request.</span>
+                  </label>
+                </div>
+
+                <div className="field">
+                  <label className="label">Partner vendor support</label>
                   <div className="option-pills">
                     {vendorCategories.map((category) => (
                       <button
@@ -1040,138 +1025,46 @@ export default function EventRequestForm({
                   </div>
                 </div>
 
-                {form.requestedVendorCategories.length ? (
-                  <div className="review-card vendor-recommendations">
-                    <h4>Approved partner recommendations</h4>
-                    <p className="muted">
-                      These are approved partners we can coordinate with based on the type of help you requested.
-                    </p>
-                    <div className="vendor-card-grid">
-                      {matchingVendors.length ? (
-                        matchingVendors.slice(0, 6).map((vendor) => (
-                          <div key={vendor.id} className="vendor-card">
-                            <strong>{vendor.business_name}</strong>
-                            <p className="muted">
-                              {(vendor.service_categories ?? [])
-                                .map(normalizeVendorCategory)
-                                .join(", ") || "Vendor partner"}
-                            </p>
-                            <p className="muted">
-                              {vendor.service_area || [vendor.city, vendor.state].filter(Boolean).join(", ") || "Service area not listed"}
-                            </p>
-                            {vendor.website_url ? (
-                              <a href={vendor.website_url} target="_blank" rel="noreferrer" className="link-inline">
-                                View website
-                              </a>
-                            ) : null}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="muted">
-                          We do not have a visible approved vendor listed for those categories yet, but you can still request help and we can recommend manually.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </section>
-            ) : null}
-
-            {step === 2 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 3</p>
-                  <h3>What parts of the decor do you want help with?</h3>
-                  <p className="muted">
-                    Choose the decor areas that matter most so we can prepare for a useful, focused consultation.
-                  </p>
-                </div>
-
-                <div className="scope-sections">
-                  {visibleServiceSections.map((section) => (
-                    <div key={section.title} className="scope-card">
-                      <h4>{section.title}</h4>
-                      <div className="option-pills">
-                        {section.options.map((service) => (
-                          <button
-                            key={service}
-                            type="button"
-                            className={`pill ${form.services.includes(service) ? "selected" : ""}`}
-                            onClick={() => toggleService(service)}
-                          >
-                            {service}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {hasFullDecoration ? (
-                  <p className="muted">
-                    You selected full decoration. We can refine the individual details together during the consultation.
-                  </p>
-                ) : null}
-
                 <div className="field">
-                  <label className="checkline">
-                    <input
-                      type="checkbox"
-                      checked={form.needsDeliverySetup}
-                      onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
-                    />
-                    <span>We need delivery, setup, or teardown support built into the quote.</span>
-                  </label>
-                </div>
-
-                <div className="field">
-                  <label className="label">Inspiration, style notes, or must-have details</label>
+                  <label className="label">General inspiration note</label>
                   <textarea
                     className="textarea"
                     value={form.inspirationNotes}
                     onChange={(e) => updateField("inspirationNotes", e.target.value)}
-                    placeholder="Tell us the look you want, what matters most, and anything we should plan around."
+                    placeholder="Anything important you want us to keep in mind."
                   />
                 </div>
+              </section>
+            ) : null}
 
-                <div className="field">
-                  <label className="label">Upload inspiration or vision-board images</label>
-                  <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
-                    Upload up to 5 inspiration images so we can understand your
-                    style quickly and prepare more thoughtfully for the consultation.
-                  </p>
-                  <label className="vision-board-dropzone">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleVisionBoardUpload}
-                      disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
-                    />
-                    <strong>
-                      {uploadingVisionBoard ? "Uploading..." : "Add inspiration images"}
-                    </strong>
-                    <span>
-                      {form.visionBoardUrls.length}/5 uploaded
-                    </span>
-                  </label>
+            {step === 3 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 4</p>
+                  <h3>Review and send.</h3>
+                  <p className="muted">You can jump back to any step before submitting.</p>
+                </div>
 
-                  {form.visionBoardUrls.length ? (
-                    <div className="vision-board-grid">
-                      {form.visionBoardUrls.map((url, index) => (
-                        <div key={url} className="vision-board-item">
-                          <img src={url} alt={`Vision board ${index + 1}`} />
-                          <button
-                            type="button"
-                            className="vision-board-remove"
-                            onClick={() => removeVisionBoardImage(url)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
+                <div className="review-card">
+                  <h4>Booking summary</h4>
+                  <div className="review-grid">
+                    <p><strong>Client:</strong> {form.firstName || "—"} {form.lastName || ""}</p>
+                    <p><strong>Event:</strong> {form.eventType || "—"}</p>
+                    <p><strong>Date:</strong> {form.eventDate || "—"}</p>
+                    <p><strong>Guest range:</strong> {form.guestCountRange || "—"}</p>
+                    <p><strong>Venue:</strong> {form.venueName || "—"}</p>
+                    <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
+                    <p><strong>Design selections:</strong> {derivedServices.length || 0}</p>
+                    <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
+                  </div>
+                </div>
+
+                <div className="summary-stack">
+                  <div className="booking-edit-links">
+                    <button type="button" className="btn secondary" onClick={() => setStep(0)}>Edit Event Type</button>
+                    <button type="button" className="btn secondary" onClick={() => setStep(1)}>Edit Basics</button>
+                    <button type="button" className="btn secondary" onClick={() => setStep(2)}>Edit Visual Builder</button>
+                  </div>
                 </div>
 
                 <div className="field">
@@ -1180,35 +1073,21 @@ export default function EventRequestForm({
                     className="textarea"
                     value={form.additionalInfo}
                     onChange={(e) => updateField("additionalInfo", e.target.value)}
-                    placeholder="Budget expectations, timing constraints, rental needs, venue rules, or family priorities."
+                    placeholder="Budget expectations, timing constraints, venue rules, or family priorities."
                   />
                 </div>
 
                 {form.requestedVendorCategories.length ? (
                   <div className="field">
-                    <label className="label">Any notes about the vendors you want?</label>
+                    <label className="label">Vendor notes</label>
                     <textarea
                       className="textarea"
                       value={form.vendorRequestNotes}
                       onChange={(e) => updateField("vendorRequestNotes", e.target.value)}
-                      placeholder="Budget range, style preference, location, language, or anything we should know before recommending vendors."
+                      placeholder="Budget range, location, or style notes for vendors."
                     />
                   </div>
                 ) : null}
-
-                <div className="review-card">
-                  <h4>Review before submitting</h4>
-                  <div className="review-grid">
-                    <p><strong>Client:</strong> {form.firstName || "—"} {form.lastName || ""}</p>
-                    <p><strong>Event:</strong> {form.eventType || "—"}</p>
-                    <p><strong>Date:</strong> {form.eventDate || "—"}</p>
-                    <p><strong>Venue:</strong> {form.venueName || "—"}</p>
-                    <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
-                    <p><strong>Scope items:</strong> {form.services.length}</p>
-                    <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
-                  </div>
-                </div>
-
               </section>
             ) : null}
 
@@ -1221,7 +1100,12 @@ export default function EventRequestForm({
               </button>
 
               {step < steps.length - 1 ? (
-                <button type="button" className="btn" onClick={nextStep}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={nextStep}
+                  disabled={(step === 0 && missingEventType) || (step === 1 && missingBasics)}
+                >
                   Next Step
                 </button>
               ) : (
@@ -1250,7 +1134,7 @@ export default function EventRequestForm({
             ))}
           </div>
 
-          <div className="summary-stack">
+            <div className="summary-stack">
             <div className="booking-preview-copy">
               <strong>Style snapshot</strong>
               <p className="muted">{preview.styleDescription}</p>
@@ -1285,16 +1169,16 @@ export default function EventRequestForm({
               </p>
             </div>
             <div>
-              <strong>Selected decor areas</strong>
+              <strong>Selected decor direction</strong>
               <div className="summary-pills">
-                {form.services.length > 0 ? (
-                  form.services.map((service) => (
+                {derivedServices.length > 0 ? (
+                  derivedServices.map((service) => (
                     <span key={service} className="summary-chip">
                       {service}
                     </span>
                   ))
                 ) : (
-                  <p className="muted">No scope selected yet.</p>
+                  <p className="muted">No selections yet.</p>
                 )}
               </div>
             </div>
@@ -1316,14 +1200,23 @@ export default function EventRequestForm({
                           <div className="booking-preview-selection-card">
                             <img src={selected.image_url} alt={selected.title} loading="lazy" />
                             <small>{selected.title}</small>
+                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
+                              Remove
+                            </button>
                           </div>
                         ) : uploads.length ? (
                           <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
                             <small>{uploads.length} uploaded inspiration image{uploads.length === 1 ? "" : "s"}</small>
+                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
+                              Clear
+                            </button>
                           </div>
                         ) : note ? (
                           <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
                             <small>{note}</small>
+                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
+                              Clear
+                            </button>
                           </div>
                         ) : (
                           <p className="muted">Skipped for now</p>
