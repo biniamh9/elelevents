@@ -35,6 +35,24 @@ const trustPoints = [
   "Reception, Melsi, and milestone event experience",
 ];
 
+const confidenceCards = [
+  {
+    eyebrow: "Service area",
+    title: "Atlanta, GA and surrounding areas",
+    text: "Based in Atlanta and serving celebrations across the metro area and nearby communities.",
+  },
+  {
+    eyebrow: "Availability",
+    title: "Limited calendar openings",
+    text: "Popular wedding weekends, spring dates, and holiday weekends tend to book first.",
+  },
+  {
+    eyebrow: "Pricing guidance",
+    title: "Custom quotes, guided clearly",
+    text: "Decor investment depends on venue, scope, rentals, floral needs, and event-day labor.",
+  },
+];
+
 const processSteps = [
   {
     title: "Tell us the event",
@@ -143,6 +161,18 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
+        <div className="simple-proof-band">
+          {confidenceCards.map((item) => (
+            <Card key={item.title} className="simple-proof-card">
+              <p className="eyebrow">{item.eyebrow}</p>
+              <h3>{item.title}</h3>
+              <p className="muted">{item.text}</p>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="container section">
         <StorySection
           eyebrow="The experience"
           title="Rooms that feel layered, welcoming, and ready to be remembered."
@@ -212,27 +242,25 @@ export default async function HomePage() {
       <section className="container section">
         <div className="simple-proof-band">
           <Card className="simple-proof-card">
-            <p className="eyebrow">Portfolio</p>
-            <h3>Explore the rooms, focal points, and finishing details.</h3>
-            <Button href="/gallery" variant="secondary">
-              View Portfolio
-            </Button>
+            <p className="eyebrow">Specialization</p>
+            <h3>Weddings, Traditional Melsi, and milestone events</h3>
+            <p className="muted">
+              We design receptions, Melsi celebrations, bridal showers, birthdays, anniversaries, and elegant gatherings.
+            </p>
           </Card>
-
+          <Card className="simple-proof-card">
+            <p className="eyebrow">What&apos;s included</p>
+            <h3>From focal styling to full-room atmosphere</h3>
+            <p className="muted">
+              Head tables, backdrops, guest tables, entrance styling, buffet details, setup, and teardown support.
+            </p>
+          </Card>
           <Card className="simple-proof-card">
             <p className="eyebrow">Vendor support</p>
-            <h3>Need trusted help beyond decor?</h3>
-            <p className="muted">We can recommend vetted partners for photography, catering, venues, planning, and more when your event needs added support.</p>
+            <h3>Trusted coordination when you need more than decor</h3>
+            <p className="muted">We can recommend vetted partners for photography, catering, venues, planning, sound, and other event support.</p>
             <Button href="/vendors" variant="secondary">
               Explore vendor support
-            </Button>
-          </Card>
-
-          <Card className="simple-proof-card">
-            <p className="eyebrow">Start here</p>
-            <h3>Share the vision and we’ll prepare the right next step.</h3>
-            <Button href="/request" variant="secondary">
-              Book Consultation
             </Button>
           </Card>
         </div>

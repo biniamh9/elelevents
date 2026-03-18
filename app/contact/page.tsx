@@ -81,6 +81,30 @@ export default async function ContactPage() {
           </div>
         </Card>
       </section>
+
+      <section className="simple-proof-band">
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Response time</p>
+          <h3>Usually within 1 to 2 business days</h3>
+          <p className="muted">
+            We respond as quickly as possible and confirm the next step clearly so you know what to expect.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Service area</p>
+          <h3>Atlanta, GA and surrounding areas</h3>
+          <p className="muted">
+            Based in Atlanta and available for celebrations across the metro area and nearby communities.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Booking guidance</p>
+          <h3>Early consultation is best</h3>
+          <p className="muted">
+            Weekend and holiday dates book earlier, so it helps to reach out once you have a date or venue direction.
+          </p>
+        </Card>
+      </section>
     </main>
   );
 }

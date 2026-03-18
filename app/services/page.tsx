@@ -88,6 +88,30 @@ export default async function ServicesPage() {
         </Card>
       </section>
 
+      <section className="simple-proof-band">
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Service area</p>
+          <h3>Atlanta, GA and surrounding areas</h3>
+          <p className="muted">
+            Based in Atlanta and available for celebrations across the metro area and nearby communities.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">What&apos;s included</p>
+          <h3>Decor elements and event-day support</h3>
+          <p className="muted">
+            Head tables, backdrops, guest tables, entry styling, buffet details, setup, and teardown planning.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Pricing guidance</p>
+          <h3>Quotes shaped around the real scope</h3>
+          <p className="muted">
+            Final pricing depends on venue, guest count, rentals, floral needs, labor, and the scale of the decor.
+          </p>
+        </Card>
+      </section>
+
       <section className="simple-package-shell">
         <div className="simple-package-head">
           <p className="eyebrow">Package directions</p>

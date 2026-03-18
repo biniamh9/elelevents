@@ -79,6 +79,30 @@ export default async function RequestPage() {
           </p>
         </Card>
       </div>
+
+      <section className="simple-proof-band">
+        <Card className="simple-proof-card">
+          <p className="eyebrow">How it works</p>
+          <h3>Inquiry → Consultation → Design → Setup</h3>
+          <p className="muted">
+            We review your request, confirm the consultation, refine the design direction, then prepare the event for setup day.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Vendor support</p>
+          <h3>Optional coordination when you need more than decor</h3>
+          <p className="muted">
+            If you request vendor help, we can suggest approved partners for planning, photography, catering, venues, and sound.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Availability</p>
+          <h3>Book early for popular dates</h3>
+          <p className="muted">
+            Prime weekends and seasonal celebration dates fill quickly, especially for wedding and Melsi events.
+          </p>
+        </Card>
+      </section>
     </main>
   );
 }

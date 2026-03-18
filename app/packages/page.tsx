@@ -65,6 +65,30 @@ export default async function PackagesPage() {
           </div>
         ))}
       </div>
+
+      <section className="simple-proof-band">
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Pricing guidance</p>
+          <h3>Packages guide the direction, not the final quote</h3>
+          <p className="muted">
+            Final investment depends on the venue, guest count, rentals, labor, floral needs, and the amount of custom styling required.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">Availability</p>
+          <h3>Popular dates go quickly</h3>
+          <p className="muted">
+            Spring weekends, summer celebrations, and holiday dates often book first, especially for weddings and Melsi events.
+          </p>
+        </Card>
+        <Card className="simple-proof-card">
+          <p className="eyebrow">What&apos;s included</p>
+          <h3>Decor scope refined after consultation</h3>
+          <p className="muted">
+            Packages can include focal tables, backdrops, guest tables, entry styling, room atmosphere, and on-site support.
+          </p>
+        </Card>
+      </section>
     </main>
   );
 }

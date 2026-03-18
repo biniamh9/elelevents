@@ -4,9 +4,11 @@ import GalleryStrip from "@/components/site/gallery-strip";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import { getGalleryItems } from "@/lib/gallery";
+import { getTestimonials } from "@/lib/testimonials";
 
 export default async function AboutPage() {
   const images = await getGalleryItems(6);
+  const testimonials = await getTestimonials(3);
 
   return (
     <main className="container section public-page-shell">
@@ -96,6 +98,21 @@ export default async function AboutPage() {
         </Card>
       </section>
 
+      <section className="grid-2 public-note-grid">
+        <Card>
+          <h3>Design philosophy</h3>
+          <p className="muted">
+            Our signature style is elegant, warm, and layered. We focus on focal points, balanced rooms, and details that photograph beautifully without feeling crowded.
+          </p>
+        </Card>
+        <Card>
+          <h3>Why choose us</h3>
+          <p className="muted">
+            Clients choose Elel Events for experience, reliability, professional communication, and a five-star reputation built over years of trusted work.
+          </p>
+        </Card>
+      </section>
+
       <GalleryStrip
         title="A closer look at the details that shape the room."
         items={images.slice(2, 5).map((item) => ({
@@ -105,6 +122,30 @@ export default async function AboutPage() {
           label: item.category,
         }))}
       />
+
+      <section className="simple-testimonial-shell">
+        <div className="simple-testimonial-head">
+          <div>
+            <p className="eyebrow">Client reviews</p>
+            <h2>What clients remember most</h2>
+          </div>
+        </div>
+        <div className="simple-testimonial-grid">
+          {testimonials.map((item) => (
+            <Card key={item.id} as="article" className="testimonial-card">
+              <div className="testimonial-card-top">
+                <span className="testimonial-stars">{"★".repeat(item.rating ?? 5)}</span>
+                <span className="testimonial-source">{item.source_label || "Google review"}</span>
+              </div>
+              <p className="testimonial-quote">“{item.highlight || item.quote}”</p>
+              <div className="testimonial-meta">
+                <strong>{item.reviewer_name}</strong>
+                <small>{item.event_type || "Event client"}</small>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       <section className="cta-shell cta-shell--editorial">
         <div>
