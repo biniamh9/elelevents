@@ -3497,6 +3497,62 @@ th { background: var(--surface-soft); }
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+.admin-quote-controls {
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.admin-quote-controls-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+.admin-quote-controls-head h4 {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+}
+.admin-quote-action-group {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff, #fbf5ee);
+  border: 1px solid var(--border);
+}
+.admin-quote-action-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.admin-quote-primary-actions {
+  display: grid;
+  gap: 10px;
+}
+.admin-quote-menu-row {
+  display: grid;
+  gap: 10px;
+}
+.admin-quote-action-menu {
+  width: 100%;
+}
+.admin-quote-action-trigger {
+  width: 100%;
+  min-width: 0;
+}
+.admin-quote-action-dropdown {
+  width: 100%;
+}
+.admin-quote-inline-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
 .itemized-preview-shell {
   display: grid;
   gap: 24px;
@@ -3609,6 +3665,9 @@ th { background: var(--surface-soft); }
   }
   .admin-quote-total-card {
     min-width: 0;
+  }
+  .admin-quote-controls-head {
+    flex-direction: column;
   }
   .booking-summary {
     position: static;

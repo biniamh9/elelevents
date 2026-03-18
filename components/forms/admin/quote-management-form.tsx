@@ -13,6 +13,35 @@ import {
   type PricingCatalogItem,
 } from "@/lib/admin-pricing";
 
+function QuoteActionMenu({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="admin-row-action-menu admin-quote-action-menu">
+      <summary className="admin-row-action-trigger admin-quote-action-trigger">
+        <span>{label}</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path
+            d="m5 7 5 6 5-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </summary>
+      <div className="admin-row-action-dropdown admin-quote-action-dropdown">
+        {children}
+      </div>
+    </details>
+  );
+}
+
 type EditableLineItem = {
   id: string;
   pricing_catalog_item_id: string | null;
@@ -664,71 +693,118 @@ export default function QuoteManagementForm({
             <strong>${totals.grandTotal.toLocaleString()}</strong>
           </div>
 
-            <div className="admin-package-actions">
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => saveQuoteBuilder(false)}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save Quote Builder"}
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => saveQuoteBuilder(false, { generateDraft: true })}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Generate Itemized Draft"}
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => router.push(`/admin/inquiries/${inquiryId}/itemized-draft`)}
-              >
-                Preview Itemized Price
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => saveQuoteBuilder(false, { draftStatus: "ready_to_send" })}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Mark Ready to Send"}
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => saveQuoteBuilder(false, { draftStatus: "shared_with_customer" })}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Mark Shared"}
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={copyDraftSummary}
-                disabled={copying}
-              >
-                {copying ? "Copying..." : "Copy Draft Content"}
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={sendQuote}
-              disabled={sending}
-              >
-                {sending ? "Sending..." : "Send Quote Email"}
-              </button>
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => saveQuoteBuilder(true)}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save + Mark Quoted"}
-              </button>
+          <div className="admin-quote-controls">
+            <div className="admin-quote-controls-head">
+              <div>
+                <p className="eyebrow">Quote actions</p>
+                <h4>Save, draft, and share</h4>
+              </div>
+              <span className="admin-status-pill">
+                {draftStatus === "internal_draft"
+                  ? "Internal draft"
+                  : draftStatus === "ready_to_send"
+                    ? "Ready to send"
+                    : "Shared with customer"}
+              </span>
             </div>
+
+            <div className="admin-quote-action-group">
+              <p className="admin-quote-action-label">Quote actions</p>
+              <div className="admin-quote-primary-actions">
+                <button
+                  type="button"
+                  className="btn secondary"
+                  onClick={() => saveQuoteBuilder(false)}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save Quote Builder"}
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => saveQuoteBuilder(true)}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save + Mark Quoted"}
+                </button>
+              </div>
+            </div>
+
+            <div className="admin-quote-action-group">
+              <p className="admin-quote-action-label">Draft / preview</p>
+              <div className="admin-quote-menu-row">
+                <QuoteActionMenu label="Draft Actions">
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={() => saveQuoteBuilder(false, { generateDraft: true })}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Generate Itemized Draft"}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={() => router.push(`/admin/inquiries/${inquiryId}/itemized-draft`)}
+                  >
+                    Preview Itemized Price
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={copyDraftSummary}
+                    disabled={copying}
+                  >
+                    {copying ? "Copying..." : "Copy Draft Content"}
+                  </button>
+                </QuoteActionMenu>
+                <p className="admin-quote-inline-note">
+                  Use these when a client asks for a detailed planning draft.
+                </p>
+              </div>
+            </div>
+
+            <div className="admin-quote-action-group">
+              <p className="admin-quote-action-label">Customer sharing</p>
+              <div className="admin-quote-menu-row">
+                <QuoteActionMenu label="Share Actions">
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={() =>
+                      saveQuoteBuilder(false, { draftStatus: "ready_to_send" })
+                    }
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Mark Ready to Send"}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={() =>
+                      saveQuoteBuilder(false, {
+                        draftStatus: "shared_with_customer",
+                      })
+                    }
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Mark Shared"}
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-row-action-item"
+                    onClick={sendQuote}
+                    disabled={sending}
+                  >
+                    {sending ? "Sending..." : "Send Quote Email"}
+                  </button>
+                </QuoteActionMenu>
+                <p className="admin-quote-inline-note">
+                  Keep customer-facing actions together so sharing is deliberate.
+                </p>
+              </div>
+            </div>
+          </div>
 
           {message ? <p className={message.includes("saved") || message.includes("sent") ? "success" : "error"}>{message}</p> : null}
         </aside>
