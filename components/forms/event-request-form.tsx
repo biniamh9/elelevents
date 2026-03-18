@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
@@ -99,6 +99,99 @@ const steps = [
   { id: "scope", label: "Decor + Notes" },
 ];
 
+type GuidedPreviewCategoryConfig = {
+  key: string;
+  title: string;
+  helper: string;
+  keywords: string[];
+  emptyState: string;
+};
+
+const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
+  backdrop: {
+    key: "backdrop",
+    title: "Backdrop",
+    helper: "Main focal wall or framing detail.",
+    keywords: ["backdrop", "back drape", "drape", "arch"],
+    emptyState: "No backdrop image is ready here yet. Add a note or upload inspiration if you already know the direction.",
+  },
+  head_table: {
+    key: "head_table",
+    title: "Head Table",
+    helper: "Head table or sweetheart styling.",
+    keywords: ["head table", "sweetheart", "bride and groom", "table setup"],
+    emptyState: "No head-table reference is available here yet. Add a note or upload inspiration if you have a preference.",
+  },
+  centerpieces: {
+    key: "centerpieces",
+    title: "Centerpieces",
+    helper: "Guest-table centerpieces and table rhythm.",
+    keywords: ["centerpiece", "tablescape", "guest table", "table setup"],
+    emptyState: "No centerpiece reference is available here yet. Add a note or upload inspiration if you want something specific.",
+  },
+  florals: {
+    key: "florals",
+    title: "Florals",
+    helper: "Bouquets, arrangements, and floral accents.",
+    keywords: ["floral", "flower", "bouquet", "arrangement"],
+    emptyState: "No floral image is available here yet. Add a note or upload inspiration if florals matter to your vision.",
+  },
+  guest_tables: {
+    key: "guest_tables",
+    title: "Guest Tables",
+    helper: "Guest-table styling and overall layout feel.",
+    keywords: ["guest table", "tablescape", "table", "charger", "napkin"],
+    emptyState: "No guest-table reference is available here yet. Add a note or upload inspiration if you want a certain tablescape.",
+  },
+  traditional_setup: {
+    key: "traditional_setup",
+    title: "Traditional Setup",
+    helper: "Traditional Melsi styling and ceremonial detail.",
+    keywords: ["melsi", "traditional", "ceremony"],
+    emptyState: "No traditional setup reference is available here yet. Add a note or upload inspiration if you want to guide the look.",
+  },
+  welcome_area: {
+    key: "welcome_area",
+    title: "Welcome Area",
+    helper: "Entry styling, signage, or arrival detail.",
+    keywords: ["welcome", "entrance", "entry", "sign"],
+    emptyState: "No welcome-area image is available here yet. Add a note or upload inspiration if you want to shape the entry moment.",
+  },
+  dessert_table: {
+    key: "dessert_table",
+    title: "Dessert Table",
+    helper: "Cake, dessert, or buffet focal styling.",
+    keywords: ["cake", "dessert", "buffet", "sweets"],
+    emptyState: "No dessert-table image is available here yet. Add a note or upload inspiration if this area matters to the room.",
+  },
+};
+
+const eventTypeCategoryMap: Record<string, string[]> = {
+  Wedding: ["backdrop", "head_table", "centerpieces", "guest_tables", "florals"],
+  "Traditional (Melsi)": ["traditional_setup", "backdrop", "head_table", "centerpieces", "welcome_area"],
+  Engagement: ["backdrop", "head_table", "centerpieces", "florals"],
+  Birthday: ["backdrop", "centerpieces", "dessert_table", "guest_tables"],
+  "Baby Shower": ["backdrop", "centerpieces", "dessert_table", "welcome_area"],
+  "Bridal Shower": ["backdrop", "centerpieces", "dessert_table", "welcome_area"],
+  Graduation: ["backdrop", "guest_tables", "welcome_area"],
+  "Corporate Event": ["backdrop", "guest_tables", "welcome_area", "florals"],
+  Anniversary: ["backdrop", "head_table", "centerpieces", "florals"],
+  Other: ["backdrop", "guest_tables", "centerpieces"],
+};
+
+const eventTypeKeywords: Record<string, string[]> = {
+  Wedding: ["wedding", "reception", "head table", "sweetheart"],
+  "Traditional (Melsi)": ["melsi", "traditional", "ceremony"],
+  Engagement: ["engagement", "proposal"],
+  Birthday: ["birthday"],
+  "Baby Shower": ["baby shower"],
+  "Bridal Shower": ["bridal shower", "bride shower"],
+  Graduation: ["graduation", "grad"],
+  "Corporate Event": ["corporate", "conference", "brand"],
+  Anniversary: ["anniversary"],
+  Other: [],
+};
+
 const initialState = {
   firstName: "",
   lastName: "",
@@ -126,7 +219,59 @@ const initialState = {
   services: [] as string[],
 };
 
-function buildReviewNotes(form: typeof initialState) {
+function normalizeSearchText(value: string | null | undefined) {
+  return (value ?? "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function getGuidedPreviewOptions(eventType: string, portfolioItems: GalleryItem[]) {
+  if (!eventType) {
+    return [];
+  }
+
+  const eventKeywords = eventTypeKeywords[eventType] ?? [];
+  const categoryKeys = eventTypeCategoryMap[eventType] ?? eventTypeCategoryMap.Other;
+
+  return categoryKeys.map((key) => {
+    const config = guidedPreviewCategories[key];
+    const eventMatches = portfolioItems.filter((item) => {
+      const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
+      const matchesCategory = config.keywords.some((keyword) =>
+        haystack.includes(normalizeSearchText(keyword))
+      );
+
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (!eventKeywords.length) {
+        return true;
+      }
+
+      return eventKeywords.some((keyword) =>
+        haystack.includes(normalizeSearchText(keyword))
+      );
+    });
+
+    const fallbackMatches = portfolioItems.filter((item) => {
+      const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
+      return config.keywords.some((keyword) =>
+        haystack.includes(normalizeSearchText(keyword))
+      );
+    });
+
+    const images = (eventMatches.length ? eventMatches : fallbackMatches).slice(0, 5);
+
+    return {
+      ...config,
+      images,
+    };
+  });
+}
+
+function buildReviewNotes(
+  form: typeof initialState,
+  visualSelectionNotes?: string
+) {
   const detailLines = [
     form.additionalInfo.trim(),
     form.preferredContactMethod
@@ -137,6 +282,7 @@ function buildReviewNotes(form: typeof initialState) {
     form.decorStyle ? `Preferred decor style: ${form.decorStyle}.` : "",
     form.venueType ? `Venue type: ${form.venueType}.` : "",
     form.budgetRange ? `Budget range: ${form.budgetRange}.` : "",
+    visualSelectionNotes ?? "",
   ].filter(Boolean);
 
   return detailLines.join("\n\n");
@@ -193,6 +339,10 @@ export default function EventRequestForm({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadingVisionBoard, setUploadingVisionBoard] = useState(false);
+  const [selectedPreviewImages, setSelectedPreviewImages] = useState<Record<string, string>>({});
+  const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
+  const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
+  const [visibleCategoryCount, setVisibleCategoryCount] = useState(2);
 
   const missingCoreInfo = !form.firstName || !form.lastName || !form.email || !form.phone;
   const missingEventInfo = !form.eventType || !form.eventDate;
@@ -203,11 +353,40 @@ export default function EventRequestForm({
   const visibleServiceSections = hasFullDecoration
     ? serviceSections.filter((section) => section.title === "Package direction")
     : serviceSections;
+  const guidedPreviewOptions = useMemo(
+    () => getGuidedPreviewOptions(form.eventType, portfolioItems),
+    [form.eventType, portfolioItems]
+  );
+  const visibleGuidedPreviewOptions = guidedPreviewOptions.slice(0, visibleCategoryCount);
+
+  useEffect(() => {
+    setSelectedPreviewImages({});
+    setCategoryNotes({});
+    setCategoryUploads({});
+    setVisibleCategoryCount(2);
+  }, [form.eventType]);
 
   const preview = useMemo(() => {
     const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
       .filter(Boolean)
       .map((value) => value.toLowerCase());
+
+    const selectedImages = guidedPreviewOptions
+      .map((category) =>
+        category.images.find((item) => item.id === selectedPreviewImages[category.key])
+      )
+      .filter(Boolean) as GalleryItem[];
+
+    const uploadedImages = guidedPreviewOptions
+      .flatMap((category) =>
+        (categoryUploads[category.key] ?? []).map((url, index) => ({
+          id: `${category.key}-upload-${index}`,
+          image_url: url,
+          title: `${category.title} inspiration`,
+          category: category.title,
+        }))
+      )
+      .slice(0, 4) as GalleryItem[];
 
     const matchedImages = portfolioItems
       .filter((item) => {
@@ -219,7 +398,11 @@ export default function EventRequestForm({
       })
       .slice(0, 4);
 
-    const images = matchedImages.length ? matchedImages : portfolioItems.slice(0, 4);
+    const fallbackImages = matchedImages.length ? matchedImages : portfolioItems.slice(0, 4);
+    const images =
+      selectedImages.length || uploadedImages.length
+        ? [...selectedImages, ...uploadedImages].slice(0, 4)
+        : fallbackImages;
     const eventLabel = form.eventType || "your event";
     const styleLabel = form.decorStyle || "elevated and guest-ready";
     const paletteLabel = form.colorsTheme || "a refined palette";
@@ -229,6 +412,8 @@ export default function EventRequestForm({
 
     const decorDirection = hasFullDecoration
       ? "Full-room styling with a strong focal installation, guest-table rhythm, and coordinated setup support."
+      : selectedImages.length
+        ? `Selected inspiration across ${selectedImages.length} decor categories to guide the room direction during consultation.`
       : form.services.length
         ? `${form.services.slice(0, 3).join(", ")}${form.services.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
         : "A focal-point-led room with one hero installation and polished guest-facing details.";
@@ -255,12 +440,75 @@ export default function EventRequestForm({
     form.services,
     form.venueStatus,
     form.venueType,
+    guidedPreviewOptions,
     hasFullDecoration,
     portfolioItems,
+    selectedPreviewImages,
+    categoryUploads,
   ]);
+
+  const visualSelectionNotes = useMemo(() => {
+    const lines = guidedPreviewOptions
+      .map((category) => {
+        const selected = category.images.find(
+          (item) => item.id === selectedPreviewImages[category.key]
+        );
+        const uploads = categoryUploads[category.key] ?? [];
+        const note = categoryNotes[category.key]?.trim();
+
+        if (!selected && uploads.length === 0 && !note) {
+          return "";
+        }
+
+        const pieces = [];
+        if (selected) {
+          pieces.push(`selected image: ${selected.title}`);
+        }
+        if (uploads.length) {
+          pieces.push(`uploaded inspiration: ${uploads.length}`);
+        }
+        if (note) {
+          pieces.push(`note: ${note}`);
+        }
+
+        return `${category.title} — ${pieces.join(" • ")}`;
+      })
+      .filter(Boolean);
+
+    return lines.length ? `Visual direction picks:\n${lines.map((line) => `- ${line}`).join("\n")}` : "";
+  }, [categoryNotes, categoryUploads, guidedPreviewOptions, selectedPreviewImages]);
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function uploadInspirationFiles(files: File[]) {
+    setUploadingVisionBoard(true);
+    setError("");
+
+    try {
+      const payload = new FormData();
+      files.forEach((file) => payload.append("files", file));
+
+      const res = await fetch("/api/inquiries/vision-board", {
+        method: "POST",
+        body: payload,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to upload vision board images.");
+        return [];
+      }
+
+      return data.urls ?? [];
+    } catch {
+      setError("Something went wrong while uploading inspiration images.");
+      return [];
+    } finally {
+      setUploadingVisionBoard(false);
+    }
   }
 
   async function handleVisionBoardUpload(
@@ -278,35 +526,48 @@ export default function EventRequestForm({
       return;
     }
 
-    setUploadingVisionBoard(true);
-    setError("");
+    const urls = await uploadInspirationFiles(files);
 
-    try {
-      const payload = new FormData();
-      files.forEach((file) => payload.append("files", file));
-
-      const res = await fetch("/api/inquiries/vision-board", {
-        method: "POST",
-        body: payload,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Failed to upload vision board images.");
-        return;
-      }
-
+    if (urls.length) {
       setForm((prev) => ({
         ...prev,
-        visionBoardUrls: [...prev.visionBoardUrls, ...(data.urls ?? [])],
+        visionBoardUrls: [...prev.visionBoardUrls, ...urls],
       }));
-    } catch {
-      setError("Something went wrong while uploading inspiration images.");
-    } finally {
-      setUploadingVisionBoard(false);
-      e.target.value = "";
     }
+
+    e.target.value = "";
+  }
+
+  async function handleCategoryUpload(
+    categoryKey: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const files = Array.from(e.target.files ?? []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    if (form.visionBoardUrls.length + files.length > 5) {
+      setError("Upload up to 5 inspiration images total.");
+      e.target.value = "";
+      return;
+    }
+
+    const urls = await uploadInspirationFiles(files);
+
+    if (urls.length) {
+      setCategoryUploads((current) => ({
+        ...current,
+        [categoryKey]: [...(current[categoryKey] ?? []), ...urls],
+      }));
+      setForm((prev) => ({
+        ...prev,
+        visionBoardUrls: [...prev.visionBoardUrls, ...urls],
+      }));
+    }
+
+    e.target.value = "";
   }
 
   function removeVisionBoardImage(url: string) {
@@ -314,6 +575,14 @@ export default function EventRequestForm({
       ...prev,
       visionBoardUrls: prev.visionBoardUrls.filter((item) => item !== url),
     }));
+    setCategoryUploads((current) => {
+      const nextEntries = Object.entries(current).map(([key, urls]) => [
+        key,
+        urls.filter((item) => item !== url),
+      ]);
+
+      return Object.fromEntries(nextEntries);
+    });
   }
 
   function toggleService(service: string) {
@@ -387,7 +656,7 @@ export default function EventRequestForm({
       body: JSON.stringify({
         ...form,
         guestCount: form.guestCount ? Number(form.guestCount) : null,
-        additionalInfo: buildReviewNotes(form),
+        additionalInfo: buildReviewNotes(form, visualSelectionNotes),
       }),
     });
 
@@ -654,6 +923,104 @@ export default function EventRequestForm({
                   </div>
                 </div>
 
+                {guidedPreviewOptions.length ? (
+                  <div className="guided-preview-builder">
+                    <div className="panel-head">
+                      <div>
+                        <p className="eyebrow">Build the visual direction</p>
+                        <h3>Choose the decor references that feel closest to your event.</h3>
+                        <p className="muted">
+                          Pick one inspiration image per category, skip anything that does not matter, and let the live preview update as you go.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="guided-preview-category-list">
+                      {visibleGuidedPreviewOptions.map((category) => (
+                        <div key={category.key} className="guided-preview-category">
+                          <div className="guided-preview-category-head">
+                            <div>
+                              <h4>{category.title}</h4>
+                              <p className="muted">{category.helper}</p>
+                            </div>
+                            {selectedPreviewImages[category.key] ? (
+                              <span className="admin-status-pill is-live">Selected</span>
+                            ) : null}
+                          </div>
+
+                          {category.images.length ? (
+                            <div className="guided-preview-options">
+                              {category.images.map((item) => (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className={`guided-preview-option ${selectedPreviewImages[category.key] === item.id ? "selected" : ""}`}
+                                  onClick={() =>
+                                    setSelectedPreviewImages((current) => ({
+                                      ...current,
+                                      [category.key]:
+                                        current[category.key] === item.id ? "" : item.id,
+                                    }))
+                                  }
+                                >
+                                  <img
+                                    src={item.image_url}
+                                    alt={item.title}
+                                    loading="lazy"
+                                  />
+                                  <span>{item.title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="guided-preview-empty">
+                              <p className="muted">{category.emptyState}</p>
+                              <textarea
+                                className="textarea"
+                                value={categoryNotes[category.key] ?? ""}
+                                onChange={(e) =>
+                                  setCategoryNotes((current) => ({
+                                    ...current,
+                                    [category.key]: e.target.value,
+                                  }))
+                                }
+                                placeholder={`Describe your ${category.title.toLowerCase()} preference`}
+                              />
+                              <label className="guided-preview-upload">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleCategoryUpload(category.key, e)}
+                                  disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                                />
+                                <strong>Add inspiration</strong>
+                                <span>
+                                  {(categoryUploads[category.key] ?? []).length} uploaded
+                                </span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {guidedPreviewOptions.length > visibleGuidedPreviewOptions.length ? (
+                      <button
+                        type="button"
+                        className="btn secondary"
+                        onClick={() =>
+                          setVisibleCategoryCount((current) =>
+                            Math.min(current + 2, guidedPreviewOptions.length)
+                          )
+                        }
+                      >
+                        Show More Categories
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 <div className="field">
                   <label className="label">Need help with trusted partner vendors too?</label>
                   <p className="muted" style={{ marginTop: "0", marginBottom: "12px" }}>
@@ -877,7 +1244,7 @@ export default function EventRequestForm({
           <div className="booking-preview-grid">
             {preview.images.map((item) => (
               <div key={item.id} className="booking-preview-image">
-                <img src={item.image_url} alt={item.title} />
+                <img src={item.image_url} alt={item.title} loading="lazy" />
                 <span>{item.category || "Portfolio"}</span>
               </div>
             ))}
@@ -931,6 +1298,42 @@ export default function EventRequestForm({
                 )}
               </div>
             </div>
+            {guidedPreviewOptions.length ? (
+              <div className="booking-preview-grouped">
+                <strong>Selected inspiration by category</strong>
+                <div className="booking-preview-selection-list">
+                  {guidedPreviewOptions.map((category) => {
+                    const selected = category.images.find(
+                      (item) => item.id === selectedPreviewImages[category.key]
+                    );
+                    const uploads = categoryUploads[category.key] ?? [];
+                    const note = categoryNotes[category.key];
+
+                    return (
+                      <div key={category.key} className="booking-preview-selection">
+                        <span>{category.title}</span>
+                        {selected ? (
+                          <div className="booking-preview-selection-card">
+                            <img src={selected.image_url} alt={selected.title} loading="lazy" />
+                            <small>{selected.title}</small>
+                          </div>
+                        ) : uploads.length ? (
+                          <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
+                            <small>{uploads.length} uploaded inspiration image{uploads.length === 1 ? "" : "s"}</small>
+                          </div>
+                        ) : note ? (
+                          <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
+                            <small>{note}</small>
+                          </div>
+                        ) : (
+                          <p className="muted">Skipped for now</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
             <div>
               <strong>Partner vendors</strong>
               <div className="summary-pills">
