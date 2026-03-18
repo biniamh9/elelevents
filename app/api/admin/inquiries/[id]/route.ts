@@ -155,3 +155,52 @@ export async function PATCH(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const auth = await requireAdminApi();
+    if (auth.errorResponse) {
+      return auth.errorResponse;
+    }
+
+    const { id } = await context.params;
+
+    const { data: existing, error: fetchError } = await supabaseAdmin
+      .from("event_inquiries")
+      .select("id, client_id, first_name, last_name, event_type")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from("event_inquiries")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    await logActivity(supabaseAdmin, {
+      entityType: "inquiry",
+      entityId: id,
+      action: "inquiry.deleted",
+      summary: "Inquiry deleted from admin CRM",
+      metadata: {
+        client_id: existing.client_id,
+        client_name: `${existing.first_name} ${existing.last_name}`,
+        event_type: existing.event_type,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to delete inquiry" }, { status: 500 });
+  }
+}

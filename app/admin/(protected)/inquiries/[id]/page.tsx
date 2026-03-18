@@ -182,7 +182,7 @@ export default async function InquiryDetailPage({
         </div>
       </div>
 
-      <div style={{ marginTop: "24px" }} className="card">
+      <div id="next-action" style={{ marginTop: "24px" }} className="card">
         <h3>Next Action</h3>
         <p className="muted">
           Move the lead through the pipeline, add context for the consultation,
@@ -202,6 +202,7 @@ export default async function InquiryDetailPage({
           initialFollowUpAt={inquiry.follow_up_at ?? null}
           initialQuoteResponseStatus={inquiry.quote_response_status ?? "not_sent"}
         />
+        <div id="quote-stage">
         <QuoteManagementForm
           inquiryId={inquiry.id}
           currentAmount={inquiry.estimated_price ?? null}
@@ -213,6 +214,7 @@ export default async function InquiryDetailPage({
           initialPricing={inquiryQuotePricing ?? null}
           initialLineItems={inquiryQuoteLineItems ?? []}
         />
+        </div>
         <VendorReferralForm
           inquiryId={inquiry.id}
           initialRequestedCategories={inquiry.requested_vendor_categories ?? []}
