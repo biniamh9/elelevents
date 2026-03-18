@@ -150,7 +150,7 @@ export default async function AboutPage() {
       <PageCTA
         eyebrow="Work with us"
         title="Bring your event vision into a consultation that feels calm and clear."
-        description="Share the event details, the atmosphere you want to create, and the focal points that matter most. We will guide the rest."
+        description="Share the event details, the atmosphere you want to create, and the focal points that matter most. We’ll guide the rest."
       />
     </main>
   );

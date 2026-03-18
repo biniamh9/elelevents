@@ -1,8 +1,6 @@
 import EventRequestForm from "@/components/forms/event-request-form";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
-import StorySection from "@/components/site/story-section";
-import GalleryStrip from "@/components/site/gallery-strip";
 import PageCTA from "@/components/site/page-cta";
 import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
@@ -20,8 +18,8 @@ export default async function RequestPage() {
     <main className="container section public-page-shell public-page-shell--request">
       <ImmersivePageHero
         eyebrow="Book Consultation"
-        title="Tell us about the event and the atmosphere you want to create."
-        description="This short form helps us prepare for a thoughtful consultation. Share the basics, the decor direction, and any inspiration images you already have."
+        title="Share the event basics and we’ll guide the design conversation."
+        description="Tell us the essentials, choose the decor direction, and upload inspiration if you have it. The form is short, and the final concept is refined during consultation."
         imageUrl={images[0]?.image_url}
         imageAlt="Request page event decor hero"
         tags={["Vision board", "Decor direction", "Consultation"]}
@@ -30,36 +28,26 @@ export default async function RequestPage() {
           <div className="booking-note">
             <span>01</span>
             <div>
-              <strong>Share the event basics</strong>
-              <p className="muted">Date, venue status, guest count, and event type.</p>
+              <strong>Share the essentials</strong>
+              <p className="muted">Event type, date, guest count, and venue direction.</p>
             </div>
           </div>
           <div className="booking-note">
             <span>02</span>
             <div>
-              <strong>Pick full decor or selected areas</strong>
-              <p className="muted">Backdrop, head table, guest tables, entrance, buffet, and more.</p>
+              <strong>Choose the decor direction</strong>
+              <p className="muted">Full-room styling or the focal points that matter most.</p>
             </div>
           </div>
           <div className="booking-note">
             <span>03</span>
             <div>
               <strong>Move into consultation</strong>
-              <p className="muted">We review the request first, then quote after the real conversation.</p>
+              <p className="muted">We review the request, then refine the concept and quote with you.</p>
             </div>
           </div>
           </Card>
         }
-      />
-
-      <StorySection
-        eyebrow="Why this form matters"
-        title="A little visual direction up front leads to a better consultation."
-        description="When you share the venue status, decor priorities, and inspiration images, we can prepare the right conversation and move into quote planning more smoothly."
-        imageUrl={images[1]?.image_url ?? images[0]?.image_url}
-        imageAlt="Styled room inspiration"
-        reverse
-        tags={["Venue", "Focal points", "Inspiration"]}
       />
 
       <EventRequestForm vendors={vendors ?? []} portfolioItems={images} />
@@ -76,8 +64,7 @@ export default async function RequestPage() {
         <Card>
           <h3>What happens after submission?</h3>
           <p className="muted">
-            After you submit, we review the request, confirm the consultation,
-            refine the scope together, and then move into quote and booking steps.
+            We review the request, confirm the consultation, refine the scope with you, and then move into quote and booking steps.
           </p>
         </Card>
       </div>
@@ -106,20 +93,10 @@ export default async function RequestPage() {
         </Card>
       </section>
 
-      <GalleryStrip
-        title="Visual references that help shape stronger consultations."
-        items={images.map((item) => ({
-          id: item.id,
-          imageUrl: item.image_url,
-          title: item.title,
-          label: item.category,
-        }))}
-      />
-
       <PageCTA
-        eyebrow="Need inspiration first?"
+        eyebrow="Need more inspiration?"
         title="Browse the portfolio, then come back with the rooms and details you love."
-        description="The best consultations start with a clear feeling. Save the visual cues that match your event and we’ll build from there."
+        description="The strongest consultations start with a clear feeling. Save the visual cues that match your event and we’ll build from there."
       />
     </main>
   );

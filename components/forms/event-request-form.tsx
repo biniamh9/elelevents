@@ -397,13 +397,12 @@ export default function EventRequestForm({
       <section className="booking-hero card">
         <div>
           <p className="eyebrow">Consultation request</p>
-          <h3>Share the event details clearly, then we will guide the next step.</h3>
+          <h3>Share the essentials, then we’ll guide the next step.</h3>
           <p className="muted">
-            This form keeps the process simple while giving us the information we
-            need to prepare for your consultation and design direction.
+            Keep the form light, choose the decor direction, and let the live preview help you picture the room.
           </p>
           <p className="booking-preview-intro">
-            As you choose your event details, a live inspiration preview updates beside the form to show a matching decor direction.
+            As you choose event details, the live preview updates with real portfolio images and a matching decor direction.
           </p>
         </div>
         <div className="booking-stepbar" aria-label="Booking steps">
@@ -428,7 +427,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 1</p>
                   <h3>Who is planning the event?</h3>
                   <p className="muted">
-                    Capture the right person and how they want the first conversation to happen.
+                    Let us know who to contact and how you want the first conversation to happen.
                   </p>
                 </div>
 
@@ -491,7 +490,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 2</p>
                   <h3>Tell us about the event itself.</h3>
                   <p className="muted">
-                    Share the key details so we can understand the celebration and plan the right conversation.
+                    Share the key details so we can understand the celebration and guide the right consultation.
                   </p>
                 </div>
 
@@ -696,7 +695,7 @@ export default function EventRequestForm({
                   <p className="eyebrow">Step 3</p>
                   <h3>What parts of the decor do you want help with?</h3>
                   <p className="muted">
-                    Choose the decor areas that matter most so we can prepare for a more useful consultation.
+                    Choose the decor areas that matter most so we can prepare for a useful, focused consultation.
                   </p>
                 </div>
 
@@ -851,7 +850,7 @@ export default function EventRequestForm({
           <p className="eyebrow">Design direction preview</p>
           <h3 style={{ marginTop: 0 }}>Inspiration based on your selections</h3>
           <p className="muted">
-            This preview is here to help you picture the direction. Final concepts are customized during your consultation.
+            This preview helps you picture the direction. Final concepts are customized during your consultation.
           </p>
 
           <div className="booking-preview-grid">

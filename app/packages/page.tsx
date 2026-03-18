@@ -7,6 +7,12 @@ import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 
+function getPackageTierLabel(index: number) {
+  if (index === 0) return "Focused styling";
+  if (index === 1) return "Most balanced";
+  return "Full-room impact";
+}
+
 export default async function PackagesPage() {
   const packages = await getPackages();
   const images = await getGalleryItems(4);
@@ -42,28 +48,64 @@ export default async function PackagesPage() {
 
       <StorySection
         eyebrow="How to choose"
-        title="Start with the package that feels closest to your event."
-        description="Packages help you choose the right level of styling without locking you into a rigid template. During the consultation, we refine focal points, rentals, guest tables, and venue considerations together."
+        title="Choose the level that feels closest, then refine it together."
+        description="Packages make the first decision easier. During the consultation, we shape the final scope around the venue, the guest count, the focal points, and the details that matter most to your event."
         imageUrl={images[1]?.image_url ?? images[0]?.image_url}
         imageAlt="Styled wedding decor by Elel Events"
         reverse
         tags={["Guest tables", "Focal styling", "Venue flow"]}
       />
 
+      <section className="package-compare-shell">
+        <div className="section-heading">
+          <p className="eyebrow">Compare packages</p>
+          <h2>Three clear starting points for different event sizes and styling needs.</h2>
+        </div>
+        <div className="package-grid package-grid--editorial package-grid--compare">
+          {packages.map((pkg, index) => (
+            <Card
+              key={pkg.id}
+              className={`package-card package-card--editorial ${pkg.featured ? "featured" : ""}`}
+            >
+              <p className="eyebrow">{getPackageTierLabel(index)}</p>
+              <strong>{pkg.name}</strong>
+              <p className="muted package-compare-best-for">{pkg.best_for ?? pkg.summary}</p>
+              <div className="package-compare-meta">
+                <p>
+                  <span>Best for</span>
+                  {pkg.best_for ?? "Custom celebrations"}
+                </p>
+                <p>
+                  <span>Styling level</span>
+                  {index === 0 ? "Key focal points" : index === 1 ? "Multiple styled areas" : "Layered full-room design"}
+                </p>
+                <p>
+                  <span>Typical fit</span>
+                  {index === 0 ? "Smaller or focused events" : index === 1 ? "Most weddings and milestone events" : "Large or premium celebrations"}
+                </p>
+              </div>
+              <ul>
+                {(pkg.features ?? []).slice(0, 5).map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+              <Button href="/request">Book Consultation</Button>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       <div className="package-grid package-grid--editorial">
         {packages.map((pkg) => (
           <div key={pkg.id} className={`package-card package-card--editorial ${pkg.featured ? "featured" : ""}`}>
-            <p className="eyebrow">Best for</p>
+            <p className="eyebrow">What this can include</p>
             <strong>{pkg.name}</strong>
             <p className="muted" style={{ marginTop: "12px" }}>{pkg.best_for ?? pkg.summary}</p>
             <p className="muted">{pkg.summary}</p>
             <ul>
               {(pkg.features ?? []).map((feature) => <li key={feature}>{feature}</li>)}
             </ul>
-            <div className="btn-row">
-              <Button href="/request">Book Consultation</Button>
-              <Button href="/services" variant="secondary">Explore Services</Button>
-            </div>
+            <Button href="/request">Book Consultation</Button>
           </div>
         ))}
       </div>
@@ -103,8 +145,8 @@ export default async function PackagesPage() {
       />
 
       <PageCTA
-        title="Choose the package that feels closest, then let us shape the details with you."
-        description="Packages are a starting point. The consultation is where the venue, focal styling, and room atmosphere come together."
+        title="Choose the closest package, then bring the room to life during consultation."
+        description="Packages are only the starting point. The consultation is where the venue, focal styling, guest tables, and room atmosphere come together."
       />
     </main>
   );

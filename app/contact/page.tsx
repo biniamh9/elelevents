@@ -1,4 +1,3 @@
-import Link from "next/link";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -58,12 +57,12 @@ export default async function ContactPage() {
 
       <section className="grid-2 public-note-grid">
         <Card>
-          <h3>What happens after you reach out?</h3>
-          <p className="muted">
-            We review the event details, follow up to confirm the consultation, and
-            guide you through design direction, scope, and quote preparation. Most
-            responses go out within 1 to 2 business days.
-          </p>
+          <h3>What happens next?</h3>
+          <div className="contact-next-steps">
+            <p><span>1</span> We review your event details and confirm the best way to start the consultation.</p>
+            <p><span>2</span> We talk through the room, the focal points, and the level of styling you need.</p>
+            <p><span>3</span> We refine the scope and prepare the quote and booking guidance clearly.</p>
+          </div>
         </Card>
 
         <Card>
@@ -75,11 +74,6 @@ export default async function ContactPage() {
           <div className="btn-row">
             <Button href="/request">Book Consultation</Button>
             <Button href="/gallery" variant="secondary">View Portfolio</Button>
-          </div>
-          <div style={{ marginTop: "8px" }}>
-            <Link href="/gallery" className="link-inline">
-              Open portfolio
-            </Link>
           </div>
         </Card>
       </section>
@@ -119,8 +113,8 @@ export default async function ContactPage() {
       />
 
       <PageCTA
-        title="Reach out with the event details and we’ll guide the next step clearly."
-        description="If you already know the date, venue, or decor direction, booking the consultation now helps secure the best path forward."
+        title="Share the event details and we’ll guide the next step clearly."
+        description="If you already know the date, venue, or decor direction, booking the consultation now helps secure the clearest path forward."
       />
     </main>
   );

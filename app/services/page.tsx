@@ -26,6 +26,24 @@ const serviceAreas = [
   },
 ];
 
+const inclusionHighlights = [
+  {
+    eyebrow: "What we style",
+    title: "Focal tables and guest-facing moments",
+    text: "Head tables, sweetheart tables, backdrops, entry styling, cake or buffet areas, and other visual anchors that define the room.",
+  },
+  {
+    eyebrow: "How it feels",
+    title: "A room that feels cohesive from arrival to photos",
+    text: "We shape the atmosphere so the room feels polished in person, balanced in photos, and welcoming for guests throughout the event.",
+  },
+  {
+    eyebrow: "When vendor support helps",
+    title: "Coordination beyond decor, only when needed",
+    text: "If you still need a venue, planner, photographer, caterer, or sound team, we can point you toward approved partners that fit the event.",
+  },
+];
+
 export default async function ServicesPage() {
   const packages = await getPackages(3);
   const images = await getGalleryItems(6);
@@ -52,8 +70,8 @@ export default async function ServicesPage() {
 
       <StorySection
         eyebrow="What we design"
-        title="From focal tables to the full atmosphere of the room."
-        description="Some clients need a few beautifully styled focal points. Others want full-room decor direction. We help shape the level of styling that fits the event, the venue, and the experience you want guests to remember."
+        title="From focal pieces to the full feeling of the room."
+        description="Some events need a few beautifully styled anchors. Others need complete room direction. We help define the right level of decor so the event feels intentional, welcoming, and memorable."
         imageUrl={images[1]?.image_url ?? images[0]?.image_url}
         imageAlt="Backdrop and table styling by Elel Events"
         reverse
@@ -70,23 +88,14 @@ export default async function ServicesPage() {
         ))}
       </section>
 
-      <section className="grid-2 public-note-grid">
-        <Card>
-          <h3>Designed around your event, not a template</h3>
-          <p className="muted">
-            We help clients choose the right focal points, guest-table styling,
-            and room details based on the event flow, venue limitations, and the
-            atmosphere they want guests to experience.
-          </p>
-        </Card>
-        <Card>
-          <h3>Vendor support, only when it adds value</h3>
-          <p className="muted">
-            Some clients already have their team in place. Others need help finding
-            trusted professionals. When needed, we can recommend approved vendor
-            partners to make planning feel easier and more connected.
-          </p>
-        </Card>
+      <section className="simple-proof-band">
+        {inclusionHighlights.map((item) => (
+          <Card key={item.title} className="simple-proof-card">
+            <p className="eyebrow">{item.eyebrow}</p>
+            <h3>{item.title}</h3>
+            <p className="muted">{item.text}</p>
+          </Card>
+        ))}
       </section>
 
       <section className="simple-proof-band">
@@ -124,12 +133,12 @@ export default async function ServicesPage() {
               <p className="eyebrow">Best for</p>
               <h3>{pkg.name}</h3>
               <p className="muted">{pkg.best_for ?? pkg.summary}</p>
+              <Button href="/request">Book Consultation</Button>
             </div>
           ))}
         </div>
         <div className="btn-row">
-          <Button href="/packages" variant="secondary">Explore Packages</Button>
-          <Button href="/request">Book Consultation</Button>
+          <Button href="/packages" variant="secondary">View Package Details</Button>
         </div>
       </section>
 

@@ -8,13 +8,39 @@ export default function GalleryBrowser({
 }: {
   items: GalleryItem[];
 }) {
-  function normalizeLabel(value: string | null | undefined, fallback: string) {
+  function normalizeCategory(value: string | null | undefined, fallback: string) {
     if (!value) {
       return fallback;
     }
 
     const cleaned = value
+      .replace(/[_-]+/g, " ")
       .replace(/\bbride shower\b/gi, "Bridal Shower")
+      .replace(/\bmelsi\b/gi, "Traditional Melsi")
+      .replace(/\bwedding\b/gi, "Wedding Reception")
+      .replace(/\bbabyshower\b/gi, "Baby Shower")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return cleaned
+      .split(" ")
+      .map((part) =>
+        part.length <= 3 && part === part.toUpperCase()
+          ? part
+          : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      )
+      .join(" ");
+  }
+
+  function normalizeTitle(value: string | null | undefined, fallback: string) {
+    if (!value) {
+      return fallback;
+    }
+
+    const cleaned = value
+      .replace(/[_-]+/g, " ")
+      .replace(/\bbride shower\b/gi, "Bridal Shower")
+      .replace(/\bmelsi\b/gi, "Traditional Melsi")
       .replace(/\s+/g, " ")
       .trim();
 
@@ -30,7 +56,7 @@ export default function GalleryBrowser({
 
   const categories = useMemo(() => {
     const unique = Array.from(
-      new Set(items.map((item) => normalizeLabel(item.category, "")).filter(Boolean))
+      new Set(items.map((item) => normalizeCategory(item.category, "")).filter(Boolean))
     ) as string[];
 
     return ["All", ...unique];
@@ -44,7 +70,7 @@ export default function GalleryBrowser({
       return items;
     }
 
-    return items.filter((item) => normalizeLabel(item.category, "") === activeCategory);
+    return items.filter((item) => normalizeCategory(item.category, "") === activeCategory);
   }, [activeCategory, items]);
 
   const activeItem =
@@ -132,10 +158,10 @@ export default function GalleryBrowser({
             className="gallery-item gallery-item-button"
             onClick={() => setActiveIndex(index)}
           >
-            <img src={item.image_url} alt={normalizeLabel(item.title, "Portfolio image")} />
+            <img src={item.image_url} alt={normalizeTitle(item.title, "Portfolio image")} />
             <div className="meta">
-              <strong>{normalizeLabel(item.title, "Portfolio image")}</strong>
-              <div className="muted">{normalizeLabel(item.category, "Portfolio")}</div>
+              <strong>{normalizeTitle(item.title, "Portfolio image")}</strong>
+              <div className="muted">{normalizeCategory(item.category, "Portfolio")}</div>
             </div>
           </button>
         ))}
@@ -146,7 +172,7 @@ export default function GalleryBrowser({
           className="gallery-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={normalizeLabel(activeItem.title, "Portfolio image")}
+          aria-label={normalizeTitle(activeItem.title, "Portfolio image")}
           onClick={closeLightbox}
         >
           <button
@@ -174,10 +200,10 @@ export default function GalleryBrowser({
             className="gallery-lightbox-stage"
             onClick={(event) => event.stopPropagation()}
           >
-            <img src={activeItem.image_url} alt={normalizeLabel(activeItem.title, "Portfolio image")} />
+            <img src={activeItem.image_url} alt={normalizeTitle(activeItem.title, "Portfolio image")} />
             <div className="gallery-lightbox-meta">
-              <strong>{normalizeLabel(activeItem.title, "Portfolio image")}</strong>
-              <span>{normalizeLabel(activeItem.category, "Portfolio")}</span>
+              <strong>{normalizeTitle(activeItem.title, "Portfolio image")}</strong>
+              <span>{normalizeCategory(activeItem.category, "Portfolio")}</span>
               <small>
                 {activeIndex! + 1} / {filteredItems.length}
               </small>
