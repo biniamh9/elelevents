@@ -174,6 +174,10 @@ export default function PricingCatalogManagement({
   const router = useRouter();
   const [catalogItems, setCatalogItems] = useState(items);
   const [selectedId, setSelectedId] = useState(items[0]?.id ?? "");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("category");
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [variant, setVariant] = useState("");
@@ -184,9 +188,58 @@ export default function PricingCatalogManagement({
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
 
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(items.map((item) => item.category).filter(Boolean) as string[])
+      ).sort(),
+    [items]
+  );
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return [...catalogItems]
+      .filter((item) => {
+        if (statusFilter === "active" && !item.is_active) {
+          return false;
+        }
+        if (statusFilter === "inactive" && item.is_active) {
+          return false;
+        }
+        if (categoryFilter !== "all" && (item.category || "") !== categoryFilter) {
+          return false;
+        }
+        if (!normalizedSearch) {
+          return true;
+        }
+        const haystack = `${item.name} ${item.category ?? ""} ${item.variant ?? ""} ${item.unit_label ?? ""}`.toLowerCase();
+        return haystack.includes(normalizedSearch);
+      })
+      .sort((a, b) => {
+        if (sortBy === "price_high") {
+          return Number(b.unit_price) - Number(a.unit_price);
+        }
+        if (sortBy === "price_low") {
+          return Number(a.unit_price) - Number(b.unit_price);
+        }
+        if (sortBy === "name") {
+          return formatCatalogLabel(a).localeCompare(formatCatalogLabel(b));
+        }
+        return `${a.category ?? ""}-${a.sort_order ?? 0}-${a.name}`.localeCompare(
+          `${b.category ?? ""}-${b.sort_order ?? 0}-${b.name}`
+        );
+      });
+  }, [catalogItems, categoryFilter, search, sortBy, statusFilter]);
+
   const selectedItem = useMemo(
-    () => catalogItems.find((item) => item.id === selectedId) ?? catalogItems[0] ?? null,
-    [catalogItems, selectedId]
+    () =>
+      filteredItems.find((item) => item.id === selectedId) ??
+      catalogItems.find((item) => item.id === selectedId) ??
+      filteredItems[0] ??
+      catalogItems[0] ??
+      null,
+    [catalogItems, filteredItems, selectedId]
   );
 
   async function createItem(event: React.FormEvent<HTMLFormElement>) {
@@ -241,49 +294,168 @@ export default function PricingCatalogManagement({
           <h3>Maintain the decor pricing list once, reuse it in every quote</h3>
         </div>
         <p className="lead">
-          Add reusable decor items, variants, and unit pricing so the admin
-          quote builder stays fast and consistent.
+          Use the table to scan existing pricing records quickly, then edit the selected
+          item below when you need to make changes.
         </p>
+      </div>
+
+      <div className="card admin-table-card admin-records-table-card">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Pricing Records</p>
+            <h3>Reusable pricing items</h3>
+          </div>
+        </div>
+
+        <div className="admin-filters admin-filters--records">
+          <div className="field">
+            <label className="label">Search</label>
+            <input
+              className="input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Item, category, variant, or unit"
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Status</label>
+            <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label">Category</label>
+            <select className="input" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <option value="all">All</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label">Sort By</label>
+            <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="category">Category / sort order</option>
+              <option value="name">Name</option>
+              <option value="price_low">Price: low to high</option>
+              <option value="price_high">Price: high to low</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="table-wrap admin-records-table-wrap">
+          <table className="admin-records-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Variant</th>
+                <th>Unit</th>
+                <th>Unit Price</th>
+                <th>Status</th>
+                <th>Sort</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.length ? (
+                filteredItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <div className="admin-record-main">
+                        <strong>{item.name}</strong>
+                        <span>{item.notes || "Reusable pricing item"}</span>
+                      </div>
+                    </td>
+                    <td>{item.category || "—"}</td>
+                    <td>{item.variant || "—"}</td>
+                    <td>{item.unit_label || "each"}</td>
+                    <td>${Number(item.unit_price ?? 0).toLocaleString()}</td>
+                    <td>
+                      <span className={`admin-status-pill${item.is_active ? " is-live" : ""}`}>
+                        {item.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td>{item.sort_order ?? "—"}</td>
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          type="button"
+                          className="admin-row-action-link"
+                          onClick={() => setSelectedId(item.id)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="admin-records-empty">
+                    No pricing items match the current filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="admin-mobile-records">
+          {filteredItems.map((item) => (
+            <div key={item.id} className="admin-mobile-record">
+              <div className="admin-mobile-record-head">
+                <div>
+                  <strong>{formatCatalogLabel(item)}</strong>
+                  <span>{item.category || "Pricing item"}</span>
+                </div>
+                <span className={`admin-status-pill${item.is_active ? " is-live" : ""}`}>
+                  {item.is_active ? "Active" : "Inactive"}
+                </span>
+              </div>
+
+              <div className="admin-mobile-record-grid">
+                <p>
+                  <span>Unit</span>
+                  {item.unit_label || "each"}
+                </p>
+                <p>
+                  <span>Price</span>
+                  ${Number(item.unit_price ?? 0).toLocaleString()}
+                </p>
+                <p>
+                  <span>Variant</span>
+                  {item.variant || "—"}
+                </p>
+                <p>
+                  <span>Sort</span>
+                  {item.sort_order ?? "—"}
+                </p>
+              </div>
+
+              <div className="admin-row-actions">
+                <button
+                  type="button"
+                  className="admin-row-action-link"
+                  onClick={() => setSelectedId(item.id)}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="admin-package-workspace">
         <div className="admin-package-list-wrap">
-          <div className="card admin-package-list">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Catalog Items</p>
-                <h3>Choose one to edit</h3>
-              </div>
-            </div>
-
-            {catalogItems.length ? (
-              <div className="admin-package-list-items">
-                {catalogItems.map((item) => {
-                  const active = selectedItem?.id === item.id;
-
-                  return (
-                    <button
-                      type="button"
-                      key={item.id}
-                      className={`admin-package-list-item${active ? " is-active" : ""}`}
-                      onClick={() => setSelectedId(item.id)}
-                    >
-                      <div>
-                        <strong>{formatCatalogLabel(item)}</strong>
-                        <span>{item.category || "Pricing item"}</span>
-                      </div>
-                      <small>
-                        ${Number(item.unit_price ?? 0).toLocaleString()} / {item.unit_label}
-                      </small>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="muted">No pricing items yet. Create one below.</p>
-            )}
-          </div>
-
           <div className="card admin-package-create">
             <div className="admin-panel-head">
               <div>
@@ -344,7 +516,7 @@ export default function PricingCatalogManagement({
           ) : (
             <div className="card admin-package-empty">
               <h3>No pricing item selected</h3>
-              <p className="muted">Create your first catalog item to start building reusable quotes.</p>
+              <p className="muted">Choose a row from the table or create your first pricing item below.</p>
             </div>
           )}
         </div>
