@@ -39,6 +39,27 @@ export default async function InquiryDetailPage({
     .eq("inquiry_id", id)
     .order("created_at", { ascending: false });
 
+  const { data: pricingCatalogItems } = await supabaseAdmin
+    .from("pricing_catalog_items")
+    .select("id, name, category, variant, unit_label, unit_price, is_active, notes, sort_order")
+    .eq("is_active", true)
+    .order("category", { ascending: true, nullsFirst: false })
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("name", { ascending: true });
+
+  const { data: inquiryQuotePricing } = await supabaseAdmin
+    .from("inquiry_quote_pricing")
+    .select("inquiry_id, base_fee, discount_amount, delivery_fee, labor_adjustment, tax_amount, manual_total_override, notes")
+    .eq("inquiry_id", id)
+    .maybeSingle();
+
+  const { data: inquiryQuoteLineItems } = await supabaseAdmin
+    .from("inquiry_quote_line_items")
+    .select("id, inquiry_id, pricing_catalog_item_id, item_name, category, variant, unit_label, unit_price, quantity, line_total, notes, sort_order, is_custom")
+    .eq("inquiry_id", id)
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true });
+
   const timeline = [
     {
       label: "Inquiry Received",
@@ -186,6 +207,9 @@ export default async function InquiryDetailPage({
           currentAmount={inquiry.estimated_price ?? null}
           clientEmail={inquiry.email ?? null}
           clientName={`${inquiry.first_name} ${inquiry.last_name}`}
+          catalogItems={pricingCatalogItems ?? []}
+          initialPricing={inquiryQuotePricing ?? null}
+          initialLineItems={inquiryQuoteLineItems ?? []}
         />
         <VendorReferralForm
           inquiryId={inquiry.id}

@@ -20,7 +20,7 @@ export default async function AdminLayout({
             <div className="admin-topbar-copy">
               <p className="eyebrow">Admin workspace</p>
               <h2>Business operations</h2>
-              <p className="admin-breadcrumbs">CRM board • Contracts • Gallery • Vendors</p>
+              <p className="admin-breadcrumbs">CRM board • Contracts • Pricing • Gallery • Vendors</p>
             </div>
             <div className="admin-topbar-tabs" aria-label="Workspace sections">
               <Link href="/admin/inquiries" className="admin-topbar-tab">
@@ -31,6 +31,9 @@ export default async function AdminLayout({
               </Link>
               <Link href="/admin/packages" className="admin-topbar-tab">
                 Packages
+              </Link>
+              <Link href="/admin/pricing" className="admin-topbar-tab">
+                Pricing
               </Link>
               <Link href="/admin/vendors" className="admin-topbar-tab">
                 Vendors

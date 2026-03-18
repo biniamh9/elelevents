@@ -36,6 +36,12 @@ const navItems: NavItem[] = [
     icon: "box",
   },
   {
+    href: "/admin/pricing",
+    label: "Pricing",
+    description: "Quote catalog",
+    icon: "tag",
+  },
+  {
     href: "/admin/vendors",
     label: "Vendors",
     description: "Referral partners",
@@ -95,6 +101,13 @@ function SidebarIcon({ icon }: { icon: string }) {
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M10 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
           <path d="M19 9h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
+        </svg>
+      );
+    case "tag":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m20 13-7 7-9-9V4h7l9 9Z" />
+          <circle cx="8.5" cy="8.5" r="1.3" />
         </svg>
       );
     default:
