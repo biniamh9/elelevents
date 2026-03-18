@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   title: "Elel Events",
   description: "Quote-first event planning and decor website",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
