@@ -92,6 +92,7 @@ export async function POST(
       .update({
         estimated_price: quoteAmount,
         status: "quoted",
+        booking_stage: "quote_sent",
         quoted_at: quotedAt,
         quote_response_status: "awaiting_response",
       })

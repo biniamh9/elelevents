@@ -83,6 +83,13 @@ export async function POST(
         },
       });
 
+      if (updated.inquiry_id) {
+        await supabaseAdmin
+          .from("event_inquiries")
+          .update({ booking_stage: "contract_sent" })
+          .eq("id", updated.inquiry_id);
+      }
+
       return NextResponse.json({
         success: true,
         mode: "docusign",
@@ -168,6 +175,13 @@ export async function POST(
         manual_link: true,
       },
     });
+
+    if (updated.inquiry_id) {
+      await supabaseAdmin
+        .from("event_inquiries")
+        .update({ booking_stage: "contract_sent" })
+        .eq("id", updated.inquiry_id);
+    }
 
     return NextResponse.json({ success: true, mode: "manual", contract: updated });
   } catch (err) {

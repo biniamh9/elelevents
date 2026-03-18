@@ -24,6 +24,12 @@ const navItems: NavItem[] = [
     icon: "doc",
   },
   {
+    href: "/admin/calendar",
+    label: "Calendar",
+    description: "Event dates and load",
+    icon: "calendar",
+  },
+  {
     href: "/admin/gallery",
     label: "Gallery",
     description: "Portfolio images",
@@ -94,6 +100,15 @@ function SidebarIcon({ icon }: { icon: string }) {
           <circle cx="10" cy="8" r="3" />
           <path d="M20 19v-1a4 4 0 0 0-3-3.87" />
           <path d="M16 5.13a3 3 0 0 1 0 5.74" />
+        </svg>
+      );
+    case "calendar":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 3v3" />
+          <path d="M17 3v3" />
+          <rect x="4" y="5" width="16" height="15" rx="2" />
+          <path d="M4 10h16" />
         </svg>
       );
     case "quote":

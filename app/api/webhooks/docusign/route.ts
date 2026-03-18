@@ -151,6 +151,17 @@ export async function POST(request: Request) {
       );
     }
 
+    if (updated.inquiry_id) {
+      await supabaseAdmin
+        .from("event_inquiries")
+        .update({
+          booking_stage: isSignedEvent(envelope.status, envelope.event)
+            ? "contract_sent"
+            : "contract_sent",
+        })
+        .eq("id", updated.inquiry_id);
+    }
+
     await logActivity(supabaseAdmin, {
       entityType: "contract",
       entityId: updated.id,

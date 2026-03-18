@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
+import BookingLifecycleForm from "@/components/forms/admin/booking-lifecycle-form";
 import ConsultationManagementForm from "@/components/forms/admin/consultation-management-form";
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
 import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
+import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 export const dynamic = "force-dynamic";
 
 export default async function InquiryDetailPage({
@@ -60,6 +62,31 @@ export default async function InquiryDetailPage({
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: true });
 
+  const { data: linkedContract } = await supabaseAdmin
+    .from("contracts")
+    .select("id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, event_date, balance_due_date")
+    .eq("inquiry_id", id)
+    .maybeSingle();
+
+  const { count: sameDayCount } = inquiry.event_date
+    ? await supabaseAdmin
+        .from("event_inquiries")
+        .select("*", { count: "exact", head: true })
+        .eq("event_date", inquiry.event_date)
+    : { count: 0 };
+
+  const otherEventsOnDate = Math.max((sameDayCount ?? 0) - 1, 0);
+  const bookingStage: BookingStage = deriveBookingStage({
+    bookingStage: inquiry.booking_stage,
+    inquiryStatus: inquiry.status,
+    consultationStatus: inquiry.consultation_status,
+    quoteResponseStatus: inquiry.quote_response_status,
+    contractStatus: linkedContract?.contract_status,
+    depositPaid: linkedContract?.deposit_paid,
+    completedAt: inquiry.completed_at,
+  });
+  const overbookingLabel = getBookingWarningLabel(otherEventsOnDate);
+
   const timeline = [
     {
       label: "Inquiry Received",
@@ -75,6 +102,11 @@ export default async function InquiryDetailPage({
       label: "Booked",
       value: inquiry.booked_at ? new Date(inquiry.booked_at).toLocaleString() : "Not yet",
       tone: inquiry.booked_at ? "success" : "muted",
+    },
+    {
+      label: "Reserved",
+      value: inquiry.reserved_at ? new Date(inquiry.reserved_at).toLocaleString() : "Not yet",
+      tone: inquiry.reserved_at ? "success" : "muted",
     },
   ];
 
@@ -100,6 +132,7 @@ export default async function InquiryDetailPage({
           </p>
           <div className="summary-pills">
             <span className="summary-chip">Status: {inquiry.status ?? "new"}</span>
+            <span className="summary-chip">Booking: {humanizeBookingStage(bookingStage)}</span>
             <span className="summary-chip">Quote: ${Number(inquiry.estimated_price ?? 0).toLocaleString()}</span>
             <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
             <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
@@ -138,6 +171,12 @@ export default async function InquiryDetailPage({
           <p><strong>Consultation Type:</strong> {inquiry.consultation_type ?? "—"}</p>
           <p><strong>Consultation At:</strong> {inquiry.consultation_at ? new Date(inquiry.consultation_at).toLocaleString() : "—"}</p>
           <p><strong>Follow-Up At:</strong> {inquiry.follow_up_at ? new Date(inquiry.follow_up_at).toLocaleString() : "—"}</p>
+          <p><strong>Booking Status:</strong> {humanizeBookingStage(bookingStage)}</p>
+          <p><strong>Floor Plan:</strong> {inquiry.floor_plan_received ? "Received" : "Pending"}</p>
+          <p><strong>Walkthrough:</strong> {inquiry.walkthrough_completed ? "Completed" : "Pending"}</p>
+          {overbookingLabel ? (
+            <p><strong>Scheduling Warning:</strong> {overbookingLabel}</p>
+          ) : null}
         </div>
 
         <div className="card">
@@ -153,6 +192,13 @@ export default async function InquiryDetailPage({
           <p><strong>Needs Delivery / Setup:</strong> {inquiry.needs_delivery_setup ? "Yes" : "No"}</p>
           <p><strong>Current Quote Amount:</strong> ${inquiry.estimated_price ?? 0}</p>
           <p><strong>Quote Response:</strong> {inquiry.quote_response_status ?? "not_sent"}</p>
+          {linkedContract ? (
+            <>
+              <p><strong>Contract:</strong> {linkedContract.contract_status ?? "draft"}</p>
+              <p><strong>Deposit:</strong> {linkedContract.deposit_paid ? "Paid" : "Pending"}</p>
+              <p><strong>Remaining Balance:</strong> ${Number(linkedContract.balance_due ?? 0).toLocaleString()}</p>
+            </>
+          ) : null}
         </div>
 
         <div className="card">
@@ -193,6 +239,14 @@ export default async function InquiryDetailPage({
           inquiryId={inquiry.id}
           currentStatus={inquiry.status ?? "new"}
           currentNotes={inquiry.admin_notes ?? ""}
+        />
+        <BookingLifecycleForm
+          inquiryId={inquiry.id}
+          initialBookingStage={bookingStage}
+          initialFloorPlanReceived={Boolean(inquiry.floor_plan_received)}
+          initialWalkthroughCompleted={Boolean(inquiry.walkthrough_completed)}
+          eventDate={inquiry.event_date ?? null}
+          otherEventsOnDate={otherEventsOnDate}
         />
         <ConsultationManagementForm
           inquiryId={inquiry.id}

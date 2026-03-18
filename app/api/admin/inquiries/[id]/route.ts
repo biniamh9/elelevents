@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
+import { BOOKING_STAGES } from "@/lib/booking-lifecycle";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -42,7 +43,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes")
+      .select("id, client_id, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at")
       .eq("id", id)
       .single();
 
@@ -82,6 +83,14 @@ export async function PATCH(
       }
 
       updates.consultation_status = body.consultation_status;
+
+      if (
+        !body.booking_stage &&
+        ["scheduled", "completed", "reschedule_needed"].includes(body.consultation_status) &&
+        (!existing.booking_stage || existing.booking_stage === "inquiry")
+      ) {
+        updates.booking_stage = "consultation_scheduled";
+      }
     }
 
     if (body.consultation_type === null || typeof body.consultation_type === "string") {
@@ -102,6 +111,71 @@ export async function PATCH(
       }
 
       updates.quote_response_status = body.quote_response_status;
+
+      if (
+        !body.booking_stage &&
+        body.quote_response_status === "awaiting_response" &&
+        (!existing.booking_stage ||
+          existing.booking_stage === "inquiry" ||
+          existing.booking_stage === "consultation_scheduled")
+      ) {
+        updates.booking_stage = "quote_sent";
+      }
+    }
+
+    if (body.booking_stage) {
+      if (!BOOKING_STAGES.includes(body.booking_stage)) {
+        return NextResponse.json({ error: "Invalid booking stage" }, { status: 400 });
+      }
+
+      updates.booking_stage = body.booking_stage;
+
+      if (body.booking_stage === "reserved" && !existing.reserved_at) {
+        updates.reserved_at = new Date().toISOString();
+      }
+
+      if (body.booking_stage === "completed" && !existing.completed_at) {
+        updates.completed_at = new Date().toISOString();
+      }
+
+      if (body.booking_stage !== "completed") {
+        updates.completed_at = body.completed_at === null ? null : updates.completed_at;
+      }
+
+      if ((body.booking_stage === "reserved" || body.booking_stage === "signed_deposit_paid") && !existing.booking_confirmed_at) {
+        updates.booking_confirmed_at = new Date().toISOString();
+      }
+
+      if (body.booking_stage === "reserved" && existing.status !== "booked") {
+        updates.status = "booked";
+        if (!existing.booked_at) {
+          updates.booked_at = new Date().toISOString();
+        }
+      }
+    }
+
+    if (typeof body.floor_plan_received === "boolean") {
+      updates.floor_plan_received = body.floor_plan_received;
+    }
+
+    if (typeof body.walkthrough_completed === "boolean") {
+      updates.walkthrough_completed = body.walkthrough_completed;
+    }
+
+    if (body.reserved_at === null || typeof body.reserved_at === "string") {
+      updates.reserved_at = body.reserved_at;
+    }
+
+    if (body.completed_at === null || typeof body.completed_at === "string") {
+      updates.completed_at = body.completed_at;
+    }
+
+    if (body.booking_confirmed_at === null || typeof body.booking_confirmed_at === "string") {
+      updates.booking_confirmed_at = body.booking_confirmed_at;
+    }
+
+    if (body.final_payment_reminder_sent_at === null || typeof body.final_payment_reminder_sent_at === "string") {
+      updates.final_payment_reminder_sent_at = body.final_payment_reminder_sent_at;
     }
 
     if (Array.isArray(body.requested_vendor_categories)) {
@@ -145,6 +219,12 @@ export async function PATCH(
         consultation_at: data.consultation_at,
         follow_up_at: data.follow_up_at,
         quote_response_status: data.quote_response_status,
+        booking_stage: data.booking_stage,
+        floor_plan_received: data.floor_plan_received,
+        walkthrough_completed: data.walkthrough_completed,
+        reserved_at: data.reserved_at,
+        completed_at: data.completed_at,
+        booking_confirmed_at: data.booking_confirmed_at,
         requested_vendor_categories: data.requested_vendor_categories,
         vendor_request_notes: data.vendor_request_notes,
       },

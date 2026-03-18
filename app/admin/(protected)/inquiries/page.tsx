@@ -1,5 +1,6 @@
 import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
+import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -65,7 +66,7 @@ export default async function AdminInquiriesPage({
   let query = supabaseAdmin
     .from("event_inquiries")
     .select(
-      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, estimated_price, consultation_status, quote_response_status",
+      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, quote_response_status",
       { count: "exact" }
     )
     .range(from, to);
@@ -307,6 +308,7 @@ export default async function AdminInquiriesPage({
                 <th>Event Date</th>
                 <th>Guest Count</th>
                 <th>Status</th>
+                <th>Booking</th>
                 <th>Package / Quote</th>
                 <th>Created Date</th>
                 <th>Actions</th>
@@ -336,6 +338,7 @@ export default async function AdminInquiriesPage({
                         </span>
                       </div>
                     </td>
+                    <td>{humanizeBookingStage(row.booking_stage)}</td>
                     <td>
                       <div className="admin-record-main">
                         <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
@@ -351,7 +354,7 @@ export default async function AdminInquiriesPage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="admin-records-empty">
+                  <td colSpan={9} className="admin-records-empty">
                     No inquiry records match the current filters.
                   </td>
                 </tr>
@@ -379,6 +382,10 @@ export default async function AdminInquiriesPage({
                 <p>
                   <span>Guest count</span>
                   {row.guest_count ?? "—"}
+                </p>
+                <p>
+                  <span>Booking</span>
+                  {humanizeBookingStage(row.booking_stage)}
                 </p>
                 <p>
                   <span>Quote</span>

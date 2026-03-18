@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
+import { sendBookingLifecycleEmail } from "@/lib/booking-email";
 import { normalizeContractDetails } from "@/lib/contracts";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
@@ -103,6 +104,11 @@ export async function PATCH(
       }
     }
 
+    let balancePaid = false;
+    if (typeof body.balance_paid === "boolean") {
+      balancePaid = body.balance_paid;
+    }
+
     if (body.contract_details_json !== undefined) {
       updates.contract_details_json = normalizeContractDetails(
         body.contract_details_json,
@@ -164,6 +170,22 @@ export async function PATCH(
             status: "paid",
           });
         }
+
+        if (updated.inquiry_id) {
+          await supabaseAdmin
+            .from("event_inquiries")
+            .update({
+              booking_stage: "signed_deposit_paid",
+              booking_confirmed_at: new Date().toISOString(),
+            })
+            .eq("id", updated.inquiry_id);
+        }
+
+        try {
+          await sendBookingLifecycleEmail("deposit_receipt", updated);
+        } catch (emailError) {
+          console.error("Deposit receipt email failed:", emailError);
+        }
       } else {
         await supabaseAdmin
           .from("contract_payments")
@@ -176,6 +198,60 @@ export async function PATCH(
       }
     }
 
+    if (typeof body.balance_paid === "boolean") {
+      const { data: existingBalance } = await supabaseAdmin
+        .from("contract_payments")
+        .select("id")
+        .eq("contract_id", id)
+        .eq("payment_kind", "balance")
+        .maybeSingle();
+
+      if (body.balance_paid) {
+        if (existingBalance) {
+          await supabaseAdmin
+            .from("contract_payments")
+            .update({
+              status: "paid",
+              paid_at: new Date().toISOString(),
+              amount: updated.balance_due ?? 0,
+              client_id: updated.client_id ?? null,
+            })
+            .eq("id", existingBalance.id);
+        } else if ((updated.balance_due ?? 0) > 0) {
+          await supabaseAdmin.from("contract_payments").insert({
+            contract_id: updated.id,
+            client_id: updated.client_id ?? null,
+            payment_kind: "balance",
+            amount: updated.balance_due ?? 0,
+            due_date: updated.balance_due_date ?? null,
+            paid_at: new Date().toISOString(),
+            status: "paid",
+          });
+        }
+
+        if (updated.inquiry_id) {
+          await supabaseAdmin
+            .from("event_inquiries")
+            .update({ booking_stage: "reserved" })
+            .eq("id", updated.inquiry_id);
+        }
+
+        try {
+          await sendBookingLifecycleEmail("final_payment_confirmation", updated);
+        } catch (emailError) {
+          console.error("Final payment confirmation email failed:", emailError);
+        }
+      } else if (existingBalance) {
+        await supabaseAdmin
+          .from("contract_payments")
+          .update({
+            status: "pending",
+            paid_at: null,
+          })
+          .eq("id", existingBalance.id);
+      }
+    }
+
     await logActivity(supabaseAdmin, {
       entityType: "contract",
       entityId: updated.id,
@@ -185,6 +261,7 @@ export async function PATCH(
         previous_status: contract.contract_status,
         new_status: updated.contract_status,
         deposit_paid: updated.deposit_paid,
+        balance_paid: balancePaid,
       },
     });
 

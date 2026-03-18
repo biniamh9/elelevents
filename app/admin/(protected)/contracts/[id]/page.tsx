@@ -2,7 +2,9 @@ import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractManagementForm from "@/components/forms/admin/contract-management-form";
 import ContractPreview from "@/components/forms/admin/contract-preview";
+import BookingOperationsPanel from "@/components/forms/admin/booking-operations-panel";
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
+import { getPaymentSummary, humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { normalizeContractDetails } from "@/lib/contracts";
 export const dynamic = "force-dynamic";
 
@@ -39,6 +41,24 @@ export default async function ContractDetailPage({
 
   const scope = contract.scope_json || {};
   const details = normalizeContractDetails(contract.contract_details_json, contract);
+  const { data: linkedInquiry } = contract.inquiry_id
+    ? await supabaseAdmin
+        .from("event_inquiries")
+        .select("id, booking_stage, floor_plan_received, walkthrough_completed, final_payment_reminder_sent_at")
+        .eq("id", contract.inquiry_id)
+        .maybeSingle()
+    : { data: null };
+  const { data: paymentRows } = await supabaseAdmin
+    .from("contract_payments")
+    .select("payment_kind, status, paid_at")
+    .eq("contract_id", contract.id);
+  const balancePayment = (paymentRows ?? []).find((item) => item.payment_kind === "balance");
+  const paymentSummary = getPaymentSummary({
+    contractTotal: contract.contract_total,
+    depositAmount: contract.deposit_amount,
+    depositPaid: contract.deposit_paid,
+    balancePaid: balancePayment?.status === "paid",
+  });
   const coverageLabel = [
     details.event_coverage.includes_reception ? "Reception" : null,
     details.event_coverage.includes_melsi ? "Melsi" : null,
@@ -218,6 +238,15 @@ export default async function ContractDetailPage({
             </p>
             <ContractManagementForm contract={contract} />
           </div>
+
+          <BookingOperationsPanel
+            contractId={contract.id}
+            depositPaid={Boolean(contract.deposit_paid)}
+            balancePaid={balancePayment?.status === "paid"}
+            paymentStatus={paymentSummary.paymentStatus}
+            remainingBalance={paymentSummary.remainingBalance}
+            bookingStage={humanizeBookingStage(linkedInquiry?.booking_stage ?? "inquiry")}
+          />
 
           <details className="card contract-preview-shell">
             <summary className="contract-preview-toggle">
