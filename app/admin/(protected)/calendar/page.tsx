@@ -129,6 +129,11 @@ export default async function AdminCalendarPage({
 
   const previousMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() - 1, 1);
   const nextMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
+  const todayMonth = new Date();
+  const quickMonths = Array.from({ length: 5 }, (_, index) => {
+    const offset = index - 2;
+    return new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + offset, 1);
+  });
 
   return (
     <main className="section admin-page">
@@ -154,6 +159,12 @@ export default async function AdminCalendarPage({
           >
             Next Month
           </Link>
+          <Link
+            href={`/admin/calendar?month=${formatMonthParam(todayMonth)}`}
+            className="admin-topbar-pill"
+          >
+            This Month
+          </Link>
         </div>
       </div>
 
@@ -163,6 +174,40 @@ export default async function AdminCalendarPage({
             <p className="eyebrow">Monthly view</p>
             <h3>Reserved dates and event load</h3>
           </div>
+          <form method="GET" className="admin-calendar-jump">
+            <label className="label" htmlFor="calendar-month">
+              Jump to month
+            </label>
+            <div className="admin-calendar-jump-controls">
+              <input
+                id="calendar-month"
+                name="month"
+                type="month"
+                defaultValue={formatMonthParam(monthAnchor)}
+                className="input"
+              />
+              <button type="submit" className="btn secondary">
+                Go
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="admin-calendar-quick-strip">
+          {quickMonths.map((date) => {
+            const key = formatMonthParam(date);
+            const active = key === formatMonthParam(monthAnchor);
+
+            return (
+              <Link
+                key={key}
+                href={`/admin/calendar?month=${key}`}
+                className={`admin-calendar-quick-month${active ? " is-active" : ""}`}
+              >
+                {date.toLocaleString(undefined, { month: "short", year: "numeric" })}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="admin-calendar-grid-head">

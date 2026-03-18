@@ -3868,6 +3868,42 @@ th { background: var(--surface-soft); }
   display: grid;
   gap: 18px;
 }
+.admin-calendar-jump {
+  display: grid;
+  gap: 8px;
+}
+.admin-calendar-jump-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.admin-calendar-jump-controls .input {
+  min-width: 180px;
+}
+.admin-calendar-quick-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.admin-calendar-quick-month {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(73, 49, 31, 0.1);
+  color: var(--muted);
+  text-decoration: none;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+.admin-calendar-quick-month.is-active {
+  background: rgba(var(--accent-rgb), 0.12);
+  border-color: rgba(var(--accent-rgb), 0.22);
+  color: var(--accent-dark);
+  font-weight: 700;
+}
 .admin-calendar-grid-head {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -4360,6 +4396,13 @@ th { background: var(--surface-soft); }
   }
   .admin-page-head-aside {
     justify-content: flex-start;
+  }
+  .admin-calendar-jump-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin-calendar-jump-controls .input {
+    min-width: 0;
   }
   .admin-page-head h1 {
     font-size: 2.1rem;
