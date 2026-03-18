@@ -3271,6 +3271,101 @@ th { background: var(--surface-soft); }
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
+.itemized-preview-shell {
+  display: grid;
+  gap: 24px;
+  padding: 28px;
+  background: linear-gradient(180deg, #fff, #fbf4ed);
+}
+.itemized-preview-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+.itemized-preview-head h3 {
+  margin: 6px 0 8px;
+  font-size: clamp(2rem, 3vw, 2.6rem);
+}
+.itemized-preview-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.itemized-preview-meta div,
+.itemized-preview-disclaimer {
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.82);
+}
+.itemized-preview-meta span,
+.itemized-preview-summary span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.itemized-preview-meta strong,
+.itemized-preview-summary strong {
+  display: block;
+}
+.itemized-preview-meta p,
+.itemized-preview-disclaimer p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.itemized-preview-table-wrap {
+  overflow-x: auto;
+}
+.itemized-preview-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+.itemized-preview-table th,
+.itemized-preview-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.itemized-preview-table th {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.itemized-preview-table td p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.itemized-preview-empty {
+  color: var(--muted);
+}
+.itemized-preview-summary {
+  display: grid;
+  gap: 12px;
+  justify-items: end;
+}
+.itemized-preview-summary div {
+  width: min(100%, 320px);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.itemized-preview-grand-total {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.itemized-preview-disclaimer strong {
+  display: block;
+  margin-bottom: 8px;
+}
 @keyframes floatCard {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -3279,7 +3374,7 @@ th { background: var(--surface-soft); }
   :root {
     --site-header-height: 96px;
   }
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-hero, .booking-layout, .visual-choice-grid, .visual-choice-grid--compact, .booking-preview-grid, .admin-quote-grid, .admin-quote-add-row { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-hero, .booking-layout, .visual-choice-grid, .visual-choice-grid--compact, .booking-preview-grid, .admin-quote-grid, .admin-quote-add-row, .itemized-preview-meta { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   calculateLineTotal,
   calculateQuoteTotals,
+  DEFAULT_ITEMIZED_DISCLAIMER,
   DEFAULT_BASE_FEE,
   formatCatalogLabel,
   type InquiryQuoteLineItem,
@@ -50,6 +51,8 @@ export default function QuoteManagementForm({
   currentAmount,
   clientEmail,
   clientName,
+  eventType,
+  eventDate,
   catalogItems,
   initialPricing,
   initialLineItems,
@@ -58,6 +61,8 @@ export default function QuoteManagementForm({
   currentAmount: number | null;
   clientEmail: string | null;
   clientName: string;
+  eventType: string | null;
+  eventDate: string | null;
   catalogItems: PricingCatalogItem[];
   initialPricing: InquiryQuotePricing | null;
   initialLineItems: InquiryQuoteLineItem[];
@@ -88,6 +93,12 @@ export default function QuoteManagementForm({
       : ""
   );
   const [pricingNotes, setPricingNotes] = useState(initialPricing?.notes ?? "");
+  const [draftStatus, setDraftStatus] = useState<
+    "internal_draft" | "ready_to_send" | "shared_with_customer"
+  >(initialPricing?.draft_status ?? "internal_draft");
+  const [clientDisclaimer, setClientDisclaimer] = useState(
+    initialPricing?.client_disclaimer ?? DEFAULT_ITEMIZED_DISCLAIMER
+  );
   const [quoteMessage, setQuoteMessage] = useState(
     "Thank you for meeting with us. Based on the event scope we discussed, here is your quote. If you would like to move forward, reply to this email and we will prepare your contract."
   );
@@ -106,6 +117,7 @@ export default function QuoteManagementForm({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   const totals = useMemo(
     () =>
@@ -203,9 +215,17 @@ export default function QuoteManagementForm({
     setLineItems((current) => current.filter((item) => item.id !== id));
   }
 
-  async function saveQuoteBuilder(markAsQuoted = false) {
+  async function saveQuoteBuilder(
+    markAsQuoted = false,
+    options?: {
+      generateDraft?: boolean;
+      draftStatus?: "internal_draft" | "ready_to_send" | "shared_with_customer";
+    }
+  ) {
     setSaving(true);
     setMessage("");
+
+    const nextDraftStatus = options?.draftStatus ?? draftStatus;
 
     const res = await fetch(`/api/admin/inquiries/${inquiryId}/quote-pricing`, {
       method: "PUT",
@@ -218,6 +238,9 @@ export default function QuoteManagementForm({
         tax_amount: Number(taxAmount || 0),
         manual_total_override: manualTotalOverride ? Number(manualTotalOverride) : null,
         notes: pricingNotes || null,
+        draft_status: nextDraftStatus,
+        client_disclaimer: clientDisclaimer || DEFAULT_ITEMIZED_DISCLAIMER,
+        generate_draft: options?.generateDraft === true,
         mark_as_quoted: markAsQuoted,
         line_items: lineItems.map((item, index) => ({
           ...item,
@@ -234,6 +257,7 @@ export default function QuoteManagementForm({
       return;
     }
 
+    setDraftStatus(nextDraftStatus);
     setMessage(markAsQuoted ? "Quote pricing saved and inquiry marked quoted." : "Quote pricing saved.");
     router.refresh();
   }
@@ -261,6 +285,34 @@ export default function QuoteManagementForm({
 
     setMessage("Quote email sent.");
     router.refresh();
+  }
+
+  async function copyDraftSummary() {
+    setCopying(true);
+    setMessage("");
+    try {
+      const lines = [
+        `Itemized estimate for ${clientName}`,
+        `${eventType || "Event"}${eventDate ? ` • ${eventDate}` : ""}`,
+        "",
+        `Base event fee: $${totals.baseFee.toLocaleString()}`,
+        ...lineItems.map(
+          (item) =>
+            `${item.item_name}${item.variant ? ` (${item.variant})` : ""} — ${item.quantity} × $${Number(item.unit_price).toLocaleString()} = $${calculateLineTotal(item.unit_price, item.quantity).toLocaleString()}`
+        ),
+        "",
+        `Final total: $${totals.grandTotal.toLocaleString()}`,
+        "",
+        clientDisclaimer || DEFAULT_ITEMIZED_DISCLAIMER,
+      ];
+
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setMessage("Itemized draft copied.");
+    } catch {
+      setMessage("Failed to copy itemized draft.");
+    } finally {
+      setCopying(false);
+    }
   }
 
   return (
@@ -539,6 +591,15 @@ export default function QuoteManagementForm({
           </div>
 
           <div className="field">
+            <label className="label">Customer Disclaimer</label>
+            <textarea
+              className="textarea"
+              value={clientDisclaimer}
+              onChange={(e) => setClientDisclaimer(e.target.value)}
+            />
+          </div>
+
+          <div className="field">
             <label className="label">Quote Email Message</label>
             <textarea
               className="textarea"
@@ -603,32 +664,71 @@ export default function QuoteManagementForm({
             <strong>${totals.grandTotal.toLocaleString()}</strong>
           </div>
 
-          <div className="admin-package-actions">
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={() => saveQuoteBuilder(false)}
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Save Quote Builder"}
-            </button>
-            <button
-              type="button"
-              className="btn secondary"
-              onClick={() => saveQuoteBuilder(true)}
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Save + Mark Quoted"}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={sendQuote}
+            <div className="admin-package-actions">
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => saveQuoteBuilder(false)}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Quote Builder"}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => saveQuoteBuilder(false, { generateDraft: true })}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Generate Itemized Draft"}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => router.push(`/admin/inquiries/${inquiryId}/itemized-draft`)}
+              >
+                Preview Itemized Price
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => saveQuoteBuilder(false, { draftStatus: "ready_to_send" })}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Mark Ready to Send"}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => saveQuoteBuilder(false, { draftStatus: "shared_with_customer" })}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Mark Shared"}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={copyDraftSummary}
+                disabled={copying}
+              >
+                {copying ? "Copying..." : "Copy Draft Content"}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={sendQuote}
               disabled={sending}
-            >
-              {sending ? "Sending..." : "Send Quote Email"}
-            </button>
-          </div>
+              >
+                {sending ? "Sending..." : "Send Quote Email"}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => saveQuoteBuilder(true)}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save + Mark Quoted"}
+              </button>
+            </div>
 
           {message ? <p className={message.includes("saved") || message.includes("sent") ? "success" : "error"}>{message}</p> : null}
         </aside>

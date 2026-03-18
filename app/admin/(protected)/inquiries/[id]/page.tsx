@@ -49,7 +49,7 @@ export default async function InquiryDetailPage({
 
   const { data: inquiryQuotePricing } = await supabaseAdmin
     .from("inquiry_quote_pricing")
-    .select("inquiry_id, base_fee, discount_amount, delivery_fee, labor_adjustment, tax_amount, manual_total_override, notes")
+    .select("inquiry_id, base_fee, discount_amount, delivery_fee, labor_adjustment, tax_amount, manual_total_override, notes, draft_status, client_disclaimer, generated_at, ready_to_send_at, shared_with_customer_at")
     .eq("inquiry_id", id)
     .maybeSingle();
 
@@ -207,6 +207,8 @@ export default async function InquiryDetailPage({
           currentAmount={inquiry.estimated_price ?? null}
           clientEmail={inquiry.email ?? null}
           clientName={`${inquiry.first_name} ${inquiry.last_name}`}
+          eventType={inquiry.event_type ?? null}
+          eventDate={inquiry.event_date ?? null}
           catalogItems={pricingCatalogItems ?? []}
           initialPricing={inquiryQuotePricing ?? null}
           initialLineItems={inquiryQuoteLineItems ?? []}

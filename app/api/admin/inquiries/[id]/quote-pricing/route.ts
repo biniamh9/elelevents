@@ -3,6 +3,7 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import {
   calculateLineTotal,
   calculateQuoteTotals,
+  DEFAULT_ITEMIZED_DISCLAIMER,
   DEFAULT_BASE_FEE,
 } from "@/lib/admin-pricing";
 import { logActivity } from "@/lib/crm";
@@ -37,11 +38,28 @@ export async function PUT(
       delivery_fee: Math.max(Number(body.delivery_fee ?? 0), 0),
       labor_adjustment: Number(body.labor_adjustment ?? 0),
       tax_amount: Math.max(Number(body.tax_amount ?? 0), 0),
+      draft_status:
+        body.draft_status === "ready_to_send" ||
+        body.draft_status === "shared_with_customer"
+          ? body.draft_status
+          : "internal_draft",
       manual_total_override:
         body.manual_total_override === null || body.manual_total_override === ""
           ? null
           : Number(body.manual_total_override),
       notes: typeof body.notes === "string" ? body.notes.trim() || null : null,
+      client_disclaimer:
+        typeof body.client_disclaimer === "string" && body.client_disclaimer.trim()
+          ? body.client_disclaimer.trim()
+          : DEFAULT_ITEMIZED_DISCLAIMER,
+      generated_at:
+        body.generate_draft === true ? new Date().toISOString() : undefined,
+      ready_to_send_at:
+        body.draft_status === "ready_to_send" ? new Date().toISOString() : undefined,
+      shared_with_customer_at:
+        body.draft_status === "shared_with_customer"
+          ? new Date().toISOString()
+          : undefined,
     };
 
     const lineItems = Array.isArray(body.line_items)
@@ -148,6 +166,7 @@ export async function PUT(
         estimated_price: updatedInquiry.estimated_price,
         line_item_count: lineItems.length,
         base_fee: pricingInput.base_fee,
+        draft_status: pricingInput.draft_status,
       },
     });
 

@@ -19,6 +19,11 @@ export type InquiryQuotePricing = {
   tax_amount: number;
   manual_total_override: number | null;
   notes: string | null;
+  draft_status?: "internal_draft" | "ready_to_send" | "shared_with_customer";
+  client_disclaimer?: string | null;
+  generated_at?: string | null;
+  ready_to_send_at?: string | null;
+  shared_with_customer_at?: string | null;
 };
 
 export type InquiryQuoteLineItem = {
@@ -38,6 +43,8 @@ export type InquiryQuoteLineItem = {
 };
 
 export const DEFAULT_BASE_FEE = 850;
+export const DEFAULT_ITEMIZED_DISCLAIMER =
+  "This itemized estimate is a draft for planning purposes. Final pricing may be adjusted based on event details, customization, and consultation.";
 
 export function toMoneyNumber(value: unknown, fallback = 0) {
   if (typeof value === "number" && Number.isFinite(value)) {
