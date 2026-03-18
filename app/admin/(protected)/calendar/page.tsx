@@ -1,8 +1,14 @@
 import Link from "next/link";
-import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage } from "@/lib/booking-lifecycle";
+import {
+  deriveBookingStage,
+  getBookingWarningLabel,
+  humanizeBookingStage,
+} from "@/lib/booking-lifecycle";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const dynamic = "force-dynamic";
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function getMonthAnchor(value?: string) {
   if (value && /^\d{4}-\d{2}$/.test(value)) {
@@ -17,6 +23,10 @@ function formatMonthParam(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function formatDateKey(date: Date) {
+  return date.toISOString().split("T")[0];
+}
+
 export default async function AdminCalendarPage({
   searchParams,
 }: {
@@ -29,7 +39,9 @@ export default async function AdminCalendarPage({
 
   const { data: inquiries } = await supabaseAdmin
     .from("event_inquiries")
-    .select("id, first_name, last_name, event_type, event_date, venue_name, booking_stage, status, consultation_status, quote_response_status, completed_at")
+    .select(
+      "id, first_name, last_name, event_type, event_date, venue_name, booking_stage, status, consultation_status, quote_response_status, completed_at"
+    )
     .gte("event_date", monthStart.toISOString().split("T")[0])
     .lt("event_date", monthEnd.toISOString().split("T")[0])
     .order("event_date", { ascending: true });
@@ -44,33 +56,76 @@ export default async function AdminCalendarPage({
     (contracts ?? []).map((contract) => [contract.inquiry_id, contract])
   );
 
-  const grouped = new Map<string, typeof inquiries>();
+  const grouped = new Map<
+    string,
+    Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      event_type: string | null;
+      venue_name: string | null;
+      lifecycle: string;
+    }>
+  >();
+
   for (const inquiry of inquiries ?? []) {
-    const key = inquiry.event_date ?? "";
-    const bucket = grouped.get(key) ?? [];
-    bucket.push(inquiry);
-    grouped.set(key, bucket);
+    if (!inquiry.event_date) {
+      continue;
+    }
+
+    const contract = contractMap.get(inquiry.id);
+    const lifecycle = deriveBookingStage({
+      bookingStage: inquiry.booking_stage,
+      inquiryStatus: inquiry.status,
+      consultationStatus: inquiry.consultation_status,
+      quoteResponseStatus: inquiry.quote_response_status,
+      contractStatus: contract?.contract_status,
+      depositPaid: contract?.deposit_paid,
+      completedAt: inquiry.completed_at,
+    });
+
+    const bucket = grouped.get(inquiry.event_date) ?? [];
+    bucket.push({
+      id: inquiry.id,
+      first_name: inquiry.first_name,
+      last_name: inquiry.last_name,
+      event_type: inquiry.event_type,
+      venue_name: inquiry.venue_name,
+      lifecycle,
+    });
+    grouped.set(inquiry.event_date, bucket);
   }
 
-  const days = Array.from(grouped.entries()).map(([date, items]) => ({
-    date,
-    warning: getBookingWarningLabel(Math.max(items.length - 1, 0)),
-    items: items.map((item) => {
-      const contract = contractMap.get(item.id);
-      return {
-        ...item,
-        lifecycle: deriveBookingStage({
-          bookingStage: item.booking_stage,
-          inquiryStatus: item.status,
-          consultationStatus: item.consultation_status,
-          quoteResponseStatus: item.quote_response_status,
-          contractStatus: contract?.contract_status,
-          depositPaid: contract?.deposit_paid,
-          completedAt: item.completed_at,
-        }),
-      };
-    }),
-  }));
+  const calendarStart = new Date(monthStart);
+  calendarStart.setDate(monthStart.getDate() - monthStart.getDay());
+
+  const calendarEnd = new Date(monthEnd);
+  const trailingDays = 6 - calendarEnd.getDay();
+  calendarEnd.setDate(calendarEnd.getDate() + trailingDays);
+
+  const days = [];
+  for (
+    const cursor = new Date(calendarStart);
+    cursor <= calendarEnd;
+    cursor.setDate(cursor.getDate() + 1)
+  ) {
+    const date = new Date(cursor);
+    const key = formatDateKey(date);
+    const items = grouped.get(key) ?? [];
+    const reservedCount = items.filter((item) =>
+      ["reserved", "signed_deposit_paid", "completed"].includes(item.lifecycle)
+    ).length;
+
+    days.push({
+      key,
+      date,
+      isCurrentMonth: date.getMonth() === monthAnchor.getMonth(),
+      isToday: key === formatDateKey(new Date()),
+      warning: getBookingWarningLabel(Math.max(items.length - 1, 0)),
+      items,
+      reservedCount,
+    });
+  }
 
   const previousMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() - 1, 1);
   const nextMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
@@ -81,16 +136,22 @@ export default async function AdminCalendarPage({
         <div>
           <p className="eyebrow">Booking calendar</p>
           <h1>Calendar</h1>
-          <p className="lead">Track event dates, booking load, and same-day conflicts at a glance.</p>
+          <p className="lead">See event dates on a real monthly calendar and spot reserved days immediately.</p>
         </div>
         <div className="admin-page-head-aside">
-          <Link href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`} className="admin-topbar-pill">
+          <Link
+            href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`}
+            className="admin-topbar-pill"
+          >
             Previous Month
           </Link>
           <span className="admin-head-pill">
             {monthAnchor.toLocaleString(undefined, { month: "long", year: "numeric" })}
           </span>
-          <Link href={`/admin/calendar?month=${formatMonthParam(nextMonth)}`} className="admin-topbar-pill">
+          <Link
+            href={`/admin/calendar?month=${formatMonthParam(nextMonth)}`}
+            className="admin-topbar-pill"
+          >
             Next Month
           </Link>
         </div>
@@ -99,45 +160,55 @@ export default async function AdminCalendarPage({
       <div className="card admin-table-card admin-calendar-card">
         <div className="admin-panel-head">
           <div>
-            <p className="eyebrow">Monthly event load</p>
-            <h3>All events by day</h3>
+            <p className="eyebrow">Monthly view</p>
+            <h3>Reserved dates and event load</h3>
           </div>
         </div>
 
-        <div className="admin-calendar-list">
-          {days.length ? (
-            days.map((day) => (
-              <section key={day.date} className="admin-calendar-day">
-                <div className="admin-calendar-day-head">
-                  <div>
-                    <strong>{new Date(`${day.date}T00:00:00`).toLocaleDateString()}</strong>
-                    <span>{day.items.length} event{day.items.length === 1 ? "" : "s"}</span>
-                  </div>
-                  {day.warning ? (
-                    <span className="admin-calendar-warning">{day.warning}</span>
-                  ) : null}
-                </div>
+        <div className="admin-calendar-grid-head">
+          {WEEKDAY_LABELS.map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
 
-                <div className="admin-calendar-day-list">
-                  {day.items.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/admin/inquiries/${item.id}`}
-                      className="admin-calendar-entry"
-                    >
-                      <div>
-                        <strong>{item.first_name} {item.last_name}</strong>
-                        <p>{item.event_type || "Event"}{item.venue_name ? ` • ${item.venue_name}` : ""}</p>
-                      </div>
-                      <span>{humanizeBookingStage(item.lifecycle)}</span>
-                    </Link>
-                  ))}
+        <div className="admin-calendar-grid">
+          {days.map((day) => (
+            <div
+              key={day.key}
+              className={`admin-calendar-cell${day.isCurrentMonth ? "" : " is-outside"}${day.isToday ? " is-today" : ""}${day.reservedCount ? " is-reserved" : ""}`}
+            >
+              <div className="admin-calendar-cell-head">
+                <strong>{day.date.getDate()}</strong>
+                {day.warning ? (
+                  <span className="admin-calendar-warning">{day.warning}</span>
+                ) : null}
+              </div>
+
+              {day.reservedCount ? (
+                <div className="admin-calendar-reserved-mark">
+                  Reserved {day.reservedCount > 1 ? `(${day.reservedCount})` : ""}
                 </div>
-              </section>
-            ))
-          ) : (
-            <p className="muted">No events with dates are scheduled in this month yet.</p>
-          )}
+              ) : null}
+
+              <div className="admin-calendar-cell-events">
+                {day.items.slice(0, 3).map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/admin/inquiries/${item.id}`}
+                    className="admin-calendar-event-pill"
+                    title={`${item.first_name} ${item.last_name} • ${item.event_type || "Event"} • ${humanizeBookingStage(item.lifecycle)}`}
+                  >
+                    <span>{item.first_name} {item.last_name}</span>
+                    <small>{humanizeBookingStage(item.lifecycle)}</small>
+                  </Link>
+                ))}
+
+                {day.items.length > 3 ? (
+                  <span className="admin-calendar-more">+{day.items.length - 3} more</span>
+                ) : null}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </main>
