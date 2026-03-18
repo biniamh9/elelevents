@@ -28,7 +28,11 @@ export const metadata: Metadata = {
   description: "Quote-first event planning and decor website",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.svg",
     apple: "/apple-icon.png",
   },
   appleWebApp: {

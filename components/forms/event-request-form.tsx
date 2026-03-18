@@ -41,6 +41,19 @@ const eventTypeOptions = [
   "Other",
 ];
 
+const eventTypeIcons: Record<string, string> = {
+  Wedding: "W",
+  "Traditional (Melsi)": "M",
+  Engagement: "E",
+  Birthday: "B",
+  "Baby Shower": "BS",
+  "Bridal Shower": "BR",
+  Graduation: "G",
+  "Corporate Event": "C",
+  Anniversary: "A",
+  Other: "O",
+};
+
 const venueStatusOptions = ["Booked", "Still looking", "Home", "Church", "Hall", "Hotel / ballroom"];
 const consultationOptions = ["Phone call", "Video meeting", "In-person meeting", "Text or email first"];
 const referralOptions = ["Instagram", "Facebook", "Google", "Friend / referral", "Repeat client", "Other"];
@@ -506,21 +519,19 @@ export default function EventRequestForm({
 
                 <div className="field">
                   <label className="label">Event Type</label>
-                  <div className="visual-choice-grid">
+                  <div className="visual-choice-grid visual-choice-grid--event-types">
                     {eventTypeOptions.map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={`choice-card ${form.eventType === option ? "selected" : ""}`}
+                        className={`choice-card choice-card--event-type ${form.eventType === option ? "selected" : ""}`}
                         onClick={() => updateField("eventType", option)}
+                        aria-pressed={form.eventType === option}
                       >
-                        <strong>{option}</strong>
-                        <span>
-                          {option === "Wedding" ? "Reception styling, focal tables, and guest-room atmosphere." :
-                           option === "Traditional (Melsi)" ? "Traditional next-day styling with cultural detail and flow." :
-                           option === "Corporate Event" ? "Clean, polished guest-facing styling for hosted experiences." :
-                           "Styled event atmosphere with curated focal points."}
+                        <span className="choice-card-icon" aria-hidden="true">
+                          {eventTypeIcons[option] ?? option.charAt(0)}
                         </span>
+                        <strong>{option}</strong>
                       </button>
                     ))}
                   </div>
