@@ -51,8 +51,17 @@ export default function InquiryRecordActions({
         }
       >
         <summary className="admin-row-action-trigger">
-          Actions
-          <span aria-hidden="true">▾</span>
+          <span>Actions</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="m5 7 5 6 5-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </summary>
 
         <div className="admin-row-action-dropdown">
