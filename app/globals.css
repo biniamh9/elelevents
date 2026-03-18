@@ -716,28 +716,79 @@ a { color: inherit; text-decoration: none; }
 }
 .simple-process-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
 }
 .simple-process-card {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding: 18px;
   border-radius: 22px;
   background: rgba(255, 248, 241, 0.08);
   border: 1px solid rgba(255, 223, 196, 0.12);
+  overflow: hidden;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
-.simple-process-card span {
-  color: #ffd2ad;
-  font-size: 0.82rem;
+.simple-process-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 40px rgba(18, 10, 4, 0.18);
+  border-color: rgba(255, 223, 196, 0.24);
+}
+.simple-process-image-wrap {
+  position: relative;
+  overflow: hidden;
+  min-height: 158px;
+  border-radius: 18px;
+  background: rgba(255, 248, 241, 0.1);
+}
+.simple-process-image {
+  width: 100%;
+  height: 100%;
+  min-height: 158px;
+  object-fit: cover;
+  display: block;
+}
+.simple-process-step-number {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(33, 18, 11, 0.82);
+  color: #fff8f1;
+  font-size: 0.76rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 700;
 }
 .simple-process-card h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.14rem;
   color: #fff6ed;
+}
+.simple-process-card p {
+  margin: 0;
+}
+.simple-process-connector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 226, 194, 0.68);
+}
+.simple-process-connector span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 226, 194, 0.1), rgba(255, 226, 194, 0.7));
+}
+.simple-process-connector svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 .simple-package-shell {
   display: grid;
@@ -4024,6 +4075,16 @@ th { background: var(--surface-soft); }
   .guided-preview-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .simple-process-grid {
+    grid-template-columns: 1fr;
+  }
+  .simple-process-connector {
+    justify-content: flex-start;
+  }
+  .simple-process-connector span {
+    width: 40px;
+    flex: 0 0 40px;
+  }
   .admin-quote-builder-intro {
     display: grid;
   }
@@ -4318,6 +4379,10 @@ th { background: var(--surface-soft); }
   .guided-preview-options,
   .guided-preview-tabs {
     grid-template-columns: 1fr;
+  }
+  .simple-process-image-wrap,
+  .simple-process-image {
+    min-height: 190px;
   }
 }
 @media (max-width: 640px) {
