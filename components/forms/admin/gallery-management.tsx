@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type GalleryItem = {
   id: string;
@@ -9,18 +10,42 @@ type GalleryItem = {
   image_url: string;
   sort_order: number | null;
   is_active: boolean | null;
+  created_at?: string | null;
 };
 
 const allowedImageTypes = "image/jpeg,image/jpg,image/png,image/webp";
 
-function GalleryRow({ item }: { item: GalleryItem }) {
+function GalleryEditor({
+  item,
+  onDeleted,
+}: {
+  item: GalleryItem;
+  onDeleted: (id: string) => void;
+}) {
+  const router = useRouter();
   const [title, setTitle] = useState(item.title);
   const [category, setCategory] = useState(item.category ?? "");
-  const [sortOrder, setSortOrder] = useState(item.sort_order ? String(item.sort_order) : "");
+  const [sortOrder, setSortOrder] = useState(
+    item.sort_order !== null && item.sort_order !== undefined
+      ? String(item.sort_order)
+      : ""
+  );
   const [isActive, setIsActive] = useState(Boolean(item.is_active));
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    setTitle(item.title);
+    setCategory(item.category ?? "");
+    setSortOrder(
+      item.sort_order !== null && item.sort_order !== undefined
+        ? String(item.sort_order)
+        : ""
+    );
+    setIsActive(Boolean(item.is_active));
+    setMessage("");
+  }, [item]);
 
   async function saveItem() {
     setSaving(true);
@@ -45,10 +70,18 @@ function GalleryRow({ item }: { item: GalleryItem }) {
       return;
     }
 
-    setMessage("Saved.");
+    setMessage("Gallery item updated.");
+    router.refresh();
   }
 
   async function deleteItem() {
+    const confirmed = window.confirm(
+      `Delete "${item.title}" from the gallery? This cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
     setDeleting(true);
     setMessage("");
 
@@ -64,56 +97,123 @@ function GalleryRow({ item }: { item: GalleryItem }) {
       return;
     }
 
-    window.location.reload();
+    onDeleted(item.id);
+    router.refresh();
   }
 
   return (
-    <div className="card">
-      <img src={item.image_url} alt={item.title} style={{ width: "100%", height: "240px", objectFit: "cover", borderRadius: "18px" }} />
-
-      <div className="field" style={{ marginTop: "16px" }}>
-        <label className="label">Title</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+    <div className="card admin-package-editor">
+      <div className="admin-panel-head">
+        <div>
+          <p className="eyebrow">Editing Gallery Item</p>
+          <h3>{item.title}</h3>
+        </div>
+        <div className="admin-package-status">
+          <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
+            {isActive ? "Visible" : "Hidden"}
+          </span>
+        </div>
       </div>
 
-      <div className="field">
-        <label className="label">Category</label>
-        <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} />
+      <img
+        src={item.image_url}
+        alt={item.title}
+        className="admin-gallery-preview-image"
+      />
+
+      <div className="form-grid">
+        <div className="field">
+          <label className="label">Title</label>
+          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label className="label">Category</label>
+          <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} />
+        </div>
+
+        <div className="field">
+          <label className="label">Sort Order</label>
+          <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+        </div>
       </div>
 
-      <div className="field">
-        <label className="label">Sort Order</label>
-        <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
-      </div>
+      <label className="checkline">
+        <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
+        <span>Visible on public gallery</span>
+      </label>
 
-      <div className="field">
-        <label className="checkline">
-          <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-          <span>Visible on public gallery</span>
-        </label>
-      </div>
-
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+      <div className="admin-package-actions">
         <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : "Save Image"}
         </button>
         <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
-          {deleting ? "Deleting..." : "Delete"}
+          {deleting ? "Deleting..." : "Delete Image"}
         </button>
       </div>
 
-      {message ? <p style={{ marginTop: "12px" }}>{message}</p> : null}
+      {message ? <p className={message.includes("updated") ? "success" : "error"}>{message}</p> : null}
     </div>
   );
 }
 
 export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
+  const router = useRouter();
+  const [galleryItems, setGalleryItems] = useState(items);
+  const [selectedId, setSelectedId] = useState(items[0]?.id ?? "");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("sort_order");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(items.map((item) => item.category).filter(Boolean) as string[])
+      ).sort(),
+    [items]
+  );
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return [...galleryItems]
+      .filter((item) => {
+        if (statusFilter === "visible" && !item.is_active) return false;
+        if (statusFilter === "hidden" && item.is_active) return false;
+        if (categoryFilter !== "all" && (item.category || "") !== categoryFilter) return false;
+        if (!normalizedSearch) return true;
+        return `${item.title} ${item.category ?? ""}`.toLowerCase().includes(normalizedSearch);
+      })
+      .sort((a, b) => {
+        if (sortBy === "newest") {
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        }
+        if (sortBy === "oldest") {
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        }
+        if (sortBy === "title") {
+          return a.title.localeCompare(b.title);
+        }
+        return (a.sort_order ?? Number.MAX_SAFE_INTEGER) - (b.sort_order ?? Number.MAX_SAFE_INTEGER);
+      });
+  }, [categoryFilter, galleryItems, search, sortBy, statusFilter]);
+
+  const selectedItem = useMemo(
+    () =>
+      filteredItems.find((item) => item.id === selectedId) ??
+      galleryItems.find((item) => item.id === selectedId) ??
+      filteredItems[0] ??
+      galleryItems[0] ??
+      null,
+    [filteredItems, galleryItems, selectedId]
+  );
 
   async function uploadImage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,9 +227,7 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
     }
 
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
+    files.forEach((file) => formData.append("files", file));
     formData.append("title", title);
     formData.append("category", category);
     formData.append("sort_order", sortOrder);
@@ -151,17 +249,35 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
     setCategory("");
     setSortOrder("");
     setFiles([]);
-    setMessage(`Uploaded ${files.length} image${files.length === 1 ? "" : "s"}. Refreshing...`);
-    window.location.reload();
+    setMessage(`Uploaded ${files.length} image${files.length === 1 ? "" : "s"}.`);
+    router.refresh();
+  }
+
+  function handleDeleted(id: string) {
+    const nextItems = galleryItems.filter((item) => item.id !== id);
+    setGalleryItems(nextItems);
+    setSelectedId(nextItems[0]?.id ?? "");
   }
 
   return (
-    <div style={{ display: "grid", gap: "24px" }}>
-      <div className="card">
-        <h3>Upload Gallery Image</h3>
-        <p className="muted">
-          Upload finished event images here. This replaces hardcoded gallery URLs.
+    <div className="admin-package-shell">
+      <div className="card admin-package-intro">
+        <div>
+          <p className="eyebrow">Gallery Upload</p>
+          <h3>Add finished event images without touching code</h3>
+        </div>
+        <p className="lead">
+          Upload the assets first, then manage the existing portfolio images in the table below.
         </p>
+      </div>
+
+      <div className="card admin-package-create">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Upload Images</p>
+            <h3>Send new images into the gallery</h3>
+          </div>
+        </div>
 
         <form onSubmit={uploadImage}>
           <div className="form-grid">
@@ -172,7 +288,7 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
 
             <div className="field">
               <label className="label">Category</label>
-              <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Wedding, Melsi, Birthday..." />
+              <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Wedding, Melsi, Bridal Shower..." />
             </div>
 
             <div className="field">
@@ -191,25 +307,204 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
                 required
               />
               <p className="muted" style={{ marginTop: "8px" }}>
-                JPG, PNG, or WEBP. If you choose multiple files, the same title/category/sort base will be used.
+                JPG, PNG, or WEBP. If you choose multiple files, the same title/category/sort base is used.
               </p>
             </div>
           </div>
 
           <button className="btn" type="submit" disabled={uploading}>
-            {uploading ? "Uploading..." : "Upload Image"}
+            {uploading ? "Uploading..." : "Upload Images"}
           </button>
         </form>
 
-        {message ? <p style={{ marginTop: "12px" }}>{message}</p> : null}
+        {message ? <p className={message.includes("Uploaded") ? "success" : "error"}>{message}</p> : null}
       </div>
 
-      <div>
-        <h3>Existing Gallery Images</h3>
-        <div className="gallery-grid">
-          {items.map((item) => (
-            <GalleryRow key={item.id} item={item} />
+      <div className="card admin-table-card admin-records-table-card">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Gallery Records</p>
+            <h3>Manage existing images</h3>
+          </div>
+        </div>
+
+        <div className="admin-filters admin-filters--records">
+          <div className="field">
+            <label className="label">Search</label>
+            <input
+              className="input"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Title or category"
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Status</label>
+            <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All</option>
+              <option value="visible">Visible</option>
+              <option value="hidden">Hidden</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label">Category</label>
+            <select className="input" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+              <option value="all">All</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="field">
+            <label className="label">Sort By</label>
+            <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="sort_order">Sort order</option>
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="title">Title</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="table-wrap admin-records-table-wrap">
+          <table className="admin-records-table">
+            <thead>
+              <tr>
+                <th>Preview</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Sort Order</th>
+                <th>Uploaded</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.length ? (
+                filteredItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="admin-gallery-thumb"
+                      />
+                    </td>
+                    <td>
+                      <div className="admin-record-main">
+                        <strong>{item.title}</strong>
+                        <span>{item.image_url.split("/").pop()}</span>
+                      </div>
+                    </td>
+                    <td>{item.category || "—"}</td>
+                    <td>
+                      <span className={`admin-status-pill${item.is_active ? " is-live" : ""}`}>
+                        {item.is_active ? "Visible" : "Hidden"}
+                      </span>
+                    </td>
+                    <td>{item.sort_order ?? "—"}</td>
+                    <td>
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString() : "—"}
+                    </td>
+                    <td>
+                      <div className="admin-row-actions">
+                        <button
+                          type="button"
+                          className="admin-row-action-link"
+                          onClick={() => setSelectedId(item.id)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="admin-records-empty">
+                    No gallery images match the current filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="admin-mobile-records">
+          {filteredItems.map((item) => (
+            <div key={item.id} className="admin-mobile-record">
+              <div className="admin-mobile-record-head">
+                <div>
+                  <strong>{item.title}</strong>
+                  <span>{item.category || "Gallery image"}</span>
+                </div>
+                <span className={`admin-status-pill${item.is_active ? " is-live" : ""}`}>
+                  {item.is_active ? "Visible" : "Hidden"}
+                </span>
+              </div>
+
+              <img
+                src={item.image_url}
+                alt={item.title}
+                className="admin-gallery-thumb admin-gallery-thumb--mobile"
+              />
+
+              <div className="admin-mobile-record-grid">
+                <p>
+                  <span>Sort</span>
+                  {item.sort_order ?? "—"}
+                </p>
+                <p>
+                  <span>Uploaded</span>
+                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : "—"}
+                </p>
+              </div>
+
+              <div className="admin-row-actions">
+                <button
+                  type="button"
+                  className="admin-row-action-link"
+                  onClick={() => setSelectedId(item.id)}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           ))}
+        </div>
+      </div>
+
+      <div className="admin-package-workspace">
+        <div className="admin-package-list-wrap">
+          <div className="card admin-package-intro">
+            <div>
+              <p className="eyebrow">Selected Asset</p>
+              <h3>Edit title, category, visibility, and order</h3>
+            </div>
+            <p className="lead">
+              Use the records table to select an image, then manage the asset details here.
+            </p>
+          </div>
+        </div>
+
+        <div className="admin-package-editor-wrap">
+          {selectedItem ? (
+            <GalleryEditor
+              key={selectedItem.id}
+              item={selectedItem}
+              onDeleted={handleDeleted}
+            />
+          ) : (
+            <div className="card admin-package-empty">
+              <h3>No gallery image selected</h3>
+              <p className="muted">Choose a row from the table to edit an existing image.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
