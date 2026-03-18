@@ -176,6 +176,7 @@ const initialState = {
   email: "",
   phone: "",
   eventType: "",
+  customEventType: "",
   eventDate: "",
   guestCount: "",
   venueName: "",
@@ -339,8 +340,10 @@ export default function EventRequestForm({
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const effectiveEventType =
+    form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
 
-  const missingEventType = !form.eventType;
+  const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingBasics = !form.firstName || !form.lastName || !form.email || !form.phone || !form.eventDate;
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
@@ -416,7 +419,7 @@ export default function EventRequestForm({
       selectedImages.length || uploadedImages.length
         ? [...selectedImages, ...uploadedImages].slice(0, 4)
         : fallbackImages;
-    const eventLabel = form.eventType || "your event";
+    const eventLabel = effectiveEventType || "your event";
     const styleLabel = form.decorStyle || "elevated and guest-ready";
     const paletteLabel = form.colorsTheme || "a refined palette";
     const venueLabel = form.venueType || form.venueStatus || "the room";
@@ -446,7 +449,7 @@ export default function EventRequestForm({
     form.budgetRange,
     form.colorsTheme,
     form.decorStyle,
-    form.eventType,
+    effectiveEventType,
     form.guestCount,
     form.guestCountRange,
     form.venueStatus,
@@ -626,6 +629,7 @@ export default function EventRequestForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        eventType: effectiveEventType,
         services: derivedServices,
         guestCount: form.guestCount ? Number(form.guestCount) : null,
         additionalInfo: buildReviewNotes(form, visualSelectionNotes),
@@ -698,7 +702,12 @@ export default function EventRequestForm({
                       key={option}
                       type="button"
                       className={`choice-card choice-card--event-type ${form.eventType === option ? "selected" : ""}`}
-                      onClick={() => updateField("eventType", option)}
+                      onClick={() => {
+                        updateField("eventType", option);
+                        if (option !== "Other") {
+                          updateField("customEventType", "");
+                        }
+                      }}
                       aria-pressed={form.eventType === option}
                     >
                       <span className="choice-card-icon" aria-hidden="true">
@@ -708,6 +717,19 @@ export default function EventRequestForm({
                     </button>
                   ))}
                 </div>
+
+                {form.eventType === "Other" ? (
+                  <div className="field">
+                    <label className="label">Add your event type</label>
+                    <input
+                      className="input"
+                      value={form.customEventType}
+                      onChange={(e) => updateField("customEventType", e.target.value)}
+                      placeholder="Example: Henna Night, Nikah, Baptism, Graduation Dinner"
+                      required
+                    />
+                  </div>
+                ) : null}
               </section>
             ) : null}
 
@@ -1049,7 +1071,7 @@ export default function EventRequestForm({
                   <h4>Booking summary</h4>
                   <div className="review-grid">
                     <p><strong>Client:</strong> {form.firstName || "—"} {form.lastName || ""}</p>
-                    <p><strong>Event:</strong> {form.eventType || "—"}</p>
+                    <p><strong>Event:</strong> {effectiveEventType || "—"}</p>
                     <p><strong>Date:</strong> {form.eventDate || "—"}</p>
                     <p><strong>Guest range:</strong> {form.guestCountRange || "—"}</p>
                     <p><strong>Venue:</strong> {form.venueName || "—"}</p>
@@ -1149,7 +1171,7 @@ export default function EventRequestForm({
             </div>
             <div>
               <strong>Event</strong>
-              <p className="muted">{form.eventType || "Not selected yet"}</p>
+              <p className="muted">{effectiveEventType || "Not selected yet"}</p>
             </div>
             <div>
               <strong>Date & venue</strong>
