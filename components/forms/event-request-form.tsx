@@ -381,7 +381,17 @@ export default function EventRequestForm({
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || "Submission failed.");
+      const details =
+        data?.details?.fieldErrors &&
+        typeof data.details.fieldErrors === "object"
+          ? Object.entries(data.details.fieldErrors)
+              .flatMap(([, messages]) =>
+                Array.isArray(messages) ? messages.filter(Boolean) : []
+              )
+              .join(" ")
+          : "";
+
+      setError(details || data.error || "Submission failed.");
       setLoading(false);
       return;
     }
