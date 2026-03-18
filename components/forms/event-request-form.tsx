@@ -402,6 +402,9 @@ export default function EventRequestForm({
             This form keeps the process simple while giving us the information we
             need to prepare for your consultation and design direction.
           </p>
+          <p className="booking-preview-intro">
+            As you choose your event details, a live inspiration preview updates beside the form to show a matching decor direction.
+          </p>
         </div>
         <div className="booking-stepbar" aria-label="Booking steps">
           {steps.map((item, index) => (
@@ -844,6 +847,7 @@ export default function EventRequestForm({
         </div>
 
         <aside className="card sidebar-box booking-summary">
+          <span className="booking-live-pill">Live Preview</span>
           <p className="eyebrow">Design direction preview</p>
           <h3 style={{ marginTop: 0 }}>Inspiration based on your selections</h3>
           <p className="muted">
