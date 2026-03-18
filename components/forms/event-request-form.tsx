@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
 
@@ -43,6 +44,42 @@ const eventTypeOptions = [
 const venueStatusOptions = ["Booked", "Still looking", "Home", "Church", "Hall", "Hotel / ballroom"];
 const consultationOptions = ["Phone call", "Video meeting", "In-person meeting", "Text or email first"];
 const referralOptions = ["Instagram", "Facebook", "Google", "Friend / referral", "Repeat client", "Other"];
+const guestCountRangeOptions = [
+  { label: "Under 50", value: "Under 50", hint: "Intimate rooms and focused styling." },
+  { label: "50-100", value: "50–100", hint: "Balanced room styling with guest tables and focal pieces." },
+  { label: "100-200", value: "100–200", hint: "Larger room layout with stronger visual anchors." },
+  { label: "200+", value: "200+", hint: "Full-room atmosphere and guest-flow planning." },
+];
+const decorStyleOptions = [
+  "Classic elegance",
+  "Soft romantic",
+  "Modern clean",
+  "Garden luxe",
+  "Traditional ceremony",
+  "Bold glam",
+];
+const venueTypeOptions = [
+  "Ballroom / hotel",
+  "Banquet hall",
+  "Church reception",
+  "Private home",
+  "Outdoor garden",
+  "Mixed indoor-outdoor",
+];
+const budgetRangeOptions = [
+  "Under $3,000",
+  "$3,000-$5,000",
+  "$5,000-$8,000",
+  "$8,000+",
+];
+const paletteSuggestions = [
+  "Ivory + champagne",
+  "White + gold",
+  "Blush + ivory",
+  "Sage + cream",
+  "Terracotta + candlelight",
+  "Emerald + gold",
+];
 const steps = [
   { id: "contact", label: "Contact" },
   { id: "event", label: "Event + Partners" },
@@ -59,7 +96,11 @@ const initialState = {
   guestCount: "",
   venueName: "",
   venueStatus: "",
+  guestCountRange: "",
   indoorOutdoor: "",
+  decorStyle: "",
+  venueType: "",
+  budgetRange: "",
   colorsTheme: "",
   inspirationNotes: "",
   visionBoardUrls: [] as string[],
@@ -79,6 +120,10 @@ function buildReviewNotes(form: typeof initialState) {
       ? `Consultation preference: ${form.preferredContactMethod}.`
       : "",
     form.referralSource ? `Referral source: ${form.referralSource}.` : "",
+    form.guestCountRange ? `Guest count range: ${form.guestCountRange}.` : "",
+    form.decorStyle ? `Preferred decor style: ${form.decorStyle}.` : "",
+    form.venueType ? `Venue type: ${form.venueType}.` : "",
+    form.budgetRange ? `Budget range: ${form.budgetRange}.` : "",
   ].filter(Boolean);
 
   return detailLines.join("\n\n");
@@ -124,8 +169,10 @@ function getMatchingVendors(
 
 export default function EventRequestForm({
   vendors,
+  portfolioItems,
 }: {
   vendors: PublicVendorRecommendation[];
+  portfolioItems: GalleryItem[];
 }) {
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
@@ -143,6 +190,61 @@ export default function EventRequestForm({
   const visibleServiceSections = hasFullDecoration
     ? serviceSections.filter((section) => section.title === "Package direction")
     : serviceSections;
+
+  const preview = useMemo(() => {
+    const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
+      .filter(Boolean)
+      .map((value) => value.toLowerCase());
+
+    const matchedImages = portfolioItems
+      .filter((item) => {
+        const haystack = `${item.title} ${item.category ?? ""}`.toLowerCase();
+        if (eventNeedles.length === 0) {
+          return true;
+        }
+        return eventNeedles.some((needle) => haystack.includes(needle.split(" ")[0]));
+      })
+      .slice(0, 4);
+
+    const images = matchedImages.length ? matchedImages : portfolioItems.slice(0, 4);
+    const eventLabel = form.eventType || "your event";
+    const styleLabel = form.decorStyle || "elevated and guest-ready";
+    const paletteLabel = form.colorsTheme || "a refined palette";
+    const venueLabel = form.venueType || form.venueStatus || "the room";
+    const guestLabel = form.guestCountRange || (form.guestCount ? `${form.guestCount} guests` : "the guest count");
+    const styleDescription = `${eventLabel} with a ${styleLabel.toLowerCase()} direction, ${paletteLabel.toLowerCase()}, and layout choices shaped around ${venueLabel.toLowerCase()} for ${guestLabel.toLowerCase()}.`;
+
+    const decorDirection = hasFullDecoration
+      ? "Full-room styling with a strong focal installation, guest-table rhythm, and coordinated setup support."
+      : form.services.length
+        ? `${form.services.slice(0, 3).join(", ")}${form.services.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
+        : "A focal-point-led room with one hero installation and polished guest-facing details.";
+
+    const packageRecommendation = hasFullDecoration
+      ? "Best fit: a full-design package with room styling, focal installations, and setup support."
+      : (form.guestCountRange === "200+" || form.budgetRange === "$8,000+")
+        ? "Best fit: a custom large-event package with layered room styling and logistics support."
+        : "Best fit: a focused decor package centered on your main focal points and guest-table styling.";
+
+    return {
+      images,
+      styleDescription,
+      decorDirection,
+      packageRecommendation,
+    };
+  }, [
+    form.budgetRange,
+    form.colorsTheme,
+    form.decorStyle,
+    form.eventType,
+    form.guestCount,
+    form.guestCountRange,
+    form.services,
+    form.venueStatus,
+    form.venueType,
+    hasFullDecoration,
+    portfolioItems,
+  ]);
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -392,15 +494,21 @@ export default function EventRequestForm({
 
                 <div className="field">
                   <label className="label">Event Type</label>
-                  <div className="option-pills">
+                  <div className="visual-choice-grid">
                     {eventTypeOptions.map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={`pill ${form.eventType === option ? "selected" : ""}`}
+                        className={`choice-card ${form.eventType === option ? "selected" : ""}`}
                         onClick={() => updateField("eventType", option)}
                       >
-                        {option}
+                        <strong>{option}</strong>
+                        <span>
+                          {option === "Wedding" ? "Reception styling, focal tables, and guest-room atmosphere." :
+                           option === "Traditional (Melsi)" ? "Traditional next-day styling with cultural detail and flow." :
+                           option === "Corporate Event" ? "Clean, polished guest-facing styling for hosted experiences." :
+                           "Styled event atmosphere with curated focal points."}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -412,8 +520,8 @@ export default function EventRequestForm({
                     <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
                   </div>
                   <div className="field">
-                    <label className="label">Estimated Guest Count</label>
-                    <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} />
+                    <label className="label">Exact Guest Count, if known</label>
+                    <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
                   </div>
                   <div className="field">
                     <label className="label">Venue Name</label>
@@ -422,6 +530,23 @@ export default function EventRequestForm({
                   <div className="field">
                     <label className="label">Indoor / Outdoor</label>
                     <input className="input" value={form.indoorOutdoor} onChange={(e) => updateField("indoorOutdoor", e.target.value)} placeholder="Indoor, outdoor, or mixed" />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Guest Count Range</label>
+                  <div className="visual-choice-grid visual-choice-grid--compact">
+                    {guestCountRangeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`choice-card choice-card--compact ${form.guestCountRange === option.value ? "selected" : ""}`}
+                        onClick={() => updateField("guestCountRange", option.value)}
+                      >
+                        <strong>{option.label}</strong>
+                        <span>{option.hint}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -442,8 +567,68 @@ export default function EventRequestForm({
                 </div>
 
                 <div className="field">
-                  <label className="label">Colors / Theme</label>
-                  <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Examples: blush and gold, modern white, royal blue, garden glam" />
+                  <label className="label">Venue Type</label>
+                  <div className="option-pills">
+                    {venueTypeOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`pill ${form.venueType === option ? "selected" : ""}`}
+                        onClick={() => updateField("venueType", option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Decor Style</label>
+                  <div className="option-pills">
+                    {decorStyleOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`pill ${form.decorStyle === option ? "selected" : ""}`}
+                        onClick={() => updateField("decorStyle", option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Color Palette</label>
+                  <div className="option-pills">
+                    {paletteSuggestions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
+                        onClick={() => updateField("colorsTheme", option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                  <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette or theme" style={{ marginTop: "12px" }} />
+                </div>
+
+                <div className="field">
+                  <label className="label">Budget Direction</label>
+                  <div className="option-pills">
+                    {budgetRangeOptions.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`pill ${form.budgetRange === option ? "selected" : ""}`}
+                        onClick={() => updateField("budgetRange", option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="field">
@@ -659,14 +844,34 @@ export default function EventRequestForm({
         </div>
 
         <aside className="card sidebar-box booking-summary">
-          <p className="eyebrow">What to expect</p>
-          <h3 style={{ marginTop: 0 }}>A consultation before the quote</h3>
+          <p className="eyebrow">Design direction preview</p>
+          <h3 style={{ marginTop: 0 }}>Inspiration based on your selections</h3>
           <p className="muted">
-            Once we understand the scope, venue, and styling priorities, we can
-            prepare a quote that reflects the event accurately.
+            This preview is here to help you picture the direction. Final concepts are customized during your consultation.
           </p>
 
+          <div className="booking-preview-grid">
+            {preview.images.map((item) => (
+              <div key={item.id} className="booking-preview-image">
+                <img src={item.image_url} alt={item.title} />
+                <span>{item.category || "Portfolio"}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="summary-stack">
+            <div className="booking-preview-copy">
+              <strong>Style snapshot</strong>
+              <p className="muted">{preview.styleDescription}</p>
+            </div>
+            <div className="booking-preview-copy">
+              <strong>Recommended decor direction</strong>
+              <p className="muted">{preview.decorDirection}</p>
+            </div>
+            <div className="booking-preview-copy">
+              <strong>Suggested package path</strong>
+              <p className="muted">{preview.packageRecommendation}</p>
+            </div>
             <div>
               <strong>Event</strong>
               <p className="muted">{form.eventType || "Not selected yet"}</p>
@@ -681,6 +886,12 @@ export default function EventRequestForm({
             <div>
               <strong>Consultation</strong>
               <p className="muted">{form.preferredContactMethod || "We will follow up using your preferred contact method"}</p>
+            </div>
+            <div>
+              <strong>Palette + style</strong>
+              <p className="muted">
+                {[form.colorsTheme, form.decorStyle].filter(Boolean).join(" • ") || "Still open for consultation"}
+              </p>
             </div>
             <div>
               <strong>Selected decor areas</strong>
@@ -711,6 +922,10 @@ export default function EventRequestForm({
               </div>
             </div>
           </div>
+
+          <p className="booking-preview-note">
+            Inspiration preview only. Final concept, florals, rentals, and exact room design are refined during consultation.
+          </p>
         </aside>
       </div>
     </div>

@@ -1853,7 +1853,7 @@ th { background: var(--surface-soft); }
   --card-muted: var(--text-secondary);
 }
 .booking-hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px; align-items: start; padding: 28px; background: linear-gradient(135deg, #fffafc 0%, #fff1f6 100%); }
-.booking-layout { align-items: start; }
+.booking-layout { align-items: start; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr); gap: 28px; }
 .booking-form-card { padding: 28px; }
 .booking-panel { display: grid; gap: 20px; }
 .panel-head h3 { margin: 0 0 6px; font-size: 1.8rem; }
@@ -1865,6 +1865,55 @@ th { background: var(--surface-soft); }
 .booking-step.current { border-color: var(--accent); color: var(--text); box-shadow: 0 14px 24px rgba(167, 68, 113, 0.12); }
 .booking-step.done { border-color: #d7c0ca; }
 .option-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.visual-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.visual-choice-grid--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.choice-card {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 132px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(93, 39, 4, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248, 242, 233, 0.96)),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.14), transparent 42%);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 16px 30px rgba(48, 24, 11, 0.06);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+.choice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 34px rgba(48, 24, 11, 0.1);
+}
+.choice-card strong {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.choice-card span {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.choice-card.selected {
+  border-color: rgba(var(--accent-rgb), 0.42);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.99), rgba(255, 238, 216, 0.98)),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.2), transparent 44%);
+  box-shadow: 0 22px 42px rgba(93, 39, 4, 0.12);
+}
+.choice-card--compact {
+  min-height: 110px;
+}
 .pill {
   display: inline-flex;
   align-items: center;
@@ -1887,9 +1936,61 @@ th { background: var(--surface-soft); }
 .scope-card h4 { margin: 0 0 14px; font-size: 1.05rem; }
 .booking-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 24px; }
 .booking-summary { background: linear-gradient(180deg, #fff 0%, #fff4f7 100%); }
+.booking-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.booking-preview-image {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  border-radius: 22px;
+  background: var(--surface-soft);
+}
+.booking-preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.booking-preview-image span {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(24, 18, 14, 0.74);
+  color: #fff;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .summary-stack { display: grid; gap: 18px; margin-top: 20px; }
+.booking-preview-copy {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(93, 39, 4, 0.08);
+}
+.booking-preview-copy p {
+  margin: 8px 0 0;
+}
 .summary-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .summary-chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; border: 1px solid var(--border); background: white; color: var(--text-primary); padding: 8px 12px; font-size: 0.92rem; line-height: 1.2; }
+.booking-preview-note {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(93, 39, 4, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
 .review-card { border: 1px solid var(--border); border-radius: 20px; padding: 20px; background: var(--surface-soft); color: var(--text-primary); }
 .review-card h4 { margin: 0 0 14px; }
 .review-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; }
@@ -3045,7 +3146,7 @@ th { background: var(--surface-soft); }
   :root {
     --site-header-height: 96px;
   }
-  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-hero { grid-template-columns: 1fr; }
+  .hero, .form-wrap, .grid-3, .grid-2, .package-grid, .booking-hero, .crm-overview, .review-grid, .contract-form-grid, .contract-workspace, .service-ribbon, .gallery-showcase, .testimonial-grid, .process-shell, .cta-shell, .admin-shell, .admin-dashboard-hero, .admin-kpi-grid, .admin-board-grid, .admin-kanban-grid, .funnel-grid, .admin-package-workspace, .admin-dashboard-grid, .admin-stage-grid, .admin-kpi-grid--compact, .editorial-banner--lookbook, .brand-mosaic, .brand-mosaic-grid, .lookbook-strip, .booking-intro, .gallery-page-band, .package-editorial-band, .hero-stage-grid, .story-split, .promise-gallery, .promise-gallery-mosaic, .process-runway-grid, .package-salon-grid, .contract-page-header, .contract-kpi-grid, .contract-editor-overview, .hero-quick-grid, .simple-process-grid, .simple-package-grid, .simple-proof-band, .simple-testimonial-grid, .public-page-hero, .booking-layout, .visual-choice-grid, .visual-choice-grid--compact, .booking-preview-grid { grid-template-columns: 1fr; }
   .form-grid, .checkbox-grid { grid-template-columns: 1fr; }
   .vendor-card-grid { grid-template-columns: 1fr; }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3184,6 +3285,10 @@ th { background: var(--surface-soft); }
   }
   .hero-image { min-height: 320px; }
   .booking-actions { flex-direction: column; }
+  .choice-card,
+  .choice-card--compact {
+    min-height: auto;
+  }
   .contract-line-header { flex-direction: column; align-items: stretch; }
   .contract-section-tabs { position: static; padding-top: 0; }
   .contract-sticky-card {

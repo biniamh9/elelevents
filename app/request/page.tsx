@@ -14,7 +14,7 @@ export default async function RequestPage() {
     .eq("approval_status", "approved")
     .eq("is_active", true)
     .order("business_name", { ascending: true });
-  const images = await getGalleryItems(3);
+  const images = await getGalleryItems(12);
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
@@ -62,7 +62,7 @@ export default async function RequestPage() {
         tags={["Venue", "Focal points", "Inspiration"]}
       />
 
-      <EventRequestForm vendors={vendors ?? []} />
+      <EventRequestForm vendors={vendors ?? []} portfolioItems={images} />
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
         <Card>
