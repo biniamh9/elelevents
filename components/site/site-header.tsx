@@ -15,7 +15,7 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
-const hiddenPrefixes = ["/admin"];
+const hiddenPrefixes = ["/admin", "/vendors/dashboard", "/vendors/pending"];
 
 function isCurrentPath(pathname: string, href: string) {
   if (href === "/") {

@@ -15,6 +15,109 @@ type GalleryItem = {
 
 const allowedImageTypes = "image/jpeg,image/jpg,image/png,image/webp";
 
+function GalleryRecordActions({
+  item,
+  onView,
+  onEdit,
+  onDeleted,
+}: {
+  item: GalleryItem;
+  onView: () => void;
+  onEdit: () => void;
+  onDeleted: (id: string) => void;
+}) {
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [open, setOpen] = useState(false);
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      `Delete "${item.title}" from the gallery? This cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleting(true);
+    setMessage("");
+
+    const res = await fetch(`/api/admin/gallery/${item.id}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    setDeleting(false);
+
+    if (!res.ok) {
+      setMessage(data.error || "Failed to delete image.");
+      return;
+    }
+
+    setOpen(false);
+    onDeleted(item.id);
+    router.refresh();
+  }
+
+  return (
+    <div className="admin-row-actions">
+      <details
+        className="admin-row-action-menu"
+        open={open}
+        onToggle={(event) =>
+          setOpen((event.currentTarget as HTMLDetailsElement).open)
+        }
+      >
+        <summary className="admin-row-action-trigger">
+          <span>Actions</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="m5 7 5 6 5-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </summary>
+
+        <div className="admin-row-action-dropdown">
+          <button
+            type="button"
+            className="admin-row-action-item"
+            onClick={() => {
+              onView();
+              setOpen(false);
+            }}
+          >
+            View
+          </button>
+          <button
+            type="button"
+            className="admin-row-action-item"
+            onClick={() => {
+              onEdit();
+              setOpen(false);
+            }}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            className="admin-row-action-item admin-row-action-item--danger"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </details>
+      {message ? <p className="error">{message}</p> : null}
+    </div>
+  );
+}
+
 function GalleryEditor({
   item,
   onDeleted,
@@ -259,6 +362,15 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
     setSelectedId(nextItems[0]?.id ?? "");
   }
 
+  function focusItem(id: string) {
+    setSelectedId(id);
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("gallery-editor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   return (
     <div className="admin-package-shell">
       <div className="card admin-package-intro">
@@ -412,15 +524,12 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
                       {item.created_at ? new Date(item.created_at).toLocaleDateString() : "—"}
                     </td>
                     <td>
-                      <div className="admin-row-actions">
-                        <button
-                          type="button"
-                          className="admin-row-action-link"
-                          onClick={() => setSelectedId(item.id)}
-                        >
-                          Edit
-                        </button>
-                      </div>
+                      <GalleryRecordActions
+                        item={item}
+                        onView={() => focusItem(item.id)}
+                        onEdit={() => focusItem(item.id)}
+                        onDeleted={handleDeleted}
+                      />
                     </td>
                   </tr>
                 ))
@@ -465,15 +574,12 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
                 </p>
               </div>
 
-              <div className="admin-row-actions">
-                <button
-                  type="button"
-                  className="admin-row-action-link"
-                  onClick={() => setSelectedId(item.id)}
-                >
-                  Edit
-                </button>
-              </div>
+              <GalleryRecordActions
+                item={item}
+                onView={() => focusItem(item.id)}
+                onEdit={() => focusItem(item.id)}
+                onDeleted={handleDeleted}
+              />
             </div>
           ))}
         </div>
@@ -492,7 +598,7 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
           </div>
         </div>
 
-        <div className="admin-package-editor-wrap">
+        <div className="admin-package-editor-wrap" id="gallery-editor">
           {selectedItem ? (
             <GalleryEditor
               key={selectedItem.id}
