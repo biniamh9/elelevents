@@ -36,6 +36,12 @@ const navItems: NavItem[] = [
     icon: "image",
   },
   {
+    href: "/admin/flow",
+    label: "Homepage Flow",
+    description: "Process text and images",
+    icon: "flow",
+  },
+  {
     href: "/admin/packages",
     label: "Packages",
     description: "Public offers",
@@ -116,6 +122,17 @@ function SidebarIcon({ icon }: { icon: string }) {
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M10 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
           <path d="M19 9h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
+        </svg>
+      );
+    case "flow":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="6" cy="12" r="2" />
+          <circle cx="12" cy="6" r="2" />
+          <circle cx="18" cy="12" r="2" />
+          <circle cx="12" cy="18" r="2" />
+          <path d="M8 12h8" />
+          <path d="M12 8v8" />
         </svg>
       );
     case "tag":

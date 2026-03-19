@@ -32,6 +32,9 @@ export default async function AdminLayout({
               <Link href="/admin/calendar" className="admin-topbar-tab">
                 Calendar
               </Link>
+              <Link href="/admin/flow" className="admin-topbar-tab">
+                Homepage Flow
+              </Link>
               <Link href="/admin/packages" className="admin-topbar-tab">
                 Packages
               </Link>

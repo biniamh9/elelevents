@@ -1,6 +1,7 @@
 import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import HomeProcessFlow from "@/components/home/home-process-flow";
 import { getGalleryItems } from "@/lib/gallery";
+import { getHomeProcessSteps } from "@/lib/home-process";
 import Button from "@/components/ui/button";
 import GalleryStrip from "@/components/site/gallery-strip";
 import PageCTA from "@/components/site/page-cta";
@@ -16,28 +17,7 @@ const trustCards = [
 export default async function HomePage() {
   const galleryPreview = await getGalleryItems(6);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
-  const processSteps = [
-    {
-      title: "Submit Request",
-      text: "Tell us your date and event details",
-    },
-    {
-      title: "Consultation",
-      text: "We align on style, scope, and priorities",
-    },
-    {
-      title: "Quote + Contract",
-      text: "You receive pricing and your agreement",
-    },
-    {
-      title: "Secure Your Date",
-      text: "Sign and pay the deposit to reserve",
-    },
-    {
-      title: "Event Day",
-      text: "Walk into a fully styled celebration",
-    },
-  ];
+  const processSteps = await getHomeProcessSteps();
 
   return (
     <main className="home-shell home-shell--simple">
@@ -62,8 +42,12 @@ export default async function HomePage() {
       <section className="container section">
         <HomeProcessFlow
           steps={processSteps.map((item, index) => ({
-            ...item,
-            imageUrl: galleryPreview[index]?.image_url ?? galleryPreview[0]?.image_url,
+            title: item.title,
+            text: item.text,
+            imageUrl:
+              item.image_url ??
+              galleryPreview[index]?.image_url ??
+              galleryPreview[0]?.image_url,
           }))}
         />
       </section>
