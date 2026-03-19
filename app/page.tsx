@@ -64,28 +64,23 @@ export default async function HomePage() {
   const processSteps = [
     {
       title: "Submit Request",
-      text: "Share the event details and visual direction.",
-      image: galleryPreview[0]?.image_url ?? leadImage,
+      text: "Share your date, style, and event details.",
     },
     {
       title: "Consultation",
-      text: "We refine the room, mood, and priorities.",
-      image: galleryPreview[1]?.image_url ?? detailImage,
+      text: "We refine the room, priorities, and direction.",
     },
     {
       title: "Quote + Contract",
-      text: "Receive clear pricing and the agreement.",
-      image: galleryPreview[2]?.image_url ?? leadImage,
+      text: "Receive clear pricing and your agreement.",
     },
     {
       title: "Secure Your Date",
       text: "Sign and pay the deposit to reserve.",
-      image: galleryPreview[3]?.image_url ?? detailImage,
     },
     {
       title: "Event Day",
-      text: "Walk into a fully styled celebration.",
-      image: galleryPreview[4]?.image_url ?? leadImage,
+      text: "Arrive to a fully styled celebration.",
     },
   ];
 
@@ -201,19 +196,23 @@ export default async function HomePage() {
         <section className="simple-process-shell">
           <div className="simple-process-head">
             <p className="eyebrow">How it works</p>
-            <h2>The full process, understood in seconds.</h2>
+            <h2>The full process, understood instantly.</h2>
           </div>
           <div className="simple-process-grid">
             {processSteps.map((item, index) => (
-              <Card key={item.title} className="simple-process-card">
-                <div className="simple-process-image-wrap">
-                  <img src={item.image} alt={item.title} className="simple-process-image" />
+              <div key={item.title} className="simple-process-card">
+                <div className="simple-process-copy">
+                  <span className="simple-process-step-label">
+                    Step {index + 1}
+                  </span>
+                  <h3>{item.title}</h3>
+                  <p className="muted">{item.text}</p>
+                </div>
+                <div className="simple-process-node-wrap" aria-hidden="true">
                   <span className="simple-process-step-number">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h3>{item.title}</h3>
-                <p className="muted">{item.text}</p>
                 {index < processSteps.length - 1 ? (
                   <div className="simple-process-connector" aria-hidden="true">
                     <span />
@@ -229,7 +228,7 @@ export default async function HomePage() {
                     </svg>
                   </div>
                 ) : null}
-              </Card>
+              </div>
             ))}
           </div>
         </section>
