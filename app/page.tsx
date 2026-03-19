@@ -8,9 +8,9 @@ import PageCTA from "@/components/site/page-cta";
 export const dynamic = "force-dynamic";
 
 const trustCards = [
-  "12+ years experience",
-  "Serving Atlanta since 2019",
-  "Trusted by satisfied clients",
+  "12+ Years Experience",
+  "Serving Atlanta Since 2019",
+  "Trusted by Satisfied Clients",
 ];
 
 export default async function HomePage() {
@@ -51,10 +51,6 @@ export default async function HomePage() {
         <div className="container hero-stage-grid hero-stage-grid--simple">
           <div className="hero-stage-copy home-hero-copy">
             <p className="eyebrow">Elel Events & Design</p>
-            <div className="hero-stage-kicker">
-              <span>Luxury decor studio</span>
-              <span>Reception, wedding, and Melsi</span>
-            </div>
             <h1>
               Simple to book.
               <br />
@@ -76,7 +72,7 @@ export default async function HomePage() {
                 <img src={leadImage} alt="Luxury event setup by Elel Events" />
                 <div className="hero-stage-card-caption">
                   <span>Reception reveal</span>
-                  <strong>Elegant rooms with focal detail and a clean finish.</strong>
+                  <strong>Elegant rooms styled with care.</strong>
                 </div>
               </div>
 
@@ -84,16 +80,6 @@ export default async function HomePage() {
                 <div className="hero-stage-card hero-stage-card--detail hero-stage-card--accent">
                   <img src={detailImage} alt="Styled head table by Elel Events" />
                 </div>
-
-                <Card className="hero-stage-mood-note home-hero-note">
-                  <p className="eyebrow">Visual direction</p>
-                  <h3>Layered styling, warm lighting, and focal points that photograph well.</h3>
-                  <div className="hero-stage-mood-tags">
-                    <span>Head table</span>
-                    <span>Backdrop</span>
-                    <span>Melsi</span>
-                  </div>
-                </Card>
               </div>
             </div>
           </div>
@@ -105,7 +91,7 @@ export default async function HomePage() {
           <div className="simple-process-head">
             <p className="eyebrow">How it works</p>
             <h2>From first inquiry to event day.</h2>
-            <p className="muted">A clear five-step booking process, handled with care.</p>
+            <p className="muted">A simple, guided process from inquiry to execution.</p>
           </div>
           <div className="simple-process-grid">
             {processSteps.map((item, index) => (
