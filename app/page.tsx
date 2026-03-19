@@ -1,4 +1,5 @@
 import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
+import HomeProcessFlow from "@/components/home/home-process-flow";
 import { getGalleryItems } from "@/lib/gallery";
 import Button from "@/components/ui/button";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -16,11 +17,26 @@ export default async function HomePage() {
   const galleryPreview = await getGalleryItems(6);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const processSteps = [
-    "Submit Request",
-    "Consultation",
-    "Quote + Contract",
-    "Secure Your Date",
-    "Event Day",
+    {
+      title: "Submit Request",
+      text: "Tell us your date and event details",
+    },
+    {
+      title: "Consultation",
+      text: "We align on style, scope, and priorities",
+    },
+    {
+      title: "Quote + Contract",
+      text: "You receive pricing and your agreement",
+    },
+    {
+      title: "Secure Your Date",
+      text: "Sign and pay the deposit to reserve",
+    },
+    {
+      title: "Event Day",
+      text: "Walk into a fully styled celebration",
+    },
   ];
 
   return (
@@ -44,33 +60,12 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <section className="simple-process-shell">
-          <div className="simple-process-head">
-            <p className="eyebrow">How it works</p>
-            <p className="muted">A simple, guided process from inquiry to execution.</p>
-          </div>
-          <div className="simple-process-grid">
-            {processSteps.map((item, index) => (
-              <div key={item} className="simple-process-card">
-                <span>{item}</span>
-                {index < processSteps.length - 1 ? (
-                  <div className="simple-process-connector" aria-hidden="true">
-                    <svg viewBox="0 0 20 20">
-                      <path
-                        d="M4 10h10m0 0-4-4m4 4-4 4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </section>
+        <HomeProcessFlow
+          steps={processSteps.map((item, index) => ({
+            ...item,
+            imageUrl: galleryPreview[index]?.image_url ?? galleryPreview[0]?.image_url,
+          }))}
+        />
       </section>
 
       <section className="container section">

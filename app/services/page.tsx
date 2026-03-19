@@ -78,48 +78,24 @@ export default async function ServicesPage() {
         tags={["Backdrop", "Tablescape", "Lighting"]}
       />
 
-      <section className="simple-proof-band">
+      <section className="public-callout-grid">
         {serviceAreas.map((item) => (
-          <Card key={item.title} className="simple-proof-card">
+          <Card key={item.title} className="public-callout-card">
             <p className="eyebrow">Service</p>
             <h3>{item.title}</h3>
-            <p className="muted">{item.text}</p>
+            <p>{item.text}</p>
           </Card>
         ))}
       </section>
 
-      <section className="simple-proof-band">
+      <section className="public-callout-grid">
         {inclusionHighlights.map((item) => (
-          <Card key={item.title} className="simple-proof-card">
+          <Card key={item.title} className="public-callout-card">
             <p className="eyebrow">{item.eyebrow}</p>
             <h3>{item.title}</h3>
-            <p className="muted">{item.text}</p>
+            <p>{item.text}</p>
           </Card>
         ))}
-      </section>
-
-      <section className="simple-proof-band">
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Service area</p>
-          <h3>Atlanta, GA and surrounding areas</h3>
-          <p className="muted">
-            Based in Atlanta and available for celebrations across the metro area and nearby communities.
-          </p>
-        </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">What&apos;s included</p>
-          <h3>Decor elements and event-day support</h3>
-          <p className="muted">
-            Head tables, backdrops, guest tables, entry styling, buffet details, setup, and teardown planning.
-          </p>
-        </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Pricing guidance</p>
-          <h3>Quotes shaped around the real scope</h3>
-          <p className="muted">
-            Final pricing depends on venue, guest count, rentals, floral needs, labor, and the scale of the decor.
-          </p>
-        </Card>
       </section>
 
       <section className="simple-package-shell">
@@ -150,11 +126,13 @@ export default async function ServicesPage() {
           title: item.title,
           label: item.category,
         }))}
+        showCaption={false}
       />
 
       <PageCTA
         title="Choose the service direction that fits your event, then refine it with us."
         description="From reception styling to Traditional Melsi and milestone events, we help shape the room with clarity, beauty, and thoughtful event flow."
+        showSecondary={false}
       />
     </main>
   );

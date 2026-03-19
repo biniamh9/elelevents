@@ -37,12 +37,14 @@ export default async function GalleryPage() {
           title: item.title,
           label: item.category,
         }))}
+        showCaption={false}
       />
       <GalleryBrowser items={images} />
 
       <PageCTA
         title="Save the visual direction you love, then bring it into your consultation."
         description="Use the portfolio to identify the mood, focal points, and room details that feel right for your celebration."
+        showSecondary={false}
       />
     </main>
   );

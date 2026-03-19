@@ -66,39 +66,14 @@ export default async function ContactPage() {
         </Card>
 
         <Card>
-          <h3>Need to see the work first?</h3>
-          <p className="muted">
-            Browse the portfolio to save the rooms, tables, and focal details that
-            feel closest to your event vision.
-          </p>
+          <h3>Contact confidence</h3>
+          <p className="muted">Email: yordecor@gmail.com</p>
+          <p className="muted">Phone: 612-964-3553</p>
+          <p className="muted">Service area: Atlanta, GA and surrounding areas</p>
+          <p className="muted">Response time: usually within 1 to 2 business days</p>
           <div className="btn-row">
             <Button href="/request">Book Consultation</Button>
-            <Button href="/gallery" variant="secondary">View Portfolio</Button>
           </div>
-        </Card>
-      </section>
-
-      <section className="simple-proof-band">
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Response time</p>
-          <h3>Usually within 1 to 2 business days</h3>
-          <p className="muted">
-            We respond as quickly as possible and confirm the next step clearly so you know what to expect.
-          </p>
-        </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Service area</p>
-          <h3>Atlanta, GA and surrounding areas</h3>
-          <p className="muted">
-            Based in Atlanta and available for celebrations across the metro area and nearby communities.
-          </p>
-        </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Booking guidance</p>
-          <h3>Early consultation is best</h3>
-          <p className="muted">
-            Weekend and holiday dates book earlier, so it helps to reach out once you have a date or venue direction.
-          </p>
         </Card>
       </section>
 
@@ -110,11 +85,13 @@ export default async function ContactPage() {
           title: item.title,
           label: item.category,
         }))}
+        showCaption={false}
       />
 
       <PageCTA
         title="Share the event details and we’ll guide the next step clearly."
         description="If you already know the date, venue, or decor direction, booking the consultation now helps secure the clearest path forward."
+        showSecondary={false}
       />
     </main>
   );

@@ -24,22 +24,22 @@ export default async function AboutPage() {
             <div className="booking-note">
               <span>01</span>
               <div>
-              <strong>Story-led event atmospheres</strong>
-              <p className="muted">From elegant wedding receptions to traditional Melsi celebrations and milestone events, every detail is thoughtfully curated to reflect each client&apos;s vision.</p>
+                <strong>12+ years of design experience</strong>
+                <p className="muted">A long-standing reputation built through calm communication and dependable execution.</p>
               </div>
             </div>
             <div className="booking-note">
               <span>02</span>
               <div>
-              <strong>Reputation built on trust</strong>
-              <p className="muted">Clients consistently highlight our professionalism, reliability, and attention to detail, and we are proud to say our work speaks for itself.</p>
+                <strong>Minnesota roots, Atlanta since 2019</strong>
+                <p className="muted">The same attention to detail now shapes receptions and celebrations across Atlanta.</p>
               </div>
             </div>
             <div className="booking-note">
               <span>03</span>
               <div>
-              <strong>Consistency without compromise</strong>
-              <p className="muted">We have built our reputation on trust, consistency, and delivering exactly what we promise, with zero complaints and countless satisfied clients.</p>
+                <strong>Trusted by satisfied clients</strong>
+                <p className="muted">Our work is known for professionalism, reliability, and a clean finished room.</p>
               </div>
             </div>
           </Card>
@@ -70,46 +70,21 @@ export default async function AboutPage() {
         </div>
       </StorySection>
 
-      <section className="simple-proof-band">
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Origin story</p>
-          <h3>Minnesota foundation</h3>
-          <p className="muted">
-            Our early work in Minnesota established the creative discipline,
-            professionalism, and client care that still define the brand today.
-          </p>
+      <section className="public-callout-grid">
+        <Card className="public-callout-card">
+          <p className="eyebrow">Design philosophy</p>
+          <h3>Elegant, warm, and photographable.</h3>
+          <p>We focus on focal points, balanced rooms, and layered details that never feel overcrowded.</p>
         </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Atlanta presence</p>
-          <h3>Serving Atlanta since 2019</h3>
-          <p className="muted">
-            Since relocating to Atlanta, we have continued designing wedding
-            receptions, Traditional Melsi celebrations, and milestone events with
-            a refined, client-centered approach.
-          </p>
+        <Card className="public-callout-card">
+          <p className="eyebrow">How clients describe us</p>
+          <h3>Professional, reliable, and detail-driven.</h3>
+          <p>Clients trust the process because communication stays clear and the finished room feels polished.</p>
         </Card>
-        <Card className="simple-proof-card">
-          <p className="eyebrow">Reputation</p>
-          <h3>Professional, reliable, detail-driven</h3>
-          <p className="muted">
-            Clients consistently highlight our professionalism, reliability, and
-            attention to detail, and our five-star feedback reflects that trust.
-          </p>
-        </Card>
-      </section>
-
-      <section className="grid-2 public-note-grid">
-        <Card>
-          <h3>Design philosophy</h3>
-          <p className="muted">
-            Our signature style is elegant, warm, and layered. We focus on focal points, balanced rooms, and details that photograph beautifully without feeling crowded.
-          </p>
-        </Card>
-        <Card>
-          <h3>Why choose us</h3>
-          <p className="muted">
-            Clients choose Elel Events for experience, reliability, professional communication, and a five-star reputation built over years of trusted work.
-          </p>
+        <Card className="public-callout-card">
+          <p className="eyebrow">What we create</p>
+          <h3>Reception, Melsi, and milestone atmospheres.</h3>
+          <p>Every room is shaped to feel welcoming, intentional, and beautiful the moment guests arrive.</p>
         </Card>
       </section>
 
@@ -121,6 +96,7 @@ export default async function AboutPage() {
           title: item.title,
           label: item.category,
         }))}
+        showCaption={false}
       />
 
       <section className="simple-testimonial-shell">
@@ -151,6 +127,7 @@ export default async function AboutPage() {
         eyebrow="Work with us"
         title="Bring your event vision into a consultation that feels calm and clear."
         description="Share the event details, the atmosphere you want to create, and the focal points that matter most. We’ll guide the rest."
+        showSecondary={false}
       />
     </main>
   );

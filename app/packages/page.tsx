@@ -95,42 +95,21 @@ export default async function PackagesPage() {
         </div>
       </section>
 
-      <div className="package-grid package-grid--editorial">
-        {packages.map((pkg) => (
-          <div key={pkg.id} className={`package-card package-card--editorial ${pkg.featured ? "featured" : ""}`}>
-            <p className="eyebrow">What this can include</p>
-            <strong>{pkg.name}</strong>
-            <p className="muted" style={{ marginTop: "12px" }}>{pkg.best_for ?? pkg.summary}</p>
-            <p className="muted">{pkg.summary}</p>
-            <ul>
-              {(pkg.features ?? []).map((feature) => <li key={feature}>{feature}</li>)}
-            </ul>
-            <Button href="/request">Book Consultation</Button>
-          </div>
-        ))}
-      </div>
-
-      <section className="simple-proof-band">
-        <Card className="simple-proof-card">
+      <section className="public-callout-grid">
+        <Card className="public-callout-card">
           <p className="eyebrow">Pricing guidance</p>
-          <h3>Packages guide the direction, not the final quote</h3>
-          <p className="muted">
-            Final investment depends on the venue, guest count, rentals, labor, floral needs, and the amount of custom styling required.
-          </p>
+          <h3>Packages guide direction, not the final quote.</h3>
+          <p>Final investment depends on venue, guest count, rentals, labor, floral needs, and custom styling.</p>
         </Card>
-        <Card className="simple-proof-card">
+        <Card className="public-callout-card">
           <p className="eyebrow">Availability</p>
-          <h3>Popular dates go quickly</h3>
-          <p className="muted">
-            Spring weekends, summer celebrations, and holiday dates often book first, especially for weddings and Melsi events.
-          </p>
+          <h3>Popular dates tend to book first.</h3>
+          <p>Spring weekends, summer celebrations, and holiday dates usually move the quickest.</p>
         </Card>
-        <Card className="simple-proof-card">
+        <Card className="public-callout-card">
           <p className="eyebrow">What&apos;s included</p>
-          <h3>Decor scope refined after consultation</h3>
-          <p className="muted">
-            Packages can include focal tables, backdrops, guest tables, entry styling, room atmosphere, and on-site support.
-          </p>
+          <h3>Decor scope is refined during consultation.</h3>
+          <p>Focal tables, backdrops, guest tables, room atmosphere, and on-site support are shaped around the event.</p>
         </Card>
       </section>
 
@@ -142,11 +121,13 @@ export default async function PackagesPage() {
           title: item.title,
           label: item.category,
         }))}
+        showCaption={false}
       />
 
       <PageCTA
         title="Choose the closest package, then bring the room to life during consultation."
         description="Packages are only the starting point. The consultation is where the venue, focal styling, guest tables, and room atmosphere come together."
+        showSecondary={false}
       />
     </main>
   );
