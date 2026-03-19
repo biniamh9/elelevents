@@ -78,6 +78,7 @@ function HomeProcessEditor({ item }: { item: HomeProcessStep }) {
   const [isActive, setIsActive] = useState(Boolean(item.is_active));
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setTitle(item.title);
@@ -91,6 +92,34 @@ function HomeProcessEditor({ item }: { item: HomeProcessStep }) {
     setIsActive(Boolean(item.is_active));
     setMessage("");
   }, [item]);
+
+  async function uploadImage(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    setUploading(true);
+    setMessage("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/admin/home-process/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    setUploading(false);
+
+    if (!res.ok) {
+      setMessage(data.error || "Failed to upload image.");
+      return;
+    }
+
+    setImageUrl(data.publicUrl);
+    setMessage("Image uploaded. Save step to apply it to the homepage.");
+  }
 
   async function saveStep() {
     setSaving(true);
@@ -164,12 +193,25 @@ function HomeProcessEditor({ item }: { item: HomeProcessStep }) {
       </div>
 
       <div className="field">
+        <label className="label">Upload Image</label>
+        <input
+          className="input"
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          onChange={(e) => uploadImage(e.target.files?.[0] ?? null)}
+        />
+        <p className="muted" style={{ marginTop: "8px" }}>
+          Upload a JPG, PNG, or WEBP image. After upload, save the step to publish it.
+        </p>
+      </div>
+
+      <div className="field">
         <label className="label">Image URL</label>
         <input
           className="input"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="Paste a gallery image URL or hosted image URL"
+          placeholder="Uploaded image URL"
         />
       </div>
 
@@ -179,7 +221,7 @@ function HomeProcessEditor({ item }: { item: HomeProcessStep }) {
       </label>
 
       <div className="admin-package-actions">
-        <button type="button" className="btn secondary" onClick={saveStep} disabled={saving}>
+        <button type="button" className="btn secondary" onClick={saveStep} disabled={saving || uploading}>
           {saving ? "Saving..." : "Save Step"}
         </button>
       </div>
