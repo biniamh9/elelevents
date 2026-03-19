@@ -1,7 +1,6 @@
 import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import { getGalleryItems } from "@/lib/gallery";
 import Button from "@/components/ui/button";
-import Card from "@/components/ui/card";
 import GalleryStrip from "@/components/site/gallery-strip";
 import PageCTA from "@/components/site/page-cta";
 
@@ -16,29 +15,12 @@ const trustCards = [
 export default async function HomePage() {
   const galleryPreview = await getGalleryItems(6);
   const heroBackdropImages = galleryPreview.map((item) => item.image_url);
-  const leadImage = galleryPreview[0]?.image_url;
-  const detailImage = galleryPreview[1]?.image_url ?? leadImage;
   const processSteps = [
-    {
-      title: "Submit Request",
-      text: "Tell us your date and event details.",
-    },
-    {
-      title: "Consultation",
-      text: "We align on style, scope, and priorities.",
-    },
-    {
-      title: "Quote + Contract",
-      text: "You receive pricing and your agreement.",
-    },
-    {
-      title: "Secure Your Date",
-      text: "Sign and pay the deposit to reserve.",
-    },
-    {
-      title: "Event Day",
-      text: "Walk into a fully styled celebration.",
-    },
+    "Submit Request",
+    "Consultation",
+    "Quote + Contract",
+    "Secure Your Date",
+    "Event Day",
   ];
 
   return (
@@ -48,39 +30,14 @@ export default async function HomePage() {
       <section className="hero-stage hero-stage--simple">
         <HeroBackdropRotator images={heroBackdropImages} />
 
-        <div className="container hero-stage-grid hero-stage-grid--simple">
-          <div className="hero-stage-copy home-hero-copy">
+        <div className="container">
+          <div className="home-hero-centered">
             <p className="eyebrow">Elel Events & Design</p>
-            <h1>
-              Simple to book.
-              <br />
-              <em>Beautiful to walk into.</em>
-            </h1>
-            <p className="hero-stage-lead">
-              Luxury event decor for weddings, Melsi, and milestone celebrations in Atlanta.
-            </p>
-
+            <h1>Luxury Event Decor for Weddings &amp; Celebrations</h1>
+            <p className="hero-stage-lead">Elegant designs. Seamless execution.</p>
             <div className="btn-row">
-            <Button href="/request">Book Consultation</Button>
+              <Button href="/request">Book Consultation</Button>
               <Button href="/gallery" variant="secondary">View Portfolio</Button>
-            </div>
-          </div>
-
-          <div className="hero-stage-visual hero-stage-visual--simple home-hero-visual">
-            <div className="hero-stage-showcase home-hero-showcase">
-              <div className="hero-stage-card hero-stage-card--tall hero-stage-card--lead">
-                <img src={leadImage} alt="Luxury event setup by Elel Events" />
-                <div className="hero-stage-card-caption">
-                  <span>Reception reveal</span>
-                  <strong>Elegant rooms styled with care.</strong>
-                </div>
-              </div>
-
-              <div className="hero-stage-side-stack">
-                <div className="hero-stage-card hero-stage-card--detail hero-stage-card--accent">
-                  <img src={detailImage} alt="Styled head table by Elel Events" />
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -90,27 +47,14 @@ export default async function HomePage() {
         <section className="simple-process-shell">
           <div className="simple-process-head">
             <p className="eyebrow">How it works</p>
-            <h2>From first inquiry to event day.</h2>
             <p className="muted">A simple, guided process from inquiry to execution.</p>
           </div>
           <div className="simple-process-grid">
             {processSteps.map((item, index) => (
-              <div key={item.title} className="simple-process-card">
-                <div className="simple-process-copy">
-                  <span className="simple-process-step-label">
-                    Step {index + 1}
-                  </span>
-                  <h3>{item.title}</h3>
-                  <p className="muted">{item.text}</p>
-                </div>
-                <div className="simple-process-node-wrap" aria-hidden="true">
-                  <span className="simple-process-step-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
+              <div key={item} className="simple-process-card">
+                <span>{item}</span>
                 {index < processSteps.length - 1 ? (
                   <div className="simple-process-connector" aria-hidden="true">
-                    <span />
                     <svg viewBox="0 0 20 20">
                       <path
                         d="M4 10h10m0 0-4-4m4 4-4 4"
@@ -131,7 +75,9 @@ export default async function HomePage() {
 
       <section className="container section">
         <GalleryStrip
-          title="A preview of the rooms, tables, and details we create."
+          eyebrow="Recent Work"
+          title="Designed to be beautiful the moment guests walk in."
+          showCaption={false}
           items={galleryPreview.slice(0, 6).map((item) => ({
             id: item.id,
             imageUrl: item.image_url,
@@ -142,20 +88,21 @@ export default async function HomePage() {
       </section>
 
       <section className="container section">
-        <div className="simple-proof-band">
+        <section className="home-trust-strip" aria-label="Trust highlights">
           {trustCards.map((item) => (
-            <Card key={item} className="simple-proof-card simple-proof-card--compact">
-              <h3>{item}</h3>
-            </Card>
+            <span key={item} className="home-trust-item">
+              {item}
+            </span>
           ))}
-        </div>
+        </section>
       </section>
 
       <section className="container section">
         <PageCTA
           eyebrow="Ready to begin"
           title="Ready to plan your event?"
-          description="Book a consultation and we’ll guide the next step with care."
+          description="Let&apos;s bring your vision to life."
+          showSecondary={false}
         />
       </section>
     </main>

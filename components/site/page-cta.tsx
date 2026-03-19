@@ -4,10 +4,12 @@ export default function PageCTA({
   eyebrow = "Book consultation",
   title,
   description,
+  showSecondary = true,
 }: {
   eyebrow?: string;
   title: string;
   description: string;
+  showSecondary?: boolean;
 }) {
   return (
     <section className="cta-shell cta-shell--editorial">
@@ -19,7 +21,9 @@ export default function PageCTA({
 
       <div className="btn-row">
         <Button href="/request">Book Consultation</Button>
-        <Button href="/gallery" variant="secondary">View Portfolio</Button>
+        {showSecondary ? (
+          <Button href="/gallery" variant="secondary">View Portfolio</Button>
+        ) : null}
       </div>
     </section>
   );
