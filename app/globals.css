@@ -2481,21 +2481,115 @@ th { background: var(--surface-soft); }
 .scope-card h4 { margin: 0 0 14px; font-size: 1.05rem; }
 .guided-preview-builder {
   display: grid;
-  gap: 16px;
-  padding: 22px;
-  border-radius: 24px;
+  gap: 26px;
+  padding: 24px;
+  border-radius: 28px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(246, 236, 225, 0.94));
+  box-shadow: 0 22px 38px rgba(48, 24, 11, 0.06);
 }
-.guided-preview-category-picker {
+.guided-preview-group {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+  gap: 16px;
+}
+.guided-preview-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.guided-preview-section-head h4 {
+  margin: 2px 0 0;
+  font-size: 1.2rem;
+}
+.guided-preview-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.guided-preview-feature-card {
+  position: relative;
+  min-height: 156px;
+  height: 156px;
+  overflow: hidden;
+  border: 1px solid rgba(93, 39, 4, 0.1);
+  border-radius: 20px;
+  background:
+    linear-gradient(160deg, rgba(220, 198, 175, 0.72), rgba(135, 106, 77, 0.9)),
+    linear-gradient(180deg, rgba(27, 21, 17, 0.08), rgba(27, 21, 17, 0.62));
+  cursor: pointer;
+  box-shadow: 0 20px 32px rgba(48, 24, 11, 0.08);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.guided-preview-feature-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+.guided-preview-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 40px rgba(48, 24, 11, 0.14);
+}
+.guided-preview-feature-card:hover img {
+  transform: scale(1.04);
+}
+.guided-preview-feature-card.selected {
+  border-color: rgba(var(--accent-rgb), 0.62);
+  box-shadow: 0 30px 46px rgba(93, 39, 4, 0.18);
+}
+.guided-preview-feature-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 16, 13, 0.05), rgba(20, 16, 13, 0.22) 45%, rgba(20, 16, 13, 0.86)),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.18), transparent 28%);
+}
+.guided-preview-feature-copy {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+}
+.guided-preview-feature-copy strong {
+  color: #fffaf5;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+.guided-preview-feature-copy small {
+  color: rgba(255, 244, 235, 0.88);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.guided-preview-feature-check {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #b72e2e;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  box-shadow: 0 12px 22px rgba(183, 46, 46, 0.26);
 }
 .guided-preview-accordion {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+}
+.guided-preview-accordion--compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .guided-preview-accordion-item {
   display: grid;
@@ -2510,7 +2604,8 @@ th { background: var(--surface-soft); }
   justify-content: space-between;
   gap: 10px;
   align-items: start;
-  padding: 14px 16px;
+  min-height: 56px;
+  padding: 16px 18px;
   border-radius: 18px;
   border: 1px solid rgba(93, 39, 4, 0.1);
   background: rgba(255, 255, 255, 0.84);
@@ -2524,7 +2619,7 @@ th { background: var(--surface-soft); }
   box-shadow: 0 14px 24px rgba(48, 24, 11, 0.08);
 }
 .guided-preview-category-chip strong {
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 .guided-preview-category-chip-copy {
   display: grid;
@@ -2569,7 +2664,7 @@ th { background: var(--surface-soft); }
 .guided-preview-inline-panel {
   display: grid;
   gap: 16px;
-  padding: 20px;
+  padding: 22px;
   border-radius: 24px;
   border: 1px solid rgba(var(--accent-rgb), 0.18);
   background: linear-gradient(180deg, rgba(255, 252, 248, 0.98), rgba(246, 236, 225, 0.94));
@@ -4755,6 +4850,9 @@ th { background: var(--surface-soft); }
   .vision-board-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .guided-preview-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .guided-preview-feature-grid {
+    grid-template-columns: 1fr;
   }
   .guided-preview-accordion {
     grid-template-columns: repeat(2, minmax(0, 1fr));

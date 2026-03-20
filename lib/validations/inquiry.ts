@@ -44,6 +44,7 @@ const decorSelectionSchema = z.object({
     )
     .default([]),
   uploadedImageUrls: z.array(z.string().url()).default([]),
+  refinement: optionalText,
   notes: optionalText,
 });
 

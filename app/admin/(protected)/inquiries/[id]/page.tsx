@@ -79,10 +79,11 @@ export default async function InquiryDetailPage({
   const selectedDecorCategories = Array.isArray(inquiry.selected_decor_categories)
     ? (inquiry.selected_decor_categories as string[])
     : [];
-  const decorSelections = Array.isArray(inquiry.decor_selections)
+      const decorSelections = Array.isArray(inquiry.decor_selections)
     ? (inquiry.decor_selections as Array<{
         categoryKey: string;
         categoryTitle: string;
+        refinement?: string | null;
         selectedGalleryImages?: Array<{
           id: string;
           title: string;
@@ -225,6 +226,13 @@ export default async function InquiryDetailPage({
                     <div className="admin-vision-block admin-vision-block--note">
                       <strong>Client note</strong>
                       <p>{selection.notes}</p>
+                    </div>
+                  ) : null}
+
+                  {selection.refinement ? (
+                    <div className="admin-vision-block">
+                      <strong>Refinement</strong>
+                      <p>{selection.refinement}</p>
                     </div>
                   ) : null}
                 </div>
