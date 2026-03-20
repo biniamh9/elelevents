@@ -29,6 +29,24 @@ const optionalNumber = z.preprocess((value) => {
   return Number.isNaN(nextValue) ? null : nextValue;
 }, z.number().optional().nullable());
 
+const decorSelectionSchema = z.object({
+  categoryKey: z.string(),
+  categoryTitle: z.string(),
+  selectedGalleryImageIds: z.array(z.string()).default([]),
+  selectedGalleryImages: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        image_url: z.string().url(),
+        category: optionalText,
+      })
+    )
+    .default([]),
+  uploadedImageUrls: z.array(z.string().url()).default([]),
+  notes: optionalText,
+});
+
 export const inquirySchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),
@@ -44,6 +62,8 @@ export const inquirySchema = z.object({
   colorsTheme: optionalText,
   inspirationNotes: optionalText,
   visionBoardUrls: z.array(z.string().url()).optional().default([]),
+  selectedDecorCategories: z.array(z.string()).optional().default([]),
+  decorSelections: z.array(decorSelectionSchema).optional().default([]),
   additionalInfo: optionalText,
   requestedVendorCategories: z.array(z.string()).optional().default([]),
   vendorRequestNotes: optionalText,

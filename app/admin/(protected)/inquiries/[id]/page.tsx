@@ -76,6 +76,20 @@ export default async function InquiryDetailPage({
     : { count: 0 };
 
   const otherEventsOnDate = Math.max((sameDayCount ?? 0) - 1, 0);
+  const decorSelections = Array.isArray(inquiry.decor_selections)
+    ? (inquiry.decor_selections as Array<{
+        categoryKey: string;
+        categoryTitle: string;
+        selectedGalleryImages?: Array<{
+          id: string;
+          title: string;
+          image_url: string;
+          category?: string | null;
+        }>;
+        uploadedImageUrls?: string[];
+        notes?: string | null;
+      }>)
+    : [];
   const bookingStage: BookingStage = deriveBookingStage({
     bookingStage: inquiry.booking_stage,
     inquiryStatus: inquiry.status,
@@ -225,6 +239,55 @@ export default async function InquiryDetailPage({
           )}
           <p><strong>Additional Info:</strong></p>
           <p>{inquiry.additional_info ?? "—"}</p>
+        </div>
+
+        <div className="card">
+          <h3>Visual Request Summary</h3>
+          {decorSelections.length ? (
+            <div className="admin-decor-selection-list">
+              {decorSelections.map((selection) => {
+                const selectedImages = selection.selectedGalleryImages ?? [];
+                const uploadedImages = selection.uploadedImageUrls ?? [];
+
+                return (
+                  <div key={selection.categoryKey} className="admin-decor-selection-card">
+                    <div className="admin-decor-selection-head">
+                      <strong>{selection.categoryTitle}</strong>
+                      <span>
+                        {selectedImages.length + uploadedImages.length
+                          ? `${selectedImages.length + uploadedImages.length} visual reference${selectedImages.length + uploadedImages.length === 1 ? "" : "s"}`
+                          : "Notes only"}
+                      </span>
+                    </div>
+
+                    {selectedImages.length ? (
+                      <div className="admin-decor-selection-images">
+                        {selectedImages.map((image) => (
+                          <a key={image.id} href={image.image_url} target="_blank" rel="noreferrer">
+                            <img src={image.image_url} alt={image.title} />
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {uploadedImages.length ? (
+                      <div className="admin-decor-selection-images admin-decor-selection-images--uploads">
+                        {uploadedImages.map((url) => (
+                          <a key={url} href={url} target="_blank" rel="noreferrer">
+                            <img src={url} alt={`${selection.categoryTitle} uploaded inspiration`} />
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {selection.notes ? <p className="muted">{selection.notes}</p> : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="muted">No structured visual selections were submitted.</p>
+          )}
         </div>
       </div>
 

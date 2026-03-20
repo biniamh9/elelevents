@@ -93,6 +93,13 @@ const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
     keywords: ["backdrop", "back drape", "drape", "arch"],
     emptyState: "No backdrop image is ready here yet. Add a note or upload inspiration if you already know the direction.",
   },
+  ceiling_drape: {
+    key: "ceiling_drape",
+    title: "Ceiling Drape",
+    helper: "Overhead drape, ceiling softness, and room height treatment.",
+    keywords: ["ceiling drape", "ceiling", "drape", "overhead"],
+    emptyState: "No ceiling-drape reference is available here yet. Add a note or upload inspiration if you want a softer ceiling treatment.",
+  },
   head_table: {
     key: "head_table",
     title: "Head Table",
@@ -100,19 +107,40 @@ const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
     keywords: ["head table", "sweetheart", "bride and groom", "table setup"],
     emptyState: "No head-table reference is available here yet. Add a note or upload inspiration if you have a preference.",
   },
-  centerpieces: {
-    key: "centerpieces",
-    title: "Centerpieces",
+  centerpiece: {
+    key: "centerpiece",
+    title: "Centerpiece",
     helper: "Guest-table centerpieces and table rhythm.",
     keywords: ["centerpiece", "tablescape", "guest table", "table setup"],
     emptyState: "No centerpiece reference is available here yet. Add a note or upload inspiration if you want something specific.",
   },
+  sweetheart_table: {
+    key: "sweetheart_table",
+    title: "Sweetheart Table",
+    helper: "Couple-facing table styling separate from the main head table.",
+    keywords: ["sweetheart", "sweetheart table", "couple table"],
+    emptyState: "No sweetheart-table reference is available yet. Add a note or upload inspiration if you want a specific look.",
+  },
+  bride_groom_chairs: {
+    key: "bride_groom_chairs",
+    title: "Bride & Groom Chairs",
+    helper: "Statement couple chairs and seat styling.",
+    keywords: ["bride and groom", "couple chairs", "king chair", "chairs"],
+    emptyState: "No chair reference is available yet. Add a note or upload inspiration if the seating style matters to you.",
+  },
   florals: {
     key: "florals",
-    title: "Florals",
+    title: "Floral Arrangement",
     helper: "Bouquets, arrangements, and floral accents.",
     keywords: ["floral", "flower", "bouquet", "arrangement"],
     emptyState: "No floral image is available here yet. Add a note or upload inspiration if florals matter to your vision.",
+  },
+  vip_table: {
+    key: "vip_table",
+    title: "VIP Table",
+    helper: "VIP family table styling and placement direction.",
+    keywords: ["vip", "family table", "vip table"],
+    emptyState: "No VIP-table reference is available here yet. Add a note or upload inspiration if this table matters to the layout.",
   },
   guest_tables: {
     key: "guest_tables",
@@ -142,19 +170,26 @@ const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
     keywords: ["cake", "dessert", "buffet", "sweets"],
     emptyState: "No dessert-table image is available here yet. Add a note or upload inspiration if this area matters to the room.",
   },
+  other: {
+    key: "other",
+    title: "Other",
+    helper: "Anything else you want us to design around.",
+    keywords: [],
+    emptyState: "Use this space to upload your own inspiration and explain a custom decor need.",
+  },
 };
 
 const eventTypeCategoryMap: Record<string, string[]> = {
-  Wedding: ["backdrop", "head_table", "centerpieces", "guest_tables", "florals"],
-  "Traditional (Melsi)": ["traditional_setup", "backdrop", "head_table", "centerpieces", "welcome_area"],
-  Engagement: ["backdrop", "head_table", "centerpieces", "florals"],
-  Birthday: ["backdrop", "centerpieces", "dessert_table", "guest_tables"],
-  "Baby Shower": ["backdrop", "centerpieces", "dessert_table", "welcome_area"],
-  "Bridal Shower": ["backdrop", "centerpieces", "dessert_table", "welcome_area"],
+  Wedding: ["backdrop", "head_table", "sweetheart_table", "centerpiece", "ceiling_drape", "bride_groom_chairs", "florals", "vip_table"],
+  "Traditional (Melsi)": ["traditional_setup", "backdrop", "head_table", "centerpiece", "ceiling_drape", "vip_table"],
+  Engagement: ["backdrop", "head_table", "sweetheart_table", "centerpiece", "florals"],
+  Birthday: ["backdrop", "centerpiece", "dessert_table", "guest_tables"],
+  "Baby Shower": ["backdrop", "centerpiece", "dessert_table", "welcome_area"],
+  "Bridal Shower": ["backdrop", "centerpiece", "dessert_table", "welcome_area"],
   Graduation: ["backdrop", "guest_tables", "welcome_area"],
   "Corporate Event": ["backdrop", "guest_tables", "welcome_area", "florals"],
-  Anniversary: ["backdrop", "head_table", "centerpieces", "florals"],
-  Other: ["backdrop", "guest_tables", "centerpieces"],
+  Anniversary: ["backdrop", "head_table", "sweetheart_table", "centerpiece", "florals"],
+  Other: ["backdrop", "guest_tables", "centerpiece", "other"],
 };
 
 const eventTypeKeywords: Record<string, string[]> = {
@@ -202,16 +237,30 @@ function normalizeSearchText(value: string | null | undefined) {
   return (value ?? "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function getGuidedPreviewOptions(eventType: string, portfolioItems: GalleryItem[]) {
-  if (!eventType) {
+function getGuidedPreviewOptions(
+  eventType: string,
+  selectedCategoryKeys: string[],
+  portfolioItems: GalleryItem[]
+) {
+  const categoryKeys =
+    selectedCategoryKeys.length > 0
+      ? selectedCategoryKeys
+      : eventType
+        ? eventTypeCategoryMap[eventType] ?? eventTypeCategoryMap.Other
+        : [];
+
+  if (!categoryKeys.length) {
     return [];
   }
 
   const eventKeywords = eventTypeKeywords[eventType] ?? [];
-  const categoryKeys = eventTypeCategoryMap[eventType] ?? eventTypeCategoryMap.Other;
 
   return categoryKeys.map((key) => {
     const config = guidedPreviewCategories[key];
+    if (!config) {
+      return null;
+    }
+
     const eventMatches = portfolioItems.filter((item) => {
       const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
       const matchesCategory = config.keywords.some((keyword) =>
@@ -244,7 +293,7 @@ function getGuidedPreviewOptions(eventType: string, portfolioItems: GalleryItem[
       ...config,
       images,
     };
-  });
+  }).filter(Boolean) as Array<GuidedPreviewCategoryConfig & { images: GalleryItem[] }>;
 }
 
 function deriveRequestedServices(
@@ -336,7 +385,8 @@ export default function EventRequestForm({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadingVisionBoard, setUploadingVisionBoard] = useState(false);
-  const [selectedPreviewImages, setSelectedPreviewImages] = useState<Record<string, string>>({});
+  const [selectedDecorCategories, setSelectedDecorCategories] = useState<string[]>([]);
+  const [selectedPreviewImages, setSelectedPreviewImages] = useState<Record<string, string[]>>({});
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
@@ -348,13 +398,11 @@ export default function EventRequestForm({
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
   const guidedPreviewOptions = useMemo(
-    () => getGuidedPreviewOptions(form.eventType, portfolioItems),
-    [form.eventType, portfolioItems]
+    () => getGuidedPreviewOptions(form.eventType, selectedDecorCategories, portfolioItems),
+    [form.eventType, selectedDecorCategories, portfolioItems]
   );
   const activeGuidedCategory = guidedPreviewOptions[activeCategoryIndex] ?? null;
-  const selectedCategoryKeys = Object.entries(selectedPreviewImages)
-    .filter(([, value]) => Boolean(value))
-    .map(([key]) => key);
+  const selectedCategoryKeys = selectedDecorCategories;
   const hasCategoryNotesOrUploads =
     Object.values(categoryNotes).some((value) => value?.trim()) ||
     Object.values(categoryUploads).some((urls) => urls.length > 0) ||
@@ -370,6 +418,7 @@ export default function EventRequestForm({
   );
 
   useEffect(() => {
+    setSelectedDecorCategories([]);
     setSelectedPreviewImages({});
     setCategoryNotes({});
     setCategoryUploads({});
@@ -388,10 +437,11 @@ export default function EventRequestForm({
       .map((value) => value.toLowerCase());
 
     const selectedImages = guidedPreviewOptions
-      .map((category) =>
-        category.images.find((item) => item.id === selectedPreviewImages[category.key])
-      )
-      .filter(Boolean) as GalleryItem[];
+      .flatMap((category) =>
+        category.images.filter((item) =>
+          (selectedPreviewImages[category.key] ?? []).includes(item.id)
+        )
+      ) as GalleryItem[];
 
     const uploadedImages = guidedPreviewOptions
       .flatMap((category) =>
@@ -429,8 +479,8 @@ export default function EventRequestForm({
     const decorDirection = derivedServices.includes("Delivery and setup")
       ? "A guided room direction with styling selections, setup planning, and a cleaner path into consultation."
       : selectedImages.length
-        ? `Selected inspiration across ${selectedImages.length} decor categories to guide the room direction during consultation.`
-      : derivedServices.length
+        ? `Selected inspiration across ${selectedCategoryKeys.length} decor categories to guide the room direction during consultation.`
+        : derivedServices.length
         ? `${derivedServices.slice(0, 3).join(", ")}${derivedServices.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
         : "A focal-point-led room with one hero installation and polished guest-facing details.";
 
@@ -457,6 +507,7 @@ export default function EventRequestForm({
     guidedPreviewOptions,
     derivedServices,
     portfolioItems,
+    selectedCategoryKeys.length,
     selectedPreviewImages,
     categoryUploads,
   ]);
@@ -464,19 +515,23 @@ export default function EventRequestForm({
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
       .map((category) => {
-        const selected = category.images.find(
-          (item) => item.id === selectedPreviewImages[category.key]
+        const selected = category.images.filter(
+          (item) => (selectedPreviewImages[category.key] ?? []).includes(item.id)
         );
         const uploads = categoryUploads[category.key] ?? [];
         const note = categoryNotes[category.key]?.trim();
 
-        if (!selected && uploads.length === 0 && !note) {
+        if (!selected.length && uploads.length === 0 && !note) {
           return "";
         }
 
         const pieces = [];
-        if (selected) {
-          pieces.push(`selected image: ${selected.title}`);
+        if (selected.length) {
+          pieces.push(
+            `selected image${selected.length === 1 ? "" : "s"}: ${selected
+              .map((item) => item.title)
+              .join(", ")}`
+          );
         }
         if (uploads.length) {
           pieces.push(`uploaded inspiration: ${uploads.length}`);
@@ -492,8 +547,46 @@ export default function EventRequestForm({
     return lines.length ? `Visual direction picks:\n${lines.map((line) => `- ${line}`).join("\n")}` : "";
   }, [categoryNotes, categoryUploads, guidedPreviewOptions, selectedPreviewImages]);
 
+  const decorSelections = useMemo(
+    () =>
+      guidedPreviewOptions.map((category) => ({
+        categoryKey: category.key,
+        categoryTitle: category.title,
+        selectedGalleryImageIds: selectedPreviewImages[category.key] ?? [],
+        selectedGalleryImages: category.images
+          .filter((item) => (selectedPreviewImages[category.key] ?? []).includes(item.id))
+          .map((item) => ({
+            id: item.id,
+            title: item.title,
+            image_url: item.image_url,
+            category: item.category,
+          })),
+        uploadedImageUrls: categoryUploads[category.key] ?? [],
+        notes: categoryNotes[category.key]?.trim() || null,
+      })),
+    [categoryNotes, categoryUploads, guidedPreviewOptions, selectedPreviewImages]
+  );
+
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function toggleDecorCategory(categoryKey: string) {
+    setSelectedDecorCategories((current) => {
+      const exists = current.includes(categoryKey);
+      const next = exists
+        ? current.filter((item) => item !== categoryKey)
+        : [...current, categoryKey];
+
+      if (!exists) {
+        const nextIndex = next.indexOf(categoryKey);
+        if (nextIndex >= 0) {
+          setActiveCategoryIndex(nextIndex);
+        }
+      }
+
+      return next;
+    });
   }
 
   async function uploadInspirationFiles(files: File[]) {
@@ -591,6 +684,8 @@ export default function EventRequestForm({
         visionBoardUrls: prev.visionBoardUrls.filter((url) => !uploads.includes(url)),
       }));
     }
+
+    setSelectedDecorCategories((current) => current.filter((item) => item !== categoryKey));
   }
 
   function nextStep() {
@@ -632,6 +727,8 @@ export default function EventRequestForm({
         eventType: effectiveEventType,
         services: derivedServices,
         guestCount: form.guestCount ? Number(form.guestCount) : null,
+        selectedDecorCategories,
+        decorSelections,
         additionalInfo: buildReviewNotes(form, visualSelectionNotes),
       }),
     });
@@ -656,6 +753,10 @@ export default function EventRequestForm({
 
     setSuccess("Your consultation request has been received.");
     setForm(initialState);
+    setSelectedDecorCategories([]);
+    setSelectedPreviewImages({});
+    setCategoryNotes({});
+    setCategoryUploads({});
     setStep(0);
     setLoading(false);
   }
@@ -914,6 +1015,37 @@ export default function EventRequestForm({
                   <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
                 </div>
 
+                <div className="field">
+                  <label className="label">Choose the decor elements you want help visualizing</label>
+                  <div className="guided-preview-category-picker">
+                    {(eventTypeCategoryMap[form.eventType] ?? eventTypeCategoryMap.Other).map((categoryKey) => {
+                      const category = guidedPreviewCategories[categoryKey];
+                      if (!category) {
+                        return null;
+                      }
+
+                      const isSelected = selectedDecorCategories.includes(category.key);
+                      const hasContent =
+                        (selectedPreviewImages[category.key] ?? []).length > 0 ||
+                        (categoryUploads[category.key] ?? []).length > 0 ||
+                        Boolean(categoryNotes[category.key]?.trim());
+
+                      return (
+                        <button
+                          key={category.key}
+                          type="button"
+                          className={`guided-preview-category-chip ${isSelected ? "selected" : ""}`}
+                          onClick={() => toggleDecorCategory(category.key)}
+                          aria-pressed={isSelected}
+                        >
+                          <strong>{category.title}</strong>
+                          <span>{hasContent ? "Configured" : "Select"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {guidedPreviewOptions.length ? (
                   <div className="guided-preview-builder">
                     <div className="guided-preview-tabs" role="tablist" aria-label="Decor categories">
@@ -927,7 +1059,7 @@ export default function EventRequestForm({
                           onClick={() => setActiveCategoryIndex(index)}
                         >
                           <span>{category.title}</span>
-                          {selectedPreviewImages[category.key] || (categoryUploads[category.key] ?? []).length || categoryNotes[category.key]?.trim() ? (
+                          {(selectedPreviewImages[category.key] ?? []).length || (categoryUploads[category.key] ?? []).length || categoryNotes[category.key]?.trim() ? (
                             <small>Added</small>
                           ) : null}
                         </button>
@@ -971,14 +1103,20 @@ export default function EventRequestForm({
                               <button
                                 key={item.id}
                                 type="button"
-                                className={`guided-preview-option ${selectedPreviewImages[activeGuidedCategory.key] === item.id ? "selected" : ""}`}
-                                onClick={() =>
-                                  setSelectedPreviewImages((current) => ({
-                                    ...current,
-                                    [activeGuidedCategory.key]:
-                                      current[activeGuidedCategory.key] === item.id ? "" : item.id,
-                                  }))
-                                }
+                                className={`guided-preview-option ${(selectedPreviewImages[activeGuidedCategory.key] ?? []).includes(item.id) ? "selected" : ""}`}
+                                onClick={() => {
+                                  setSelectedPreviewImages((current) => {
+                                    const currentIds = current[activeGuidedCategory.key] ?? [];
+                                    const nextIds = currentIds.includes(item.id)
+                                      ? currentIds.filter((id) => id !== item.id)
+                                      : [...currentIds, item.id];
+
+                                    return {
+                                      ...current,
+                                      [activeGuidedCategory.key]: nextIds,
+                                    };
+                                  });
+                                }}
                               >
                                 <img src={item.image_url} alt={item.title} loading="lazy" />
                                 <span>{item.title}</span>
@@ -1018,7 +1156,11 @@ export default function EventRequestForm({
                       </div>
                     ) : null}
                   </div>
-                ) : null}
+                ) : (
+                  <div className="guided-preview-empty">
+                    <p className="muted">Choose decor elements to start building your event preview.</p>
+                  </div>
+                )}
 
                 <div className="field">
                   <label className="checkline">
@@ -1204,31 +1346,42 @@ export default function EventRequestForm({
                 )}
               </div>
             </div>
-            {guidedPreviewOptions.length ? (
-              <div className="booking-preview-grouped">
-                <strong>Selected inspiration by category</strong>
-                <div className="booking-preview-selection-list">
-                  {guidedPreviewOptions.map((category) => {
-                    const selected = category.images.find(
-                      (item) => item.id === selectedPreviewImages[category.key]
-                    );
-                    const uploads = categoryUploads[category.key] ?? [];
-                    const note = categoryNotes[category.key];
+                {guidedPreviewOptions.length ? (
+                  <div className="booking-preview-grouped">
+                    <strong>Selected inspiration by category</strong>
+                    <div className="booking-preview-selection-list">
+                      {guidedPreviewOptions.map((category) => {
+                        const selected = category.images.filter((item) =>
+                          (selectedPreviewImages[category.key] ?? []).includes(item.id)
+                        );
+                        const uploads = categoryUploads[category.key] ?? [];
+                        const note = categoryNotes[category.key];
 
-                    return (
-                      <div key={category.key} className="booking-preview-selection">
-                        <span>{category.title}</span>
-                        {selected ? (
+                        return (
+                          <div key={category.key} className="booking-preview-selection">
+                            <span>{category.title}</span>
+                        {selected.length ? (
                           <div className="booking-preview-selection-card">
-                            <img src={selected.image_url} alt={selected.title} loading="lazy" />
-                            <small>{selected.title}</small>
+                            <div className="booking-preview-selection-images">
+                              {selected.map((item) => (
+                                <img key={item.id} src={item.image_url} alt={item.title} loading="lazy" />
+                              ))}
+                            </div>
+                            <small>{selected.map((item) => item.title).join(" • ")}</small>
+                            {note ? <small>{note}</small> : null}
                             <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
                               Remove
                             </button>
                           </div>
                         ) : uploads.length ? (
                           <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
+                            <div className="booking-preview-selection-images">
+                              {uploads.map((url) => (
+                                <img key={url} src={url} alt={`${category.title} upload`} loading="lazy" />
+                              ))}
+                            </div>
                             <small>{uploads.length} uploaded inspiration image{uploads.length === 1 ? "" : "s"}</small>
+                            {note ? <small>{note}</small> : null}
                             <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
                               Clear
                             </button>
