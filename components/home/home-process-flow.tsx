@@ -6,6 +6,15 @@ type ProcessStep = {
   title: string;
   text: string;
   imageUrl?: string | null;
+  imageLabel?: string | null;
+};
+
+const defaultImageLabels: Record<string, string> = {
+  "Submit Request": "Start Here",
+  Consultation: "Planning",
+  "Quote + Contract": "Approval",
+  "Secure Your Date": "Reserved",
+  "Event Day": "Execution",
 };
 
 export default function HomeProcessFlow({
@@ -21,7 +30,7 @@ export default function HomeProcessFlow({
     <section className="simple-process-shell">
       <div className="simple-process-head">
         <p className="eyebrow">How it works</p>
-        <h2>From inquiry to event day, the process stays clear.</h2>
+        <h2>A simple, guided process from inquiry to event day.</h2>
         <p className="muted">A simple, guided process from inquiry to execution.</p>
       </div>
 
@@ -71,19 +80,25 @@ export default function HomeProcessFlow({
         aria-labelledby={`process-tab-${activeIndex}`}
         className="simple-process-panel"
       >
-        <div className="simple-process-panel-copy">
+        <div key={activeIndex} className="simple-process-panel-copy">
           <span className="simple-process-panel-kicker">
             Step {String(activeIndex + 1).padStart(2, "0")}
           </span>
           <h3>{activeStep.title}</h3>
           <p>{activeStep.text}</p>
+          <span className="simple-process-panel-note">Every step is personalized to your event priorities.</span>
         </div>
 
-        {activeStep.imageUrl ? (
-          <div className="simple-process-panel-media">
+        <div key={`media-${activeIndex}`} className="simple-process-panel-media">
+          {activeStep.imageUrl ? (
             <img src={activeStep.imageUrl} alt={activeStep.title} />
-          </div>
-        ) : null}
+          ) : (
+            <div className="simple-process-panel-media-placeholder" aria-hidden="true" />
+          )}
+          <span className="simple-process-panel-media-label">
+            {activeStep.imageLabel ?? defaultImageLabels[activeStep.title] ?? "Event Flow"}
+          </span>
+        </div>
       </div>
     </section>
   );
