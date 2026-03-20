@@ -596,6 +596,12 @@ export default function EventRequestForm({
       })),
     [portfolioItems]
   );
+  const mainEventExperienceCards = experienceCards.filter((option) =>
+    ["wedding", "traditional"].includes(option.key)
+  );
+  const otherEventExperienceCards = experienceCards.filter((option) =>
+    ["celebrations", "corporate", "other"].includes(option.key)
+  );
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingBasics = !form.firstName || !form.lastName || !form.email || !form.phone || !form.eventDate;
@@ -1079,40 +1085,86 @@ export default function EventRequestForm({
                   </p>
                 </div>
 
-                <div className="event-experience-grid">
-                  {experienceCards.map((option) => {
-                    const isSelected = selectedEventExperience === option.key;
+                <div className="event-experience-sections">
+                  <div className="event-experience-section">
+                    <p className="event-experience-section-label">Main Events</p>
+                    <div className="event-experience-grid">
+                      {mainEventExperienceCards.map((option) => {
+                        const isSelected = selectedEventExperience === option.key;
 
-                    return (
-                      <button
-                        key={option.key}
-                        type="button"
-                        className={`event-experience-card ${isSelected ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedEventExperience(option.key);
+                        return (
+                          <button
+                            key={option.key}
+                            type="button"
+                            className={`event-experience-card ${isSelected ? "selected" : ""}`}
+                            onClick={() => {
+                              setSelectedEventExperience(option.key);
 
-                          if (option.key === "celebrations") {
-                            updateField("eventType", "");
-                            updateField("customEventType", "");
-                            return;
-                          }
+                              if (option.key === "celebrations") {
+                                updateField("eventType", "");
+                                updateField("customEventType", "");
+                                return;
+                              }
 
-                          updateField("eventType", option.eventType ?? "");
-                          if (option.key !== "other") {
-                            updateField("customEventType", "");
-                          }
-                        }}
-                        aria-pressed={isSelected}
-                      >
-                        {option.imageUrl ? (
-                          <img src={option.imageUrl} alt={option.title} loading="lazy" />
-                        ) : null}
-                        <span className="event-experience-overlay" />
-                        <span className="event-experience-accent" />
-                        <strong>{option.title}</strong>
-                      </button>
-                    );
-                  })}
+                              updateField("eventType", option.eventType ?? "");
+                              if (option.key !== "other") {
+                                updateField("customEventType", "");
+                              }
+                            }}
+                            aria-pressed={isSelected}
+                          >
+                            {option.imageUrl ? (
+                              <img src={option.imageUrl} alt={option.title} loading="lazy" />
+                            ) : null}
+                            <span className="event-experience-overlay" />
+                            <span className="event-experience-accent" />
+                            {isSelected ? <span className="event-experience-badge">Selected</span> : null}
+                            <strong>{option.title}</strong>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="event-experience-section">
+                    <p className="event-experience-section-label">Other Events</p>
+                    <div className="event-experience-grid">
+                      {otherEventExperienceCards.map((option) => {
+                        const isSelected = selectedEventExperience === option.key;
+
+                        return (
+                          <button
+                            key={option.key}
+                            type="button"
+                            className={`event-experience-card ${isSelected ? "selected" : ""}`}
+                            onClick={() => {
+                              setSelectedEventExperience(option.key);
+
+                              if (option.key === "celebrations") {
+                                updateField("eventType", "");
+                                updateField("customEventType", "");
+                                return;
+                              }
+
+                              updateField("eventType", option.eventType ?? "");
+                              if (option.key !== "other") {
+                                updateField("customEventType", "");
+                              }
+                            }}
+                            aria-pressed={isSelected}
+                          >
+                            {option.imageUrl ? (
+                              <img src={option.imageUrl} alt={option.title} loading="lazy" />
+                            ) : null}
+                            <span className="event-experience-overlay" />
+                            <span className="event-experience-accent" />
+                            {isSelected ? <span className="event-experience-badge">Selected</span> : null}
+                            <strong>{option.title}</strong>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 {selectedEventExperience === "celebrations" ? (
