@@ -76,6 +76,9 @@ export default async function InquiryDetailPage({
     : { count: 0 };
 
   const otherEventsOnDate = Math.max((sameDayCount ?? 0) - 1, 0);
+  const selectedDecorCategories = Array.isArray(inquiry.selected_decor_categories)
+    ? (inquiry.selected_decor_categories as string[])
+    : [];
   const decorSelections = Array.isArray(inquiry.decor_selections)
     ? (inquiry.decor_selections as Array<{
         categoryKey: string;
@@ -196,6 +199,16 @@ export default async function InquiryDetailPage({
         <div className="card">
           <h3>Decor Scope</h3>
           <p><strong>Colors / Theme:</strong> {inquiry.colors_theme ?? "—"}</p>
+          <p><strong>Selected Decor Elements:</strong></p>
+          <div className="summary-pills">
+            {selectedDecorCategories.length ? (
+              selectedDecorCategories.map((category) => (
+                <span key={category} className="summary-chip">{category.replace(/_/g, " ")}</span>
+              ))
+            ) : (
+              <p className="muted">No decor elements selected yet.</p>
+            )}
+          </div>
           <div className="summary-pills">
             {inquiry.services?.length
               ? inquiry.services.map((service: string) => (
@@ -216,33 +229,41 @@ export default async function InquiryDetailPage({
         </div>
 
         <div className="card">
-          <h3>Notes from Client</h3>
-          <p><strong>Inspiration Notes:</strong></p>
-          <p>{inquiry.inspiration_notes ?? "—"}</p>
-          <p><strong>Vision Board:</strong></p>
-          {inquiry.vision_board_urls?.length ? (
-            <div className="vision-board-grid vision-board-grid--admin">
-              {inquiry.vision_board_urls.map((url: string) => (
-                <a
-                  key={url}
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="vision-board-item vision-board-item--admin"
-                >
-                  <img src={url} alt="Client inspiration upload" />
-                </a>
-              ))}
+          <h3>Client Vision Summary</h3>
+          <div className="admin-vision-summary">
+            <div className="admin-vision-block">
+              <strong>Inspiration Notes</strong>
+              <p>{inquiry.inspiration_notes ?? "—"}</p>
             </div>
-          ) : (
-            <p>—</p>
-          )}
-          <p><strong>Additional Info:</strong></p>
-          <p>{inquiry.additional_info ?? "—"}</p>
+            <div className="admin-vision-block">
+              <strong>Additional Info</strong>
+              <p>{inquiry.additional_info ?? "—"}</p>
+            </div>
+            <div className="admin-vision-block">
+              <strong>All Uploaded Inspiration</strong>
+              {inquiry.vision_board_urls?.length ? (
+                <div className="vision-board-grid vision-board-grid--admin">
+                  {inquiry.vision_board_urls.map((url: string) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="vision-board-item vision-board-item--admin"
+                    >
+                      <img src={url} alt="Client inspiration upload" />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p>—</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="card">
-          <h3>Visual Request Summary</h3>
+          <h3>Decor Selection Review</h3>
           {decorSelections.length ? (
             <div className="admin-decor-selection-list">
               {decorSelections.map((selection) => {
@@ -280,7 +301,12 @@ export default async function InquiryDetailPage({
                       </div>
                     ) : null}
 
-                    {selection.notes ? <p className="muted">{selection.notes}</p> : null}
+                    {selection.notes ? (
+                      <div className="admin-vision-block admin-vision-block--note">
+                        <strong>Client note</strong>
+                        <p>{selection.notes}</p>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
