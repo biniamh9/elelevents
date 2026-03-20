@@ -5,31 +5,47 @@ import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
 
-const eventTypeOptions = [
-  "Wedding",
-  "Traditional (Melsi)",
-  "Engagement",
+const celebrationEventOptions = [
   "Birthday",
   "Baby Shower",
-  "Bridal Shower",
-  "Graduation",
-  "Corporate Event",
   "Anniversary",
-  "Other",
+  "Bridal Shower",
+  "Engagement",
+  "Graduation",
 ];
 
-const eventTypeIcons: Record<string, string> = {
-  Wedding: "W",
-  "Traditional (Melsi)": "M",
-  Engagement: "E",
-  Birthday: "B",
-  "Baby Shower": "BS",
-  "Bridal Shower": "BR",
-  Graduation: "G",
-  "Corporate Event": "C",
-  Anniversary: "A",
-  Other: "O",
-};
+const primaryEventExperienceOptions = [
+  {
+    key: "wedding",
+    title: "Wedding",
+    eventType: "Wedding",
+    imageKeywords: ["wedding", "reception", "head table"],
+  },
+  {
+    key: "traditional",
+    title: "Traditional (Melsi)",
+    eventType: "Traditional (Melsi)",
+    imageKeywords: ["melsi", "traditional"],
+  },
+  {
+    key: "celebrations",
+    title: "Celebrations",
+    eventType: null,
+    imageKeywords: ["birthday", "baby shower", "anniversary", "bridal shower", "engagement"],
+  },
+  {
+    key: "corporate",
+    title: "Corporate Events",
+    eventType: "Corporate Event",
+    imageKeywords: ["corporate", "conference", "brand"],
+  },
+  {
+    key: "other",
+    title: "Other",
+    eventType: "Other",
+    imageKeywords: [],
+  },
+] as const;
 
 const venueStatusOptions = ["Booked", "Still looking", "Home", "Church", "Hall", "Hotel / ballroom"];
 const consultationOptions = ["Phone call", "Video meeting", "In-person meeting", "Text or email first"];
@@ -241,6 +257,43 @@ function normalizeSearchText(value: string | null | undefined) {
   return (value ?? "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function getExperienceCardImage(
+  cardKeywords: string[],
+  portfolioItems: GalleryItem[],
+  fallbackIndex: number
+) {
+  const match = portfolioItems.find((item) => {
+    const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
+    return cardKeywords.some((keyword) => haystack.includes(normalizeSearchText(keyword)));
+  });
+
+  return match?.image_url ?? portfolioItems[fallbackIndex]?.image_url ?? portfolioItems[0]?.image_url ?? "";
+}
+
+function deriveEventExperience(eventType: string) {
+  if (eventType === "Wedding") {
+    return "wedding";
+  }
+
+  if (eventType === "Traditional (Melsi)") {
+    return "traditional";
+  }
+
+  if (eventType === "Corporate Event") {
+    return "corporate";
+  }
+
+  if (eventType === "Other") {
+    return "other";
+  }
+
+  if (celebrationEventOptions.includes(eventType)) {
+    return "celebrations";
+  }
+
+  return "";
+}
+
 function getGuidedPreviewOptions(
   eventType: string,
   selectedCategoryKeys: string[],
@@ -399,6 +452,7 @@ export default function EventRequestForm({
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
+  const [selectedEventExperience, setSelectedEventExperience] = useState("");
   const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -412,6 +466,14 @@ export default function EventRequestForm({
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
+  const experienceCards = useMemo(
+    () =>
+      primaryEventExperienceOptions.map((option, index) => ({
+        ...option,
+        imageUrl: getExperienceCardImage([...option.imageKeywords], portfolioItems, index),
+      })),
+    [portfolioItems]
+  );
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingBasics = !form.firstName || !form.lastName || !form.email || !form.phone || !form.eventDate;
@@ -444,6 +506,10 @@ export default function EventRequestForm({
     setCategoryUploads({});
     setExpandedCategoryImages({});
     setActiveCategoryIndex(0);
+  }, [form.eventType]);
+
+  useEffect(() => {
+    setSelectedEventExperience(deriveEventExperience(form.eventType));
   }, [form.eventType]);
 
   useEffect(() => {
@@ -839,29 +905,64 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 1</p>
                   <h3>Select the event type.</h3>
+                  <p className="muted">
+                    Choose the kind of event experience you are planning first. We will tailor the next steps around it.
+                  </p>
                 </div>
 
-                <div className="visual-choice-grid visual-choice-grid--event-types">
-                  {eventTypeOptions.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      className={`choice-card choice-card--event-type ${form.eventType === option ? "selected" : ""}`}
-                      onClick={() => {
-                        updateField("eventType", option);
-                        if (option !== "Other") {
-                          updateField("customEventType", "");
-                        }
-                      }}
-                      aria-pressed={form.eventType === option}
-                    >
-                      <span className="choice-card-icon" aria-hidden="true">
-                        {eventTypeIcons[option] ?? option.charAt(0)}
-                      </span>
-                      <strong>{option}</strong>
-                    </button>
-                  ))}
+                <div className="event-experience-grid">
+                  {experienceCards.map((option) => {
+                    const isSelected = selectedEventExperience === option.key;
+
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        className={`event-experience-card ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                          setSelectedEventExperience(option.key);
+
+                          if (option.key === "celebrations") {
+                            updateField("eventType", "");
+                            updateField("customEventType", "");
+                            return;
+                          }
+
+                          updateField("eventType", option.eventType ?? "");
+                          if (option.key !== "other") {
+                            updateField("customEventType", "");
+                          }
+                        }}
+                        aria-pressed={isSelected}
+                      >
+                        {option.imageUrl ? (
+                          <img src={option.imageUrl} alt={option.title} loading="lazy" />
+                        ) : null}
+                        <span className="event-experience-overlay" />
+                        <span className="event-experience-accent" />
+                        <strong>{option.title}</strong>
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {selectedEventExperience === "celebrations" ? (
+                  <div className="field">
+                    <label className="label">Choose the celebration type</label>
+                    <div className="option-pills">
+                      {celebrationEventOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`pill ${form.eventType === option ? "selected" : ""}`}
+                          onClick={() => updateField("eventType", option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 {form.eventType === "Other" ? (
                   <div className="field">

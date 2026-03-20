@@ -2309,6 +2309,86 @@ th { background: var(--surface-soft); }
 .visual-choice-grid--event-types {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+.event-experience-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.event-experience-card {
+  position: relative;
+  min-height: 180px;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(28, 21, 16, 0.14), rgba(28, 21, 16, 0.42)),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.2), transparent 36%),
+    linear-gradient(160deg, #d8c2b0, #a78468);
+  display: block;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 18px 36px rgba(48, 24, 11, 0.08);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    filter 220ms ease;
+}
+.event-experience-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 320ms ease;
+}
+.event-experience-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: rgba(var(--accent-rgb), 0.42);
+  box-shadow: 0 24px 44px rgba(48, 24, 11, 0.14);
+}
+.event-experience-card:hover img {
+  transform: scale(1.03);
+}
+.event-experience-card.selected {
+  border-color: rgba(var(--accent-rgb), 0.7);
+  box-shadow: 0 28px 52px rgba(93, 39, 4, 0.18);
+}
+.event-experience-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(24, 18, 14, 0.08) 0%, rgba(24, 18, 14, 0.22) 36%, rgba(24, 18, 14, 0.72) 100%),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.16), transparent 26%);
+  transition: background 220ms ease;
+}
+.event-experience-card:hover .event-experience-overlay,
+.event-experience-card.selected .event-experience-overlay {
+  background:
+    linear-gradient(180deg, rgba(24, 18, 14, 0.05) 0%, rgba(24, 18, 14, 0.22) 34%, rgba(24, 18, 14, 0.82) 100%),
+    radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.22), transparent 26%);
+}
+.event-experience-accent {
+  position: absolute;
+  inset: auto auto 24px 24px;
+  width: 42px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 236, 215, 0.88);
+  box-shadow: 0 8px 20px rgba(255, 224, 194, 0.24);
+}
+.event-experience-card strong {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2;
+  color: #fffaf5;
+  font-size: 1.55rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-shadow: 0 8px 22px rgba(12, 8, 6, 0.38);
+}
 .choice-card {
   display: grid;
   gap: 10px;
@@ -5143,11 +5223,19 @@ th { background: var(--surface-soft); }
 .testimonial-card--1, .testimonial-card--2, .testimonial-card--3 { transform: none; }
 }
 @media (max-width: 640px) {
+  .event-experience-grid,
   .guided-preview-accordion,
   .visual-choice-grid--event-types,
   .guided-preview-options,
   .guided-preview-tabs {
     grid-template-columns: 1fr;
+  }
+  .event-experience-card {
+    min-height: 180px;
+    height: 180px;
+  }
+  .event-experience-card strong {
+    font-size: 1.38rem;
   }
   .guided-preview-accordion-item.expanded {
     grid-column: span 1;
