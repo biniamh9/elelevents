@@ -3,6 +3,7 @@ import { inquirySchema } from "@/lib/validations/inquiry";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { estimateEventPrice } from "@/lib/pricing";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
+import { canSendConsultationEmail, sendInquiryConfirmationEmail } from "@/lib/consultation-email";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY
@@ -124,6 +125,26 @@ export async function POST(request: Request) {
         }
       } catch (emailError) {
         console.error("Email notification failed:", emailError);
+      }
+    }
+
+    if (canSendConsultationEmail()) {
+      try {
+        await sendInquiryConfirmationEmail({
+          clientName: `${data.firstName} ${data.lastName}`,
+          clientEmail: data.email,
+          eventType: data.eventType,
+          eventDate: data.eventDate || null,
+        });
+
+        await supabaseAdmin
+          .from("event_inquiries")
+          .update({
+            consultation_request_confirmation_sent_at: new Date().toISOString(),
+          })
+          .eq("id", inserted.id);
+      } catch (emailError) {
+        console.error("Inquiry confirmation email failed:", emailError);
       }
     }
 

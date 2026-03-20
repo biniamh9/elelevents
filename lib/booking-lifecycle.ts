@@ -63,6 +63,8 @@ export function deriveBookingStage(input: {
   }
 
   if (
+    input.consultationStatus === "approved" ||
+    input.consultationStatus === "under_review" ||
     input.consultationStatus === "scheduled" ||
     input.consultationStatus === "completed" ||
     input.consultationStatus === "reschedule_needed"

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { BOOKING_STAGES } from "@/lib/booking-lifecycle";
+import { canSendConsultationEmail, sendConsultationScheduledEmails } from "@/lib/consultation-email";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -15,6 +16,8 @@ const allowedStatuses = [
 const allowedConsultationStatuses = [
   "not_scheduled",
   "requested",
+  "under_review",
+  "approved",
   "scheduled",
   "completed",
   "reschedule_needed",
@@ -43,7 +46,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at")
+      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature")
       .eq("id", id)
       .single();
 
@@ -86,7 +89,7 @@ export async function PATCH(
 
       if (
         !body.booking_stage &&
-        ["scheduled", "completed", "reschedule_needed"].includes(body.consultation_status) &&
+        ["approved", "scheduled", "completed", "reschedule_needed"].includes(body.consultation_status) &&
         (!existing.booking_stage || existing.booking_stage === "inquiry")
       ) {
         updates.booking_stage = "consultation_scheduled";
@@ -99,6 +102,18 @@ export async function PATCH(
 
     if (body.consultation_at === null || typeof body.consultation_at === "string") {
       updates.consultation_at = body.consultation_at;
+    }
+
+    if (body.consultation_location === null || typeof body.consultation_location === "string") {
+      updates.consultation_location = body.consultation_location ? String(body.consultation_location) : null;
+    }
+
+    if (body.consultation_video_link === null || typeof body.consultation_video_link === "string") {
+      updates.consultation_video_link = body.consultation_video_link ? String(body.consultation_video_link) : null;
+    }
+
+    if (body.consultation_admin_notes === null || typeof body.consultation_admin_notes === "string") {
+      updates.consultation_admin_notes = body.consultation_admin_notes ? String(body.consultation_admin_notes) : null;
     }
 
     if (body.follow_up_at === null || typeof body.follow_up_at === "string") {
@@ -204,6 +219,64 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const effectiveConsultationStatus = data.consultation_status;
+    const effectiveConsultationType = data.consultation_type;
+    const effectiveConsultationAt = data.consultation_at;
+    const effectiveConsultationLocation = data.consultation_location;
+    const effectiveConsultationVideoLink = data.consultation_video_link;
+    const scheduleSignature = [
+      effectiveConsultationStatus,
+      effectiveConsultationType,
+      effectiveConsultationAt,
+      effectiveConsultationLocation ?? "",
+      effectiveConsultationVideoLink ?? "",
+    ].join("|");
+
+    const shouldSendConsultationScheduleEmail =
+      canSendConsultationEmail() &&
+      ["approved", "scheduled"].includes(effectiveConsultationStatus ?? "") &&
+      Boolean(effectiveConsultationType) &&
+      Boolean(effectiveConsultationAt) &&
+      existing.consultation_schedule_email_signature !== scheduleSignature;
+
+    let consultationEmailMessage: string | null = null;
+
+    if (shouldSendConsultationScheduleEmail) {
+      if (effectiveConsultationType === "in_person" && !effectiveConsultationLocation) {
+        consultationEmailMessage =
+          "Consultation saved, but scheduling email was not sent because the in-person location is missing.";
+      } else if (data.email) {
+        try {
+          await sendConsultationScheduledEmails({
+            clientName: `${data.first_name} ${data.last_name}`.trim(),
+            clientEmail: data.email,
+            clientPhone: data.phone,
+            eventType: data.event_type ?? "Event consultation",
+            eventDate: data.event_date ?? null,
+            meetingAt: effectiveConsultationAt,
+            meetingType: effectiveConsultationType,
+            meetingLocation: effectiveConsultationLocation ?? null,
+            videoLink: effectiveConsultationVideoLink ?? null,
+          });
+
+          await supabaseAdmin
+            .from("event_inquiries")
+            .update({
+              consultation_schedule_email_sent_at: new Date().toISOString(),
+              consultation_admin_notification_sent_at: new Date().toISOString(),
+              consultation_schedule_email_signature: scheduleSignature,
+            })
+            .eq("id", id);
+
+          consultationEmailMessage = "Consultation details saved and scheduling emails sent.";
+        } catch (consultationEmailError) {
+          console.error("Consultation scheduling email failed:", consultationEmailError);
+          consultationEmailMessage =
+            "Consultation saved, but the scheduling email could not be sent.";
+        }
+      }
+    }
+
     await logActivity(supabaseAdmin, {
       entityType: "inquiry",
       entityId: data.id,
@@ -216,7 +289,10 @@ export async function PATCH(
         client_id: data.client_id,
         estimated_price: data.estimated_price,
         consultation_status: data.consultation_status,
+        consultation_type: data.consultation_type,
         consultation_at: data.consultation_at,
+        consultation_location: data.consultation_location,
+        consultation_video_link: data.consultation_video_link,
         follow_up_at: data.follow_up_at,
         quote_response_status: data.quote_response_status,
         booking_stage: data.booking_stage,
@@ -230,7 +306,7 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data, consultationEmailMessage });
   } catch (error) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

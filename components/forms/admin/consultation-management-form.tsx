@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 const consultationStatuses = [
   "not_scheduled",
   "requested",
+  "under_review",
+  "approved",
   "scheduled",
   "completed",
   "reschedule_needed",
@@ -38,6 +40,9 @@ export default function ConsultationManagementForm({
   initialConsultationStatus,
   initialConsultationType,
   initialConsultationAt,
+  initialConsultationLocation,
+  initialConsultationVideoLink,
+  initialConsultationAdminNotes,
   initialFollowUpAt,
   initialQuoteResponseStatus,
 }: {
@@ -45,6 +50,9 @@ export default function ConsultationManagementForm({
   initialConsultationStatus: string | null;
   initialConsultationType: string | null;
   initialConsultationAt: string | null;
+  initialConsultationLocation: string | null;
+  initialConsultationVideoLink: string | null;
+  initialConsultationAdminNotes: string | null;
   initialFollowUpAt: string | null;
   initialQuoteResponseStatus: string | null;
 }) {
@@ -57,6 +65,15 @@ export default function ConsultationManagementForm({
   const [consultationAt, setConsultationAt] = useState(
     toLocalInputValue(initialConsultationAt)
   );
+  const [consultationLocation, setConsultationLocation] = useState(
+    initialConsultationLocation || ""
+  );
+  const [consultationVideoLink, setConsultationVideoLink] = useState(
+    initialConsultationVideoLink || ""
+  );
+  const [consultationAdminNotes, setConsultationAdminNotes] = useState(
+    initialConsultationAdminNotes || ""
+  );
   const [followUpAt, setFollowUpAt] = useState(
     toLocalInputValue(initialFollowUpAt)
   );
@@ -67,11 +84,14 @@ export default function ConsultationManagementForm({
   const [saving, setSaving] = useState(false);
   const showConsultationType =
     consultationStatus === "requested" ||
+    consultationStatus === "under_review" ||
+    consultationStatus === "approved" ||
     consultationStatus === "scheduled" ||
     consultationStatus === "reschedule_needed" ||
     consultationStatus === "completed" ||
     consultationStatus === "no_show";
   const showConsultationAt =
+    consultationStatus === "approved" ||
     consultationStatus === "scheduled" ||
     consultationStatus === "reschedule_needed" ||
     consultationStatus === "completed" ||
@@ -88,6 +108,14 @@ export default function ConsultationManagementForm({
 
     if (!showConsultationAt) {
       setConsultationAt("");
+    }
+
+    if (consultationType !== "in_person") {
+      setConsultationLocation("");
+    }
+
+    if (consultationType !== "video_meeting") {
+      setConsultationVideoLink("");
     }
 
     if (!showFollowUpAt) {
@@ -118,6 +146,11 @@ export default function ConsultationManagementForm({
           showConsultationAt && consultationAt
             ? new Date(consultationAt).toISOString()
             : null,
+        consultation_location:
+          consultationType === "in_person" ? consultationLocation || null : null,
+        consultation_video_link:
+          consultationType === "video_meeting" ? consultationVideoLink || null : null,
+        consultation_admin_notes: consultationAdminNotes || null,
         follow_up_at:
           showFollowUpAt && followUpAt
             ? new Date(followUpAt).toISOString()
@@ -134,7 +167,7 @@ export default function ConsultationManagementForm({
       return;
     }
 
-    setMessage("Consultation details saved.");
+    setMessage(data.consultationEmailMessage || "Consultation details saved.");
   }
 
   return (
@@ -186,6 +219,30 @@ export default function ConsultationManagementForm({
           </div>
         ) : null}
 
+        {showConsultationType && consultationType === "in_person" ? (
+          <div className="field">
+            <label className="label">Meeting Location</label>
+            <input
+              className="input"
+              value={consultationLocation}
+              onChange={(e) => setConsultationLocation(e.target.value)}
+              placeholder="Address or meeting location"
+            />
+          </div>
+        ) : null}
+
+        {showConsultationType && consultationType === "video_meeting" ? (
+          <div className="field">
+            <label className="label">Video Link</label>
+            <input
+              className="input"
+              value={consultationVideoLink}
+              onChange={(e) => setConsultationVideoLink(e.target.value)}
+              placeholder="Optional now, can be sent later"
+            />
+          </div>
+        ) : null}
+
         {showFollowUpAt ? (
           <div className="field">
             <label className="label">Follow-Up Date & Time</label>
@@ -214,6 +271,16 @@ export default function ConsultationManagementForm({
             </select>
           </div>
         ) : null}
+      </div>
+
+      <div className="field" style={{ marginTop: "16px" }}>
+        <label className="label">Admin Notes</label>
+        <textarea
+          className="textarea"
+          value={consultationAdminNotes}
+          onChange={(e) => setConsultationAdminNotes(e.target.value)}
+          placeholder="Internal context for the meeting only."
+        />
       </div>
 
       <button type="button" className="btn secondary" onClick={handleSave} disabled={saving}>

@@ -254,6 +254,7 @@ export default async function InquiryDetailPage({
           <p><strong>Requested Consultation Day:</strong> {inquiry.consultation_request_date ?? "—"}</p>
           <p><strong>Requested Consultation Time:</strong> {inquiry.consultation_request_time ?? "—"}</p>
           <p><strong>Video Platform:</strong> {inquiry.consultation_video_platform ?? "—"}</p>
+          <p><strong>Consultation Request Email Sent:</strong> {inquiry.consultation_request_confirmation_sent_at ? new Date(inquiry.consultation_request_confirmation_sent_at).toLocaleString() : "Not yet"}</p>
           <p><strong>Referral Source:</strong> {inquiry.referral_source ?? "—"}</p>
         </div>
 
@@ -267,6 +268,10 @@ export default async function InquiryDetailPage({
           <p><strong>Indoor / Outdoor:</strong> {inquiry.indoor_outdoor ?? "—"}</p>
           <p><strong>Consultation Type:</strong> {inquiry.consultation_type ?? "—"}</p>
           <p><strong>Consultation At:</strong> {inquiry.consultation_at ? new Date(inquiry.consultation_at).toLocaleString() : "—"}</p>
+          <p><strong>Consultation Location:</strong> {inquiry.consultation_location ?? "—"}</p>
+          <p><strong>Video Link:</strong> {inquiry.consultation_video_link ?? "—"}</p>
+          <p><strong>Consultation Admin Notes:</strong> {inquiry.consultation_admin_notes ?? "—"}</p>
+          <p><strong>Meeting Email Sent:</strong> {inquiry.consultation_schedule_email_sent_at ? new Date(inquiry.consultation_schedule_email_sent_at).toLocaleString() : "Not yet"}</p>
           <p><strong>Follow-Up At:</strong> {inquiry.follow_up_at ? new Date(inquiry.follow_up_at).toLocaleString() : "—"}</p>
           <p><strong>Booking Status:</strong> {humanizeBookingStage(bookingStage)}</p>
           <p><strong>Floor Plan:</strong> {inquiry.floor_plan_received ? "Received" : "Pending"}</p>
@@ -369,6 +374,9 @@ export default async function InquiryDetailPage({
           initialConsultationStatus={inquiry.consultation_status ?? "not_scheduled"}
           initialConsultationType={inquiry.consultation_type ?? null}
           initialConsultationAt={inquiry.consultation_at ?? null}
+          initialConsultationLocation={inquiry.consultation_location ?? null}
+          initialConsultationVideoLink={inquiry.consultation_video_link ?? null}
+          initialConsultationAdminNotes={inquiry.consultation_admin_notes ?? null}
           initialFollowUpAt={inquiry.follow_up_at ?? null}
           initialQuoteResponseStatus={inquiry.quote_response_status ?? "not_sent"}
         />
