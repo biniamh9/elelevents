@@ -764,6 +764,25 @@ export default function EventRequestForm({
     selectedPreviewImages,
     categoryUploads,
   ]);
+  const previewSignature = useMemo(
+    () =>
+      JSON.stringify({
+        images: preview.images.map((item) => item.id),
+        eventType: effectiveEventType,
+        style: form.decorStyle,
+        palette: form.colorsTheme,
+        services: derivedServices,
+        vendors: form.requestedVendorCategories,
+      }),
+    [
+      preview.images,
+      effectiveEventType,
+      form.decorStyle,
+      form.colorsTheme,
+      derivedServices,
+      form.requestedVendorCategories,
+    ]
+  );
 
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
@@ -1045,6 +1064,10 @@ export default function EventRequestForm({
 
       <div className="form-wrap booking-layout">
         <div ref={formCardRef} className="card form-card booking-form-card">
+          <div className="booking-pane-head">
+            <span className="booking-pane-tag">Build Your Event</span>
+            <p className="muted">Choose the event details on the left and shape the visual direction step by step.</p>
+          </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
               <section className="booking-panel">
@@ -1766,15 +1789,19 @@ export default function EventRequestForm({
           </form>
         </div>
 
+        <div className="booking-flow-cue" aria-hidden="true">
+          <span>→</span>
+        </div>
+
         <aside className="card sidebar-box booking-summary">
           <span className="booking-live-pill">Live Preview</span>
-          <p className="eyebrow">Design direction preview</p>
-          <h3 style={{ marginTop: 0 }}>Inspiration based on your selections</h3>
+          <p className="eyebrow">Your selections are shaping this design</p>
+          <h3 style={{ marginTop: 0 }}>Live Preview</h3>
           <p className="muted">
             This preview helps you picture the direction. Final concepts are customized during your consultation.
           </p>
 
-          <div className="booking-preview-grid">
+          <div key={`preview-grid-${previewSignature}`} className="booking-preview-grid booking-preview-grid--animated">
             {preview.images.map((item) => (
               <div key={item.id} className="booking-preview-image">
                 <img src={item.image_url} alt={item.title} loading="lazy" />
@@ -1784,7 +1811,8 @@ export default function EventRequestForm({
           </div>
 
             <div className="summary-stack">
-            <div className="booking-preview-copy">
+            <div key={`preview-copy-${previewSignature}`} className="booking-preview-copy booking-preview-copy--highlight">
+              <small className="booking-preview-kicker">Based on your selection</small>
               <strong>Style snapshot</strong>
               <p className="muted">{preview.styleDescription}</p>
             </div>
