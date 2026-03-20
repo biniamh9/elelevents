@@ -392,6 +392,7 @@ export default function EventRequestForm({
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
 
@@ -424,6 +425,7 @@ export default function EventRequestForm({
     setSelectedPreviewImages({});
     setCategoryNotes({});
     setCategoryUploads({});
+    setExpandedCategoryImages({});
     setActiveCategoryIndex(0);
   }, [form.eventType]);
 
@@ -781,6 +783,7 @@ export default function EventRequestForm({
     setSelectedPreviewImages({});
     setCategoryNotes({});
     setCategoryUploads({});
+    setExpandedCategoryImages({});
     setStep(0);
     setLoading(false);
   }
@@ -1080,6 +1083,7 @@ export default function EventRequestForm({
                             className={`guided-preview-category-chip ${isSelected ? "selected" : ""}`}
                             onClick={() => {
                               if (!isSelected) {
+                                setActiveCategoryIndex(selectedDecorCategories.length);
                                 toggleDecorCategory(category.key);
                                 return;
                               }
@@ -1114,8 +1118,12 @@ export default function EventRequestForm({
                               </div>
 
                               {guidedCategory.images.length ? (
+                                <>
                                 <div className="guided-preview-options">
-                                  {guidedCategory.images.map((item) => (
+                                  {(expandedCategoryImages[guidedCategory.key]
+                                    ? guidedCategory.images
+                                    : guidedCategory.images.slice(0, 3)
+                                  ).map((item) => (
                                     <button
                                       key={item.id}
                                       type="button"
@@ -1139,6 +1147,21 @@ export default function EventRequestForm({
                                     </button>
                                   ))}
                                 </div>
+                                {guidedCategory.images.length > 3 ? (
+                                  <button
+                                    type="button"
+                                    className="guided-preview-more"
+                                    onClick={() =>
+                                      setExpandedCategoryImages((current) => ({
+                                        ...current,
+                                        [guidedCategory.key]: !current[guidedCategory.key],
+                                      }))
+                                    }
+                                  >
+                                    {expandedCategoryImages[guidedCategory.key] ? "Show fewer images" : `View ${guidedCategory.images.length - 3} more`}
+                                  </button>
+                                ) : null}
+                                </>
                               ) : (
                                 <div className="guided-preview-empty">
                                   <p className="muted">{guidedCategory.emptyState}</p>
