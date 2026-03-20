@@ -381,6 +381,7 @@ export default function EventRequestForm({
 }) {
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
+  const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -983,37 +984,51 @@ export default function EventRequestForm({
                 </div>
 
                 <div className="field">
-                  <label className="label">Decor Style</label>
-                  <div className="option-pills">
-                    {decorStyleOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.decorStyle === option ? "selected" : ""}`}
-                        onClick={() => updateField("decorStyle", option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
+                  <button
+                    type="button"
+                    className="btn secondary"
+                    onClick={() => setShowOptionalStyleFields((current) => !current)}
+                  >
+                    {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
+                  </button>
                 </div>
 
-                <div className="field">
-                  <label className="label">Color Palette</label>
-                  <div className="option-pills">
-                    {paletteSuggestions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
-                        onClick={() => updateField("colorsTheme", option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
+                {showOptionalStyleFields ? (
+                  <div className="scope-card">
+                    <div className="field">
+                      <label className="label">Decor Style</label>
+                      <div className="option-pills">
+                        {decorStyleOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`pill ${form.decorStyle === option ? "selected" : ""}`}
+                            onClick={() => updateField("decorStyle", option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="field">
+                      <label className="label">Color Palette</label>
+                      <div className="option-pills">
+                        {paletteSuggestions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
+                            onClick={() => updateField("colorsTheme", option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                      <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
+                    </div>
                   </div>
-                  <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
-                </div>
+                ) : null}
 
                 <div className="field">
                   <label className="label">Choose the decor elements you want help visualizing</label>
