@@ -11,7 +11,7 @@ export default function GalleryStrip({
   eyebrow = "Recent Work",
   title,
   items,
-  showCaption = false,
+  showCaption = true,
 }: {
   eyebrow?: string;
   title: string;
@@ -29,10 +29,12 @@ export default function GalleryStrip({
           <Link key={item.id} href="/gallery" className="gallery-strip-item">
             <img src={item.imageUrl} alt={item.title} />
             {showCaption ? (
-              <div className="gallery-strip-caption">
-                <span>{item.label || "Event detail"}</span>
-                <strong>{item.title}</strong>
-              </div>
+              <>
+                <span className="gallery-strip-overlay" />
+                <div className="gallery-strip-label">
+                  <span>{item.label || "Event detail"}</span>
+                </div>
+              </>
             ) : null}
           </Link>
         ))}

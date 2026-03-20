@@ -54,9 +54,8 @@ export default async function HomePage() {
 
       <section className="container section">
         <GalleryStrip
-          eyebrow="Recent Work"
+          eyebrow="Portfolio"
           title="Designed to be beautiful the moment guests walk in."
-          showCaption={false}
           items={galleryPreview.slice(0, 6).map((item) => ({
             id: item.id,
             imageUrl: item.image_url,
