@@ -65,6 +65,9 @@ export async function POST(request: Request) {
         requested_vendor_categories: data.requestedVendorCategories ?? [],
         vendor_request_notes: data.vendorRequestNotes || null,
         preferred_contact_method: data.preferredContactMethod || null,
+        consultation_request_date: data.consultationPreferenceDate || null,
+        consultation_request_time: data.consultationPreferenceTime || null,
+        consultation_video_platform: data.consultationVideoPlatform || null,
         referral_source: data.referralSource || "website_quote_request",
         needs_delivery_setup: data.needsDeliverySetup ?? false,
         estimated_price: estimatedPrice,
@@ -88,6 +91,8 @@ export async function POST(request: Request) {
           estimated_price: inserted.estimated_price,
           requested_vendor_categories: inserted.requested_vendor_categories,
           selected_decor_categories: inserted.selected_decor_categories,
+          consultation_request_date: inserted.consultation_request_date,
+          consultation_request_time: inserted.consultation_request_time,
         },
     });
 

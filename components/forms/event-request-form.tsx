@@ -33,6 +33,7 @@ const eventTypeIcons: Record<string, string> = {
 
 const venueStatusOptions = ["Booked", "Still looking", "Home", "Church", "Hall", "Hotel / ballroom"];
 const consultationOptions = ["Phone call", "Video meeting", "In-person meeting", "Text or email first"];
+const videoPlatformOptions = ["Google Meet", "Zoom", "Other"];
 const referralOptions = ["Instagram", "Facebook", "Google", "Friend / referral", "Repeat client", "Other"];
 const guestCountRangeOptions = [
   { label: "Under 50", value: "Under 50", hint: "Intimate celebration" },
@@ -228,6 +229,9 @@ const initialState = {
   requestedVendorCategories: [] as string[],
   vendorRequestNotes: "",
   preferredContactMethod: "",
+  consultationPreferenceDate: "",
+  consultationPreferenceTime: "",
+  consultationVideoPlatform: "",
   referralSource: "",
   needsDeliverySetup: false,
   services: [] as string[],
@@ -323,6 +327,15 @@ function buildReviewNotes(
     form.preferredContactMethod
       ? `Consultation preference: ${form.preferredContactMethod}.`
       : "",
+    form.consultationPreferenceDate
+      ? `Requested consultation date: ${form.consultationPreferenceDate}.`
+      : "",
+    form.consultationPreferenceTime
+      ? `Requested time: ${form.consultationPreferenceTime}.`
+      : "",
+    form.consultationVideoPlatform
+      ? `Preferred video platform: ${form.consultationVideoPlatform}.`
+      : "",
     form.referralSource ? `Referral source: ${form.referralSource}.` : "",
     form.guestCountRange ? `Guest count range: ${form.guestCountRange}.` : "",
     form.decorStyle ? `Preferred decor style: ${form.decorStyle}.` : "",
@@ -338,6 +351,10 @@ function normalizeVendorCategory(category: string) {
   return category.startsWith("Other:")
     ? category.replace(/^Other:\s*/, "").trim()
     : category;
+}
+
+function requiresConsultationScheduling(method: string) {
+  return method === "Phone call" || method === "Video meeting" || method === "In-person meeting";
 }
 
 function getAvailableVendorCategories(vendors: PublicVendorRecommendation[]) {
@@ -943,13 +960,65 @@ export default function EventRequestForm({
                         key={option}
                         type="button"
                         className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
-                        onClick={() => updateField("preferredContactMethod", option)}
+                        onClick={() => {
+                          updateField("preferredContactMethod", option);
+                          if (option !== "Video meeting") {
+                            updateField("consultationVideoPlatform", "");
+                          }
+                          if (!requiresConsultationScheduling(option)) {
+                            updateField("consultationPreferenceDate", "");
+                            updateField("consultationPreferenceTime", "");
+                          }
+                        }}
                       >
                         {option}
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {requiresConsultationScheduling(form.preferredContactMethod) ? (
+                  <div className="scope-card">
+                    <div className="form-grid">
+                      <div className="field">
+                        <label className="label">What day works for you?</label>
+                        <input
+                          className="input"
+                          type="date"
+                          value={form.consultationPreferenceDate}
+                          onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
+                        />
+                      </div>
+                      <div className="field">
+                        <label className="label">What time works for you?</label>
+                        <input
+                          className="input"
+                          value={form.consultationPreferenceTime}
+                          onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
+                          placeholder="Example: Weekdays after 6 PM"
+                        />
+                      </div>
+                    </div>
+
+                    {form.preferredContactMethod === "Video meeting" ? (
+                      <div className="field">
+                        <label className="label">Preferred video platform</label>
+                        <div className="option-pills">
+                          {videoPlatformOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
+                              onClick={() => updateField("consultationVideoPlatform", option)}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="field">
                   <label className="label">How did you hear about us?</label>
@@ -1284,6 +1353,10 @@ export default function EventRequestForm({
                     <p><strong>Guest range:</strong> {form.guestCountRange || "—"}</p>
                     <p><strong>Venue:</strong> {form.venueName || "—"}</p>
                     <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
+                    <p><strong>Consultation time:</strong> {[form.consultationPreferenceDate, form.consultationPreferenceTime].filter(Boolean).join(" • ") || "—"}</p>
+                    {form.preferredContactMethod === "Video meeting" ? (
+                      <p><strong>Video platform:</strong> {form.consultationVideoPlatform || "—"}</p>
+                    ) : null}
                     <p><strong>Design selections:</strong> {derivedServices.length || 0}</p>
                     <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
                   </div>
@@ -1390,7 +1463,16 @@ export default function EventRequestForm({
             </div>
             <div>
               <strong>Consultation</strong>
-              <p className="muted">{form.preferredContactMethod || "We will follow up using your preferred contact method"}</p>
+              <p className="muted">
+                {[
+                  form.preferredContactMethod,
+                  form.consultationPreferenceDate,
+                  form.consultationPreferenceTime,
+                  form.preferredContactMethod === "Video meeting" ? form.consultationVideoPlatform : "",
+                ]
+                  .filter(Boolean)
+                  .join(" • ") || "We will follow up using your preferred contact method"}
+              </p>
             </div>
             <div>
               <strong>Palette + style</strong>

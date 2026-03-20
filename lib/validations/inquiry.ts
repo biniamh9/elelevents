@@ -68,6 +68,9 @@ export const inquirySchema = z.object({
   requestedVendorCategories: z.array(z.string()).optional().default([]),
   vendorRequestNotes: optionalText,
   preferredContactMethod: optionalText,
+  consultationPreferenceDate: optionalDate,
+  consultationPreferenceTime: optionalText,
+  consultationVideoPlatform: optionalText,
   referralSource: optionalText,
   needsDeliverySetup: z.boolean().optional().default(false),
   estimatedPrice: z.number().optional().nullable()

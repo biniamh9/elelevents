@@ -243,6 +243,9 @@ export default async function InquiryDetailPage({
           <p><strong>Email:</strong> {inquiry.email}</p>
           <p><strong>Phone:</strong> {inquiry.phone}</p>
           <p><strong>Preferred Contact:</strong> {inquiry.preferred_contact_method ?? "—"}</p>
+          <p><strong>Requested Consultation Day:</strong> {inquiry.consultation_request_date ?? "—"}</p>
+          <p><strong>Requested Consultation Time:</strong> {inquiry.consultation_request_time ?? "—"}</p>
+          <p><strong>Video Platform:</strong> {inquiry.consultation_video_platform ?? "—"}</p>
           <p><strong>Referral Source:</strong> {inquiry.referral_source ?? "—"}</p>
         </div>
 
