@@ -1105,7 +1105,7 @@ export default function EventRequestForm({
                             {isSelected ? (
                               <div className="guided-preview-category-status" aria-label="Selected decor element">
                                 <span className="guided-preview-category-check" aria-hidden="true">
-                                  ✓
+                                  {selectedImageCount > 0 ? selectedImageCount : "✓"}
                                 </span>
                                 {hasContent ? (
                                   <small>
