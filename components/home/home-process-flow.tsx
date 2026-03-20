@@ -21,6 +21,7 @@ export default function HomeProcessFlow({
     <section className="simple-process-shell">
       <div className="simple-process-head">
         <p className="eyebrow">How it works</p>
+        <h2>From inquiry to event day, the process stays clear.</h2>
         <p className="muted">A simple, guided process from inquiry to execution.</p>
       </div>
 

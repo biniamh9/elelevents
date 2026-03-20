@@ -745,16 +745,24 @@ a { color: inherit; text-decoration: none; }
 .simple-process-shell {
   display: grid;
   justify-items: center;
-  gap: 26px;
-  padding: 96px 0;
+  gap: 32px;
+  padding: 110px 0;
   text-align: center;
 }
 .simple-process-head {
   display: grid;
   gap: 16px;
+  max-width: 760px;
 }
 .simple-process-head p {
   margin: 0;
+}
+.simple-process-head h2 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 .simple-process-grid {
   display: flex;
@@ -775,7 +783,7 @@ a { color: inherit; text-decoration: none; }
 .simple-process-card {
   position: relative;
   flex: 1 1 auto;
-  min-height: 68px;
+  min-height: 54px;
   padding: 0 24px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.94);
@@ -787,14 +795,14 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
   gap: 12px;
   text-align: center;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background 220ms ease;
   cursor: pointer;
 }
 .simple-process-card:hover,
 .simple-process-card.is-active {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 46px rgba(48, 24, 11, 0.11);
-  border-color: rgba(var(--accent-rgb), 0.18);
+  transform: translateY(-4px);
+  box-shadow: 0 24px 46px rgba(48, 24, 11, 0.12);
+  border-color: rgba(var(--accent-rgb), 0.26);
   background: linear-gradient(180deg, rgba(255, 252, 249, 0.98), rgba(247, 239, 230, 0.94));
 }
 .simple-process-index {
@@ -807,8 +815,9 @@ a { color: inherit; text-decoration: none; }
 }
 .simple-process-card h3 {
   margin: 0;
-  font-size: 1.04rem;
+  font-size: 1rem;
   line-height: 1.1;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .simple-process-connector {
@@ -845,8 +854,9 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.75fr);
   gap: 24px;
   align-items: center;
-  padding: 28px;
-  border-radius: 28px;
+  min-height: 220px;
+  padding: 32px;
+  border-radius: 24px;
   background:
     linear-gradient(160deg, rgba(255, 251, 247, 0.98), rgba(240, 226, 210, 0.94)),
     radial-gradient(circle at right top, rgba(var(--accent-rgb), 0.12), transparent 30%);
@@ -4643,6 +4653,9 @@ th { background: var(--surface-soft); }
   .simple-process-shell {
     padding: 72px 0;
   }
+  .simple-process-head h2 {
+    font-size: 30px;
+  }
   .simple-process-grid {
     flex-wrap: wrap;
   }
@@ -4822,7 +4835,10 @@ th { background: var(--surface-soft); }
     align-items: stretch;
   }
   .simple-process-shell {
-    padding: 56px 0;
+    padding: 72px 0;
+  }
+  .simple-process-head h2 {
+    font-size: 24px;
   }
   .simple-process-grid {
     flex-direction: column;
@@ -4846,7 +4862,7 @@ th { background: var(--surface-soft); }
     margin: 4px auto -2px;
   }
   .simple-process-panel {
-    padding: 22px;
+    padding: 24px;
   }
   .simple-process-panel h3 {
     font-size: 1.35rem;
