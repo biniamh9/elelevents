@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
@@ -379,6 +379,7 @@ export default function EventRequestForm({
   vendors: PublicVendorRecommendation[];
   portfolioItems: GalleryItem[];
 }) {
+  const formCardRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
   const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
@@ -431,6 +432,24 @@ export default function EventRequestForm({
       setActiveCategoryIndex(0);
     }
   }, [activeCategoryIndex, guidedPreviewOptions.length]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const element = formCardRef.current;
+      if (!element) {
+        return;
+      }
+
+      const headerOffset = 132;
+      const top = element.getBoundingClientRect().top + window.scrollY - headerOffset;
+      window.scrollTo({
+        top: Math.max(top, 0),
+        behavior: "smooth",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
 
   const preview = useMemo(() => {
     const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
@@ -789,7 +808,7 @@ export default function EventRequestForm({
       </section>
 
       <div className="form-wrap booking-layout">
-        <div className="card form-card booking-form-card">
+        <div ref={formCardRef} className="card form-card booking-form-card">
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
               <section className="booking-panel">
