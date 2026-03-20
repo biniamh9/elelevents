@@ -1100,11 +1100,13 @@ export default function EventRequestForm({
                           >
                             <div className="guided-preview-category-chip-copy">
                               <strong>{category.title}</strong>
-                              <span>{hasContent ? "Configured" : "Select"}</span>
+                              <span>{isSelected ? "Selected" : "Select"}</span>
                             </div>
                             {isSelected ? (
                               <div className="guided-preview-category-status" aria-label="Selected decor element">
-                                <span className="guided-preview-category-check">Chosen</span>
+                                <span className="guided-preview-category-check" aria-hidden="true">
+                                  ✓
+                                </span>
                                 {hasContent ? (
                                   <small>
                                     {[
@@ -1164,6 +1166,11 @@ export default function EventRequestForm({
                                       }}
                                     >
                                       <img src={item.image_url} alt={item.title} loading="lazy" />
+                                      {(selectedPreviewImages[guidedCategory.key] ?? []).includes(item.id) ? (
+                                        <span className="guided-preview-option-check" aria-hidden="true">
+                                          ✓
+                                        </span>
+                                      ) : null}
                                       <span>{item.title}</span>
                                     </button>
                                   ))}
