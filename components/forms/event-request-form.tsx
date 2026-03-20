@@ -1068,10 +1068,13 @@ export default function EventRequestForm({
                       const guidedCategory = guidedPreviewOptions.find((item) => item.key === category.key);
                       const isSelected = selectedDecorCategories.includes(category.key);
                       const isActive = activeGuidedCategory?.key === category.key;
+                      const selectedImageCount = (selectedPreviewImages[category.key] ?? []).length;
+                      const uploadedImageCount = (categoryUploads[category.key] ?? []).length;
+                      const noteCount = categoryNotes[category.key]?.trim() ? 1 : 0;
                       const hasContent =
-                        (selectedPreviewImages[category.key] ?? []).length > 0 ||
-                        (categoryUploads[category.key] ?? []).length > 0 ||
-                        Boolean(categoryNotes[category.key]?.trim());
+                        selectedImageCount > 0 ||
+                        uploadedImageCount > 0 ||
+                        noteCount > 0;
 
                       return (
                         <div
@@ -1095,8 +1098,26 @@ export default function EventRequestForm({
                             }}
                             aria-pressed={isSelected}
                           >
-                            <strong>{category.title}</strong>
-                            <span>{hasContent ? "Configured" : "Select"}</span>
+                            <div className="guided-preview-category-chip-copy">
+                              <strong>{category.title}</strong>
+                              <span>{hasContent ? "Configured" : "Select"}</span>
+                            </div>
+                            {isSelected ? (
+                              <div className="guided-preview-category-status" aria-label="Selected decor element">
+                                <span className="guided-preview-category-check">Chosen</span>
+                                {hasContent ? (
+                                  <small>
+                                    {[
+                                      selectedImageCount ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
+                                      uploadedImageCount ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
+                                      noteCount ? "note" : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" • ")}
+                                  </small>
+                                ) : null}
+                              </div>
+                            ) : null}
                           </button>
 
                           {isSelected && isActive && guidedCategory ? (
