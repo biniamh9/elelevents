@@ -694,6 +694,52 @@ export default function EventRequestForm({
     const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
       .filter(Boolean)
       .map((value) => value.toLowerCase());
+    const activeExperience = selectedEventExperience || deriveEventExperience(form.eventType);
+    const activeExperienceCard = experienceCards.find((item) => item.key === activeExperience);
+    const previewContentByExperience = {
+      wedding: {
+        label: "Showing Wedding Direction",
+        styleDescription:
+          "An elevated wedding direction with focal florals, layered styling, and guest-ready details.",
+        decorDirection:
+          "Head table, backdrop, centerpieces, and soft draping for a polished celebration.",
+      },
+      traditional: {
+        label: "Showing Traditional (Melsi) Direction",
+        styleDescription:
+          "A culturally grounded setup with layered traditional detail and warm guest-facing styling.",
+        decorDirection:
+          "Traditional focal setup, backdrop, florals, and supporting table styling.",
+      },
+      celebrations: {
+        label: "Showing Celebration Direction",
+        styleDescription:
+          "A vibrant and styled celebration with playful focal points and clean finishing touches.",
+        decorDirection:
+          "Backdrop, focal decor, guest table details, and statement accents.",
+      },
+      corporate: {
+        label: "Showing Corporate Event Direction",
+        styleDescription:
+          "A clean, refined setup with polished styling for hosted guest experiences.",
+        decorDirection:
+          "Stage/focal area, table styling, branded decor moments, and clean presentation.",
+      },
+      other: {
+        label: "Showing Custom Event Direction",
+        styleDescription:
+          "A flexible decor direction shaped around your event type and visual preferences.",
+        decorDirection:
+          "Custom focal decor, tailored styling, and curated layout recommendations.",
+      },
+      default: {
+        label: "Choose an event type to start building your visual direction.",
+        styleDescription:
+          "Choose an event type to start building your visual direction.",
+        decorDirection:
+          "Select a category on the left and the preview will respond here.",
+      },
+    } as const;
 
     const selectedImages = guidedPreviewOptions
       .flatMap((category) =>
@@ -723,25 +769,40 @@ export default function EventRequestForm({
       })
       .slice(0, 4);
 
-    const fallbackImages = matchedImages.length ? matchedImages : portfolioItems.slice(0, 4);
+    const experienceImages = activeExperience
+      ? experienceCards
+          .filter((item) => item.key === activeExperience || (activeExperience === "celebrations" && item.key === "celebrations"))
+          .map((item, index) => ({
+            id: `${item.key}-${index}`,
+            image_url: item.imageUrl,
+            title: item.title,
+            category: item.title,
+          }))
+          .filter((item) => item.image_url)
+      : [];
+    const fallbackImages = matchedImages.length
+      ? matchedImages
+      : experienceImages.length
+        ? experienceImages
+        : portfolioItems.slice(0, 4);
     const images =
       selectedImages.length || uploadedImages.length
         ? [...selectedImages, ...uploadedImages].slice(0, 4)
         : fallbackImages;
-    const eventLabel = effectiveEventType || "your event";
-    const styleLabel = form.decorStyle || "elevated and guest-ready";
-    const paletteLabel = form.colorsTheme || "a refined palette";
-    const venueLabel = form.venueType || form.venueStatus || "the room";
-    const guestLabel = form.guestCountRange || (form.guestCount ? `${form.guestCount} guests` : "the guest count");
-    const styleDescription = `${eventLabel} with a ${styleLabel.toLowerCase()} direction, ${paletteLabel.toLowerCase()}, and layout choices shaped around ${venueLabel.toLowerCase()} for ${guestLabel.toLowerCase()}.`;
+    const baseContent =
+      previewContentByExperience[activeExperience as keyof typeof previewContentByExperience] ??
+      previewContentByExperience.default;
+
+    const styleDescription =
+      selectedImages.length || uploadedImages.length
+        ? baseContent.styleDescription
+        : baseContent.styleDescription;
 
     const decorDirection = derivedServices.includes("Delivery and setup")
-      ? "A guided room direction with styling selections, setup planning, and a cleaner path into consultation."
+      ? `${baseContent.decorDirection} Delivery and setup support can also be folded into the planning path.`
       : selectedImages.length
-        ? `Selected inspiration across ${selectedCategoryKeys.length} decor categories to guide the room direction during consultation.`
-        : derivedServices.length
-        ? `${derivedServices.slice(0, 3).join(", ")}${derivedServices.length > 3 ? ", and supporting details" : ""} as the main visual anchors.`
-        : "A focal-point-led room with one hero installation and polished guest-facing details.";
+        ? `${baseContent.decorDirection} Based on ${selectedCategoryKeys.length} selected decor ${selectedCategoryKeys.length === 1 ? "element" : "elements"}.`
+        : baseContent.decorDirection;
 
     const packageRecommendation =
       form.guestCountRange === "200+" || form.budgetRange === "$8,000+"
@@ -750,11 +811,16 @@ export default function EventRequestForm({
 
     return {
       images,
+      eventDirectionLabel: baseContent.label,
+      previewStateLabel: activeExperienceCard?.title ?? "Visual Direction",
+      isPlaceholder: !activeExperience,
       styleDescription,
       decorDirection,
       packageRecommendation,
     };
   }, [
+    selectedEventExperience,
+    experienceCards,
     form.budgetRange,
     form.colorsTheme,
     form.decorStyle,
@@ -774,6 +840,7 @@ export default function EventRequestForm({
     () =>
       JSON.stringify({
         images: preview.images.map((item) => item.id),
+        directionLabel: preview.eventDirectionLabel,
         eventType: effectiveEventType,
         style: form.decorStyle,
         palette: form.colorsTheme,
@@ -782,6 +849,7 @@ export default function EventRequestForm({
       }),
     [
       preview.images,
+      preview.eventDirectionLabel,
       effectiveEventType,
       form.decorStyle,
       form.colorsTheme,
@@ -1849,6 +1917,9 @@ export default function EventRequestForm({
           <span className="booking-live-pill">Live Preview</span>
           <p className="eyebrow">Your selections are shaping this design</p>
           <h3 style={{ marginTop: 0 }}>Live Preview</h3>
+          <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
+            {preview.eventDirectionLabel}
+          </div>
           <p className="muted">
             This preview helps you picture the direction. Final concepts are customized during your consultation.
           </p>
