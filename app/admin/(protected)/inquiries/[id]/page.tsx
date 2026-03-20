@@ -167,6 +167,75 @@ export default async function InquiryDetailPage({
         </div>
       </div>
 
+      <div className="card admin-visual-review-board">
+        <div className="admin-visual-review-head">
+          <div>
+            <p className="eyebrow">Meeting board</p>
+            <h3>Customer visual direction</h3>
+            <p className="muted">
+              Review the exact inspiration the client selected or uploaded before the consultation starts.
+            </p>
+          </div>
+        </div>
+
+        {decorSelections.length ? (
+          <div className="admin-decor-selection-list">
+            {decorSelections.map((selection) => {
+              const selectedImages = selection.selectedGalleryImages ?? [];
+              const uploadedImages = selection.uploadedImageUrls ?? [];
+
+              return (
+                <div key={selection.categoryKey} className="admin-decor-selection-card">
+                  <div className="admin-decor-selection-head">
+                    <strong>{selection.categoryTitle}</strong>
+                    <span>
+                      {selectedImages.length + uploadedImages.length
+                        ? `${selectedImages.length + uploadedImages.length} visual reference${selectedImages.length + uploadedImages.length === 1 ? "" : "s"}`
+                        : "Notes only"}
+                    </span>
+                  </div>
+
+                  {selectedImages.length ? (
+                    <div className="admin-decor-selection-section">
+                      <strong>Selected gallery references</strong>
+                      <div className="admin-decor-selection-images">
+                        {selectedImages.map((image) => (
+                          <a key={image.id} href={image.image_url} target="_blank" rel="noreferrer">
+                            <img src={image.image_url} alt={image.title} />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {uploadedImages.length ? (
+                    <div className="admin-decor-selection-section">
+                      <strong>Uploaded inspiration</strong>
+                      <div className="admin-decor-selection-images admin-decor-selection-images--uploads">
+                        {uploadedImages.map((url) => (
+                          <a key={url} href={url} target="_blank" rel="noreferrer">
+                            <img src={url} alt={`${selection.categoryTitle} uploaded inspiration`} />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {selection.notes ? (
+                    <div className="admin-vision-block admin-vision-block--note">
+                      <strong>Client note</strong>
+                      <p>{selection.notes}</p>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="muted">No structured visual selections were submitted.</p>
+        )}
+      </div>
+
       <div className="grid-2">
         <div className="card">
           <h3>Client Information</h3>
@@ -262,59 +331,6 @@ export default async function InquiryDetailPage({
           </div>
         </div>
 
-        <div className="card">
-          <h3>Decor Selection Review</h3>
-          {decorSelections.length ? (
-            <div className="admin-decor-selection-list">
-              {decorSelections.map((selection) => {
-                const selectedImages = selection.selectedGalleryImages ?? [];
-                const uploadedImages = selection.uploadedImageUrls ?? [];
-
-                return (
-                  <div key={selection.categoryKey} className="admin-decor-selection-card">
-                    <div className="admin-decor-selection-head">
-                      <strong>{selection.categoryTitle}</strong>
-                      <span>
-                        {selectedImages.length + uploadedImages.length
-                          ? `${selectedImages.length + uploadedImages.length} visual reference${selectedImages.length + uploadedImages.length === 1 ? "" : "s"}`
-                          : "Notes only"}
-                      </span>
-                    </div>
-
-                    {selectedImages.length ? (
-                      <div className="admin-decor-selection-images">
-                        {selectedImages.map((image) => (
-                          <a key={image.id} href={image.image_url} target="_blank" rel="noreferrer">
-                            <img src={image.image_url} alt={image.title} />
-                          </a>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {uploadedImages.length ? (
-                      <div className="admin-decor-selection-images admin-decor-selection-images--uploads">
-                        {uploadedImages.map((url) => (
-                          <a key={url} href={url} target="_blank" rel="noreferrer">
-                            <img src={url} alt={`${selection.categoryTitle} uploaded inspiration`} />
-                          </a>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {selection.notes ? (
-                      <div className="admin-vision-block admin-vision-block--note">
-                        <strong>Client note</strong>
-                        <p>{selection.notes}</p>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="muted">No structured visual selections were submitted.</p>
-          )}
-        </div>
       </div>
 
       <div id="next-action" style={{ marginTop: "24px" }} className="card">

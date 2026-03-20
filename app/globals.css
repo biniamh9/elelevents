@@ -2685,6 +2685,10 @@ th { background: var(--surface-soft); }
   display: block;
   border-radius: 14px;
 }
+.admin-decor-selection-section {
+  display: grid;
+  gap: 10px;
+}
 .admin-vision-summary {
   display: grid;
   gap: 16px;
@@ -2789,8 +2793,19 @@ th { background: var(--surface-soft); }
 }
 .crm-overview { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-bottom: 24px; }
 .crm-hero-card { background: linear-gradient(135deg, #ffffff 0%, #fff2f6 100%); }
-.crm-hero-card h3 { margin: 0 0 8px; font-size: 2rem; }
+.crm-hero-card h3 { margin: 0 0 8px; font-size: 2rem; color: #fff; }
 .crm-timeline { display: grid; gap: 12px; align-content: start; }
+.admin-visual-review-board {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.admin-visual-review-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
 .timeline-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
 .timeline-row:last-child { border-bottom: 0; }
 .timeline-row.neutral { color: var(--text); }
