@@ -30,10 +30,11 @@ function formatDateKey(date: Date) {
 export default async function AdminCalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; view?: string }>;
 }) {
   const params = await searchParams;
   const monthAnchor = getMonthAnchor(params.month);
+  const view = params.view === "list" ? "list" : "calendar";
   const monthStart = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
   const monthEnd = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
 
@@ -124,6 +125,8 @@ export default async function AdminCalendarPage({
       warning: getBookingWarningLabel(Math.max(items.length - 1, 0)),
       items,
       reservedCount,
+      loadTone:
+        items.length >= 3 ? "high" : items.length === 2 ? "medium" : items.length === 1 ? "low" : "empty",
     });
   }
 
@@ -144,6 +147,18 @@ export default async function AdminCalendarPage({
           <p className="lead">See event dates on a real monthly calendar and spot reserved days immediately.</p>
         </div>
         <div className="admin-page-head-aside">
+          <Link
+            href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=calendar`}
+            className={`admin-topbar-pill${view === "calendar" ? " is-active" : ""}`}
+          >
+            Calendar View
+          </Link>
+          <Link
+            href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=list`}
+            className={`admin-topbar-pill${view === "list" ? " is-active" : ""}`}
+          >
+            List View
+          </Link>
           <Link
             href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`}
             className="admin-topbar-pill"
@@ -210,51 +225,91 @@ export default async function AdminCalendarPage({
           })}
         </div>
 
-        <div className="admin-calendar-grid-head">
-          {WEEKDAY_LABELS.map((label) => (
-            <span key={label}>{label}</span>
-          ))}
+        <div className="admin-calendar-legend">
+          <span><i className="admin-calendar-dot admin-calendar-dot--low" /> 1 booking</span>
+          <span><i className="admin-calendar-dot admin-calendar-dot--medium" /> 2 bookings</span>
+          <span><i className="admin-calendar-dot admin-calendar-dot--high" /> 3+ bookings</span>
         </div>
 
-        <div className="admin-calendar-grid">
-          {days.map((day) => (
-            <div
-              key={day.key}
-              className={`admin-calendar-cell${day.isCurrentMonth ? "" : " is-outside"}${day.isToday ? " is-today" : ""}${day.reservedCount ? " is-reserved" : ""}`}
-            >
-              <div className="admin-calendar-cell-head">
-                <strong>{day.date.getDate()}</strong>
-                {day.warning ? (
-                  <span className="admin-calendar-warning">{day.warning}</span>
-                ) : null}
-              </div>
-
-              {day.reservedCount ? (
-                <div className="admin-calendar-reserved-mark">
-                  Reserved {day.reservedCount > 1 ? `(${day.reservedCount})` : ""}
-                </div>
-              ) : null}
-
-              <div className="admin-calendar-cell-events">
-                {day.items.slice(0, 3).map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/admin/inquiries/${item.id}`}
-                    className="admin-calendar-event-pill"
-                    title={`${item.first_name} ${item.last_name} • ${item.event_type || "Event"} • ${humanizeBookingStage(item.lifecycle)}`}
-                  >
-                    <span>{item.first_name} {item.last_name}</span>
-                    <small>{humanizeBookingStage(item.lifecycle)}</small>
-                  </Link>
-                ))}
-
-                {day.items.length > 3 ? (
-                  <span className="admin-calendar-more">+{day.items.length - 3} more</span>
-                ) : null}
-              </div>
+        {view === "calendar" ? (
+          <>
+            <div className="admin-calendar-grid-head">
+              {WEEKDAY_LABELS.map((label) => (
+                <span key={label}>{label}</span>
+              ))}
             </div>
-          ))}
-        </div>
+
+            <div className="admin-calendar-grid">
+              {days.map((day) => (
+                <div
+                  key={day.key}
+                  className={`admin-calendar-cell admin-calendar-cell--${day.loadTone}${day.isCurrentMonth ? "" : " is-outside"}${day.isToday ? " is-today" : ""}${day.reservedCount ? " is-reserved" : ""}`}
+                >
+                  <div className="admin-calendar-cell-head">
+                    <strong>{day.date.getDate()}</strong>
+                    <div className="admin-calendar-cell-meta">
+                      {day.items.length ? (
+                        <span className="admin-calendar-count">{day.items.length}</span>
+                      ) : null}
+                      {day.warning ? (
+                        <span className="admin-calendar-warning">{day.warning}</span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {day.reservedCount ? (
+                    <div className="admin-calendar-reserved-mark">
+                      Reserved {day.reservedCount > 1 ? `(${day.reservedCount})` : ""}
+                    </div>
+                  ) : null}
+
+                  <div className="admin-calendar-cell-events">
+                    {day.items.slice(0, 3).map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/admin/inquiries/${item.id}`}
+                        className="admin-calendar-event-pill"
+                        title={`${item.first_name} ${item.last_name} • ${item.event_type || "Event"} • ${humanizeBookingStage(item.lifecycle)}`}
+                      >
+                        <span>{item.first_name} {item.last_name}</span>
+                        <small>{humanizeBookingStage(item.lifecycle)}</small>
+                      </Link>
+                    ))}
+
+                    {day.items.length > 3 ? (
+                      <span className="admin-calendar-more">+{day.items.length - 3} more</span>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="admin-calendar-list">
+            {days.filter((day) => day.items.length > 0).map((day) => (
+              <div key={day.key} className={`admin-calendar-list-day admin-calendar-list-day--${day.loadTone}`}>
+                <div className="admin-calendar-list-head">
+                  <div>
+                    <strong>{day.date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}</strong>
+                    <p>{day.items.length} booking{day.items.length === 1 ? "" : "s"} • {day.reservedCount} reserved</p>
+                  </div>
+                  {day.warning ? <span className="admin-calendar-warning">{day.warning}</span> : null}
+                </div>
+                <div className="admin-calendar-list-events">
+                  {day.items.map((item) => (
+                    <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-calendar-list-item">
+                      <div>
+                        <strong>{item.first_name} {item.last_name}</strong>
+                        <p>{item.event_type || "Event"} {item.venue_name ? `• ${item.venue_name}` : ""}</p>
+                      </div>
+                      <span>{humanizeBookingStage(item.lifecycle)}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );

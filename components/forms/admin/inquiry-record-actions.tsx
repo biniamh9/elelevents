@@ -6,8 +6,10 @@ import { useState } from "react";
 
 export default function InquiryRecordActions({
   inquiryId,
+  contractId,
 }: {
   inquiryId: string;
+  contractId?: string | null;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -88,6 +90,20 @@ export default function InquiryRecordActions({
             className="admin-row-action-item"
           >
             Itemized Draft
+          </Link>
+          {contractId ? (
+            <Link
+              href={`/admin/contracts/${contractId}`}
+              className="admin-row-action-item"
+            >
+              Contract
+            </Link>
+          ) : null}
+          <Link
+            href={`/admin/inquiries/${inquiryId}#booking-stage`}
+            className="admin-row-action-item"
+          >
+            Mark Reserved
           </Link>
           <button
             type="button"

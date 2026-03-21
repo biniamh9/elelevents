@@ -10,6 +10,16 @@ import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 export const dynamic = "force-dynamic";
 
+function humanizeLabel(value: string | null | undefined) {
+  if (!value) {
+    return "Not set";
+  }
+
+  return value
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export default async function InquiryDetailPage({
   params,
 }: {
@@ -67,6 +77,14 @@ export default async function InquiryDetailPage({
     .select("id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, event_date, balance_due_date")
     .eq("inquiry_id", id)
     .maybeSingle();
+
+  const { data: activityLog } = await supabaseAdmin
+    .from("activity_log")
+    .select("id, created_at, action, summary")
+    .eq("entity_type", "inquiry")
+    .eq("entity_id", id)
+    .order("created_at", { ascending: false })
+    .limit(8);
 
   const { count: sameDayCount } = inquiry.event_date
     ? await supabaseAdmin
@@ -168,6 +186,29 @@ export default async function InquiryDetailPage({
         </div>
       </div>
 
+      <div className="admin-kpi-grid admin-kpi-grid--compact">
+        <div className="card metric-card metric-card--blue">
+          <p className="muted">Consultation</p>
+          <strong>{humanizeLabel(inquiry.consultation_status ?? "not_scheduled")}</strong>
+          <span>{inquiry.consultation_at ? new Date(inquiry.consultation_at).toLocaleString() : "No meeting scheduled yet"}</span>
+        </div>
+        <div className="card metric-card metric-card--violet">
+          <p className="muted">Quote / Pricing</p>
+          <strong>${Number(inquiry.estimated_price ?? 0).toLocaleString()}</strong>
+          <span>{humanizeLabel(inquiry.quote_response_status ?? "not_sent")}</span>
+        </div>
+        <div className="card metric-card metric-card--green">
+          <p className="muted">Contract Status</p>
+          <strong>{linkedContract?.contract_status ? humanizeLabel(linkedContract.contract_status) : "Not created"}</strong>
+          <span>{linkedContract ? `Deposit ${linkedContract.deposit_paid ? "paid" : "pending"}` : "Create after scope is approved"}</span>
+        </div>
+        <div className="card metric-card metric-card--amber">
+          <p className="muted">Email Automation</p>
+          <strong>{inquiry.consultation_request_confirmation_sent_at ? "Active" : "Pending"}</strong>
+          <span>{inquiry.consultation_schedule_email_sent_at ? "Meeting email sent" : "Meeting email not sent yet"}</span>
+        </div>
+      </div>
+
       <div className="card admin-visual-review-board">
         <div className="admin-visual-review-head">
           <div>
@@ -244,6 +285,12 @@ export default async function InquiryDetailPage({
         )}
       </div>
 
+      <section className="admin-record-section">
+        <div className="admin-section-title">
+          <h3>Request Overview</h3>
+          <p className="muted">Keep the client, event, consultation, and payment context visible in one place.</p>
+        </div>
+
       <div className="grid-2">
         <div className="card">
           <h3>Client Information</h3>
@@ -259,7 +306,7 @@ export default async function InquiryDetailPage({
         </div>
 
         <div className="card">
-          <h3>Event Information</h3>
+          <h3>Consultation Information</h3>
           <p><strong>Event Type:</strong> {inquiry.event_type}</p>
           <p><strong>Event Date:</strong> {inquiry.event_date ?? "—"}</p>
           <p><strong>Guest Count:</strong> {inquiry.guest_count ?? "—"}</p>
@@ -282,7 +329,7 @@ export default async function InquiryDetailPage({
         </div>
 
         <div className="card">
-          <h3>Decor Scope</h3>
+          <h3>Quote, Contract, and Payment</h3>
           <p><strong>Colors / Theme:</strong> {inquiry.colors_theme ?? "—"}</p>
           <p><strong>Selected Decor Elements:</strong></p>
           <div className="summary-pills">
@@ -307,8 +354,11 @@ export default async function InquiryDetailPage({
           {linkedContract ? (
             <>
               <p><strong>Contract:</strong> {linkedContract.contract_status ?? "draft"}</p>
+              <p><strong>Contract Total:</strong> ${Number(linkedContract.contract_total ?? 0).toLocaleString()}</p>
+              <p><strong>Deposit Amount:</strong> ${Number(linkedContract.deposit_amount ?? 0).toLocaleString()}</p>
               <p><strong>Deposit:</strong> {linkedContract.deposit_paid ? "Paid" : "Pending"}</p>
               <p><strong>Remaining Balance:</strong> ${Number(linkedContract.balance_due ?? 0).toLocaleString()}</p>
+              <p><strong>Balance Due Date:</strong> {linkedContract.balance_due_date ?? "—"}</p>
             </>
           ) : null}
         </div>
@@ -346,8 +396,33 @@ export default async function InquiryDetailPage({
             </div>
           </div>
         </div>
-
       </div>
+      </section>
+
+      <section className="admin-record-section">
+        <div className="admin-section-title">
+          <h3>Operations Timeline</h3>
+          <p className="muted">Recent activity and workflow history for the request.</p>
+        </div>
+
+        <div className="card admin-activity-panel">
+          <div className="admin-activity-list">
+            {activityLog?.length ? (
+              activityLog.map((entry) => (
+                <div key={entry.id} className="admin-activity-item">
+                  <div>
+                    <strong>{entry.summary}</strong>
+                    <p>{humanizeLabel(entry.action)}</p>
+                  </div>
+                  <span>{new Date(entry.created_at).toLocaleString()}</span>
+                </div>
+              ))
+            ) : (
+              <p className="muted">No activity log entries yet.</p>
+            )}
+          </div>
+        </div>
+      </section>
 
       <div id="next-action" style={{ marginTop: "24px" }} className="card">
         <h3>Next Action</h3>
@@ -361,6 +436,7 @@ export default async function InquiryDetailPage({
           currentStatus={inquiry.status ?? "new"}
           currentNotes={inquiry.admin_notes ?? ""}
         />
+        <div id="booking-stage">
         <BookingLifecycleForm
           inquiryId={inquiry.id}
           initialBookingStage={bookingStage}
@@ -369,6 +445,7 @@ export default async function InquiryDetailPage({
           eventDate={inquiry.event_date ?? null}
           otherEventsOnDate={otherEventsOnDate}
         />
+        </div>
         <ConsultationManagementForm
           inquiryId={inquiry.id}
           initialConsultationStatus={inquiry.consultation_status ?? "not_scheduled"}

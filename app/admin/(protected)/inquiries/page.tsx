@@ -35,6 +35,39 @@ function normalizePage(pageValue?: string) {
   return Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
 }
 
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return "—";
+  }
+
+  return new Date(value).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function getPaymentState(contract: {
+  deposit_paid?: boolean | null;
+  balance_due?: number | null;
+  contract_status?: string | null;
+} | null) {
+  if (!contract) {
+    return "No contract";
+  }
+
+  if (!contract.deposit_paid) {
+    return "Deposit pending";
+  }
+
+  if (Number(contract.balance_due ?? 0) > 0) {
+    return "Balance due";
+  }
+
+  return "Paid";
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
@@ -66,7 +99,7 @@ export default async function AdminInquiriesPage({
   let query = supabaseAdmin
     .from("event_inquiries")
     .select(
-      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, quote_response_status",
+      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status",
       { count: "exact" }
     )
     .range(from, to);
@@ -95,6 +128,24 @@ export default async function AdminInquiriesPage({
   }
 
   const { data, error, count: filteredCount } = await query;
+  const inquiryIds = (data ?? []).map((item) => item.id);
+
+  const { data: pageContracts } = inquiryIds.length
+    ? await supabaseAdmin
+        .from("contracts")
+        .select("id, inquiry_id, contract_status, deposit_paid, balance_due")
+        .in("inquiry_id", inquiryIds)
+    : {
+        data: [] as Array<{
+          id: string;
+          inquiry_id: string;
+          contract_status: string | null;
+          deposit_paid: boolean | null;
+          balance_due: number | null;
+        }>,
+      };
+
+  const contractMap = new Map((pageContracts ?? []).map((item) => [item.inquiry_id, item]));
 
   const { count: totalCount } = await supabaseAdmin
     .from("event_inquiries")
@@ -114,6 +165,26 @@ export default async function AdminInquiriesPage({
     .from("event_inquiries")
     .select("*", { count: "exact", head: true })
     .eq("status", "booked");
+
+  const { count: underReviewCount } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("*", { count: "exact", head: true })
+    .eq("consultation_status", "under_review");
+
+  const { count: scheduledConsultationCount } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("*", { count: "exact", head: true })
+    .not("consultation_at", "is", null);
+
+  const { count: reservedCount } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("*", { count: "exact", head: true })
+    .eq("booking_stage", "reserved");
+
+  const { count: outstandingFinalPayments } = await supabaseAdmin
+    .from("contracts")
+    .select("*", { count: "exact", head: true })
+    .gt("balance_due", 0);
 
   const { data: pipelineRows } = await supabaseAdmin
     .from("event_inquiries")
@@ -152,6 +223,78 @@ export default async function AdminInquiriesPage({
     bookedRevenueRows?.reduce((sum, row) => sum + Number(row.estimated_price ?? 0), 0) ??
     0;
 
+  const tomorrow = new Date();
+  tomorrow.setHours(0, 0, 0, 0);
+  const upcomingWindow = new Date(tomorrow);
+  upcomingWindow.setDate(upcomingWindow.getDate() + 14);
+
+  const { data: upcomingConsultations } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("id, first_name, last_name, event_type, event_date, consultation_at, consultation_type, consultation_location")
+    .not("consultation_at", "is", null)
+    .gte("consultation_at", tomorrow.toISOString())
+    .lt("consultation_at", upcomingWindow.toISOString())
+    .order("consultation_at", { ascending: true })
+    .limit(6);
+
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    .toISOString()
+    .split("T")[0];
+
+  const { data: monthEvents } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("event_date")
+    .gte("event_date", currentMonthStart)
+    .lt("event_date", currentMonthEnd)
+    .order("event_date", { ascending: true });
+
+  const loadByDate = new Map<string, number>();
+  for (const item of monthEvents ?? []) {
+    if (!item.event_date) continue;
+    loadByDate.set(item.event_date, (loadByDate.get(item.event_date) ?? 0) + 1);
+  }
+
+  const busiestDates = Array.from(loadByDate.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 5);
+
+  const alerts: Array<{ tone: "warning" | "attention" | "info"; label: string; detail: string }> = [];
+
+  if ((upcomingConsultations ?? []).some((item) => item.consultation_type === "in_person" && !item.consultation_location)) {
+    alerts.push({
+      tone: "warning",
+      label: "Missing meeting location",
+      detail: "At least one upcoming in-person consultation is missing a location.",
+    });
+  }
+
+  if (busiestDates.some(([, count]) => count >= 2)) {
+    alerts.push({
+      tone: "attention",
+      label: "Overlapping event dates",
+      detail: "Some upcoming dates already carry multiple events. Review calendar load before confirming more bookings.",
+    });
+  }
+
+  if ((quotedCount ?? 0) > 0) {
+    alerts.push({
+      tone: "info",
+      label: "Pending quote follow-up",
+      detail: `${quotedCount} quoted request${quotedCount === 1 ? "" : "s"} still need movement toward contract.`,
+    });
+  }
+
+  if ((outstandingFinalPayments ?? 0) > 0) {
+    alerts.push({
+      tone: "warning",
+      label: "Outstanding payments",
+      detail: `${outstandingFinalPayments} contract${outstandingFinalPayments === 1 ? "" : "s"} still have remaining balance due.`,
+    });
+  }
+
   const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
   const eventTypes = [
     "Wedding",
@@ -166,24 +309,34 @@ export default async function AdminInquiriesPage({
 
   const reportCards = [
     {
-      label: "Total inquiries",
-      value: String(totalCount ?? 0),
-      note: "All inquiry records",
-    },
-    {
-      label: "Pending requests",
+      label: "New Requests",
       value: String(pendingCount ?? 0),
       note: `${buildShare(pendingCount, totalCount)}% of all inquiries`,
+      tone: "amber",
     },
     {
-      label: "Booked events",
-      value: String(bookedCount ?? 0),
-      note: `${conversionRate.toFixed(1)}% booked this month`,
+      label: "Under Review",
+      value: String(underReviewCount ?? 0),
+      note: "Consultations waiting on approval",
+      tone: "blue",
     },
     {
-      label: "Revenue / quotes",
-      value: `$${formatMoney(bookedRevenueThisMonth)}`,
-      note: `Quoted: ${quotedCount ?? 0} • Pipeline: $${formatMoney(pipelineValue)}`,
+      label: "Consultations Scheduled",
+      value: String(scheduledConsultationCount ?? 0),
+      note: "Meetings currently on the calendar",
+      tone: "violet",
+    },
+    {
+      label: "Reserved Dates",
+      value: String(reservedCount ?? 0),
+      note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion this month`,
+      tone: "green",
+    },
+    {
+      label: "Outstanding Final Payments",
+      value: String(outstandingFinalPayments ?? 0),
+      note: `Revenue this month: $${formatMoney(bookedRevenueThisMonth)} • Pipeline: $${formatMoney(pipelineValue)}`,
+      tone: "red",
     },
   ];
 
@@ -206,10 +359,10 @@ export default async function AdminInquiriesPage({
     <main className="section admin-page">
       <div className="admin-page-head">
         <div>
-          <p className="eyebrow">Records management</p>
+          <p className="eyebrow">Operations dashboard</p>
           <h1>Inquiries</h1>
           <p className="lead">
-            Search, filter, sort, and act on inquiry records from one table-based workspace.
+            Track new requests, consultation load, reserved dates, quotes, and payments from one operations view.
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -222,16 +375,100 @@ export default async function AdminInquiriesPage({
       <section className="admin-mini-report">
         <div className="admin-section-title">
           <h3>Summary</h3>
-          <p className="muted">Top-line numbers only. The full list lives in the table below.</p>
+          <p className="muted">Top-line numbers for the parts of the booking lifecycle that need attention first.</p>
         </div>
-        <div className="admin-kpi-grid admin-kpi-grid--compact">
+        <div className="admin-kpi-grid">
           {reportCards.map((card) => (
-            <div key={card.label} className="card metric-card metric-card--neutral">
+            <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
               <p className="muted">{card.label}</p>
               <strong>{card.value}</strong>
               <span>{card.note}</span>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="admin-dashboard-grid">
+        <div className="card admin-panel admin-panel--wide">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Schedule focus</p>
+              <h3>Consultations and reserved dates</h3>
+            </div>
+            <div className="admin-inline-actions">
+              <Link href="/admin/calendar" className="admin-topbar-pill">
+                Calendar View
+              </Link>
+              <Link href="/admin/inquiries?sort=event_date" className="admin-topbar-pill">
+                List View
+              </Link>
+            </div>
+          </div>
+
+          <div className="admin-schedule-board">
+            <div className="admin-schedule-column">
+              <strong className="admin-schedule-heading">Upcoming consultations</strong>
+              {(upcomingConsultations ?? []).length ? (
+                <div className="admin-schedule-list">
+                  {upcomingConsultations?.map((item) => (
+                    <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-schedule-item">
+                      <div>
+                        <strong>{item.first_name} {item.last_name}</strong>
+                        <p>{item.event_type || "Event"} {item.event_date ? `• ${new Date(item.event_date).toLocaleDateString()}` : ""}</p>
+                      </div>
+                      <span>{formatDateTime(item.consultation_at)}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No consultations scheduled in the next two weeks.</p>
+              )}
+            </div>
+
+            <div className="admin-schedule-column">
+              <strong className="admin-schedule-heading">Busiest reserved dates this month</strong>
+              {busiestDates.length ? (
+                <div className="admin-date-load-list">
+                  {busiestDates.map(([date, count]) => (
+                    <div key={date} className={`admin-date-load admin-date-load--${count >= 3 ? "high" : count === 2 ? "medium" : "low"}`}>
+                      <div>
+                        <strong>{new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</strong>
+                        <p>{count} booking{count === 1 ? "" : "s"} on the calendar</p>
+                      </div>
+                      <span>{count >= 3 ? "High Load" : count === 2 ? "Double Booking" : "Reserved"}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No reserved dates are carrying visible load this month.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="card admin-panel">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Alerts</p>
+              <h3>What needs attention now</h3>
+            </div>
+          </div>
+
+          <div className="admin-alert-stack">
+            {alerts.length ? (
+              alerts.map((alert) => (
+                <div key={alert.label} className={`admin-alert-card admin-alert-card--${alert.tone}`}>
+                  <strong>{alert.label}</strong>
+                  <p>{alert.detail}</p>
+                </div>
+              ))
+            ) : (
+              <div className="admin-alert-card admin-alert-card--success">
+                <strong>Operations look clear</strong>
+                <p>No immediate consultation, booking-load, or payment alerts are blocking the workflow right now.</p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -303,55 +540,67 @@ export default async function AdminInquiriesPage({
           <table className="admin-records-table">
             <thead>
               <tr>
-                <th>Client Name</th>
+                <th>Customer Name</th>
                 <th>Event Type</th>
                 <th>Event Date</th>
-                <th>Guest Count</th>
+                <th>Consultation Date</th>
                 <th>Status</th>
-                <th>Booking</th>
-                <th>Package / Quote</th>
+                <th>Quote</th>
+                <th>Payment</th>
                 <th>Created Date</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.length ? (
-                data.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <div className="admin-record-main">
-                        <strong>
-                          {row.first_name} {row.last_name}
-                        </strong>
-                        <span>{row.email}</span>
-                        <span>{row.phone}</span>
-                      </div>
-                    </td>
-                    <td>{row.event_type}</td>
-                    <td>{row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}</td>
-                    <td>{row.guest_count ?? "—"}</td>
-                    <td>
-                      <div className="admin-record-status-stack">
-                        <StatusBadge status={row.status ?? "new"} />
-                        <span className="admin-record-substatus">
-                          {humanizeLabel(row.consultation_status ?? "not_scheduled")}
-                        </span>
-                      </div>
-                    </td>
-                    <td>{humanizeBookingStage(row.booking_stage)}</td>
-                    <td>
-                      <div className="admin-record-main">
-                        <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
-                        <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
-                        <span>{row.venue_name ?? "Venue not added"}</span>
-                      </div>
-                    </td>
-                    <td>{new Date(row.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <InquiryRecordActions inquiryId={row.id} />
-                    </td>
-                  </tr>
-                ))
+                data.map((row) => {
+                  const contract = contractMap.get(row.id) ?? null;
+
+                  return (
+                    <tr key={row.id}>
+                      <td>
+                        <div className="admin-record-main">
+                          <strong>
+                            {row.first_name} {row.last_name}
+                          </strong>
+                          <span>{row.email}</span>
+                          <span>{row.phone}</span>
+                        </div>
+                      </td>
+                      <td>{row.event_type}</td>
+                      <td>{row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}</td>
+                      <td>{formatDateTime(row.consultation_at)}</td>
+                      <td>
+                        <div className="admin-record-status-stack">
+                          <StatusBadge status={row.status ?? "new"} />
+                          <span className="admin-record-substatus">
+                            {humanizeBookingStage(row.booking_stage)} • {humanizeLabel(row.consultation_status ?? "not_scheduled")}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="admin-record-main">
+                          <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
+                          <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
+                          <span>{row.venue_name ?? "Venue not added"}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="admin-record-main">
+                          <strong>{getPaymentState(contract)}</strong>
+                          <span>{contract?.contract_status ? humanizeLabel(contract.contract_status) : "Contract not created"}</span>
+                        </div>
+                      </td>
+                      <td>{new Date(row.created_at).toLocaleDateString()}</td>
+                      <td>
+                        <InquiryRecordActions
+                          inquiryId={row.id}
+                          contractId={contract?.id ?? null}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={9} className="admin-records-empty">
@@ -364,42 +613,53 @@ export default async function AdminInquiriesPage({
         </div>
 
         <div className="admin-mobile-records">
-          {data?.map((row) => (
-            <div key={row.id} className="admin-mobile-record">
-              <div className="admin-mobile-record-head">
-                <div>
-                  <strong>{row.first_name} {row.last_name}</strong>
-                  <span>{row.event_type}</span>
+          {data?.map((row) => {
+            const contract = contractMap.get(row.id) ?? null;
+
+            return (
+              <div key={row.id} className="admin-mobile-record">
+                <div className="admin-mobile-record-head">
+                  <div>
+                    <strong>{row.first_name} {row.last_name}</strong>
+                    <span>{row.event_type}</span>
+                  </div>
+                  <StatusBadge status={row.status ?? "new"} />
                 </div>
-                <StatusBadge status={row.status ?? "new"} />
-              </div>
 
-              <div className="admin-mobile-record-grid">
-                <p>
-                  <span>Event date</span>
-                  {row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}
-                </p>
-                <p>
-                  <span>Guest count</span>
-                  {row.guest_count ?? "—"}
-                </p>
-                <p>
-                  <span>Booking</span>
-                  {humanizeBookingStage(row.booking_stage)}
-                </p>
-                <p>
-                  <span>Quote</span>
-                  ${formatMoney(Number(row.estimated_price ?? 0))}
-                </p>
-                <p>
-                  <span>Created</span>
-                  {new Date(row.created_at).toLocaleDateString()}
-                </p>
-              </div>
+                <div className="admin-mobile-record-grid">
+                  <p>
+                    <span>Event date</span>
+                    {row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}
+                  </p>
+                  <p>
+                    <span>Consultation</span>
+                    {formatDateTime(row.consultation_at)}
+                  </p>
+                  <p>
+                    <span>Booking</span>
+                    {humanizeBookingStage(row.booking_stage)}
+                  </p>
+                  <p>
+                    <span>Quote</span>
+                    ${formatMoney(Number(row.estimated_price ?? 0))}
+                  </p>
+                  <p>
+                    <span>Payment</span>
+                    {getPaymentState(contract)}
+                  </p>
+                  <p>
+                    <span>Created</span>
+                    {new Date(row.created_at).toLocaleDateString()}
+                  </p>
+                </div>
 
-              <InquiryRecordActions inquiryId={row.id} />
-            </div>
-          ))}
+                <InquiryRecordActions
+                  inquiryId={row.id}
+                  contractId={contract?.id ?? null}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <div className="admin-table-pagination">
