@@ -586,6 +586,7 @@ export default function EventRequestForm({
   const [categoryRefinements, setCategoryRefinements] = useState<Record<string, string>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
+  const [previewPulse, setPreviewPulse] = useState(false);
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
   const experienceCards = useMemo(
@@ -789,6 +790,8 @@ export default function EventRequestForm({
       selectedImages.length || uploadedImages.length
         ? [...selectedImages, ...uploadedImages].slice(0, 4)
         : fallbackImages;
+    const leadImage = images[0] ?? null;
+    const supportingImages = images.slice(1, 4);
     const baseContent =
       previewContentByExperience[activeExperience as keyof typeof previewContentByExperience] ??
       previewContentByExperience.default;
@@ -809,16 +812,28 @@ export default function EventRequestForm({
         ? "Best fit: a custom large-event package with layered room styling and logistics support."
         : "Best fit: a focused decor package centered on your main focal points and guest-table styling.";
 
+    const selectedDecorSummary = activeGuidedCategory
+      ? `Focused on ${activeGuidedCategory.title.toLowerCase()}`
+      : selectedCategoryKeys.length
+        ? `${selectedCategoryKeys.length} decor ${selectedCategoryKeys.length === 1 ? "element" : "elements"} selected`
+        : "Choose decor elements to shape the room direction";
+
     return {
       images,
+      leadImage,
+      supportingImages,
       eventDirectionLabel: baseContent.label,
       previewStateLabel: activeExperienceCard?.title ?? "Visual Direction",
       isPlaceholder: !activeExperience,
       styleDescription,
       decorDirection,
       packageRecommendation,
+      selectedImageCount: selectedImages.length,
+      uploadedImageCount: uploadedImages.length,
+      selectedDecorSummary,
     };
   }, [
+    activeGuidedCategory,
     selectedEventExperience,
     experienceCards,
     form.budgetRange,
@@ -857,6 +872,12 @@ export default function EventRequestForm({
       form.requestedVendorCategories,
     ]
   );
+
+  useEffect(() => {
+    setPreviewPulse(true);
+    const timeout = window.setTimeout(() => setPreviewPulse(false), 420);
+    return () => window.clearTimeout(timeout);
+  }, [previewSignature]);
 
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
@@ -1913,27 +1934,60 @@ export default function EventRequestForm({
           <span>→</span>
         </div>
 
-        <aside className="card sidebar-box booking-summary">
-          <span className="booking-live-pill">Live Preview</span>
-          <p className="eyebrow">Your selections are shaping this design</p>
-          <h3 style={{ marginTop: 0 }}>Live Preview</h3>
-          <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
-            {preview.eventDirectionLabel}
+        <aside className={`card sidebar-box booking-summary ${previewPulse ? "is-updating" : ""}`}>
+          <div className="booking-summary-head">
+            <span className="booking-live-pill">Live Preview</span>
+            <p className="eyebrow">Your selections are shaping this design</p>
+            <h3 style={{ marginTop: 0 }}>Live Preview</h3>
+            <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
+              {preview.eventDirectionLabel}
+            </div>
+            <p className="muted">
+              This preview helps you picture the direction. Final concepts are customized during your consultation.
+            </p>
           </div>
-          <p className="muted">
-            This preview helps you picture the direction. Final concepts are customized during your consultation.
-          </p>
 
-          <div key={`preview-grid-${previewSignature}`} className="booking-preview-grid booking-preview-grid--animated">
-            {preview.images.map((item) => (
-              <div key={item.id} className="booking-preview-image">
-                <img src={item.image_url} alt={item.title} loading="lazy" />
-                <span>{item.category || "Portfolio"}</span>
+          <div key={`preview-stage-${previewSignature}`} className="booking-preview-stage">
+            {preview.leadImage ? (
+              <div className="booking-preview-hero">
+                <img src={preview.leadImage.image_url} alt={preview.leadImage.title} loading="lazy" />
+                <div className="booking-preview-hero-copy">
+                  <span>{preview.leadImage.category || preview.previewStateLabel}</span>
+                  <strong>{preview.previewStateLabel}</strong>
+                </div>
               </div>
-            ))}
+            ) : (
+              <div className="booking-preview-hero booking-preview-hero--empty">
+                <div className="booking-preview-empty-copy">
+                  <strong>Choose an event type to start building your visual direction.</strong>
+                </div>
+              </div>
+            )}
+
+            {preview.supportingImages.length ? (
+              <div className="booking-preview-grid booking-preview-grid--animated">
+                {preview.supportingImages.map((item) => (
+                  <div key={item.id} className="booking-preview-image">
+                    <img src={item.image_url} alt={item.title} loading="lazy" />
+                    <span>{item.category || "Portfolio"}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-            <div className="summary-stack">
+          <div className="booking-preview-meta-row">
+            <span className="booking-preview-meta-pill">Based on your selection</span>
+            <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
+            {preview.selectedImageCount ? (
+              <span className="booking-preview-meta-pill">{preview.selectedImageCount} image{preview.selectedImageCount === 1 ? "" : "s"} chosen</span>
+            ) : null}
+            {preview.uploadedImageCount ? (
+              <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
+            ) : null}
+          </div>
+
+          <div className="summary-stack">
             <div key={`preview-copy-${previewSignature}`} className="booking-preview-copy booking-preview-copy--highlight">
               <small className="booking-preview-kicker">Based on your selection</small>
               <strong>Style snapshot</strong>
@@ -1991,21 +2045,21 @@ export default function EventRequestForm({
                 )}
               </div>
             </div>
-                {guidedPreviewOptions.length ? (
-                  <div className="booking-preview-grouped">
-                    <strong>Selected inspiration by category</strong>
-                    <div className="booking-preview-selection-list">
-                      {guidedPreviewOptions.map((category) => {
-                        const selected = category.images.filter((item) =>
-                          (selectedPreviewImages[category.key] ?? []).includes(item.id)
-                        );
-                        const uploads = categoryUploads[category.key] ?? [];
-                        const note = categoryNotes[category.key];
-                        const refinement = categoryRefinements[category.key];
+            {guidedPreviewOptions.length ? (
+              <div className="booking-preview-grouped">
+                <strong>Selected inspiration by category</strong>
+                <div className="booking-preview-selection-list">
+                  {guidedPreviewOptions.map((category) => {
+                    const selected = category.images.filter((item) =>
+                      (selectedPreviewImages[category.key] ?? []).includes(item.id)
+                    );
+                    const uploads = categoryUploads[category.key] ?? [];
+                    const note = categoryNotes[category.key];
+                    const refinement = categoryRefinements[category.key];
 
-                        return (
-                          <div key={category.key} className="booking-preview-selection">
-                            <span>{category.title}</span>
+                    return (
+                      <div key={category.key} className="booking-preview-selection">
+                        <span>{category.title}</span>
                         {selected.length ? (
                           <div className="booking-preview-selection-card">
                             <div className="booking-preview-selection-images">
