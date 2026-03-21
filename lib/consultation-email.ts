@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { renderEmailTemplate } from "@/lib/email-template-renderer";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -23,10 +24,27 @@ type ScheduledConsultationPayload = {
   videoLink?: string | null;
 };
 
-function formatDateTime(value: string) {
+type VideoReminderPayload = {
+  clientName: string;
+  clientEmail: string;
+  meetingAt: string;
+  videoLink: string;
+};
+
+function formatMeetingDate(value: string) {
   try {
     return new Intl.DateTimeFormat("en-US", {
       dateStyle: "full",
+      timeZone: "America/New_York",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
+function formatMeetingTime(value: string) {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
       timeStyle: "short",
       timeZone: "America/New_York",
     }).format(new Date(value));
@@ -36,18 +54,9 @@ function formatDateTime(value: string) {
 }
 
 function humanizeMeetingType(type: string) {
-  if (type === "video_meeting") {
-    return "video call";
-  }
-
-  if (type === "in_person") {
-    return "in person";
-  }
-
-  if (type === "phone_call") {
-    return "phone call";
-  }
-
+  if (type === "video_meeting") return "video call";
+  if (type === "in_person") return "in person";
+  if (type === "phone_call") return "phone call";
   return type.replaceAll("_", " ");
 }
 
@@ -55,7 +64,7 @@ export function canSendConsultationEmail() {
   return Boolean(resend && process.env.NOTIFICATION_FROM_EMAIL);
 }
 
-export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationPayload) {
+async function sendRenderedEmail(to: string, subject: string, html: string, text: string) {
   if (!resend) {
     throw new Error("RESEND_API_KEY is not configured");
   }
@@ -66,96 +75,104 @@ export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationP
 
   const { error } = await resend.emails.send({
     from: process.env.NOTIFICATION_FROM_EMAIL,
-    to: payload.clientEmail,
-    subject: "Your request has been received – Elel Events & Design",
-    html: `
-      <h2>Hello ${payload.clientName},</h2>
-      <p>Thank you for your request. We have received your event inquiry successfully.</p>
-      <p><strong>Event type:</strong> ${payload.eventType}</p>
-      <p><strong>Requested date:</strong> ${payload.eventDate || "To be confirmed"}</p>
-      <p>Our team will review the details and notify you within 12–24 hours with the next steps.</p>
-      <p>Warmly,<br/>Elel Events & Design</p>
-    `,
+    to,
+    subject,
+    html,
+    text,
   });
 
   if (error) {
-    throw new Error(error.message || "Inquiry confirmation email failed");
+    throw new Error(error.message || "Email failed to send");
   }
+}
+
+export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationPayload) {
+  const [firstName] = payload.clientName.split(" ");
+  const rendered = renderEmailTemplate("request_submitted", {
+    customer_first_name: firstName,
+    customer_full_name: payload.clientName,
+    event_type: payload.eventType,
+    event_date: payload.eventDate || "To be confirmed",
+    response_window: "12–24 hours",
+  });
+
+  await sendRenderedEmail(
+    payload.clientEmail,
+    rendered.subject,
+    rendered.html,
+    rendered.text
+  );
 }
 
 export async function sendConsultationScheduledEmails(
   payload: ScheduledConsultationPayload
 ) {
-  if (!resend) {
-    throw new Error("RESEND_API_KEY is not configured");
-  }
-
-  if (!process.env.NOTIFICATION_FROM_EMAIL) {
-    throw new Error("NOTIFICATION_FROM_EMAIL is not configured");
-  }
-
-  const meetingLabel = formatDateTime(payload.meetingAt);
-  const meetingTypeLabel = humanizeMeetingType(payload.meetingType);
-  const customerHtml =
+  const [firstName] = payload.clientName.split(" ");
+  const meetingDate = formatMeetingDate(payload.meetingAt);
+  const meetingTime = formatMeetingTime(payload.meetingAt);
+  const customerTemplate =
     payload.meetingType === "in_person"
-      ? `
-        <h2>Hello ${payload.clientName},</h2>
-        <p>Your consultation has been scheduled for <strong>${meetingLabel}</strong>.</p>
-        <p>This meeting will take place in person at <strong>${payload.meetingLocation}</strong>.</p>
-        <p>If anything changes before then, simply reply to this email and we will help you adjust the plan.</p>
-        <p>Warmly,<br/>Elel Events & Design</p>
-      `
-      : payload.meetingType === "video_meeting"
-        ? `
-          <h2>Hello ${payload.clientName},</h2>
-          <p>Your consultation has been scheduled for <strong>${meetingLabel}</strong>.</p>
-          <p>This meeting will take place by video call. A meeting link will be sent to you 30 minutes before the consultation.</p>
-          ${payload.videoLink ? `<p><strong>Video link:</strong> <a href="${payload.videoLink}">${payload.videoLink}</a></p>` : ""}
-          <p>Warmly,<br/>Elel Events & Design</p>
-        `
-        : `
-          <h2>Hello ${payload.clientName},</h2>
-          <p>Your consultation has been scheduled for <strong>${meetingLabel}</strong>.</p>
-          <p>This meeting will take place by ${meetingTypeLabel}.</p>
-          <p>Warmly,<br/>Elel Events & Design</p>
-        `;
+      ? "consultation_scheduled_in_person"
+      : "consultation_scheduled_video";
 
-  const adminTo = process.env.NOTIFICATION_TO_EMAIL;
-  const sends = [
-    resend.emails.send({
-      from: process.env.NOTIFICATION_FROM_EMAIL,
-      to: payload.clientEmail,
-      subject: "Your consultation has been scheduled – Elel Events & Design",
-      html: customerHtml,
-    }),
-  ];
+  const customerRendered = renderEmailTemplate(customerTemplate, {
+    customer_first_name: firstName,
+    customer_full_name: payload.clientName,
+    event_type: payload.eventType,
+    event_date: payload.eventDate || "To be confirmed",
+    meeting_date: meetingDate,
+    meeting_time: meetingTime,
+    meeting_type: humanizeMeetingType(payload.meetingType),
+    meeting_location: payload.meetingLocation || "To be confirmed",
+    video_link: payload.videoLink || "",
+  });
 
-  if (adminTo) {
-    sends.push(
-      resend.emails.send({
-        from: process.env.NOTIFICATION_FROM_EMAIL,
-        to: adminTo,
-        subject: `New consultation scheduled – ${payload.clientName}`,
-        html: `
-          <h2>New consultation scheduled</h2>
-          <p><strong>Customer:</strong> ${payload.clientName}</p>
-          <p><strong>Email:</strong> ${payload.clientEmail}</p>
-          <p><strong>Phone:</strong> ${payload.clientPhone || "—"}</p>
-          <p><strong>Event type:</strong> ${payload.eventType}</p>
-          <p><strong>Event date:</strong> ${payload.eventDate || "—"}</p>
-          <p><strong>Meeting date & time:</strong> ${meetingLabel}</p>
-          <p><strong>Meeting type:</strong> ${meetingTypeLabel}</p>
-          <p><strong>Location:</strong> ${payload.meetingLocation || "—"}</p>
-          <p><strong>Video link:</strong> ${payload.videoLink || "Will be sent later"}</p>
-        `,
-      })
+  await sendRenderedEmail(
+    payload.clientEmail,
+    customerRendered.subject,
+    customerRendered.html,
+    customerRendered.text
+  );
+
+  if (process.env.NOTIFICATION_TO_EMAIL) {
+    const adminRendered = renderEmailTemplate("admin_meeting_notification", {
+      customer_first_name: firstName,
+      customer_full_name: payload.clientName,
+      event_type: payload.eventType,
+      event_date: payload.eventDate || "—",
+      meeting_date: meetingDate,
+      meeting_time: meetingTime,
+      meeting_type: humanizeMeetingType(payload.meetingType),
+      meeting_location: payload.meetingLocation || "—",
+      video_link: payload.videoLink || "Will be sent later",
+      customer_email: payload.clientEmail,
+      customer_phone: payload.clientPhone || "—",
+    });
+
+    await sendRenderedEmail(
+      process.env.NOTIFICATION_TO_EMAIL,
+      adminRendered.subject,
+      adminRendered.html,
+      adminRendered.text
     );
   }
+}
 
-  const results = await Promise.all(sends);
-  const failed = results.find((result) => result.error);
-  if (failed?.error) {
-    throw new Error(failed.error.message || "Consultation scheduling email failed");
-  }
+export async function sendVideoLinkReminderEmail(payload: VideoReminderPayload) {
+  const [firstName] = payload.clientName.split(" ");
+  const rendered = renderEmailTemplate("video_link_reminder", {
+    customer_first_name: firstName,
+    customer_full_name: payload.clientName,
+    meeting_date: formatMeetingDate(payload.meetingAt),
+    meeting_time: formatMeetingTime(payload.meetingAt),
+    video_link: payload.videoLink,
+  });
+
+  await sendRenderedEmail(
+    payload.clientEmail,
+    rendered.subject,
+    rendered.html,
+    rendered.text
+  );
 }
 
