@@ -767,30 +767,48 @@ export default function EventRequestForm({
         }
         return eventNeedles.some((needle) => haystack.includes(needle.split(" ")[0]));
       })
+      .slice(0, 8);
+
+    const eventCardImageUrls = new Set(
+      experienceCards
+        .filter((item) => item.key === activeExperience || (activeExperience === "celebrations" && item.key === "celebrations"))
+        .map((item) => item.imageUrl)
+        .filter(Boolean)
+    );
+
+    const recommendedDecorPool = recommendedDecorKeys.flatMap((key) => {
+      const category = guidedPreviewCategories[key];
+
+      if (!category) {
+        return [];
+      }
+
+      return portfolioItems.filter((item) => {
+        const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
+        const matchesCategory = category.keywords.some((keyword) =>
+          haystack.includes(normalizeSearchText(keyword))
+        );
+        const matchesEvent =
+          !eventNeedles.length ||
+          eventNeedles.some((needle) => haystack.includes(normalizeSearchText(needle)));
+
+        return matchesCategory && matchesEvent;
+      });
+    });
+
+    const fallbackImages = [...recommendedDecorPool, ...matchedImages, ...portfolioItems]
+      .filter((item, index, items) => {
+        const isDuplicate = items.findIndex((candidate) => candidate.image_url === item.image_url) !== index;
+        return !isDuplicate && !eventCardImageUrls.has(item.image_url);
+      })
       .slice(0, 4);
 
-    const experienceImages = activeExperience
-      ? experienceCards
-          .filter((item) => item.key === activeExperience || (activeExperience === "celebrations" && item.key === "celebrations"))
-          .map((item, index) => ({
-            id: `${item.key}-${index}`,
-            image_url: item.imageUrl,
-            title: item.title,
-            category: item.title,
-          }))
-          .filter((item) => item.image_url)
-      : [];
-    const fallbackImages = matchedImages.length
-      ? matchedImages
-      : experienceImages.length
-        ? experienceImages
-        : portfolioItems.slice(0, 4);
     const images =
       selectedImages.length || uploadedImages.length
         ? [...selectedImages, ...uploadedImages].slice(0, 4)
         : fallbackImages;
     const leadImage = images[0] ?? null;
-    const supportingImages = images.slice(1, 4);
+    const supportingImages = images.slice(1, 3);
     const baseContent =
       previewContentByExperience[activeExperience as keyof typeof previewContentByExperience] ??
       previewContentByExperience.default;
