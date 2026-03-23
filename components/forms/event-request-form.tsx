@@ -930,6 +930,29 @@ export default function EventRequestForm({
       })),
     [categoryNotes, categoryRefinements, categoryUploads, guidedPreviewOptions, selectedPreviewImages]
   );
+  const compactPreviewItems = useMemo(
+    () =>
+      guidedPreviewOptions
+        .map((category) => {
+          const selectedImage = category.images.find((item) =>
+            (selectedPreviewImages[category.key] ?? []).includes(item.id)
+          );
+          const uploadedImage = (categoryUploads[category.key] ?? [])[0];
+          const imageUrl = selectedImage?.image_url ?? uploadedImage ?? "";
+
+          if (!imageUrl) {
+            return null;
+          }
+
+          return {
+            key: category.key,
+            title: category.title,
+            imageUrl,
+          };
+        })
+        .filter(Boolean) as Array<{ key: string; title: string; imageUrl: string }>,
+    [categoryUploads, guidedPreviewOptions, selectedPreviewImages]
+  );
 
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -1998,6 +2021,27 @@ export default function EventRequestForm({
 
             {success ? <p className="success">{success}</p> : null}
             {error ? <p className="error">{error}</p> : null}
+
+            {step < 3 ? (
+              <section className="booking-mini-preview" aria-label="Your Event Preview">
+                <div className="booking-mini-preview-head">
+                  <strong>Your Event Preview</strong>
+                </div>
+
+                {compactPreviewItems.length ? (
+                  <div className="booking-mini-preview-row">
+                    {compactPreviewItems.map((item) => (
+                      <div key={item.key} className="booking-mini-preview-card">
+                        <img src={item.imageUrl} alt={item.title} loading="lazy" />
+                        <span>{item.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">Start selecting items to build your event preview.</p>
+                )}
+              </section>
+            ) : null}
 
             <div className="booking-actions">
               <button type="button" className="btn secondary" onClick={previousStep} disabled={step === 0 || loading}>

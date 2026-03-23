@@ -2360,8 +2360,8 @@ th { background: var(--surface-soft); }
 }
 .event-experience-card {
   position: relative;
-  min-height: 140px;
-  height: 140px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 20px;
   border: 1px solid rgba(93, 39, 4, 0.08);
@@ -2910,6 +2910,56 @@ th { background: var(--surface-soft); }
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+.booking-mini-preview {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 18px 18px 14px;
+  border-radius: 22px;
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(248, 241, 232, 0.92));
+  box-shadow: 0 16px 28px rgba(48, 24, 11, 0.05);
+}
+.booking-mini-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.booking-mini-preview-head strong {
+  font-size: 1rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.booking-mini-preview-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.booking-mini-preview-card {
+  flex: 0 0 140px;
+  width: 140px;
+  display: grid;
+  gap: 8px;
+  animation: bookingPreviewFade 260ms ease;
+}
+.booking-mini-preview-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
+  box-shadow: 0 14px 26px rgba(48, 24, 11, 0.1);
+}
+.booking-mini-preview-card span {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 .booking-preview-selection-remove {
   display: inline-flex;
@@ -5699,6 +5749,10 @@ th { background: var(--surface-soft); }
   .booking-vision-board {
     padding: 24px;
   }
+  .booking-mini-preview-card {
+    flex-basis: 132px;
+    width: 132px;
+  }
   .booking-preview-hero {
     min-height: 220px;
   }
@@ -6108,11 +6162,13 @@ th { background: var(--surface-soft); }
     grid-template-columns: 1fr;
   }
   .event-experience-card {
-    min-height: 180px;
-    height: 180px;
+    aspect-ratio: 4 / 3;
   }
   .event-experience-card strong {
     font-size: 1.38rem;
+  }
+  .booking-mini-preview {
+    padding: 16px;
   }
   .guided-preview-accordion-item.expanded {
     grid-column: span 1;
