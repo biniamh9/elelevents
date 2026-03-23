@@ -1936,9 +1936,9 @@ export default function EventRequestForm({
 
         <aside className={`card sidebar-box booking-summary ${previewPulse ? "is-updating" : ""}`}>
           <div className="booking-summary-head">
-            <span className="booking-live-pill">Live Preview</span>
-            <p className="eyebrow">Your selections are shaping this design</p>
-            <h3 style={{ marginTop: 0 }}>Live Preview</h3>
+            <span className="booking-live-pill">Your Event Design</span>
+            <p className="eyebrow">Built from your selections</p>
+            <h3 style={{ marginTop: 0 }}>Your Event Design</h3>
             <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
               {preview.eventDirectionLabel}
             </div>
