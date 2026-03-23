@@ -89,9 +89,9 @@ const paletteSuggestions = [
 ];
 const steps = [
   { id: "event-type", label: "Event Type" },
-  { id: "basics", label: "Event Basics" },
-  { id: "visual-builder", label: "Visual Builder" },
-  { id: "summary", label: "Summary" },
+  { id: "basics", label: "Event Details" },
+  { id: "visual-builder", label: "Design Builder" },
+  { id: "summary", label: "Your Event Vision" },
 ];
 
 type GuidedPreviewCategoryConfig = {
@@ -586,7 +586,6 @@ export default function EventRequestForm({
   const [categoryRefinements, setCategoryRefinements] = useState<Record<string, string>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
-  const [previewPulse, setPreviewPulse] = useState(false);
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
   const experienceCards = useMemo(
@@ -873,12 +872,6 @@ export default function EventRequestForm({
     ]
   );
 
-  useEffect(() => {
-    setPreviewPulse(true);
-    const timeout = window.setTimeout(() => setPreviewPulse(false), 420);
-    return () => window.clearTimeout(timeout);
-  }, [previewSignature]);
-
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
       .map((category) => {
@@ -1141,7 +1134,7 @@ export default function EventRequestForm({
             Choose the event type, add the essentials, then shape the visual direction with real portfolio references.
           </p>
           <p className="booking-preview-intro">
-            The preview updates live as you choose images, upload inspiration, and define the room direction.
+            Complete the selections first, then review everything inside your event vision board before you send the request.
           </p>
         </div>
         <div className="booking-stepbar" aria-label="Booking steps">
@@ -1161,7 +1154,7 @@ export default function EventRequestForm({
         <div ref={formCardRef} className="card form-card booking-form-card">
           <div className="booking-pane-head">
             <span className="booking-pane-tag">Build Your Event</span>
-            <p className="muted">Choose the event details on the left and shape the visual direction step by step.</p>
+            <p className="muted">Move step by step through the event details, then review the full visual summary before submission.</p>
           </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
@@ -1454,7 +1447,7 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 3</p>
                   <h3>What would you like us to style?</h3>
-                  <p className="muted">Choose all that apply. You can refine the details in the preview.</p>
+                  <p className="muted">Choose all that apply. Add image choices, uploads, and notes, then review everything together in your event vision.</p>
                 </div>
 
                 <div className="field">
@@ -1850,25 +1843,124 @@ export default function EventRequestForm({
               <section className="booking-panel">
                 <div className="panel-head">
                   <p className="eyebrow">Step 4</p>
-                  <h3>Review and send.</h3>
-                  <p className="muted">You can jump back to any step before submitting.</p>
+                  <h3>Your Event Vision</h3>
+                  <p className="muted">A visual summary built from your selections. Review everything here before you send the request.</p>
                 </div>
 
-                <div className="review-card">
-                  <h4>Booking summary</h4>
-                  <div className="review-grid">
-                    <p><strong>Client:</strong> {form.firstName || "—"} {form.lastName || ""}</p>
-                    <p><strong>Event:</strong> {effectiveEventType || "—"}</p>
-                    <p><strong>Date:</strong> {form.eventDate || "—"}</p>
-                    <p><strong>Guest range:</strong> {form.guestCountRange || "—"}</p>
-                    <p><strong>Venue:</strong> {form.venueName || "—"}</p>
-                    <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
-                    <p><strong>Consultation time:</strong> {[form.consultationPreferenceDate, form.consultationPreferenceTime].filter(Boolean).join(" • ") || "—"}</p>
-                    {form.preferredContactMethod === "Video meeting" ? (
-                      <p><strong>Video platform:</strong> {form.consultationVideoPlatform || "—"}</p>
-                    ) : null}
-                    <p><strong>Design selections:</strong> {derivedServices.length || 0}</p>
-                    <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
+                <div className="booking-vision-board">
+                  <div className="booking-vision-hero">
+                    <div className="booking-vision-copy">
+                      <span className="booking-live-pill">Your Event Vision</span>
+                      <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
+                        {preview.eventDirectionLabel}
+                      </div>
+                      <h4>{preview.previewStateLabel}</h4>
+                      <p className="muted">{preview.styleDescription}</p>
+                    </div>
+
+                    {preview.leadImage ? (
+                      <div className="booking-vision-hero-media">
+                        <img
+                          key={`vision-hero-${previewSignature}`}
+                          src={preview.leadImage.image_url}
+                          alt={preview.leadImage.title}
+                          loading="lazy"
+                        />
+                        <span>{preview.leadImage.category || "Portfolio"}</span>
+                      </div>
+                    ) : (
+                      <div className="booking-vision-empty">
+                        <strong>Choose an event type and decor elements to start building the board.</strong>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="booking-vision-summary-grid">
+                    <div className="booking-vision-summary-card">
+                      <strong>Event Summary</strong>
+                      <div className="review-grid">
+                        <p><strong>Event:</strong> {effectiveEventType || "—"}</p>
+                        <p><strong>Date:</strong> {form.eventDate || "—"}</p>
+                        <p><strong>Guest count:</strong> {form.guestCount || form.guestCountRange || "—"}</p>
+                        <p><strong>Venue:</strong> {form.venueName || "—"}</p>
+                      </div>
+                    </div>
+
+                    <div className="booking-vision-summary-card">
+                      <strong>Consultation</strong>
+                      <div className="review-grid">
+                        <p><strong>Method:</strong> {form.preferredContactMethod || "—"}</p>
+                        <p><strong>Time:</strong> {[form.consultationPreferenceDate, form.consultationPreferenceTime].filter(Boolean).join(" • ") || "—"}</p>
+                        {form.preferredContactMethod === "Video meeting" ? (
+                          <p><strong>Platform:</strong> {form.consultationVideoPlatform || "—"}</p>
+                        ) : null}
+                        <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? form.requestedVendorCategories.join(", ") : "Not requested"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="booking-vision-recommendation">
+                    <div className="booking-preview-copy booking-preview-copy--highlight">
+                      <small className="booking-preview-kicker">Recommended decor direction</small>
+                      <strong>{preview.decorDirection}</strong>
+                      <p className="muted">{preview.packageRecommendation}</p>
+                    </div>
+                  </div>
+
+                  <div className="booking-vision-selection-board">
+                    <div className="booking-vision-selection-head">
+                      <div>
+                        <strong>Selected decor sections</strong>
+                        <p className="muted">Each card reflects the visual direction you chose for that part of the event.</p>
+                      </div>
+                    </div>
+
+                    {guidedPreviewOptions.length ? (
+                      <div className="booking-vision-card-grid">
+                        {guidedPreviewOptions.map((category) => {
+                          const selected = category.images.filter((item) =>
+                            (selectedPreviewImages[category.key] ?? []).includes(item.id)
+                          );
+                          const uploads = categoryUploads[category.key] ?? [];
+                          const note = categoryNotes[category.key];
+                          const refinement = categoryRefinements[category.key];
+                          const coverImage = selected[0]?.image_url ?? uploads[0] ?? null;
+                          const hasSelection = selected.length > 0 || uploads.length > 0 || Boolean(note) || Boolean(refinement);
+
+                          return (
+                            <div key={category.key} className={`booking-vision-card ${hasSelection ? "" : "booking-vision-card--empty"}`}>
+                              {coverImage ? (
+                                <div className="booking-vision-card-media">
+                                  <img src={coverImage} alt={category.title} loading="lazy" />
+                                  <span>{category.title}</span>
+                                </div>
+                              ) : (
+                                <div className="booking-vision-card-placeholder">
+                                  <span>{category.title}</span>
+                                </div>
+                              )}
+
+                              <div className="booking-vision-card-copy">
+                                <strong>{category.title}</strong>
+                                {selected.length ? (
+                                  <small>{selected.length} gallery image{selected.length === 1 ? "" : "s"} selected</small>
+                                ) : null}
+                                {uploads.length ? (
+                                  <small>{uploads.length} uploaded inspiration image{uploads.length === 1 ? "" : "s"}</small>
+                                ) : null}
+                                {refinement ? <small>{refinement}</small> : null}
+                                {note ? <p className="muted">{note}</p> : null}
+                                {!hasSelection ? <p className="muted">No visual selection added yet.</p> : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="booking-vision-empty-board">
+                        <p className="muted">Choose decor elements in the previous step to build the visual board here.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1929,202 +2021,6 @@ export default function EventRequestForm({
             </div>
           </form>
         </div>
-
-        <div className="booking-flow-cue" aria-hidden="true">
-          <span>→</span>
-        </div>
-
-        <aside className={`card sidebar-box booking-summary ${previewPulse ? "is-updating" : ""}`}>
-          <div className="booking-summary-head">
-            <span className="booking-live-pill">Your Event Design</span>
-            <p className="eyebrow">Built from your selections</p>
-            <h3 style={{ marginTop: 0 }}>Your Event Design</h3>
-            <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
-              {preview.eventDirectionLabel}
-            </div>
-            <p className="muted">
-              This preview helps you picture the direction. Final concepts are customized during your consultation.
-            </p>
-          </div>
-
-          <div key={`preview-stage-${previewSignature}`} className="booking-preview-stage">
-            {preview.leadImage ? (
-              <div className="booking-preview-hero">
-                <img src={preview.leadImage.image_url} alt={preview.leadImage.title} loading="lazy" />
-                <div className="booking-preview-hero-copy">
-                  <span>{preview.leadImage.category || preview.previewStateLabel}</span>
-                  <strong>{preview.previewStateLabel}</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="booking-preview-hero booking-preview-hero--empty">
-                <div className="booking-preview-empty-copy">
-                  <strong>Choose an event type to start building your visual direction.</strong>
-                </div>
-              </div>
-            )}
-
-            {preview.supportingImages.length ? (
-              <div className="booking-preview-grid booking-preview-grid--animated">
-                {preview.supportingImages.map((item) => (
-                  <div key={item.id} className="booking-preview-image">
-                    <img src={item.image_url} alt={item.title} loading="lazy" />
-                    <span>{item.category || "Portfolio"}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="booking-preview-meta-row">
-            <span className="booking-preview-meta-pill">Based on your selection</span>
-            <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
-            {preview.selectedImageCount ? (
-              <span className="booking-preview-meta-pill">{preview.selectedImageCount} image{preview.selectedImageCount === 1 ? "" : "s"} chosen</span>
-            ) : null}
-            {preview.uploadedImageCount ? (
-              <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
-            ) : null}
-          </div>
-
-          <div className="summary-stack">
-            <div key={`preview-copy-${previewSignature}`} className="booking-preview-copy booking-preview-copy--highlight">
-              <small className="booking-preview-kicker">Based on your selection</small>
-              <strong>Style snapshot</strong>
-              <p className="muted">{preview.styleDescription}</p>
-            </div>
-            <div className="booking-preview-copy">
-              <strong>Recommended decor direction</strong>
-              <p className="muted">{preview.decorDirection}</p>
-            </div>
-            <div className="booking-preview-copy">
-              <strong>Suggested package path</strong>
-              <p className="muted">{preview.packageRecommendation}</p>
-            </div>
-            <div>
-              <strong>Event</strong>
-              <p className="muted">{effectiveEventType || "Not selected yet"}</p>
-            </div>
-            <div>
-              <strong>Date & venue</strong>
-              <p className="muted">
-                {form.eventDate || "Date not added"}
-                {form.venueName ? ` • ${form.venueName}` : ""}
-              </p>
-            </div>
-            <div>
-              <strong>Consultation</strong>
-              <p className="muted">
-                {[
-                  form.preferredContactMethod,
-                  form.consultationPreferenceDate,
-                  form.consultationPreferenceTime,
-                  form.preferredContactMethod === "Video meeting" ? form.consultationVideoPlatform : "",
-                ]
-                  .filter(Boolean)
-                  .join(" • ") || "We will follow up using your preferred contact method"}
-              </p>
-            </div>
-            <div>
-              <strong>Palette + style</strong>
-              <p className="muted">
-                {[form.colorsTheme, form.decorStyle].filter(Boolean).join(" • ") || "Still open for consultation"}
-              </p>
-            </div>
-            <div>
-              <strong>Selected decor direction</strong>
-              <div className="summary-pills">
-                {derivedServices.length > 0 ? (
-                  derivedServices.map((service) => (
-                    <span key={service} className="summary-chip">
-                      {service}
-                    </span>
-                  ))
-                ) : (
-                  <p className="muted">No selections yet.</p>
-                )}
-              </div>
-            </div>
-            {guidedPreviewOptions.length ? (
-              <div className="booking-preview-grouped">
-                <strong>Selected inspiration by category</strong>
-                <div className="booking-preview-selection-list">
-                  {guidedPreviewOptions.map((category) => {
-                    const selected = category.images.filter((item) =>
-                      (selectedPreviewImages[category.key] ?? []).includes(item.id)
-                    );
-                    const uploads = categoryUploads[category.key] ?? [];
-                    const note = categoryNotes[category.key];
-                    const refinement = categoryRefinements[category.key];
-
-                    return (
-                      <div key={category.key} className="booking-preview-selection">
-                        <span>{category.title}</span>
-                        {selected.length ? (
-                          <div className="booking-preview-selection-card">
-                            <div className="booking-preview-selection-images">
-                              {selected.map((item) => (
-                                <img key={item.id} src={item.image_url} alt={item.title} loading="lazy" />
-                              ))}
-                            </div>
-                            <small>{selected.map((item) => item.title).join(" • ")}</small>
-                            {refinement ? <small>{refinement}</small> : null}
-                            {note ? <small>{note}</small> : null}
-                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
-                              Remove
-                            </button>
-                          </div>
-                        ) : uploads.length ? (
-                          <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
-                            <div className="booking-preview-selection-images">
-                              {uploads.map((url) => (
-                                <img key={url} src={url} alt={`${category.title} upload`} loading="lazy" />
-                              ))}
-                            </div>
-                            <small>{uploads.length} uploaded inspiration image{uploads.length === 1 ? "" : "s"}</small>
-                            {refinement ? <small>{refinement}</small> : null}
-                            {note ? <small>{note}</small> : null}
-                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
-                              Clear
-                            </button>
-                          </div>
-                        ) : note ? (
-                          <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
-                            {refinement ? <small>{refinement}</small> : null}
-                            <small>{note}</small>
-                            <button type="button" className="booking-preview-selection-remove" onClick={() => clearCategorySelection(category.key)}>
-                              Clear
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="muted">Skipped for now</p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-            <div>
-              <strong>Partner vendors</strong>
-              <div className="summary-pills">
-                {form.requestedVendorCategories.length > 0 ? (
-                  form.requestedVendorCategories.map((category) => (
-                    <span key={category} className="summary-chip">
-                      {category}
-                    </span>
-                  ))
-                ) : (
-                  <p className="muted">No vendor recommendations requested.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <p className="booking-preview-note">
-            Inspiration preview only. Final concept, florals, rentals, and exact room design are refined during consultation.
-          </p>
-        </aside>
       </div>
     </div>
   );
