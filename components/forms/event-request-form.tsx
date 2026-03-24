@@ -613,7 +613,11 @@ export default function EventRequestForm({
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingBasics =
     !form.eventDate ||
-    (!form.guestCount && !form.guestCountRange);
+    (!form.guestCount && !form.guestCountRange) ||
+    !form.firstName ||
+    !form.lastName ||
+    !form.email ||
+    !form.phone;
   const missingContactDetails =
     !form.firstName ||
     !form.lastName ||
@@ -1091,11 +1095,6 @@ export default function EventRequestForm({
       return;
     }
 
-    if (step === 3 && missingContactDetails) {
-      setError("Add your contact details before moving to the final submit step.");
-      return;
-    }
-
     setError("");
     setStep((current) => Math.min(current + 1, steps.length - 1));
   }
@@ -1322,7 +1321,7 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 2 of 5</p>
                   <h3>Add the event basics.</h3>
-                  <p className="muted">Keep this step compact. Add the date, guest count, location, and budget range.</p>
+                  <p className="muted">Keep this step compact. Add the date, guest count, location, budget range, and the contact details we need to follow up.</p>
                 </div>
 
                 <div className="scope-card">
@@ -1370,6 +1369,28 @@ export default function EventRequestForm({
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="scope-card">
+                  <h4>Contact details</h4>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label className="label">First Name</label>
+                      <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Last Name</label>
+                      <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Email</label>
+                      <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Phone</label>
+                      <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
                     </div>
                   </div>
                 </div>
@@ -1749,7 +1770,7 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 5 of 5</p>
                   <h3>Review and submit.</h3>
-                  <p className="muted">Confirm the request details, add the remaining contact and consultation information, and submit when ready.</p>
+                  <p className="muted">Confirm the request details, add the remaining consultation preferences, and submit when ready.</p>
                 </div>
 
                 <div className="booking-review-grid">
@@ -1766,23 +1787,11 @@ export default function EventRequestForm({
 
                   <div className="scope-card booking-review-card">
                     <h4>Contact & consultation</h4>
-                    <div className="form-grid">
-                      <div className="field">
-                        <label className="label">First Name</label>
-                        <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-                      </div>
-                      <div className="field">
-                        <label className="label">Last Name</label>
-                        <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
-                      </div>
-                      <div className="field">
-                        <label className="label">Email</label>
-                        <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
-                      </div>
-                      <div className="field">
-                        <label className="label">Phone</label>
-                        <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
-                      </div>
+                    <div className="review-grid">
+                      <p><strong>Name:</strong> {[form.firstName, form.lastName].filter(Boolean).join(" ") || "—"}</p>
+                      <p><strong>Email:</strong> {form.email || "—"}</p>
+                      <p><strong>Phone:</strong> {form.phone || "—"}</p>
+                      <p><strong>Preferred consultation:</strong> {form.preferredContactMethod || "—"}</p>
                     </div>
                   </div>
                 </div>
