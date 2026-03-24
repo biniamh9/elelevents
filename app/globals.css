@@ -2307,6 +2307,12 @@ th { background: var(--surface-soft); }
   gap: 10px;
   margin-bottom: 22px;
 }
+.booking-progress-copy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
 .booking-pane-tag {
   display: inline-flex;
   align-items: center;
@@ -2938,6 +2944,74 @@ th { background: var(--surface-soft); }
   cursor: pointer;
 }
 .booking-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 24px; }
+.booking-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.booking-review-card {
+  display: grid;
+  gap: 16px;
+}
+.booking-review-card h4 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+.booking-review-decor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.booking-review-decor-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  background: rgba(255, 255, 255, 0.76);
+}
+.booking-review-decor-card--empty {
+  background: rgba(255, 255, 255, 0.62);
+}
+.booking-review-decor-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.booking-review-decor-head strong {
+  font-size: 1rem;
+}
+.booking-review-decor-head span {
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.booking-review-media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.booking-review-media-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+}
+.booking-review-subgrid {
+  display: grid;
+  gap: 18px;
+}
+.booking-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 4;
+  padding: 16px 0 0;
+  background: linear-gradient(180deg, rgba(252, 250, 247, 0), rgba(252, 250, 247, 0.92) 34%, rgba(252, 250, 247, 0.98));
+}
 .form-wrap.booking-layout > .card.booking-summary {
   position: sticky;
   top: calc(var(--site-header-height) + 24px);
@@ -5413,6 +5487,13 @@ th { background: var(--surface-soft); }
   .guided-preview-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .booking-review-grid,
+  .booking-review-decor-grid {
+    grid-template-columns: 1fr;
+  }
+  .booking-review-media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .hero-stage--simple {
     min-height: 68vh;
     padding: calc(var(--site-header-height) + 56px) 0 56px;
@@ -5733,6 +5814,10 @@ th { background: var(--surface-soft); }
   }
   .hero-image { min-height: 320px; }
   .booking-actions { flex-direction: column; }
+  .booking-actions {
+    bottom: 0;
+    padding-top: 14px;
+  }
   .choice-card,
   .choice-card--compact {
     min-height: auto;
@@ -5899,6 +5984,9 @@ th { background: var(--surface-soft); }
   }
   .guided-preview-accordion-item.expanded {
     grid-column: span 1;
+  }
+  .booking-review-media-grid {
+    grid-template-columns: 1fr;
   }
   .booking-preview-meta-row {
     gap: 8px;

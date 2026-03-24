@@ -79,6 +79,12 @@ const budgetRangeOptions = [
   "$5,000-$8,000",
   "$8,000+",
 ];
+const guestCountSelectOptions = [
+  "Under 50",
+  "50-100",
+  "100-200",
+  "200+",
+];
 const paletteSuggestions = [
   "Ivory + champagne",
   "White + gold",
@@ -604,7 +610,13 @@ export default function EventRequestForm({
   );
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
-  const missingBasics = !form.firstName || !form.lastName || !form.email || !form.phone || !form.eventDate;
+  const missingBasics =
+    !form.firstName ||
+    !form.lastName ||
+    !form.email ||
+    !form.phone ||
+    !form.eventDate ||
+    (!form.guestCount && !form.guestCountRange);
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
   const guidedPreviewOptions = useMemo(
@@ -1073,7 +1085,7 @@ export default function EventRequestForm({
     }
 
     if (step === 1 && missingBasics) {
-      setError("Add your contact details and event date before continuing.");
+      setError("Add the event basics and contact details before continuing.");
       return;
     }
 
@@ -1089,7 +1101,7 @@ export default function EventRequestForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (missingBasics || missingEventType) {
-      setError("Complete the event basics before submitting.");
+      setError("Complete the event basics and contact details before submitting.");
       return;
     }
 
@@ -1171,13 +1183,14 @@ export default function EventRequestForm({
         <div ref={formCardRef} className="card form-card booking-form-card">
           <div className="booking-pane-head">
             <span className="booking-pane-tag">Build Your Event</span>
+            <p className="booking-progress-copy">Step {step + 1} of {steps.length}</p>
             <p className="muted">Move step by step through the event details, then review and send when everything feels right.</p>
           </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 1</p>
+                  <p className="eyebrow">Step 1 of 4</p>
                   <h3>Select the event type.</h3>
                   <p className="muted">
                     Choose the kind of event experience you are planning first. We will tailor the next steps around it.
@@ -1302,158 +1315,79 @@ export default function EventRequestForm({
             {step === 1 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 2</p>
-                  <h3>Add the essentials.</h3>
-                  <p className="muted">Keep this part light. We only need the event basics and your contact details.</p>
+                  <p className="eyebrow">Step 2 of 4</p>
+                  <h3>Add the event basics.</h3>
+                  <p className="muted">Keep this step compact. Add the date, guest count, location, budget, and the contact details we need to follow up.</p>
                 </div>
 
-                <div className="form-grid">
-                  <div className="field">
-                    <label className="label">Event Date</label>
-                    <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label className="label">Exact Guest Count, if known</label>
-                    <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
-                  </div>
-                  <div className="field">
-                    <label className="label">Location / Venue</label>
-                    <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} />
-                  </div>
-                  <div className="field">
-                    <label className="label">Budget Range</label>
-                    <select
-                      className="select"
-                      value={form.budgetRange}
-                      onChange={(e) => updateField("budgetRange", e.target.value)}
-                    >
-                      <option value="">Select a range</option>
-                      {budgetRangeOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">Guest Count Range</label>
-                  <div className="visual-choice-grid visual-choice-grid--compact">
-                    {guestCountRangeOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={`choice-card choice-card--compact ${form.guestCountRange === option.value ? "selected" : ""}`}
-                        onClick={() => updateField("guestCountRange", option.value)}
-                      >
-                        <strong>{option.label}</strong>
-                        <span>{option.hint}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="form-grid">
-                  <div className="field">
-                    <label className="label">First Name</label>
-                    <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label className="label">Last Name</label>
-                    <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label className="label">Email</label>
-                    <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
-                  </div>
-                  <div className="field">
-                    <label className="label">Phone</label>
-                    <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">How should we start the consultation?</label>
-                  <div className="option-pills">
-                    {consultationOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
-                        onClick={() => {
-                          updateField("preferredContactMethod", option);
-                          if (option !== "Video meeting") {
-                            updateField("consultationVideoPlatform", "");
-                          }
-                          if (!requiresConsultationScheduling(option)) {
-                            updateField("consultationPreferenceDate", "");
-                            updateField("consultationPreferenceTime", "");
-                          }
-                        }}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {requiresConsultationScheduling(form.preferredContactMethod) ? (
-                  <div className="scope-card">
-                    <div className="form-grid">
-                      <div className="field">
-                        <label className="label">What day works for you?</label>
-                        <input
-                          className="input"
-                          type="date"
-                          value={form.consultationPreferenceDate}
-                          onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
-                        />
-                      </div>
-                      <div className="field">
-                        <label className="label">What time works for you?</label>
-                        <input
-                          className="input"
-                          value={form.consultationPreferenceTime}
-                          onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
-                          placeholder="Example: Weekdays after 6 PM"
-                        />
-                      </div>
+                <div className="scope-card">
+                  <h4>Event details</h4>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label className="label">Event Date</label>
+                      <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
                     </div>
-
-                    {form.preferredContactMethod === "Video meeting" ? (
-                      <div className="field">
-                        <label className="label">Preferred video platform</label>
-                        <div className="option-pills">
-                          {videoPlatformOptions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
-                              onClick={() => updateField("consultationVideoPlatform", option)}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                <div className="field">
-                  <label className="label">How did you hear about us?</label>
-                  <div className="option-pills">
-                    {referralOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.referralSource === option ? "selected" : ""}`}
-                        onClick={() => updateField("referralSource", option)}
+                    <div className="field">
+                      <label className="label">Guest Count Range</label>
+                      <select
+                        className="select"
+                        value={form.guestCountRange}
+                        onChange={(e) => updateField("guestCountRange", e.target.value)}
+                        required
                       >
-                        {option}
-                      </button>
-                    ))}
+                        <option value="">Select a range</option>
+                        {guestCountSelectOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="field">
+                      <label className="label">Exact Guest Count, if known</label>
+                      <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
+                    </div>
+                    <div className="field">
+                      <label className="label">Location / Venue</label>
+                      <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} placeholder="Venue name, neighborhood, or city" />
+                    </div>
+                    <div className="field">
+                      <label className="label">Budget Range</label>
+                      <select
+                        className="select"
+                        value={form.budgetRange}
+                        onChange={(e) => updateField("budgetRange", e.target.value)}
+                      >
+                        <option value="">Select a range</option>
+                        {budgetRangeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="scope-card">
+                  <h4>Contact details</h4>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label className="label">First Name</label>
+                      <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Last Name</label>
+                      <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Email</label>
+                      <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
+                    </div>
+                    <div className="field">
+                      <label className="label">Phone</label>
+                      <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
+                    </div>
                   </div>
                 </div>
               </section>
@@ -1462,89 +1396,10 @@ export default function EventRequestForm({
             {step === 2 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 3</p>
+                  <p className="eyebrow">Step 3 of 4</p>
                   <h3>What would you like us to style?</h3>
-                  <p className="muted">Choose all that apply. Add image choices, uploads, and notes, then use the live preview to guide the direction.</p>
+                  <p className="muted">Choose all that apply. Keep this step focused on decor selections, inspiration, and the visual direction you want us to build.</p>
                 </div>
-
-                <div className="field">
-                  <label className="label">Venue Status</label>
-                  <div className="option-pills">
-                    {venueStatusOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.venueStatus === option ? "selected" : ""}`}
-                        onClick={() => updateField("venueStatus", option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">Venue Type</label>
-                  <div className="option-pills">
-                    {venueTypeOptions.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`pill ${form.venueType === option ? "selected" : ""}`}
-                        onClick={() => updateField("venueType", option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="field">
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    onClick={() => setShowOptionalStyleFields((current) => !current)}
-                  >
-                    {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
-                  </button>
-                </div>
-
-                {showOptionalStyleFields ? (
-                  <div className="scope-card">
-                    <div className="field">
-                      <label className="label">Decor Style</label>
-                      <div className="option-pills">
-                        {decorStyleOptions.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            className={`pill ${form.decorStyle === option ? "selected" : ""}`}
-                            onClick={() => updateField("decorStyle", option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Color Palette</label>
-                      <div className="option-pills">
-                        {paletteSuggestions.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
-                            onClick={() => updateField("colorsTheme", option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                      <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
-                    </div>
-                  </div>
-                ) : null}
 
                 <div className="field">
                   <div className="guided-preview-builder">
@@ -1818,33 +1673,6 @@ export default function EventRequestForm({
                 </div>
 
                 <div className="field">
-                  <label className="checkline">
-                    <input
-                      type="checkbox"
-                      checked={form.needsDeliverySetup}
-                      onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
-                    />
-                    <span>Include delivery, setup, or teardown support in the request.</span>
-                  </label>
-                </div>
-
-                <div className="field">
-                  <label className="label">Partner vendor support</label>
-                  <div className="option-pills">
-                    {vendorCategories.map((category) => (
-                      <button
-                        key={category}
-                        type="button"
-                        className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
-                        onClick={() => toggleVendorCategory(category)}
-                      >
-                        {category}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="field">
                   <label className="label">General inspiration note</label>
                   <textarea
                     className="textarea"
@@ -1859,21 +1687,88 @@ export default function EventRequestForm({
             {step === 3 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 4</p>
+                  <p className="eyebrow">Step 4 of 4</p>
                   <h3>Review and send.</h3>
-                  <p className="muted">Review the essentials, add any final notes, and send the request when you are ready.</p>
+                  <p className="muted">Review the full request before submitting. You can jump back to any step if something needs to change.</p>
                 </div>
-                <div className="scope-card">
-                  <div className="review-grid">
-                    <p><strong>Client:</strong> {`${form.firstName} ${form.lastName}`.trim() || "—"}</p>
-                    <p><strong>Event:</strong> {effectiveEventType || "—"}</p>
-                    <p><strong>Date:</strong> {form.eventDate || "—"}</p>
-                    <p><strong>Guest range:</strong> {form.guestCountRange || form.guestCount || "—"}</p>
-                    <p><strong>Venue:</strong> {form.venueName || "—"}</p>
-                    <p><strong>Consultation:</strong> {form.preferredContactMethod || "—"}</p>
-                    <p><strong>Decor selections:</strong> {selectedDecorCategories.length}</p>
-                    <p><strong>Vendor help:</strong> {form.requestedVendorCategories.length ? "Requested" : "Not requested"}</p>
+
+                <div className="booking-review-grid">
+                  <div className="scope-card booking-review-card">
+                    <h4>Event summary</h4>
+                    <div className="review-grid">
+                      <p><strong>Event type:</strong> {effectiveEventType || "—"}</p>
+                      <p><strong>Event date:</strong> {form.eventDate || "—"}</p>
+                      <p><strong>Guest count:</strong> {form.guestCount || form.guestCountRange || "—"}</p>
+                      <p><strong>Location:</strong> {form.venueName || "—"}</p>
+                      <p><strong>Budget range:</strong> {form.budgetRange || "—"}</p>
+                    </div>
                   </div>
+
+                  <div className="scope-card booking-review-card">
+                    <h4>Contact & consultation</h4>
+                    <div className="review-grid">
+                      <p><strong>Name:</strong> {`${form.firstName} ${form.lastName}`.trim() || "—"}</p>
+                      <p><strong>Email:</strong> {form.email || "—"}</p>
+                      <p><strong>Phone:</strong> {form.phone || "—"}</p>
+                      <p><strong>Consultation:</strong> {form.preferredContactMethod || "Not chosen yet"}</p>
+                      <p><strong>Preferred time:</strong> {[form.consultationPreferenceDate, form.consultationPreferenceTime].filter(Boolean).join(" • ") || "—"}</p>
+                      {form.preferredContactMethod === "Video meeting" ? (
+                        <p><strong>Video platform:</strong> {form.consultationVideoPlatform || "—"}</p>
+                      ) : null}
+                      <p><strong>Referral source:</strong> {form.referralSource || "—"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="scope-card booking-review-card">
+                  <h4>Selected decor items</h4>
+                  {guidedPreviewOptions.length ? (
+                    <div className="booking-review-decor-grid">
+                      {guidedPreviewOptions.map((category) => {
+                        const selected = category.images.filter((item) =>
+                          (selectedPreviewImages[category.key] ?? []).includes(item.id)
+                        );
+                        const uploads = categoryUploads[category.key] ?? [];
+                        const note = categoryNotes[category.key]?.trim();
+                        const refinement = categoryRefinements[category.key];
+                        const hasContent =
+                          selected.length > 0 ||
+                          uploads.length > 0 ||
+                          Boolean(note) ||
+                          Boolean(refinement);
+
+                        return (
+                          <div key={category.key} className={`booking-review-decor-card ${hasContent ? "" : "booking-review-decor-card--empty"}`}>
+                            <div className="booking-review-decor-head">
+                              <strong>{category.title}</strong>
+                              {refinement ? <span>{refinement}</span> : null}
+                            </div>
+
+                            {selected.length ? (
+                              <div className="booking-review-media-grid">
+                                {selected.slice(0, 3).map((item) => (
+                                  <img key={item.id} src={item.image_url} alt={item.title} loading="lazy" />
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {uploads.length ? (
+                              <div className="booking-review-media-grid">
+                                {uploads.slice(0, 3).map((url, index) => (
+                                  <img key={`${category.key}-upload-${index}`} src={url} alt={`${category.title} upload ${index + 1}`} loading="lazy" />
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {note ? <p className="muted">{note}</p> : null}
+                            {!hasContent ? <p className="muted">Selected for review. No image or note added yet.</p> : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="muted">No decor items selected yet.</p>
+                  )}
                 </div>
 
                 <div className="summary-stack">
@@ -1881,6 +1776,165 @@ export default function EventRequestForm({
                     <button type="button" className="btn secondary" onClick={() => setStep(0)}>Edit Event Type</button>
                     <button type="button" className="btn secondary" onClick={() => setStep(1)}>Edit Basics</button>
                     <button type="button" className="btn secondary" onClick={() => setStep(2)}>Edit Visual Builder</button>
+                  </div>
+                </div>
+
+                <div className="scope-card booking-review-card">
+                  <h4>Final details</h4>
+                  <div className="field">
+                    <label className="label">How should we start the consultation?</label>
+                    <div className="option-pills">
+                      {consultationOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
+                          onClick={() => {
+                            updateField("preferredContactMethod", option);
+                            if (option !== "Video meeting") {
+                              updateField("consultationVideoPlatform", "");
+                            }
+                            if (!requiresConsultationScheduling(option)) {
+                              updateField("consultationPreferenceDate", "");
+                              updateField("consultationPreferenceTime", "");
+                            }
+                          }}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {requiresConsultationScheduling(form.preferredContactMethod) ? (
+                    <div className="form-grid">
+                      <div className="field">
+                        <label className="label">Preferred consultation day</label>
+                        <input
+                          className="input"
+                          type="date"
+                          value={form.consultationPreferenceDate}
+                          onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
+                        />
+                      </div>
+                      <div className="field">
+                        <label className="label">Preferred consultation time</label>
+                        <input
+                          className="input"
+                          value={form.consultationPreferenceTime}
+                          onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
+                          placeholder="Example: Weekdays after 6 PM"
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {form.preferredContactMethod === "Video meeting" ? (
+                    <div className="field">
+                      <label className="label">Preferred video platform</label>
+                      <div className="option-pills">
+                        {videoPlatformOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
+                            onClick={() => updateField("consultationVideoPlatform", option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="field">
+                    <label className="label">Venue Status</label>
+                    <div className="option-pills">
+                      {venueStatusOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`pill ${form.venueStatus === option ? "selected" : ""}`}
+                          onClick={() => updateField("venueStatus", option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      onClick={() => setShowOptionalStyleFields((current) => !current)}
+                    >
+                      {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
+                    </button>
+                  </div>
+
+                  {showOptionalStyleFields ? (
+                    <div className="booking-review-subgrid">
+                      <div className="field">
+                        <label className="label">Decor Style</label>
+                        <div className="option-pills">
+                          {decorStyleOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`pill ${form.decorStyle === option ? "selected" : ""}`}
+                              onClick={() => updateField("decorStyle", option)}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="field">
+                        <label className="label">Color Palette</label>
+                        <div className="option-pills">
+                          {paletteSuggestions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
+                              onClick={() => updateField("colorsTheme", option)}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                        <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="field">
+                    <label className="checkline">
+                      <input
+                        type="checkbox"
+                        checked={form.needsDeliverySetup}
+                        onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
+                      />
+                      <span>Include delivery, setup, or teardown support in the request.</span>
+                    </label>
+                  </div>
+
+                  <div className="field">
+                    <label className="label">Partner vendor support</label>
+                    <div className="option-pills">
+                      {vendorCategories.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
+                          onClick={() => toggleVendorCategory(category)}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
