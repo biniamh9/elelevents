@@ -94,10 +94,11 @@ const paletteSuggestions = [
   "Emerald + gold",
 ];
 const steps = [
-  { id: "event-type", label: "Event Type" },
-  { id: "basics", label: "Event Details" },
-  { id: "visual-builder", label: "Design Builder" },
-  { id: "summary", label: "Review & Send" },
+  { id: "event-type", label: "Type" },
+  { id: "basics", label: "Details" },
+  { id: "visual-builder", label: "Design" },
+  { id: "preview", label: "Preview" },
+  { id: "summary", label: "Submit" },
 ];
 
 type GuidedPreviewCategoryConfig = {
@@ -611,12 +612,13 @@ export default function EventRequestForm({
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingBasics =
+    !form.eventDate ||
+    (!form.guestCount && !form.guestCountRange);
+  const missingContactDetails =
     !form.firstName ||
     !form.lastName ||
     !form.email ||
-    !form.phone ||
-    !form.eventDate ||
-    (!form.guestCount && !form.guestCountRange);
+    !form.phone;
   const vendorCategories = getAvailableVendorCategories(vendors);
   const matchingVendors = getMatchingVendors(vendors, form.requestedVendorCategories);
   const guidedPreviewOptions = useMemo(
@@ -1085,7 +1087,12 @@ export default function EventRequestForm({
     }
 
     if (step === 1 && missingBasics) {
-      setError("Add the event basics and contact details before continuing.");
+      setError("Add the event basics before continuing.");
+      return;
+    }
+
+    if (step === 3 && missingContactDetails) {
+      setError("Add your contact details before moving to the final submit step.");
       return;
     }
 
@@ -1100,7 +1107,7 @@ export default function EventRequestForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (missingBasics || missingEventType) {
+    if (missingBasics || missingEventType || missingContactDetails) {
       setError("Complete the event basics and contact details before submitting.");
       return;
     }
@@ -1158,22 +1165,20 @@ export default function EventRequestForm({
       <section className="booking-hero card">
         <div>
           <p className="eyebrow">Consultation request</p>
-          <h3>Build the event direction in four simple steps.</h3>
+          <h3>Build the event direction step by step.</h3>
           <p className="muted">
-            Choose the event type, add the essentials, then shape the visual direction with real portfolio references.
-          </p>
-          <p className="booking-preview-intro">
-            Build on the left and watch the preview respond on the right as your event direction takes shape.
+            Move through the request one clear step at a time, then preview and submit with confidence.
           </p>
         </div>
-        <div className="booking-stepbar" aria-label="Booking steps">
+        <div className="booking-wizard-track" aria-label="Booking steps">
           {steps.map((item, index) => (
             <div
               key={item.id}
-              className={`booking-step ${index === step ? "current" : ""} ${index < step ? "done" : ""}`}
+              className={`booking-track-step ${index === step ? "current" : ""} ${index < step ? "done" : ""}`}
             >
-              <span>{index + 1}</span>
+              <span>{index < step ? "✓" : index + 1}</span>
               <strong>{item.label}</strong>
+              {index < steps.length - 1 ? <i aria-hidden="true" className="booking-track-line" /> : null}
             </div>
           ))}
         </div>
@@ -1184,13 +1189,13 @@ export default function EventRequestForm({
           <div className="booking-pane-head">
             <span className="booking-pane-tag">Build Your Event</span>
             <p className="booking-progress-copy">Step {step + 1} of {steps.length}</p>
-            <p className="muted">Move step by step through the event details, then review and send when everything feels right.</p>
+            <p className="muted">Only one major task is shown at a time so the request feels guided and easy to finish.</p>
           </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 1 of 4</p>
+                  <p className="eyebrow">Step 1 of 5</p>
                   <h3>Select the event type.</h3>
                   <p className="muted">
                     Choose the kind of event experience you are planning first. We will tailor the next steps around it.
@@ -1315,9 +1320,9 @@ export default function EventRequestForm({
             {step === 1 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 2 of 4</p>
+                  <p className="eyebrow">Step 2 of 5</p>
                   <h3>Add the event basics.</h3>
-                  <p className="muted">Keep this step compact. Add the date, guest count, location, budget, and the contact details we need to follow up.</p>
+                  <p className="muted">Keep this step compact. Add the date, guest count, location, and budget range.</p>
                 </div>
 
                 <div className="scope-card">
@@ -1369,34 +1374,13 @@ export default function EventRequestForm({
                   </div>
                 </div>
 
-                <div className="scope-card">
-                  <h4>Contact details</h4>
-                  <div className="form-grid">
-                    <div className="field">
-                      <label className="label">First Name</label>
-                      <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Last Name</label>
-                      <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Email</label>
-                      <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Phone</label>
-                      <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
-                    </div>
-                  </div>
-                </div>
               </section>
             ) : null}
 
             {step === 2 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 3 of 4</p>
+                  <p className="eyebrow">Step 3 of 5</p>
                   <h3>What would you like us to style?</h3>
                   <p className="muted">Choose all that apply. Keep this step focused on decor selections, inspiration, and the visual direction you want us to build.</p>
                 </div>
@@ -1687,9 +1671,85 @@ export default function EventRequestForm({
             {step === 3 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 4 of 4</p>
-                  <h3>Review and send.</h3>
-                  <p className="muted">Review the full request before submitting. You can jump back to any step if something needs to change.</p>
+                  <p className="eyebrow">Step 4 of 5</p>
+                  <h3>Live Preview</h3>
+                  <p className="muted">See the current event direction in one place before moving to the final submit step.</p>
+                </div>
+
+                <div className="scope-card booking-preview-step-card">
+                  <div className="booking-summary-head">
+                    <span className="booking-pane-tag">Live Preview</span>
+                    <h3>Your Event Preview</h3>
+                    <p className="muted">Built from your selections</p>
+                    <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
+                      {preview.eventDirectionLabel}
+                    </div>
+                  </div>
+
+                  <div className="booking-preview-stage">
+                    {preview.leadImage ? (
+                      <div className="booking-preview-hero">
+                        <img
+                          key={`preview-hero-${previewSignature}`}
+                          src={preview.leadImage.image_url}
+                          alt={preview.leadImage.title}
+                          loading="lazy"
+                        />
+                        <div className="booking-preview-hero-copy">
+                          <span>Based on your selection</span>
+                          <strong>{preview.previewStateLabel}</strong>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="booking-preview-hero booking-preview-hero--empty">
+                        <div className="booking-preview-empty-copy">
+                          <strong>Choose decor items and visual references to build your preview.</strong>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="booking-preview-meta-row">
+                      <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
+                      {preview.selectedImageCount ? (
+                        <span className="booking-preview-meta-pill">{preview.selectedImageCount} selected image{preview.selectedImageCount === 1 ? "" : "s"}</span>
+                      ) : null}
+                      {preview.uploadedImageCount ? (
+                        <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
+                      ) : null}
+                    </div>
+
+                    {preview.supportingImages.length ? (
+                      <div className="booking-preview-grid booking-preview-grid--animated">
+                        {preview.supportingImages.map((item) => (
+                          <div key={`${item.id}-${previewSignature}`} className="booking-preview-image">
+                            <img src={item.image_url} alt={item.title} loading="lazy" />
+                            <span>{item.category || item.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    <div className="summary-stack">
+                      <div className="booking-preview-copy booking-preview-copy--highlight">
+                        <small className="booking-preview-kicker">Style snapshot</small>
+                        <p>{preview.styleDescription}</p>
+                      </div>
+                      <div className="booking-preview-copy">
+                        <small className="booking-preview-kicker">Recommended decor direction</small>
+                        <p>{preview.decorDirection}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {step === 4 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 5 of 5</p>
+                  <h3>Review and submit.</h3>
+                  <p className="muted">Confirm the request details, add the remaining contact and consultation information, and submit when ready.</p>
                 </div>
 
                 <div className="booking-review-grid">
@@ -1706,16 +1766,23 @@ export default function EventRequestForm({
 
                   <div className="scope-card booking-review-card">
                     <h4>Contact & consultation</h4>
-                    <div className="review-grid">
-                      <p><strong>Name:</strong> {`${form.firstName} ${form.lastName}`.trim() || "—"}</p>
-                      <p><strong>Email:</strong> {form.email || "—"}</p>
-                      <p><strong>Phone:</strong> {form.phone || "—"}</p>
-                      <p><strong>Consultation:</strong> {form.preferredContactMethod || "Not chosen yet"}</p>
-                      <p><strong>Preferred time:</strong> {[form.consultationPreferenceDate, form.consultationPreferenceTime].filter(Boolean).join(" • ") || "—"}</p>
-                      {form.preferredContactMethod === "Video meeting" ? (
-                        <p><strong>Video platform:</strong> {form.consultationVideoPlatform || "—"}</p>
-                      ) : null}
-                      <p><strong>Referral source:</strong> {form.referralSource || "—"}</p>
+                    <div className="form-grid">
+                      <div className="field">
+                        <label className="label">First Name</label>
+                        <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Last Name</label>
+                        <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Email</label>
+                        <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Phone</label>
+                        <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1988,120 +2055,6 @@ export default function EventRequestForm({
           </form>
         </div>
 
-        <aside className="card booking-summary">
-          <div className="booking-summary-head">
-            <span className="booking-pane-tag">Live Preview</span>
-            <h3>Your Event Preview</h3>
-            <p className="muted">Built from your selections</p>
-            <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
-              {preview.eventDirectionLabel}
-            </div>
-          </div>
-
-          <div className="booking-preview-stage">
-            {preview.leadImage ? (
-              <div className="booking-preview-hero">
-                <img
-                  key={`preview-hero-${previewSignature}`}
-                  src={preview.leadImage.image_url}
-                  alt={preview.leadImage.title}
-                  loading="lazy"
-                />
-                <div className="booking-preview-hero-copy">
-                  <span>Based on your selection</span>
-                  <strong>{preview.previewStateLabel}</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="booking-preview-hero booking-preview-hero--empty">
-                <div className="booking-preview-empty-copy">
-                  <strong>Choose an event type to start building your visual direction.</strong>
-                </div>
-              </div>
-            )}
-
-            <div className="booking-preview-meta-row">
-              <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
-              {preview.selectedImageCount ? (
-                <span className="booking-preview-meta-pill">{preview.selectedImageCount} selected image{preview.selectedImageCount === 1 ? "" : "s"}</span>
-              ) : null}
-              {preview.uploadedImageCount ? (
-                <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
-              ) : null}
-            </div>
-
-            {preview.supportingImages.length ? (
-              <div className="booking-preview-grid booking-preview-grid--animated">
-                {preview.supportingImages.map((item) => (
-                  <div key={`${item.id}-${previewSignature}`} className="booking-preview-image">
-                    <img src={item.image_url} alt={item.title} loading="lazy" />
-                    <span>{item.category || item.title}</span>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            <div className="summary-stack">
-              <div className="booking-preview-copy booking-preview-copy--highlight">
-                <small className="booking-preview-kicker">Style snapshot</small>
-                <p>{preview.styleDescription}</p>
-              </div>
-              <div className="booking-preview-copy">
-                <small className="booking-preview-kicker">Recommended decor direction</small>
-                <p>{preview.decorDirection}</p>
-              </div>
-            </div>
-
-            <div className="booking-preview-grouped">
-              <small className="booking-preview-kicker">Selected decor elements</small>
-              {guidedPreviewOptions.length ? (
-                <div className="booking-preview-selection-list">
-                  {guidedPreviewOptions.map((category) => {
-                    const selected = category.images.filter((item) =>
-                      (selectedPreviewImages[category.key] ?? []).includes(item.id)
-                    );
-                    const uploads = categoryUploads[category.key] ?? [];
-                    const note = categoryNotes[category.key];
-                    const refinement = categoryRefinements[category.key];
-                    const hasSelection = selected.length > 0 || uploads.length > 0 || Boolean(note) || Boolean(refinement);
-
-                    if (!hasSelection) {
-                      return null;
-                    }
-
-                    return (
-                      <div key={category.key} className="booking-preview-selection">
-                        <span>{category.title}</span>
-                        <div className="booking-preview-selection-card">
-                          {selected.length ? (
-                            <div className="booking-preview-selection-images">
-                              {selected.slice(0, 2).map((item) => (
-                                <img key={item.id} src={item.image_url} alt={item.title} loading="lazy" />
-                              ))}
-                            </div>
-                          ) : null}
-                          {uploads.length ? (
-                            <div className="booking-preview-selection-images">
-                              {uploads.slice(0, 2).map((url, index) => (
-                                <img key={`${category.key}-upload-${index}`} src={url} alt={`${category.title} inspiration ${index + 1}`} loading="lazy" />
-                              ))}
-                            </div>
-                          ) : null}
-                          {refinement ? <small>{refinement}</small> : null}
-                          {note ? <small>{note}</small> : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="booking-preview-selection-card booking-preview-selection-card--placeholder">
-                  <small>Choose decor elements and images to see them reflected here.</small>
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );
