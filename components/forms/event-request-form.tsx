@@ -980,6 +980,18 @@ export default function EventRequestForm({
     });
   }
 
+  function focusDecorCategory(categoryKey: string) {
+    const existingIndex = guidedPreviewOptions.findIndex((item) => item.key === categoryKey);
+
+    if (existingIndex >= 0) {
+      setActiveCategoryIndex(existingIndex);
+      return;
+    }
+
+    setActiveCategoryIndex(selectedDecorCategories.length);
+    toggleDecorCategory(categoryKey);
+  }
+
   async function uploadInspirationFiles(files: File[]) {
     setUploadingVisionBoard(true);
     setError("");
@@ -1406,6 +1418,47 @@ export default function EventRequestForm({
                   <p className="muted">Choose all that apply. Keep this step focused on decor selections, inspiration, and the visual direction you want us to build.</p>
                 </div>
 
+                {guidedPreviewOptions.length ? (
+                  <div className="guided-preview-selected-strip">
+                    <div className="guided-preview-selected-strip-head">
+                      <div>
+                        <p className="eyebrow">Selected so far</p>
+                        <h4>Keep building without losing your place.</h4>
+                      </div>
+                      <span>{guidedPreviewOptions.length} selected</span>
+                    </div>
+                    <div className="guided-preview-selected-strip-items">
+                      {guidedPreviewOptions.map((category) => {
+                        const selectedImageCount = (selectedPreviewImages[category.key] ?? []).length;
+                        const uploadedImageCount = (categoryUploads[category.key] ?? []).length;
+                        const hasNote = Boolean(categoryNotes[category.key]?.trim());
+                        const refinement = categoryRefinements[category.key];
+
+                        return (
+                          <button
+                            key={`selected-${category.key}`}
+                            type="button"
+                            className={`guided-preview-selected-pill ${activeGuidedCategory?.key === category.key ? "active" : ""}`}
+                            onClick={() => focusDecorCategory(category.key)}
+                          >
+                            <strong>{category.title}</strong>
+                            <span>
+                              {[
+                                selectedImageCount ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
+                                uploadedImageCount ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
+                                refinement || "",
+                                hasNote ? "note" : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" • ") || "Selected"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="field">
                   <div className="guided-preview-builder">
                     <div className="guided-preview-group">
@@ -1433,16 +1486,7 @@ export default function EventRequestForm({
                               type="button"
                               className={`guided-preview-feature-card ${isSelected ? "selected" : ""}`}
                               onClick={() => {
-                                if (!isSelected) {
-                                  setActiveCategoryIndex(selectedDecorCategories.length);
-                                  toggleDecorCategory(category.key);
-                                  return;
-                                }
-
-                                const nextIndex = guidedPreviewOptions.findIndex((item) => item.key === category.key);
-                                if (nextIndex >= 0) {
-                                  setActiveCategoryIndex(nextIndex);
-                                }
+                                focusDecorCategory(category.key);
                               }}
                             >
                               {previewImage ? <img src={previewImage} alt={category.title} loading="lazy" /> : null}
@@ -1505,16 +1549,7 @@ export default function EventRequestForm({
                                     type="button"
                                     className={`guided-preview-category-chip ${isSelected ? "selected" : ""}`}
                                     onClick={() => {
-                                      if (!isSelected) {
-                                        setActiveCategoryIndex(selectedDecorCategories.length);
-                                        toggleDecorCategory(guidedCategory.key);
-                                        return;
-                                      }
-
-                                      const nextIndex = guidedPreviewOptions.findIndex((item) => item.key === guidedCategory.key);
-                                      if (nextIndex >= 0) {
-                                        setActiveCategoryIndex(nextIndex);
-                                      }
+                                      focusDecorCategory(guidedCategory.key);
                                     }}
                                     aria-pressed={isSelected}
                                   >
@@ -1665,6 +1700,38 @@ export default function EventRequestForm({
                                           <span>{(categoryUploads[guidedCategory.key] ?? []).length} uploaded</span>
                                         </label>
                                       </div>
+
+                                      {availableGuidedCategories.some(
+                                        (item) =>
+                                          item.key !== guidedCategory.key &&
+                                          !selectedDecorCategories.includes(item.key)
+                                      ) ? (
+                                        <div className="guided-preview-next-actions">
+                                          <div className="guided-preview-next-actions-head">
+                                            <strong>Choose another decor element</strong>
+                                            <span>Add more without going back to the top.</span>
+                                          </div>
+                                          <div className="guided-preview-next-actions-list">
+                                            {availableGuidedCategories
+                                              .filter(
+                                                (item) =>
+                                                  item.key !== guidedCategory.key &&
+                                                  !selectedDecorCategories.includes(item.key)
+                                              )
+                                              .slice(0, 5)
+                                              .map((item) => (
+                                                <button
+                                                  key={`next-${guidedCategory.key}-${item.key}`}
+                                                  type="button"
+                                                  className="guided-preview-next-pill"
+                                                  onClick={() => focusDecorCategory(item.key)}
+                                                >
+                                                  {item.title}
+                                                </button>
+                                              ))}
+                                          </div>
+                                        </div>
+                                      ) : null}
                                     </div>
                                   ) : null}
                                 </div>
