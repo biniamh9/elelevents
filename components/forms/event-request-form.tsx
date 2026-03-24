@@ -593,6 +593,7 @@ export default function EventRequestForm({
   const [categoryRefinements, setCategoryRefinements] = useState<Record<string, string>>({});
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
+  const [pendingCategoryFocus, setPendingCategoryFocus] = useState<string | null>(null);
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
   const experienceCards = useMemo(
@@ -689,6 +690,33 @@ export default function EventRequestForm({
       setActiveCategoryIndex(Math.max(selectedDecorCategories.length - 1, 0));
     }
   }, [activeCategoryIndex, guidedPreviewOptions, selectedDecorCategories]);
+
+  useEffect(() => {
+    if (!pendingCategoryFocus || step !== 2) {
+      return;
+    }
+
+    const element = document.querySelector<HTMLElement>(
+      `[data-guided-category="${pendingCategoryFocus}"]`
+    );
+
+    if (!element) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const headerOffset = 164;
+      const top = element.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: Math.max(top, 0),
+        behavior: "smooth",
+      });
+      setPendingCategoryFocus(null);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeCategoryIndex, pendingCategoryFocus, step]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -981,6 +1009,8 @@ export default function EventRequestForm({
   }
 
   function focusDecorCategory(categoryKey: string) {
+    setPendingCategoryFocus(categoryKey);
+
     const existingIndex = guidedPreviewOptions.findIndex((item) => item.key === categoryKey);
 
     if (existingIndex >= 0) {
@@ -1543,6 +1573,7 @@ export default function EventRequestForm({
                               return (
                                 <div
                                   key={guidedCategory.key}
+                                  data-guided-category={guidedCategory.key}
                                   className={`guided-preview-accordion-item ${isActive ? "expanded" : ""} ${isSelected ? "selected" : ""}`}
                                 >
                                   <button
