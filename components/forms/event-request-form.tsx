@@ -547,6 +547,7 @@ export default function EventRequestForm({
 }) {
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
+  const decorSidebarRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
   const [selectedEventExperience, setSelectedEventExperience] = useState("");
@@ -658,7 +659,13 @@ export default function EventRequestForm({
       return;
     }
 
-    const element = document.querySelector<HTMLElement>(
+    const sidebar = decorSidebarRef.current;
+
+    if (!sidebar) {
+      return;
+    }
+
+    const element = sidebar.querySelector<HTMLElement>(
       `[data-guided-category="${pendingCategoryFocus}"]`
     );
 
@@ -667,11 +674,8 @@ export default function EventRequestForm({
     }
 
     const frame = window.requestAnimationFrame(() => {
-      const headerOffset = 164;
-      const top = element.getBoundingClientRect().top + window.scrollY - headerOffset;
-
-      window.scrollTo({
-        top: Math.max(top, 0),
+      element.scrollIntoView({
+        block: "nearest",
         behavior: "smooth",
       });
       setPendingCategoryFocus(null);
@@ -1425,7 +1429,7 @@ export default function EventRequestForm({
                       <span>{effectiveEventType || "Event"} direction</span>
                     </div>
                     <div className="guided-preview-master-detail">
-                      <aside className="guided-preview-sidebar">
+                      <aside ref={decorSidebarRef} className="guided-preview-sidebar">
                         {decorCategoryGroups.map((group) => {
                           const items = group.items
                             .filter((categoryKey) =>
