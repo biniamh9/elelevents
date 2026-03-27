@@ -1627,6 +1627,16 @@ export default function EventRequestForm({
                                 <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
                               </label>
                             </div>
+
+                            <div className="guided-preview-global-note">
+                              <label className="label">General inspiration note</label>
+                              <textarea
+                                className="textarea"
+                                value={form.inspirationNotes}
+                                onChange={(e) => updateField("inspirationNotes", e.target.value)}
+                                placeholder="Anything important you want us to keep in mind."
+                              />
+                            </div>
                           </>
                         ) : (
                           <div className="guided-preview-empty">
@@ -1636,16 +1646,6 @@ export default function EventRequestForm({
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">General inspiration note</label>
-                  <textarea
-                    className="textarea"
-                    value={form.inspirationNotes}
-                    onChange={(e) => updateField("inspirationNotes", e.target.value)}
-                    placeholder="Anything important you want us to keep in mind."
-                  />
                 </div>
               </section>
             ) : null}

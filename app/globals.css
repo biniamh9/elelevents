@@ -2731,6 +2731,12 @@ th { background: var(--surface-soft); }
   max-height: 680px;
   overflow-y: auto;
 }
+.guided-preview-global-note {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(93, 39, 4, 0.08);
+}
 .guided-preview-selected-strip {
   display: grid;
   gap: 14px;
