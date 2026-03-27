@@ -546,6 +546,7 @@ export default function EventRequestForm({
   portfolioItems: GalleryItem[];
 }) {
   const formCardRef = useRef<HTMLDivElement | null>(null);
+  const detailPanelRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
   const [selectedEventExperience, setSelectedEventExperience] = useState("");
@@ -678,6 +679,18 @@ export default function EventRequestForm({
 
     return () => window.cancelAnimationFrame(frame);
   }, [activeDecorKey, pendingCategoryFocus, step]);
+
+  useEffect(() => {
+    const panel = detailPanelRef.current;
+    if (!panel) {
+      return;
+    }
+
+    panel.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [activeDecorKey]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -1473,7 +1486,7 @@ export default function EventRequestForm({
                         })}
                       </aside>
 
-                      <div className="guided-preview-detail-panel">
+                      <div ref={detailPanelRef} className="guided-preview-detail-panel">
                         {activeGuidedCategory ? (
                           <>
                             <div className="guided-preview-category-head">
