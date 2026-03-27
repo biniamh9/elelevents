@@ -67,9 +67,29 @@ export default function SiteHeader() {
           />
         </Link>
 
+        <nav
+          id="site-nav"
+          className={`nav-links${open ? " is-open" : ""}`}
+          aria-label="Primary navigation"
+        >
+          {links.map((link) => {
+            const isActive = isCurrentPath(pathname, link.href);
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={isActive ? "page" : undefined}
+                className={isActive ? "is-active" : undefined}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <div className="nav-main">
           <Button href="/request" className="nav-cta">Book Consultation</Button>
-
           <button
             type="button"
             className={`nav-toggle${open ? " is-open" : ""}`}
@@ -82,27 +102,6 @@ export default function SiteHeader() {
             <span />
             <span />
           </button>
-
-          <nav
-            id="site-nav"
-            className={`nav-links${open ? " is-open" : ""}`}
-            aria-label="Primary navigation"
-          >
-            {links.map((link) => {
-              const isActive = isCurrentPath(pathname, link.href);
-
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={isActive ? "page" : undefined}
-                  className={isActive ? "is-active" : undefined}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
       </div>
     </header>
