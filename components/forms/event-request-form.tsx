@@ -1465,7 +1465,6 @@ export default function EventRequestForm({
                                     >
                                       <div className="guided-preview-sidebar-copy">
                                         <strong>{guidedCategory.title}</strong>
-                                        <span>{guidedCategory.helper}</span>
                                       </div>
                                       <div className="guided-preview-sidebar-status">
                                         {recommendedDecorKeys.includes(guidedCategory.key) ? (
@@ -1491,7 +1490,6 @@ export default function EventRequestForm({
                           <>
                             <div className="guided-preview-category-head">
                               <div>
-                                <p className="eyebrow">Active decor item</p>
                                 <h4>{activeGuidedCategory.title}</h4>
                                 <p className="muted">{activeGuidedCategory.helper}</p>
                               </div>
