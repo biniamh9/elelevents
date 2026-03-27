@@ -971,7 +971,7 @@ export default function EventRequestForm({
 
   function focusDecorCategory(categoryKey: string) {
     setPendingCategoryFocus(categoryKey);
-    setActiveDecorKey((current) => (current === categoryKey ? "" : categoryKey));
+    setActiveDecorKey(categoryKey);
   }
 
   async function uploadInspirationFiles(files: File[]) {
@@ -1399,11 +1399,11 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 3 of 5</p>
                   <h3>What would you like us to style?</h3>
-                  <p className="muted">Choose all that apply. Expand each decor item to select images, add notes, and upload inspiration without losing track.</p>
+                  <p className="muted">Use the decor list on the left, then refine the active item on the right. Your selections stay saved as you move between items.</p>
                 </div>
 
                 <div className="field">
-                  <div className="guided-preview-builder guided-preview-builder--accordion">
+                  <div className="guided-preview-builder guided-preview-builder--detail">
                     <div className="guided-preview-step-summary">
                       <div>
                         <p className="eyebrow">Decor progress</p>
@@ -1411,244 +1411,219 @@ export default function EventRequestForm({
                       </div>
                       <span>{effectiveEventType || "Event"} direction</span>
                     </div>
+                    <div className="guided-preview-master-detail">
+                      <aside className="guided-preview-sidebar">
+                        {decorCategoryGroups.map((group) => {
+                          const items = group.items
+                            .filter((categoryKey) =>
+                              (eventTypeCategoryMap[form.eventType] ?? eventTypeCategoryMap.Other).includes(categoryKey)
+                            )
+                            .map((categoryKey) => availableGuidedCategories.find((item) => item.key === categoryKey))
+                            .filter(Boolean) as Array<GuidedPreviewCategoryConfig & { images: GalleryItem[] }>;
 
-                    {decorCategoryGroups.map((group) => {
-                      const items = group.items
-                        .filter((categoryKey) =>
-                          (eventTypeCategoryMap[form.eventType] ?? eventTypeCategoryMap.Other).includes(categoryKey)
-                        )
-                        .map((categoryKey) => availableGuidedCategories.find((item) => item.key === categoryKey))
-                        .filter(Boolean) as Array<GuidedPreviewCategoryConfig & { images: GalleryItem[] }>;
+                          if (!items.length) {
+                            return null;
+                          }
 
-                      if (!items.length) {
-                        return null;
-                      }
-
-                      return (
-                        <div key={group.title} className="guided-preview-group">
-                          <div className="guided-preview-section-head">
-                            <div>
+                          return (
+                            <div key={group.title} className="guided-preview-sidebar-group">
                               <p className="eyebrow">{group.title}</p>
-                              <h4>{group.title}</h4>
-                            </div>
-                          </div>
-                          <div className="guided-preview-accordion guided-preview-accordion--stacked">
-                            {items.map((guidedCategory) => {
-                              const isSelected = selectedDecorCategories.includes(guidedCategory.key);
-                              const isActive = activeGuidedCategory?.key === guidedCategory.key;
-                              const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
-                              const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
-                              const noteCount = categoryNotes[guidedCategory.key]?.trim() ? 1 : 0;
-                              const refinement = categoryRefinements[guidedCategory.key];
-                              const hasContent =
-                                selectedImageCount > 0 ||
-                                uploadedImageCount > 0 ||
-                                noteCount > 0 ||
-                                Boolean(refinement);
+                              <div className="guided-preview-sidebar-list">
+                                {items.map((guidedCategory) => {
+                                  const isSelected = selectedDecorCategories.includes(guidedCategory.key);
+                                  const isActive = activeGuidedCategory?.key === guidedCategory.key;
+                                  const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
+                                  const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
+                                  const noteCount = categoryNotes[guidedCategory.key]?.trim() ? 1 : 0;
+                                  const refinement = categoryRefinements[guidedCategory.key];
+                                  const hasContent =
+                                    selectedImageCount > 0 ||
+                                    uploadedImageCount > 0 ||
+                                    noteCount > 0 ||
+                                    Boolean(refinement);
 
-                              return (
-                                <div
-                                  key={guidedCategory.key}
-                                  data-guided-category={guidedCategory.key}
-                                  className={`guided-preview-accordion-item ${isActive ? "expanded" : ""} ${isSelected ? "selected" : ""}`}
-                                >
-                                  <button
-                                    type="button"
-                                    className={`guided-preview-category-chip guided-preview-category-chip--accordion ${isSelected ? "selected" : ""}`}
-                                    onClick={() => focusDecorCategory(guidedCategory.key)}
-                                    aria-pressed={isSelected}
-                                  >
-                                    <div className="guided-preview-category-chip-copy">
-                                      <strong>{guidedCategory.title}</strong>
-                                      <span>{guidedCategory.helper}</span>
-                                    </div>
-                                    <div className="guided-preview-category-status" aria-label="Decor item status">
-                                      {recommendedDecorKeys.includes(guidedCategory.key) ? (
-                                        <small className="guided-preview-category-badge">Recommended</small>
-                                      ) : null}
-                                      {isSelected || hasContent ? (
-                                        <>
+                                  return (
+                                    <button
+                                      key={guidedCategory.key}
+                                      type="button"
+                                      data-guided-category={guidedCategory.key}
+                                      className={`guided-preview-sidebar-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}`}
+                                      onClick={() => focusDecorCategory(guidedCategory.key)}
+                                    >
+                                      <div className="guided-preview-sidebar-copy">
+                                        <strong>{guidedCategory.title}</strong>
+                                        <span>{guidedCategory.helper}</span>
+                                      </div>
+                                      <div className="guided-preview-sidebar-status">
+                                        {recommendedDecorKeys.includes(guidedCategory.key) ? (
+                                          <small className="guided-preview-category-badge">Recommended</small>
+                                        ) : null}
+                                        {isSelected || hasContent ? (
                                           <span className="guided-preview-category-check" aria-hidden="true">
                                             {selectedImageCount > 0 ? selectedImageCount : "✓"}
                                           </span>
-                                          <small>
-                                            {[
-                                              isSelected ? "Selected" : "",
-                                              selectedImageCount ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
-                                              uploadedImageCount ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
-                                              refinement ? refinement : "",
-                                              noteCount ? "note" : "",
-                                            ]
-                                              .filter(Boolean)
-                                              .join(" • ")}
-                                          </small>
-                                        </>
-                                      ) : (
-                                        <small>{isActive ? "Open" : "Expand"}</small>
-                                      )}
-                                      <span className={`guided-preview-chevron ${isActive ? "open" : ""}`} aria-hidden="true">
-                                        +
-                                      </span>
-                                    </div>
-                                  </button>
-
-                                  {isActive ? (
-                                    <div className="guided-preview-inline-panel">
-                                      <div className="guided-preview-category-head">
-                                        <div>
-                                          <h4>{guidedCategory.title}</h4>
-                                          <p className="muted">{guidedCategory.helper}</p>
-                                        </div>
-                                        <div className="guided-preview-stage-nav">
-                                          <button
-                                            type="button"
-                                            className={`btn ${isSelected ? "secondary" : ""}`}
-                                            onClick={() => {
-                                              if (isSelected) {
-                                                clearCategorySelection(guidedCategory.key);
-                                                return;
-                                              }
-
-                                              ensureDecorCategory(guidedCategory.key);
-                                            }}
-                                          >
-                                            {isSelected ? "Remove from request" : "Include this item"}
-                                          </button>
-                                          <button
-                                            type="button"
-                                            className="btn secondary"
-                                            onClick={() => setActiveDecorKey("")}
-                                          >
-                                            Collapse
-                                          </button>
-                                        </div>
+                                        ) : null}
                                       </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </aside>
 
-                                      {decorRefinementOptions[guidedCategory.key] ? (
-                                        <div className="field">
-                                          <label className="label">{decorRefinementOptions[guidedCategory.key].label}</label>
-                                          <div className="option-pills">
-                                            {decorRefinementOptions[guidedCategory.key].options.map((option) => (
-                                              <button
-                                                key={option}
-                                                type="button"
-                                                className={`pill ${categoryRefinements[guidedCategory.key] === option ? "selected" : ""}`}
-                                                onClick={() => {
-                                                  const nextValue =
-                                                    categoryRefinements[guidedCategory.key] === option ? "" : option;
-                                                  setCategoryRefinements((current) => ({
-                                                    ...current,
-                                                    [guidedCategory.key]: nextValue,
-                                                  }));
-                                                  if (nextValue) {
-                                                    ensureDecorCategory(guidedCategory.key);
-                                                  }
-                                                }}
-                                              >
-                                                {option}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      ) : null}
+                      <div className="guided-preview-detail-panel">
+                        {activeGuidedCategory ? (
+                          <>
+                            <div className="guided-preview-category-head">
+                              <div>
+                                <p className="eyebrow">Active decor item</p>
+                                <h4>{activeGuidedCategory.title}</h4>
+                                <p className="muted">{activeGuidedCategory.helper}</p>
+                              </div>
+                              <div className="guided-preview-stage-nav">
+                                <button
+                                  type="button"
+                                  className={`btn ${selectedDecorCategories.includes(activeGuidedCategory.key) ? "secondary" : ""}`}
+                                  onClick={() => {
+                                    if (selectedDecorCategories.includes(activeGuidedCategory.key)) {
+                                      clearCategorySelection(activeGuidedCategory.key);
+                                      return;
+                                    }
 
-                                      {guidedCategory.images.length ? (
-                                        <>
-                                          <div className="guided-preview-options">
-                                            {(expandedCategoryImages[guidedCategory.key]
-                                              ? guidedCategory.images
-                                              : guidedCategory.images.slice(0, 3)
-                                            ).map((item) => (
-                                              <button
-                                                key={item.id}
-                                                type="button"
-                                                className={`guided-preview-option ${(selectedPreviewImages[guidedCategory.key] ?? []).includes(item.id) ? "selected" : ""}`}
-                                                onClick={() => {
-                                                  setSelectedPreviewImages((current) => {
-                                                    const currentIds = current[guidedCategory.key] ?? [];
-                                                    const nextIds = currentIds.includes(item.id)
-                                                      ? currentIds.filter((id) => id !== item.id)
-                                                      : [...currentIds, item.id];
+                                    ensureDecorCategory(activeGuidedCategory.key);
+                                  }}
+                                >
+                                  {selectedDecorCategories.includes(activeGuidedCategory.key) ? "Remove from request" : "Include this item"}
+                                </button>
+                              </div>
+                            </div>
 
-                                                    if (nextIds.length > 0) {
-                                                      ensureDecorCategory(guidedCategory.key);
-                                                    }
-
-                                                    return {
-                                                      ...current,
-                                                      [guidedCategory.key]: nextIds,
-                                                    };
-                                                  });
-                                                }}
-                                              >
-                                                <img src={item.image_url} alt={item.title} loading="lazy" />
-                                                {(selectedPreviewImages[guidedCategory.key] ?? []).includes(item.id) ? (
-                                                  <span className="guided-preview-option-check" aria-hidden="true">
-                                                    ✓
-                                                  </span>
-                                                ) : null}
-                                                <span>{item.title}</span>
-                                              </button>
-                                            ))}
-                                          </div>
-                                          {guidedCategory.images.length > 3 ? (
-                                            <button
-                                              type="button"
-                                              className="guided-preview-more"
-                                              onClick={() =>
-                                                setExpandedCategoryImages((current) => ({
-                                                  ...current,
-                                                  [guidedCategory.key]: !current[guidedCategory.key],
-                                                }))
-                                              }
-                                            >
-                                              {expandedCategoryImages[guidedCategory.key] ? "Show fewer images" : `View ${guidedCategory.images.length - 3} more`}
-                                            </button>
-                                          ) : null}
-                                        </>
-                                      ) : (
-                                        <div className="guided-preview-empty">
-                                          <p className="muted">{guidedCategory.emptyState}</p>
-                                        </div>
-                                      )}
-
-                                      <div className="guided-preview-support">
-                                        <textarea
-                                          className="textarea"
-                                          value={categoryNotes[guidedCategory.key] ?? ""}
-                                          onChange={(e) => {
-                                            const nextValue = e.target.value;
-                                            setCategoryNotes((current) => ({
-                                              ...current,
-                                              [guidedCategory.key]: nextValue,
-                                            }));
-                                            if (nextValue.trim()) {
-                                              ensureDecorCategory(guidedCategory.key);
-                                            }
-                                          }}
-                                          placeholder={`What do you like about this ${guidedCategory.title.toLowerCase()} direction?`}
-                                        />
-                                        <label className="guided-preview-upload">
-                                          <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={(e) => handleCategoryUpload(guidedCategory.key, e)}
-                                            disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
-                                          />
-                                          <strong>Have a different idea? Upload your inspiration.</strong>
-                                          <span>{(categoryUploads[guidedCategory.key] ?? []).length} uploaded</span>
-                                        </label>
-                                      </div>
-                                    </div>
-                                  ) : null}
+                            {decorRefinementOptions[activeGuidedCategory.key] ? (
+                              <div className="field">
+                                <label className="label">{decorRefinementOptions[activeGuidedCategory.key].label}</label>
+                                <div className="option-pills">
+                                  {decorRefinementOptions[activeGuidedCategory.key].options.map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                      onClick={() => {
+                                        const nextValue =
+                                          categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
+                                        setCategoryRefinements((current) => ({
+                                          ...current,
+                                          [activeGuidedCategory.key]: nextValue,
+                                        }));
+                                        if (nextValue) {
+                                          ensureDecorCategory(activeGuidedCategory.key);
+                                        }
+                                      }}
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
                                 </div>
-                              );
-                            })}
+                              </div>
+                            ) : null}
+
+                            {activeGuidedCategory.images.length ? (
+                              <>
+                                <div className="guided-preview-options">
+                                  {(expandedCategoryImages[activeGuidedCategory.key]
+                                    ? activeGuidedCategory.images
+                                    : activeGuidedCategory.images.slice(0, 3)
+                                  ).map((item) => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      className={`guided-preview-option ${(selectedPreviewImages[activeGuidedCategory.key] ?? []).includes(item.id) ? "selected" : ""}`}
+                                      onClick={() => {
+                                        setSelectedPreviewImages((current) => {
+                                          const currentIds = current[activeGuidedCategory.key] ?? [];
+                                          const nextIds = currentIds.includes(item.id)
+                                            ? currentIds.filter((id) => id !== item.id)
+                                            : [...currentIds, item.id];
+
+                                          if (nextIds.length > 0) {
+                                            ensureDecorCategory(activeGuidedCategory.key);
+                                          }
+
+                                          return {
+                                            ...current,
+                                            [activeGuidedCategory.key]: nextIds,
+                                          };
+                                        });
+                                      }}
+                                    >
+                                      <img src={item.image_url} alt={item.title} loading="lazy" />
+                                      {(selectedPreviewImages[activeGuidedCategory.key] ?? []).includes(item.id) ? (
+                                        <span className="guided-preview-option-check" aria-hidden="true">
+                                          ✓
+                                        </span>
+                                      ) : null}
+                                      <span>{item.title}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                                {activeGuidedCategory.images.length > 3 ? (
+                                  <button
+                                    type="button"
+                                    className="guided-preview-more"
+                                    onClick={() =>
+                                      setExpandedCategoryImages((current) => ({
+                                        ...current,
+                                        [activeGuidedCategory.key]: !current[activeGuidedCategory.key],
+                                      }))
+                                    }
+                                  >
+                                    {expandedCategoryImages[activeGuidedCategory.key] ? "Show fewer images" : `View ${activeGuidedCategory.images.length - 3} more`}
+                                  </button>
+                                ) : null}
+                              </>
+                            ) : (
+                              <div className="guided-preview-empty">
+                                <p className="muted">{activeGuidedCategory.emptyState}</p>
+                              </div>
+                            )}
+
+                            <div className="guided-preview-support">
+                              <textarea
+                                className="textarea"
+                                value={categoryNotes[activeGuidedCategory.key] ?? ""}
+                                onChange={(e) => {
+                                  const nextValue = e.target.value;
+                                  setCategoryNotes((current) => ({
+                                    ...current,
+                                    [activeGuidedCategory.key]: nextValue,
+                                  }));
+                                  if (nextValue.trim()) {
+                                    ensureDecorCategory(activeGuidedCategory.key);
+                                  }
+                                }}
+                                placeholder="What do you like about this design?"
+                              />
+                              <label className="guided-preview-upload">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleCategoryUpload(activeGuidedCategory.key, e)}
+                                  disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                                />
+                                <strong>Have a different idea? Upload your inspiration.</strong>
+                                <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
+                              </label>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="guided-preview-empty">
+                            <p className="muted">Choose a decor item from the left to start configuring it.</p>
                           </div>
-                        </div>
-                      );
-                    })}
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
