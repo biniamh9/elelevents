@@ -390,38 +390,6 @@ function deriveEventExperience(eventType: string) {
   return "";
 }
 
-function getCategoryPreviewImage(
-  category: GuidedPreviewCategoryConfig,
-  portfolioItems: GalleryItem[],
-  eventType: string
-) {
-  const eventKeywords = eventTypeKeywords[eventType] ?? [];
-  const firstPass = portfolioItems.find((item) => {
-    const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
-    const matchesCategory = category.keywords.some((keyword) =>
-      haystack.includes(normalizeSearchText(keyword))
-    );
-    const matchesEvent =
-      !eventKeywords.length ||
-      eventKeywords.some((keyword) => haystack.includes(normalizeSearchText(keyword)));
-
-    return matchesCategory && matchesEvent;
-  });
-
-  if (firstPass) {
-    return firstPass.image_url;
-  }
-
-  const fallback = portfolioItems.find((item) => {
-    const haystack = `${normalizeSearchText(item.title)} ${normalizeSearchText(item.category)}`;
-    return category.keywords.some((keyword) =>
-      haystack.includes(normalizeSearchText(keyword))
-    );
-  });
-
-  return fallback?.image_url ?? portfolioItems[0]?.image_url ?? "";
-}
-
 function getGuidedPreviewOptions(
   eventType: string,
   selectedCategoryKeys: string[],
@@ -591,7 +559,7 @@ export default function EventRequestForm({
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
   const [categoryRefinements, setCategoryRefinements] = useState<Record<string, string>>({});
-  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [activeDecorKey, setActiveDecorKey] = useState("");
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
   const [pendingCategoryFocus, setPendingCategoryFocus] = useState<string | null>(null);
   const effectiveEventType =
@@ -639,11 +607,11 @@ export default function EventRequestForm({
       ),
     [form.eventType, portfolioItems]
   );
-  const activeGuidedCategory = guidedPreviewOptions[activeCategoryIndex] ?? null;
+  const activeGuidedCategory =
+    availableGuidedCategories.find((item) => item.key === activeDecorKey) ??
+    availableGuidedCategories[0] ??
+    null;
   const recommendedDecorKeys = recommendedDecorByEventType[form.eventType] ?? recommendedDecorByEventType.Other;
-  const recommendedDecorCategories = recommendedDecorKeys
-    .map((key) => availableGuidedCategories.find((item) => item.key === key))
-    .filter(Boolean) as Array<GuidedPreviewCategoryConfig & { images: GalleryItem[] }>;
   const selectedCategoryKeys = selectedDecorCategories;
   const hasCategoryNotesOrUploads =
     Object.values(categoryNotes).some((value) => value?.trim()) ||
@@ -666,7 +634,7 @@ export default function EventRequestForm({
     setCategoryUploads({});
     setCategoryRefinements({});
     setExpandedCategoryImages({});
-    setActiveCategoryIndex(0);
+    setActiveDecorKey(eventTypeCategoryMap[form.eventType]?.[0] ?? eventTypeCategoryMap.Other[0] ?? "");
   }, [form.eventType]);
 
   useEffect(() => {
@@ -674,22 +642,15 @@ export default function EventRequestForm({
   }, [form.eventType]);
 
   useEffect(() => {
-    if (activeCategoryIndex > guidedPreviewOptions.length - 1) {
-      setActiveCategoryIndex(0);
-    }
-  }, [activeCategoryIndex, guidedPreviewOptions.length]);
-
-  useEffect(() => {
-    if (!selectedDecorCategories.length) {
-      setActiveCategoryIndex(0);
+    if (!availableGuidedCategories.length) {
+      setActiveDecorKey("");
       return;
     }
 
-    const activeKey = guidedPreviewOptions[activeCategoryIndex]?.key;
-    if (!activeKey || !selectedDecorCategories.includes(activeKey)) {
-      setActiveCategoryIndex(Math.max(selectedDecorCategories.length - 1, 0));
+    if (!activeDecorKey || !availableGuidedCategories.some((item) => item.key === activeDecorKey)) {
+      setActiveDecorKey(availableGuidedCategories[0]?.key ?? "");
     }
-  }, [activeCategoryIndex, guidedPreviewOptions, selectedDecorCategories]);
+  }, [activeDecorKey, availableGuidedCategories]);
 
   useEffect(() => {
     if (!pendingCategoryFocus || step !== 2) {
@@ -716,7 +677,7 @@ export default function EventRequestForm({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [activeCategoryIndex, pendingCategoryFocus, step]);
+  }, [activeDecorKey, pendingCategoryFocus, step]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -998,28 +959,19 @@ export default function EventRequestForm({
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function toggleDecorCategory(categoryKey: string) {
-    setSelectedDecorCategories((current) => {
-      if (current.includes(categoryKey)) {
-        return current;
-      }
+  function ensureDecorCategory(categoryKey: string) {
+    setSelectedDecorCategories((current) =>
+      current.includes(categoryKey) ? current : [...current, categoryKey]
+    );
+  }
 
-      return [...current, categoryKey];
-    });
+  function removeDecorCategory(categoryKey: string) {
+    setSelectedDecorCategories((current) => current.filter((item) => item !== categoryKey));
   }
 
   function focusDecorCategory(categoryKey: string) {
     setPendingCategoryFocus(categoryKey);
-
-    const existingIndex = guidedPreviewOptions.findIndex((item) => item.key === categoryKey);
-
-    if (existingIndex >= 0) {
-      setActiveCategoryIndex(existingIndex);
-      return;
-    }
-
-    setActiveCategoryIndex(selectedDecorCategories.length);
-    toggleDecorCategory(categoryKey);
+    setActiveDecorKey((current) => (current === categoryKey ? "" : categoryKey));
   }
 
   async function uploadInspirationFiles(files: File[]) {
@@ -1070,6 +1022,7 @@ export default function EventRequestForm({
     const urls = await uploadInspirationFiles(files);
 
     if (urls.length) {
+      ensureDecorCategory(categoryKey);
       setCategoryUploads((current) => ({
         ...current,
         [categoryKey]: [...(current[categoryKey] ?? []), ...urls],
@@ -1123,7 +1076,8 @@ export default function EventRequestForm({
       }));
     }
 
-    setSelectedDecorCategories((current) => current.filter((item) => item !== categoryKey));
+    removeDecorCategory(categoryKey);
+    setActiveDecorKey((current) => (current === categoryKey ? "" : current));
   }
 
   function nextStep() {
@@ -1445,95 +1399,17 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 3 of 5</p>
                   <h3>What would you like us to style?</h3>
-                  <p className="muted">Choose all that apply. Keep this step focused on decor selections, inspiration, and the visual direction you want us to build.</p>
+                  <p className="muted">Choose all that apply. Expand each decor item to select images, add notes, and upload inspiration without losing track.</p>
                 </div>
 
-                {guidedPreviewOptions.length ? (
-                  <div className="guided-preview-selected-strip">
-                    <div className="guided-preview-selected-strip-head">
-                      <div>
-                        <p className="eyebrow">Selected so far</p>
-                        <h4>Keep building without losing your place.</h4>
-                      </div>
-                      <span>{guidedPreviewOptions.length} selected</span>
-                    </div>
-                    <div className="guided-preview-selected-strip-items">
-                      {guidedPreviewOptions.map((category) => {
-                        const selectedImageCount = (selectedPreviewImages[category.key] ?? []).length;
-                        const uploadedImageCount = (categoryUploads[category.key] ?? []).length;
-                        const hasNote = Boolean(categoryNotes[category.key]?.trim());
-                        const refinement = categoryRefinements[category.key];
-
-                        return (
-                          <button
-                            key={`selected-${category.key}`}
-                            type="button"
-                            className={`guided-preview-selected-pill ${activeGuidedCategory?.key === category.key ? "active" : ""}`}
-                            onClick={() => focusDecorCategory(category.key)}
-                          >
-                            <strong>{category.title}</strong>
-                            <span>
-                              {[
-                                selectedImageCount ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
-                                uploadedImageCount ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
-                                refinement || "",
-                                hasNote ? "note" : "",
-                              ]
-                                .filter(Boolean)
-                                .join(" • ") || "Selected"}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
                 <div className="field">
-                  <div className="guided-preview-builder">
-                    <div className="guided-preview-group">
-                      <div className="guided-preview-section-head">
-                        <div>
-                          <p className="eyebrow">Recommended</p>
-                          <h4>Start with the main decor moments for {effectiveEventType || "your event"}.</h4>
-                        </div>
+                  <div className="guided-preview-builder guided-preview-builder--accordion">
+                    <div className="guided-preview-step-summary">
+                      <div>
+                        <p className="eyebrow">Decor progress</p>
+                        <h4>{selectedDecorCategories.length} decor {selectedDecorCategories.length === 1 ? "item" : "items"} selected</h4>
                       </div>
-                      <div className="guided-preview-feature-grid">
-                        {recommendedDecorCategories.map((category) => {
-                          const isSelected = selectedDecorCategories.includes(category.key);
-                          const previewImage = getCategoryPreviewImage(category, portfolioItems, form.eventType);
-                          const selectedImageCount = (selectedPreviewImages[category.key] ?? []).length;
-                          const uploadedImageCount = (categoryUploads[category.key] ?? []).length;
-                          const hasActivity =
-                            selectedImageCount > 0 ||
-                            uploadedImageCount > 0 ||
-                            Boolean(categoryNotes[category.key]?.trim()) ||
-                            Boolean(categoryRefinements[category.key]);
-
-                          return (
-                            <button
-                              key={category.key}
-                              type="button"
-                              className={`guided-preview-feature-card ${isSelected ? "selected" : ""}`}
-                              onClick={() => {
-                                focusDecorCategory(category.key);
-                              }}
-                            >
-                              {previewImage ? <img src={previewImage} alt={category.title} loading="lazy" /> : null}
-                              <span className="guided-preview-feature-overlay" />
-                              <div className="guided-preview-feature-copy">
-                                <strong>{category.title}</strong>
-                                <small>{isSelected ? (hasActivity ? "Configured" : "Selected") : "Recommended"}</small>
-                              </div>
-                              {isSelected ? (
-                                <span className="guided-preview-feature-check" aria-hidden="true">
-                                  {selectedImageCount > 0 ? selectedImageCount : "✓"}
-                                </span>
-                              ) : null}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <span>{effectiveEventType || "Event"} direction</span>
                     </div>
 
                     {decorCategoryGroups.map((group) => {
@@ -1556,7 +1432,7 @@ export default function EventRequestForm({
                               <h4>{group.title}</h4>
                             </div>
                           </div>
-                          <div className={`guided-preview-accordion ${group.emphasis === "secondary" ? "guided-preview-accordion--compact" : ""}`}>
+                          <div className="guided-preview-accordion guided-preview-accordion--stacked">
                             {items.map((guidedCategory) => {
                               const isSelected = selectedDecorCategories.includes(guidedCategory.key);
                               const isActive = activeGuidedCategory?.key === guidedCategory.key;
@@ -1578,24 +1454,26 @@ export default function EventRequestForm({
                                 >
                                   <button
                                     type="button"
-                                    className={`guided-preview-category-chip ${isSelected ? "selected" : ""}`}
-                                    onClick={() => {
-                                      focusDecorCategory(guidedCategory.key);
-                                    }}
+                                    className={`guided-preview-category-chip guided-preview-category-chip--accordion ${isSelected ? "selected" : ""}`}
+                                    onClick={() => focusDecorCategory(guidedCategory.key)}
                                     aria-pressed={isSelected}
                                   >
                                     <div className="guided-preview-category-chip-copy">
                                       <strong>{guidedCategory.title}</strong>
-                                      <span>{isSelected ? "Selected" : "Select"}</span>
+                                      <span>{guidedCategory.helper}</span>
                                     </div>
-                                    {isSelected ? (
-                                      <div className="guided-preview-category-status" aria-label="Selected decor element">
-                                        <span className="guided-preview-category-check" aria-hidden="true">
-                                          {selectedImageCount > 0 ? selectedImageCount : "✓"}
-                                        </span>
-                                        {hasContent ? (
+                                    <div className="guided-preview-category-status" aria-label="Decor item status">
+                                      {recommendedDecorKeys.includes(guidedCategory.key) ? (
+                                        <small className="guided-preview-category-badge">Recommended</small>
+                                      ) : null}
+                                      {isSelected || hasContent ? (
+                                        <>
+                                          <span className="guided-preview-category-check" aria-hidden="true">
+                                            {selectedImageCount > 0 ? selectedImageCount : "✓"}
+                                          </span>
                                           <small>
                                             {[
+                                              isSelected ? "Selected" : "",
                                               selectedImageCount ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
                                               uploadedImageCount ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
                                               refinement ? refinement : "",
@@ -1604,12 +1482,17 @@ export default function EventRequestForm({
                                               .filter(Boolean)
                                               .join(" • ")}
                                           </small>
-                                        ) : null}
-                                      </div>
-                                    ) : null}
+                                        </>
+                                      ) : (
+                                        <small>{isActive ? "Open" : "Expand"}</small>
+                                      )}
+                                      <span className={`guided-preview-chevron ${isActive ? "open" : ""}`} aria-hidden="true">
+                                        +
+                                      </span>
+                                    </div>
                                   </button>
 
-                                  {isSelected && isActive ? (
+                                  {isActive ? (
                                     <div className="guided-preview-inline-panel">
                                       <div className="guided-preview-category-head">
                                         <div>
@@ -1619,8 +1502,22 @@ export default function EventRequestForm({
                                         <div className="guided-preview-stage-nav">
                                           <button
                                             type="button"
+                                            className={`btn ${isSelected ? "secondary" : ""}`}
+                                            onClick={() => {
+                                              if (isSelected) {
+                                                clearCategorySelection(guidedCategory.key);
+                                                return;
+                                              }
+
+                                              ensureDecorCategory(guidedCategory.key);
+                                            }}
+                                          >
+                                            {isSelected ? "Remove from request" : "Include this item"}
+                                          </button>
+                                          <button
+                                            type="button"
                                             className="btn secondary"
-                                            onClick={() => clearCategorySelection(guidedCategory.key)}
+                                            onClick={() => setActiveDecorKey("")}
                                           >
                                             Collapse
                                           </button>
@@ -1636,13 +1533,17 @@ export default function EventRequestForm({
                                                 key={option}
                                                 type="button"
                                                 className={`pill ${categoryRefinements[guidedCategory.key] === option ? "selected" : ""}`}
-                                                onClick={() =>
+                                                onClick={() => {
+                                                  const nextValue =
+                                                    categoryRefinements[guidedCategory.key] === option ? "" : option;
                                                   setCategoryRefinements((current) => ({
                                                     ...current,
-                                                    [guidedCategory.key]:
-                                                      current[guidedCategory.key] === option ? "" : option,
-                                                  }))
-                                                }
+                                                    [guidedCategory.key]: nextValue,
+                                                  }));
+                                                  if (nextValue) {
+                                                    ensureDecorCategory(guidedCategory.key);
+                                                  }
+                                                }}
                                               >
                                                 {option}
                                               </button>
@@ -1668,6 +1569,10 @@ export default function EventRequestForm({
                                                     const nextIds = currentIds.includes(item.id)
                                                       ? currentIds.filter((id) => id !== item.id)
                                                       : [...currentIds, item.id];
+
+                                                    if (nextIds.length > 0) {
+                                                      ensureDecorCategory(guidedCategory.key);
+                                                    }
 
                                                     return {
                                                       ...current,
@@ -1711,12 +1616,16 @@ export default function EventRequestForm({
                                         <textarea
                                           className="textarea"
                                           value={categoryNotes[guidedCategory.key] ?? ""}
-                                          onChange={(e) =>
+                                          onChange={(e) => {
+                                            const nextValue = e.target.value;
                                             setCategoryNotes((current) => ({
                                               ...current,
-                                              [guidedCategory.key]: e.target.value,
-                                            }))
-                                          }
+                                              [guidedCategory.key]: nextValue,
+                                            }));
+                                            if (nextValue.trim()) {
+                                              ensureDecorCategory(guidedCategory.key);
+                                            }
+                                          }}
                                           placeholder={`What do you like about this ${guidedCategory.title.toLowerCase()} direction?`}
                                         />
                                         <label className="guided-preview-upload">
@@ -1731,38 +1640,6 @@ export default function EventRequestForm({
                                           <span>{(categoryUploads[guidedCategory.key] ?? []).length} uploaded</span>
                                         </label>
                                       </div>
-
-                                      {availableGuidedCategories.some(
-                                        (item) =>
-                                          item.key !== guidedCategory.key &&
-                                          !selectedDecorCategories.includes(item.key)
-                                      ) ? (
-                                        <div className="guided-preview-next-actions">
-                                          <div className="guided-preview-next-actions-head">
-                                            <strong>Choose another decor element</strong>
-                                            <span>Add more without going back to the top.</span>
-                                          </div>
-                                          <div className="guided-preview-next-actions-list">
-                                            {availableGuidedCategories
-                                              .filter(
-                                                (item) =>
-                                                  item.key !== guidedCategory.key &&
-                                                  !selectedDecorCategories.includes(item.key)
-                                              )
-                                              .slice(0, 5)
-                                              .map((item) => (
-                                                <button
-                                                  key={`next-${guidedCategory.key}-${item.key}`}
-                                                  type="button"
-                                                  className="guided-preview-next-pill"
-                                                  onClick={() => focusDecorCategory(item.key)}
-                                                >
-                                                  {item.title}
-                                                </button>
-                                              ))}
-                                          </div>
-                                        </div>
-                                      ) : null}
                                     </div>
                                   ) : null}
                                 </div>
