@@ -2310,7 +2310,7 @@ export default function EventRequestForm({
 
       </div>
 
-      {isMobileViewport && !success ? (
+      {isMobileViewport && !success && step > 0 ? (
         <aside
           className={`booking-mobile-summary-drawer${mobileSummaryExpanded ? " is-expanded" : ""}`}
         >
