@@ -254,7 +254,7 @@ export default function SiteHeader() {
 
   return (
     <header
-      className={`site-header${isHome ? " is-home" : ""}${scrolled ? " is-scrolled" : ""}`}
+      className={`site-header${isHome ? " is-home" : ""}${scrolled ? " is-scrolled" : ""}${open ? " menu-open" : ""}`}
     >
       <div className="container nav-shell">
         <div className="nav">
