@@ -1780,11 +1780,26 @@ export default function EventRequestForm({
                                       key={guidedCategory.key}
                                       type="button"
                                       data-guided-category={guidedCategory.key}
-                                      className={`guided-preview-sidebar-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}`}
+                                      className={`guided-preview-sidebar-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""} ${hasContent ? "has-content" : ""}`}
                                       onClick={() => focusDecorCategory(guidedCategory.key)}
                                     >
                                       <div className="guided-preview-sidebar-copy">
                                         <strong>{guidedCategory.title}</strong>
+                                        <span>
+                                          {isSelected
+                                            ? selectedImageCount > 0
+                                              ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"} selected`
+                                              : uploadedImageCount > 0
+                                                ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"} added`
+                                                : noteCount > 0
+                                                  ? "Note added"
+                                                  : refinement
+                                                    ? refinement
+                                                    : "Included in request"
+                                            : recommendedDecorKeys.includes(guidedCategory.key)
+                                              ? "Recommended for this event"
+                                              : "Tap to configure"}
+                                        </span>
                                       </div>
                                       <div className="guided-preview-sidebar-status">
                                         {recommendedDecorKeys.includes(guidedCategory.key) ? (
@@ -1818,6 +1833,9 @@ export default function EventRequestForm({
                                 <p className="muted">{activeGuidedCategory.helper}</p>
                               </div>
                               <div className="guided-preview-stage-nav">
+                                {selectedDecorCategories.includes(activeGuidedCategory.key) ? (
+                                  <span className="guided-preview-selection-pill">Included in request</span>
+                                ) : null}
                                 <button
                                   type="button"
                                   className={`btn ${selectedDecorCategories.includes(activeGuidedCategory.key) ? "secondary" : ""}`}
@@ -1830,7 +1848,7 @@ export default function EventRequestForm({
                                     ensureDecorCategory(activeGuidedCategory.key);
                                   }}
                                 >
-                                  {selectedDecorCategories.includes(activeGuidedCategory.key) ? "Remove from request" : "Include this item"}
+                                  {selectedDecorCategories.includes(activeGuidedCategory.key) ? "Remove" : "Include"}
                                 </button>
                               </div>
                             </div>

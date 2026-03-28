@@ -3549,7 +3549,7 @@ th { background: var(--surface-soft); }
 }
 .guided-preview-master-detail {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: 272px minmax(0, 1fr);
   gap: 0;
   align-items: start;
   min-height: 680px;
@@ -3578,46 +3578,71 @@ th { background: var(--surface-soft); }
 }
 .guided-preview-sidebar-list {
   display: grid;
-  gap: 2px;
+  gap: 8px;
 }
 .guided-preview-sidebar-item {
+  position: relative;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 10px;
-  border-radius: 0;
-  border: 1px solid transparent;
-  background: transparent;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 14px 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(107, 59, 20, 0.06);
+  background: rgba(255, 255, 255, 0.34);
   color: var(--text-primary);
   text-align: left;
   cursor: pointer;
-  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+  box-shadow: 0 10px 20px rgba(48, 24, 11, 0.03);
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 .guided-preview-sidebar-item:hover {
   background: #efe6db;
+  border-color: rgba(107, 59, 20, 0.12);
+  transform: translateY(-1px);
 }
 .guided-preview-sidebar-item.active {
-  background: #6b3b14;
+  background: linear-gradient(180deg, #6b3b14 0%, #5c300f 100%);
   color: #fff;
   font-weight: 600;
+  border-color: rgba(107, 59, 20, 0.3);
+  box-shadow: 0 20px 34px rgba(93, 39, 4, 0.2);
 }
 .guided-preview-sidebar-item.selected {
-  border-color: rgba(107, 59, 20, 0.12);
+  border-color: rgba(107, 59, 20, 0.16);
+  background: linear-gradient(180deg, rgba(255, 249, 243, 0.98), rgba(245, 236, 225, 0.96));
+}
+.guided-preview-sidebar-item.has-content:not(.active) {
+  box-shadow: 0 14px 26px rgba(93, 39, 4, 0.06);
+}
+.guided-preview-sidebar-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: rgba(255, 241, 222, 0.92);
 }
 .guided-preview-sidebar-copy {
   display: grid;
-  gap: 1px;
+  gap: 5px;
   min-width: 0;
 }
 .guided-preview-sidebar-copy strong {
   font-size: 0.98rem;
   line-height: 1.25;
 }
+.guided-preview-sidebar-copy span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
 .guided-preview-sidebar-status {
   display: grid;
   justify-items: end;
-  gap: 3px;
+  gap: 6px;
   flex: 0 0 auto;
 }
 .guided-preview-detail-panel {
@@ -3865,9 +3890,9 @@ th { background: var(--surface-soft); }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 24px;
-  min-width: 24px;
-  padding: 4px;
+  min-height: 28px;
+  min-width: 28px;
+  padding: 4px 8px;
   border-radius: 999px;
   background: rgba(183, 46, 46, 0.12);
   color: #b72e2e;
@@ -3918,6 +3943,11 @@ th { background: var(--surface-soft); }
 .guided-preview-sidebar-item.active .guided-preview-category-badge {
   background: rgba(255, 255, 255, 0.16);
   color: #fff !important;
+}
+.guided-preview-sidebar-item.active .guided-preview-category-check {
+  background: #fff3e1;
+  color: #8d1d1d;
+  border-color: rgba(255, 243, 225, 0.4);
 }
 .guided-preview-chevron {
   display: inline-flex;
@@ -3997,6 +4027,7 @@ th { background: var(--surface-soft); }
   justify-content: space-between;
   gap: 12px;
   align-items: start;
+  flex-wrap: wrap;
   padding-bottom: 4px;
   border-bottom: 1px solid rgba(93, 39, 4, 0.08);
 }
@@ -4011,6 +4042,21 @@ th { background: var(--surface-soft); }
   display: inline-flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.guided-preview-selection-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(107, 59, 20, 0.08);
+  border: 1px solid rgba(107, 59, 20, 0.14);
+  color: var(--accent-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .guided-preview-options {
   display: grid;
