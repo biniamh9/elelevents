@@ -96,11 +96,9 @@ const paletteSuggestions = [
 ];
 const steps = [
   { id: "event-type", label: "Type" },
-  { id: "decor-style", label: "Style" },
+  { id: "details", label: "Details" },
   { id: "visual-builder", label: "Decor" },
-  { id: "basics", label: "Date" },
-  { id: "preview", label: "Photos" },
-  { id: "contact", label: "Contact" },
+  { id: "preview", label: "Preview" },
   { id: "summary", label: "Submit" },
 ];
 
@@ -1216,13 +1214,8 @@ export default function EventRequestForm({
       return;
     }
 
-    if (step === 3 && missingEventDetails) {
-      setError("Add the event date, guest range, and budget before continuing.");
-      return;
-    }
-
-    if (step === 5 && missingContactDetails) {
-      setError("Add your contact details before continuing.");
+    if (step === 1 && (missingEventDetails || missingContactDetails)) {
+      setError("Add the event details and contact details before continuing.");
       return;
     }
 
@@ -2303,7 +2296,7 @@ export default function EventRequestForm({
                   type="button"
                   className="btn"
                   onClick={nextStep}
-                  disabled={(step === 0 && missingEventType) || (step === 3 && missingEventDetails) || (step === 5 && missingContactDetails)}
+                  disabled={(step === 0 && missingEventType) || (step === 1 && (missingEventDetails || missingContactDetails))}
                 >
                   Next Step
                 </button>
