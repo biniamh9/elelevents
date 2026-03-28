@@ -99,7 +99,7 @@ export default async function AboutPage() {
         showCaption={false}
       />
 
-      <section className="simple-testimonial-shell">
+      <section id="reviews" className="simple-testimonial-shell">
         <div className="simple-testimonial-head">
           <div>
             <p className="eyebrow">Client reviews</p>

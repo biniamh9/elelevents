@@ -8,42 +8,115 @@ import Button from "@/components/ui/button";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/services", label: "Services" },
   { href: "/gallery", label: "Portfolio" },
-  { href: "/packages", label: "Packages" },
+  { href: "/services", label: "Services" },
+  { href: "/#process", label: "Process" },
+  { href: "/about#reviews", label: "Reviews" },
   { href: "/contact", label: "Contact" },
 ];
 
 const hiddenPrefixes = ["/admin", "/vendors/dashboard", "/vendors/pending"];
 
 function isCurrentPath(pathname: string, href: string) {
-  if (href === "/") {
+  const pathOnly = href.split("#")[0] || "/";
+
+  if (pathOnly === "/") {
     return pathname === "/";
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === pathOnly || pathname.startsWith(`${pathOnly}/`);
 }
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeHomeSection, setActiveHomeSection] = useState("home");
+  const [showFloatingCta, setShowFloatingCta] = useState(false);
+  const [dismissedFloatingCta, setDismissedFloatingCta] = useState(false);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    const updateScroll = () => {
+    if (pathname !== "/") {
       setScrolled(window.scrollY > 24);
+      setShowFloatingCta(false);
+      setDismissedFloatingCta(false);
+      return;
+    }
+
+    const hero = document.querySelector<HTMLElement>(".hero-stage--simple");
+
+    const updateScroll = () => {
+      setScrolled(window.scrollY > 18);
+
+      const heroHeight = hero?.offsetHeight ?? window.innerHeight;
+      const showThreshold = heroHeight * 0.3;
+      const reappearThreshold = heroHeight * 0.9;
+
+      if (dismissedFloatingCta && window.scrollY < reappearThreshold) {
+        setShowFloatingCta(false);
+        return;
+      }
+
+      if (window.scrollY >= showThreshold) {
+        setShowFloatingCta(true);
+        if (window.scrollY >= reappearThreshold) {
+          setDismissedFloatingCta(false);
+        }
+      } else {
+        setShowFloatingCta(false);
+      }
     };
 
     updateScroll();
     window.addEventListener("scroll", updateScroll, { passive: true });
 
     return () => window.removeEventListener("scroll", updateScroll);
-  }, []);
+  }, [dismissedFloatingCta, pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      return;
+    }
+
+    const sections = [
+      { id: "home", element: document.querySelector(".hero-stage--simple") },
+      { id: "process", element: document.getElementById("process") },
+    ].filter((item) => item.element) as Array<{ id: string; element: Element }>;
+
+    if (!sections.length) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visible) {
+          return;
+        }
+
+        const match = sections.find((section) => section.element === visible.target);
+
+        if (match) {
+          setActiveHomeSection(match.id);
+        }
+      },
+      {
+        rootMargin: "-24% 0px -48% 0px",
+        threshold: [0.2, 0.45, 0.7],
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section.element));
+
+    return () => observer.disconnect();
+  }, [pathname]);
 
   if (hiddenPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     return null;
@@ -51,45 +124,69 @@ export default function SiteHeader() {
 
   const isHome = pathname === "/";
 
+  const isLinkActive = (href: string) => {
+    if (href === "/#process") {
+      return pathname === "/" && activeHomeSection === "process";
+    }
+
+    if (href === "/") {
+      return pathname === "/" && activeHomeSection === "home";
+    }
+
+    return isCurrentPath(pathname, href);
+  };
+
   return (
     <header
       className={`site-header${isHome ? " is-home" : ""}${scrolled ? " is-scrolled" : ""}`}
     >
-      <div className="container nav">
-        <Link href="/" className="brand brand-logo" aria-label="Elel Events home">
-          <Image
-            src="/logo.png"
-            alt="Elel Events logo"
-            width={320}
-            height={120}
-            priority
-            className="brand-logo-image"
-          />
-        </Link>
+      <div className="container nav-shell">
+        <div className="nav">
+          <Link href="/" className="brand brand-logo" aria-label="Elel Events home">
+            <Image
+              src="/logo.png"
+              alt="Elel Events logo"
+              width={320}
+              height={120}
+              priority
+              className="brand-logo-image"
+            />
+            <span className="brand-logo-copy">
+              <strong>Elel Events</strong>
+              <small>Luxury Event Design</small>
+            </span>
+          </Link>
 
-        <nav
-          id="site-nav"
-          className={`nav-links${open ? " is-open" : ""}`}
-          aria-label="Primary navigation"
-        >
-          {links.map((link) => {
-            const isActive = isCurrentPath(pathname, link.href);
+          <nav
+            id="site-nav"
+            className={`nav-links${open ? " is-open" : ""}`}
+            aria-label="Primary navigation"
+          >
+            <div className="nav-mobile-head">
+              <p className="eyebrow">Elel Events &amp; Design</p>
+              <Button href="/request" className="nav-drawer-cta">Book Consultation</Button>
+            </div>
+            {links.map((link) => {
+              const isActive = isLinkActive(link.href);
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isActive ? "page" : undefined}
-                className={isActive ? "is-active" : undefined}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={isActive ? "is-active" : undefined}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="nav-main">
-          <Button href="/request" className="nav-cta">Book Consultation</Button>
+          <div className="nav-main">
+            <Button href="/gallery" variant="secondary" className="nav-ghost-cta">View Gallery</Button>
+            <Button href="/request" className="nav-cta">Book Consultation</Button>
+          </div>
+
           <button
             type="button"
             className={`nav-toggle${open ? " is-open" : ""}`}
@@ -104,6 +201,32 @@ export default function SiteHeader() {
           </button>
         </div>
       </div>
+
+      <div
+        className={`nav-drawer-backdrop${open ? " is-open" : ""}`}
+        aria-hidden="true"
+        onClick={() => setOpen(false)}
+      />
+
+      {isHome ? (
+        <aside className={`floating-booking-cta${showFloatingCta ? " is-visible" : ""}`}>
+          <button
+            type="button"
+            className="floating-booking-cta-close"
+            aria-label="Dismiss booking prompt"
+            onClick={() => {
+              setShowFloatingCta(false);
+              setDismissedFloatingCta(true);
+            }}
+          >
+            ×
+          </button>
+          <small>Ready to secure your date?</small>
+          <strong>Check Availability</strong>
+          <span>Atlanta brides book fast</span>
+          <Button href="/request" className="floating-booking-cta-button">Check Availability</Button>
+        </aside>
+      ) : null}
     </header>
   );
 }

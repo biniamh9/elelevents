@@ -102,7 +102,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="container section">
+      <section id="process" className="container section">
         <HomeProcessFlow
           steps={processSteps.map((item, index) => ({
             title: item.title,
