@@ -122,6 +122,20 @@ type DecorRefinementConfig = {
   options: string[];
 };
 
+type SubmittedRequestSummary = {
+  customerName: string;
+  eventType: string;
+  eventDate: string;
+  venue: string;
+  decorStyle: string;
+  decorCount: number;
+  decorLabels: string[];
+  inspirationCount: number;
+  consultationType: string;
+  leadImageUrl: string;
+  calendarReminderUrl: string;
+};
+
 const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
   backdrop: {
     key: "backdrop",
@@ -557,6 +571,7 @@ export default function EventRequestForm({
   const [selectedEventExperience, setSelectedEventExperience] = useState("");
   const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
   const [success, setSuccess] = useState("");
+  const [submittedSummary, setSubmittedSummary] = useState<SubmittedRequestSummary | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploadingVisionBoard, setUploadingVisionBoard] = useState(false);
@@ -1209,6 +1224,28 @@ export default function EventRequestForm({
       return;
     }
 
+    const reminderDate = form.eventDate
+      ? `${form.eventDate.replace(/-/g, "")}/${form.eventDate.replace(/-/g, "")}`
+      : "";
+
+    setSubmittedSummary({
+      customerName: [form.firstName, form.lastName].filter(Boolean).join(" ") || "Client",
+      eventType: effectiveEventType || "Custom event",
+      eventDate: form.eventDate || "To be confirmed",
+      venue: form.venueName || form.venueStatus || "To be confirmed",
+      decorStyle: form.decorStyle || "To be refined during consultation",
+      decorCount: selectedDecorCategories.length,
+      decorLabels: selectedDecorCategories
+        .map((key) => guidedPreviewCategories[key]?.title)
+        .filter(Boolean)
+        .slice(0, 4) as string[],
+      inspirationCount: preview.selectedImageCount + preview.uploadedImageCount,
+      consultationType: form.preferredContactMethod || "To be confirmed",
+      leadImageUrl: preview.leadImage?.image_url ?? portfolioItems[0]?.image_url ?? "",
+      calendarReminderUrl: reminderDate
+        ? `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Elel Events request follow-up")}&dates=${reminderDate}&details=${encodeURIComponent("Elel Events & Design will reach out within 12–24 hours to continue your booking consultation.")}`
+        : "",
+    });
     setSuccess("Your consultation request has been received.");
     setForm(initialState);
     setSelectedDecorCategories([]);
@@ -1219,6 +1256,141 @@ export default function EventRequestForm({
     setExpandedCategoryImages({});
     setStep(0);
     setLoading(false);
+  }
+
+  if (success && submittedSummary) {
+    return (
+      <section className="booking-success-shell">
+        {submittedSummary.leadImageUrl ? (
+          <img
+            className="booking-success-backdrop"
+            src={submittedSummary.leadImageUrl}
+            alt={submittedSummary.eventType}
+          />
+        ) : null}
+        <div className="booking-success-overlay" />
+        <div className="booking-success-sparkles" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className="booking-success-card">
+          <div className="booking-success-icon" aria-hidden="true">
+            <span>✓</span>
+          </div>
+
+          <div className="booking-success-copy">
+            <p className="booking-success-kicker">Concierge confirmation</p>
+            <h2>Your Dream Event Request Has Been Received</h2>
+            <p>
+              Our design team will carefully review your vision and reach out within 12–24 hours
+              to begin creating something unforgettable.
+            </p>
+          </div>
+
+          <div className="booking-success-summary">
+            <div className="booking-success-summary-head">
+              <strong>{submittedSummary.customerName}</strong>
+              <span>What was submitted</span>
+            </div>
+            <div className="booking-success-summary-grid">
+              <div>
+                <small>Event type</small>
+                <span>{submittedSummary.eventType}</span>
+              </div>
+              <div>
+                <small>Requested date</small>
+                <span>{submittedSummary.eventDate}</span>
+              </div>
+              <div>
+                <small>Venue</small>
+                <span>{submittedSummary.venue}</span>
+              </div>
+              <div>
+                <small>Decor style</small>
+                <span>{submittedSummary.decorStyle}</span>
+              </div>
+              <div>
+                <small>Key decor items</small>
+                <span>{submittedSummary.decorCount} selected</span>
+              </div>
+              <div>
+                <small>Inspiration images</small>
+                <span>{submittedSummary.inspirationCount} selected</span>
+              </div>
+              <div>
+                <small>Consultation</small>
+                <span>{submittedSummary.consultationType}</span>
+              </div>
+            </div>
+            {submittedSummary.decorLabels.length ? (
+              <div className="booking-success-tags">
+                {submittedSummary.decorLabels.map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="booking-success-timeline">
+            <article>
+              <span>1</span>
+              <div>
+                <strong>Review Request</strong>
+                <p>Our team reviews your dream setup</p>
+              </div>
+            </article>
+            <article>
+              <span>2</span>
+              <div>
+                <strong>Consultation</strong>
+                <p>We connect to align on vision &amp; budget</p>
+              </div>
+            </article>
+            <article>
+              <span>3</span>
+              <div>
+                <strong>Secure Your Date</strong>
+                <p>Quote + contract + reservation</p>
+              </div>
+            </article>
+          </div>
+
+          <div className="booking-success-actions">
+            <a className="btn" href="/gallery">
+              View Inspiration Gallery
+            </a>
+            <a className="btn secondary" href="/">
+              Return Home
+            </a>
+            {submittedSummary.calendarReminderUrl ? (
+              <a
+                className="btn secondary"
+                href={submittedSummary.calendarReminderUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Add Event Date to Calendar Reminder
+              </a>
+            ) : null}
+          </div>
+
+          <div className="booking-success-trust">
+            <span>Serving Atlanta since 2019</span>
+            <span>12+ years of luxury event excellence</span>
+            <span>Trusted by Atlanta brides &amp; families</span>
+          </div>
+
+          <div className="booking-success-share">
+            <p>Know someone planning a special event?</p>
+            <a className="btn secondary" href="/contact">
+              Share Elel With a Friend
+            </a>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
