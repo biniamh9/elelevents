@@ -702,10 +702,7 @@ export default function EventRequestForm({
       return;
     }
 
-    panel.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    panel.scrollTop = 0;
   }, [activeDecorKey]);
 
   useEffect(() => {
@@ -930,6 +927,37 @@ export default function EventRequestForm({
     ]
   );
 
+  const completionPercent = Math.round(((step + 1) / steps.length) * 100);
+  const startingInvestment = form.budgetRange
+    ? form.budgetRange
+    : selectedDecorCategories.length >= 4
+      ? "$5,000+"
+      : selectedDecorCategories.length >= 2
+        ? "$3,000-$5,000"
+        : "Custom quote";
+  const mobileSummaryItems = useMemo(
+    () => [
+      { label: "Event type", value: effectiveEventType || "Not selected" },
+      { label: "Decor style", value: form.decorStyle || "To be refined" },
+      { label: "Decor pieces", value: selectedDecorCategories.length ? `${selectedDecorCategories.length} selected` : "None yet" },
+      { label: "Venue", value: form.venueName || form.venueStatus || "Not added" },
+      { label: "Inspiration", value: `${preview.selectedImageCount + preview.uploadedImageCount} image picks` },
+      { label: "Color theme", value: form.colorsTheme || "Open palette" },
+      { label: "Consultation", value: form.preferredContactMethod || "To be confirmed" },
+    ],
+    [
+      effectiveEventType,
+      form.colorsTheme,
+      form.decorStyle,
+      form.preferredContactMethod,
+      form.venueName,
+      form.venueStatus,
+      preview.selectedImageCount,
+      preview.uploadedImageCount,
+      selectedDecorCategories.length,
+    ]
+  );
+
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
       .map((category) => {
@@ -1119,8 +1147,13 @@ export default function EventRequestForm({
       return;
     }
 
-    if (step === 1 && missingBasics) {
-      setError("Add the event basics before continuing.");
+    if (step === 3 && missingEventDetails) {
+      setError("Add the event date, guest range, and budget before continuing.");
+      return;
+    }
+
+    if (step === 5 && missingContactDetails) {
+      setError("Add your contact details before continuing.");
       return;
     }
 
@@ -1135,8 +1168,8 @@ export default function EventRequestForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (missingBasics || missingEventType || missingContactDetails) {
-      setError("Complete the event basics and contact details before submitting.");
+    if (missingEventDetails || missingEventType || missingContactDetails) {
+      setError("Complete the event details and contact details before submitting.");
       return;
     }
 
@@ -1215,9 +1248,17 @@ export default function EventRequestForm({
       <div className="form-wrap booking-layout">
         <div ref={formCardRef} className="card form-card booking-form-card">
           <div className="booking-pane-head">
-            <span className="booking-pane-tag">Build Your Event</span>
-            <p className="booking-progress-copy">Step {step + 1} of {steps.length}</p>
-            <p className="muted">Only one major task is shown at a time so the request feels guided and easy to finish.</p>
+            <div className="booking-mobile-progress-card">
+              <div className="booking-mobile-progress-meta">
+                <span className="booking-pane-tag">Booking concierge</span>
+                <p className="booking-progress-copy">{completionPercent}% complete</p>
+              </div>
+              <strong>{steps[step]?.label}</strong>
+              <p className="muted">Step {step + 1} of {steps.length} • Your dream setup is taking shape</p>
+              <div className="booking-mobile-progress-bar" aria-hidden="true">
+                <span style={{ width: `${completionPercent}%` }} />
+              </div>
+            </div>
           </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
@@ -1505,7 +1546,11 @@ export default function EventRequestForm({
                         })}
                       </aside>
 
-                      <div ref={detailPanelRef} className="guided-preview-detail-panel">
+                      <div
+                        key={activeGuidedCategory?.key ?? "empty"}
+                        ref={detailPanelRef}
+                        className="guided-preview-detail-panel"
+                      >
                         {activeGuidedCategory ? (
                           <>
                             <div className="guided-preview-category-head">
@@ -2032,7 +2077,7 @@ export default function EventRequestForm({
                   type="button"
                   className="btn"
                   onClick={nextStep}
-                  disabled={(step === 0 && missingEventType) || (step === 1 && missingBasics)}
+                  disabled={(step === 0 && missingEventType) || (step === 3 && missingEventDetails) || (step === 5 && missingContactDetails)}
                 >
                   Next Step
                 </button>
