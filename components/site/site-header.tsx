@@ -34,10 +34,33 @@ export default function SiteHeader() {
   const [activeHomeSection, setActiveHomeSection] = useState("home");
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [dismissedFloatingCta, setDismissedFloatingCta] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [showMobileBookingBar, setShowMobileBookingBar] = useState(false);
+  const [mobileBookingExpanded, setMobileBookingExpanded] = useState(false);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
 
   useEffect(() => {
     setOpen(false);
+    setMobileBookingExpanded(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (open) {
+      setMobileBookingExpanded(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth <= 900);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport, { passive: true });
+
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   useEffect(() => {
     if (pathname !== "/") {
@@ -76,6 +99,99 @@ export default function SiteHeader() {
 
     return () => window.removeEventListener("scroll", updateScroll);
   }, [dismissedFloatingCta, pathname]);
+
+  useEffect(() => {
+    const footer = document.querySelector(".site-footer");
+
+    if (!footer) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setFooterVisible(entries.some((entry) => entry.isIntersecting));
+      },
+      {
+        rootMargin: "0px 0px -24px 0px",
+        threshold: 0.05,
+      }
+    );
+
+    observer.observe(footer);
+
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  useEffect(() => {
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+
+      if (!target) {
+        return;
+      }
+
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable) {
+        setInputFocused(true);
+        setMobileBookingExpanded(false);
+      }
+    };
+
+    const onFocusOut = () => {
+      window.setTimeout(() => {
+        const active = document.activeElement as HTMLElement | null;
+        const stillFocused =
+          active &&
+          (["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName) || active.isContentEditable);
+
+        setInputFocused(Boolean(stillFocused));
+      }, 0);
+    };
+
+    window.addEventListener("focusin", onFocusIn);
+    window.addEventListener("focusout", onFocusOut);
+
+    return () => {
+      window.removeEventListener("focusin", onFocusIn);
+      window.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileViewport) {
+      setShowMobileBookingBar(false);
+      setMobileBookingExpanded(false);
+      return;
+    }
+
+    let lastY = window.scrollY;
+
+    const updateScrollState = () => {
+      const currentY = window.scrollY;
+      const scrollable = Math.max(
+        document.documentElement.scrollHeight - window.innerHeight,
+        1
+      );
+      const progress = currentY / scrollable;
+      const delta = currentY - lastY;
+
+      setScrolled(currentY > 18);
+
+      if (open || inputFocused || footerVisible || progress < 0.2) {
+        setShowMobileBookingBar(false);
+      } else if (delta < -18) {
+        setShowMobileBookingBar(false);
+      } else if (delta > 6 || progress > 0.2) {
+        setShowMobileBookingBar(true);
+      }
+
+      lastY = currentY;
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, [footerVisible, inputFocused, isMobileViewport, open, pathname]);
 
   useEffect(() => {
     if (pathname !== "/") {
@@ -261,6 +377,40 @@ export default function SiteHeader() {
           <Button href="/request" className="floating-booking-cta-button">Check Availability</Button>
         </aside>
       ) : null}
+
+      <aside
+        className={`mobile-booking-bar${showMobileBookingBar && !open && !footerVisible && !inputFocused ? " is-visible" : ""}${mobileBookingExpanded ? " is-expanded" : ""}`}
+      >
+        <button
+          type="button"
+          className="mobile-booking-bar-trigger"
+          aria-expanded={mobileBookingExpanded}
+          onClick={() => setMobileBookingExpanded((value) => !value)}
+        >
+          <div className="mobile-booking-bar-copy">
+            <strong>Ready for your dream setup?</strong>
+            <span>Fast availability check</span>
+          </div>
+          <span className="mobile-booking-bar-action">Check Date</span>
+        </button>
+
+        <div className="mobile-booking-bar-panel">
+          <button
+            type="button"
+            className="mobile-booking-bar-close"
+            aria-label="Minimize booking panel"
+            onClick={() => setMobileBookingExpanded(false)}
+          >
+            ×
+          </button>
+          <small>Let&apos;s secure your event date</small>
+          <div className="mobile-booking-bar-actions">
+            <Button href="/request" className="mobile-booking-bar-primary">Check Availability</Button>
+            <Button href="/request" variant="secondary" className="mobile-booking-bar-secondary">Book Consultation</Button>
+          </div>
+          <span className="mobile-booking-bar-trust">Atlanta brides book weeks ahead</span>
+        </div>
+      </aside>
     </header>
   );
 }
