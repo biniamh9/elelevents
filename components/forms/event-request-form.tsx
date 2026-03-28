@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
+import LiveEstimatePreview from "@/components/forms/live-estimate-preview";
 
 const celebrationEventOptions = [
   "Birthday",
@@ -483,6 +484,51 @@ function deriveRequestedServices(
   return Array.from(new Set(labels));
 }
 
+function getEstimatedGuestCount(guestCount: string, guestCountRange: string) {
+  if (guestCount) {
+    return Number(guestCount);
+  }
+
+  switch (guestCountRange) {
+    case "Under 50":
+      return 40;
+    case "50–100":
+    case "50-100":
+      return 75;
+    case "100–200":
+    case "100-200":
+      return 150;
+    case "200+":
+      return 220;
+    default:
+      return null;
+  }
+}
+
+function getVenueComplexityMultiplier(venueType: string, venueStatus: string) {
+  const venueMultiplierMap: Record<string, number> = {
+    "Ballroom / hotel": 1.1,
+    "Banquet hall": 1.05,
+    "Church reception": 1.08,
+    "Private home": 1,
+    "Outdoor garden": 1.18,
+    "Mixed indoor-outdoor": 1.14,
+  };
+
+  const statusMultiplierMap: Record<string, number> = {
+    Booked: 1,
+    "Still looking": 1.03,
+    Home: 1,
+    Church: 1.06,
+    Hall: 1.05,
+    "Hotel / ballroom": 1.1,
+  };
+
+  return Number(
+    ((venueMultiplierMap[venueType] ?? 1) * (statusMultiplierMap[venueStatus] ?? 1)).toFixed(2)
+  );
+}
+
 function buildReviewNotes(
   form: typeof initialState,
   visualSelectionNotes?: string
@@ -943,6 +989,14 @@ export default function EventRequestForm({
   );
 
   const completionPercent = Math.round(((step + 1) / steps.length) * 100);
+  const estimatedGuestCount = getEstimatedGuestCount(form.guestCount, form.guestCountRange);
+  const estimatedTableCount = estimatedGuestCount ? Math.max(1, Math.ceil(estimatedGuestCount / 8)) : null;
+  const venueComplexityMultiplier = getVenueComplexityMultiplier(form.venueType, form.venueStatus);
+  const estimateItems = selectedDecorCategories.map((key) => {
+    const label = guidedPreviewCategories[key]?.title ?? key;
+    const refinement = categoryRefinements[key];
+    return refinement ? `${label}: ${refinement}` : label;
+  });
   const startingInvestment = form.budgetRange
     ? form.budgetRange
     : selectedDecorCategories.length >= 4
@@ -2263,6 +2317,69 @@ export default function EventRequestForm({
         </div>
 
       </div>
+
+      {isMobileViewport && !success ? (
+        <aside
+          className={`booking-mobile-summary-drawer${mobileSummaryExpanded ? " is-expanded" : ""}`}
+        >
+          <button
+            type="button"
+            className="booking-mobile-summary-trigger"
+            aria-expanded={mobileSummaryExpanded}
+            onClick={() => setMobileSummaryExpanded((current) => !current)}
+          >
+            <div className="booking-mobile-summary-copy">
+              <strong>Your Event Summary</strong>
+              <span>
+                {[effectiveEventType || "Event type pending", form.eventDate || "Date pending"]
+                  .filter(Boolean)
+                  .join(" • ")}
+              </span>
+            </div>
+            <div className="booking-mobile-summary-meta">
+              <small>{selectedDecorCategories.length} item{selectedDecorCategories.length === 1 ? "" : "s"}</small>
+              <em>{startingInvestment}</em>
+            </div>
+          </button>
+
+          <div className="booking-mobile-summary-panel">
+            <LiveEstimatePreview
+              selectedItems={estimateItems}
+              guestCount={estimatedGuestCount}
+              tableCount={estimatedTableCount}
+              eventType={effectiveEventType || form.eventType || "Other"}
+              venueMultiplier={venueComplexityMultiplier}
+            />
+
+            <div className="booking-mobile-summary-grid">
+              {mobileSummaryItems.map((item) => (
+                <div key={item.label}>
+                  <small>{item.label}</small>
+                  <span>{item.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="booking-mobile-summary-shortcuts">
+              <button type="button" className="btn secondary" onClick={() => setStep(0)}>
+                Event Type
+              </button>
+              <button type="button" className="btn secondary" onClick={() => setStep(2)}>
+                Decor
+              </button>
+              <button type="button" className="btn secondary" onClick={() => setStep(4)}>
+                Photos
+              </button>
+            </div>
+
+            <div className="booking-mobile-trust">
+              <span>Response within 12–24 hours</span>
+              <span>Serving Atlanta since 2019</span>
+              <span>Trusted for luxury weddings &amp; events</span>
+            </div>
+          </div>
+        </aside>
+      ) : null}
     </div>
   );
 }
