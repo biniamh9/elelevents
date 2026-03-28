@@ -7458,9 +7458,11 @@ th { background: var(--surface-soft); }
   .hero-image { min-height: 320px; }
   .booking-actions { flex-direction: column; }
   .booking-actions {
-    bottom: calc(176px + env(safe-area-inset-bottom));
-    z-index: 60;
+    position: static;
+    bottom: auto;
+    z-index: auto;
     padding-top: 14px;
+    background: transparent;
   }
   .choice-card,
   .choice-card--compact {
