@@ -245,6 +245,7 @@ export default function SiteHeader() {
   }
 
   const isHome = pathname === "/";
+  const isRequestPage = pathname === "/request";
 
   const isLinkActive = (href: string) => {
     if (href === "/#process") {
@@ -382,7 +383,7 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {isHome ? (
+      {isHome && !isRequestPage ? (
         <aside className={`floating-booking-cta${showFloatingCta ? " is-visible" : ""}`}>
           <button
             type="button"
@@ -403,7 +404,7 @@ export default function SiteHeader() {
       ) : null}
 
       <aside
-        className={`mobile-booking-bar${showMobileBookingBar && !open && !footerVisible && !inputFocused ? " is-visible" : ""}${mobileBookingExpanded ? " is-expanded" : ""}`}
+        className={`mobile-booking-bar${showMobileBookingBar && !open && !footerVisible && !inputFocused && !isRequestPage ? " is-visible" : ""}${mobileBookingExpanded ? " is-expanded" : ""}`}
       >
         <button
           type="button"

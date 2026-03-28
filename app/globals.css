@@ -7459,6 +7459,7 @@ th { background: var(--surface-soft); }
   .booking-actions { flex-direction: column; }
   .booking-actions {
     bottom: calc(176px + env(safe-area-inset-bottom));
+    z-index: 60;
     padding-top: 14px;
   }
   .choice-card,
