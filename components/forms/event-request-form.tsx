@@ -647,8 +647,7 @@ export default function EventRequestForm({
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingEventDetails =
     !form.eventDate ||
-    (!form.guestCount && !form.guestCountRange) ||
-    !form.budgetRange;
+    (!form.guestCount && !form.guestCountRange);
   const missingContactDetails =
     !form.firstName ||
     !form.lastName ||
@@ -2296,7 +2295,7 @@ export default function EventRequestForm({
                   type="button"
                   className="btn"
                   onClick={nextStep}
-                  disabled={(step === 0 && missingEventType) || (step === 1 && (missingEventDetails || missingContactDetails))}
+                  disabled={loading}
                 >
                   Next Step
                 </button>
