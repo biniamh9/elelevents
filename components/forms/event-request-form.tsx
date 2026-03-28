@@ -95,9 +95,11 @@ const paletteSuggestions = [
 ];
 const steps = [
   { id: "event-type", label: "Type" },
-  { id: "basics", label: "Details" },
-  { id: "visual-builder", label: "Design" },
-  { id: "preview", label: "Preview" },
+  { id: "decor-style", label: "Style" },
+  { id: "visual-builder", label: "Decor" },
+  { id: "basics", label: "Date" },
+  { id: "preview", label: "Photos" },
+  { id: "contact", label: "Contact" },
   { id: "summary", label: "Submit" },
 ];
 
@@ -550,6 +552,8 @@ export default function EventRequestForm({
   const decorSidebarRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
+  const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [selectedEventExperience, setSelectedEventExperience] = useState("");
   const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
   const [success, setSuccess] = useState("");
@@ -582,13 +586,10 @@ export default function EventRequestForm({
   );
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
-  const missingBasics =
+  const missingEventDetails =
     !form.eventDate ||
     (!form.guestCount && !form.guestCountRange) ||
-    !form.firstName ||
-    !form.lastName ||
-    !form.email ||
-    !form.phone;
+    !form.budgetRange;
   const missingContactDetails =
     !form.firstName ||
     !form.lastName ||
@@ -628,6 +629,17 @@ export default function EventRequestForm({
       ),
     [selectedCategoryKeys, hasCategoryNotesOrUploads, form.needsDeliverySetup]
   );
+
+  useEffect(() => {
+    const updateViewport = () => {
+      setIsMobileViewport(window.innerWidth <= 900);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport, { passive: true });
+
+    return () => window.removeEventListener("resize", updateViewport);
+  }, []);
 
   useEffect(() => {
     setSelectedDecorCategories([]);
@@ -712,6 +724,10 @@ export default function EventRequestForm({
     });
 
     return () => window.cancelAnimationFrame(frame);
+  }, [step]);
+
+  useEffect(() => {
+    setMobileSummaryExpanded(false);
   }, [step]);
 
   const preview = useMemo(() => {
