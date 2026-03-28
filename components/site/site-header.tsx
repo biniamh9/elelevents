@@ -63,6 +63,12 @@ export default function SiteHeader() {
   }, []);
 
   useEffect(() => {
+    if (!isMobileViewport) {
+      setOpen(false);
+    }
+  }, [isMobileViewport]);
+
+  useEffect(() => {
     if (pathname !== "/") {
       setScrolled(window.scrollY > 24);
       setShowFloatingCta(false);
@@ -275,61 +281,23 @@ export default function SiteHeader() {
 
           <nav
             id="site-nav"
-            className={`nav-links${open ? " is-open" : ""}`}
+            className="nav-links nav-links--desktop"
             aria-label="Primary navigation"
           >
-            <div className="nav-mobile-head">
-              <button
-                type="button"
-                className="nav-mobile-close"
-                aria-label="Close menu"
-                onClick={() => setOpen(false)}
-              >
-                ×
-              </button>
-              <div className="nav-mobile-brand">
-                <Image
-                  src="/logo.png"
-                  alt="Elel Events logo"
-                  width={320}
-                  height={120}
-                  className="nav-mobile-brand-image"
-                />
-                <strong>Elel Events &amp; Design</strong>
-                <span>Luxury Event Design in Atlanta</span>
-                <small>Transforming dream celebrations into unforgettable moments</small>
-              </div>
-            </div>
+            {links.map((link) => {
+              const isActive = isLinkActive(link.href);
 
-            <div className="nav-mobile-links">
-              {links.map((link) => {
-                const isActive = isLinkActive(link.href);
-
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    aria-current={isActive ? "page" : undefined}
-                    className={isActive ? "is-active" : undefined}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="nav-mobile-booking">
-              <small>Dates fill quickly for weddings &amp; special events</small>
-              <div className="nav-mobile-booking-actions">
-                <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
-                <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
-              </div>
-              <div className="nav-mobile-trust">
-                <span>★★★★★ Google Reviews</span>
-                <span>Serving Atlanta since 2019</span>
-                <span>12+ years of luxury decor</span>
-              </div>
-            </div>
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={isActive ? "is-active" : undefined}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="nav-main">
@@ -357,6 +325,62 @@ export default function SiteHeader() {
         aria-hidden="true"
         onClick={() => setOpen(false)}
       />
+
+      <div className={`nav-mobile-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
+        <div className="nav-mobile-head">
+          <button
+            type="button"
+            className="nav-mobile-close"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+          >
+            ×
+          </button>
+          <div className="nav-mobile-brand">
+            <Image
+              src="/logo.png"
+              alt="Elel Events logo"
+              width={320}
+              height={120}
+              className="nav-mobile-brand-image"
+            />
+            <strong>Elel Events &amp; Design</strong>
+            <span>Luxury Event Design in Atlanta</span>
+            <small>Transforming dream celebrations into unforgettable moments</small>
+          </div>
+        </div>
+
+        <div className="nav-mobile-links">
+          {links.map((link) => {
+            const isActive = isLinkActive(link.href);
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={isActive ? "page" : undefined}
+                className={isActive ? "is-active" : undefined}
+                onClick={() => setOpen(false)}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="nav-mobile-booking">
+          <small>Dates fill quickly for weddings &amp; special events</small>
+          <div className="nav-mobile-booking-actions">
+            <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
+            <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+          </div>
+          <div className="nav-mobile-trust">
+            <span>★★★★★ Google Reviews</span>
+            <span>Serving Atlanta since 2019</span>
+            <span>12+ years of luxury decor</span>
+          </div>
+        </div>
+      </div>
 
       {isHome ? (
         <aside className={`floating-booking-cta${showFloatingCta ? " is-visible" : ""}`}>
