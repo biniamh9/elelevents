@@ -10,7 +10,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/gallery", label: "Portfolio" },
   { href: "/services", label: "Services" },
-  { href: "/#process", label: "Process" },
+  { href: "/#process", label: "How It Works" },
   { href: "/about#reviews", label: "Reviews" },
   { href: "/contact", label: "Contact" },
 ];
@@ -163,23 +163,57 @@ export default function SiteHeader() {
             aria-label="Primary navigation"
           >
             <div className="nav-mobile-head">
-              <p className="eyebrow">Elel Events &amp; Design</p>
-              <Button href="/request" className="nav-drawer-cta">Book Consultation</Button>
+              <button
+                type="button"
+                className="nav-mobile-close"
+                aria-label="Close menu"
+                onClick={() => setOpen(false)}
+              >
+                ×
+              </button>
+              <div className="nav-mobile-brand">
+                <Image
+                  src="/logo.png"
+                  alt="Elel Events logo"
+                  width={320}
+                  height={120}
+                  className="nav-mobile-brand-image"
+                />
+                <strong>Elel Events &amp; Design</strong>
+                <span>Luxury Event Design in Atlanta</span>
+                <small>Transforming dream celebrations into unforgettable moments</small>
+              </div>
             </div>
-            {links.map((link) => {
-              const isActive = isLinkActive(link.href);
 
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={isActive ? "page" : undefined}
-                  className={isActive ? "is-active" : undefined}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+            <div className="nav-mobile-links">
+              {links.map((link) => {
+                const isActive = isLinkActive(link.href);
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? "page" : undefined}
+                    className={isActive ? "is-active" : undefined}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="nav-mobile-booking">
+              <small>Dates fill quickly for weddings &amp; special events</small>
+              <div className="nav-mobile-booking-actions">
+                <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
+                <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+              </div>
+              <div className="nav-mobile-trust">
+                <span>★★★★★ Google Reviews</span>
+                <span>Serving Atlanta since 2019</span>
+                <span>12+ years of luxury decor</span>
+              </div>
+            </div>
           </nav>
 
           <div className="nav-main">
