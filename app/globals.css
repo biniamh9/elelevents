@@ -6648,6 +6648,7 @@ th { background: var(--surface-soft); }
     position: fixed;
     inset: 0;
     z-index: 45;
+    isolation: isolate;
     display: grid;
     grid-template-rows: auto 1fr auto;
     gap: 0;
@@ -6663,6 +6664,17 @@ th { background: var(--surface-soft); }
     pointer-events: none;
     transform: translateY(24px);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    overflow-y: auto;
+  }
+  .nav-links::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgba(8, 6, 5, 0.58), rgba(8, 6, 5, 0.24)),
+      radial-gradient(circle at top, rgba(214, 170, 105, 0.12), transparent 32%);
+    pointer-events: none;
   }
   .nav-main {
     margin-left: auto;
@@ -6692,6 +6704,7 @@ th { background: var(--surface-soft); }
     gap: 14px;
     align-content: start;
     position: relative;
+    z-index: 1;
     padding-bottom: 22px;
   }
   .nav-mobile-head::after {
@@ -6750,30 +6763,42 @@ th { background: var(--surface-soft); }
     align-content: center;
     gap: 12px;
     padding: 8px 0 18px;
+    position: relative;
+    z-index: 1;
   }
-  .nav-links a {
+  .nav-mobile-links a {
+    display: block;
     padding: 18px 20px;
     font-size: clamp(1.45rem, 5vw, 2rem);
     color: #fff5eb;
     border-radius: 24px;
-    background: rgba(255, 248, 241, 0.04);
-    border: 1px solid rgba(237, 203, 158, 0.08);
+    background: rgba(255, 248, 241, 0.08);
+    border: 1px solid rgba(237, 203, 158, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    text-shadow: 0 2px 10px rgba(0,0,0,0.25);
     animation: heroFadeUp 320ms ease both;
   }
-  .nav-links a::after {
+  .nav-mobile-links a::after {
     bottom: 14px;
   }
-  .nav-links a:nth-child(1) { animation-delay: 60ms; }
-  .nav-links a:nth-child(2) { animation-delay: 100ms; }
-  .nav-links a:nth-child(3) { animation-delay: 140ms; }
-  .nav-links a:nth-child(4) { animation-delay: 180ms; }
-  .nav-links a:nth-child(5) { animation-delay: 220ms; }
-  .nav-links a:nth-child(6) { animation-delay: 260ms; }
+  .nav-mobile-links a:hover,
+  .nav-mobile-links a.is-active {
+    color: #fffaf3;
+    background: rgba(255, 248, 241, 0.12);
+    border-color: rgba(237, 203, 158, 0.22);
+  }
+  .nav-mobile-links a:nth-child(1) { animation-delay: 60ms; }
+  .nav-mobile-links a:nth-child(2) { animation-delay: 100ms; }
+  .nav-mobile-links a:nth-child(3) { animation-delay: 140ms; }
+  .nav-mobile-links a:nth-child(4) { animation-delay: 180ms; }
+  .nav-mobile-links a:nth-child(5) { animation-delay: 220ms; }
+  .nav-mobile-links a:nth-child(6) { animation-delay: 260ms; }
   .nav-mobile-booking {
     position: sticky;
     bottom: 0;
     display: grid;
     gap: 12px;
+    z-index: 1;
     padding: 18px;
     border-radius: 28px;
     background: linear-gradient(180deg, rgba(255, 251, 246, 0.08), rgba(255, 251, 246, 0.04));
