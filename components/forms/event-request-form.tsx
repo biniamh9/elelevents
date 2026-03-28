@@ -95,11 +95,36 @@ const paletteSuggestions = [
   "Emerald + gold",
 ];
 const steps = [
-  { id: "event-type", label: "Type" },
-  { id: "details", label: "Details" },
-  { id: "visual-builder", label: "Decor" },
-  { id: "preview", label: "Preview" },
-  { id: "summary", label: "Submit" },
+  {
+    id: "event-type",
+    label: "Type",
+    title: "Choose the celebration",
+    blurb: "Select the event experience first so the rest of the flow adapts around it.",
+  },
+  {
+    id: "details",
+    label: "Details",
+    title: "Add the event basics",
+    blurb: "Confirm the date, guest size, venue context, and how we should reach you.",
+  },
+  {
+    id: "visual-builder",
+    label: "Decor",
+    title: "Shape the decor direction",
+    blurb: "Pick the focal moments that matter and refine them one by one.",
+  },
+  {
+    id: "preview",
+    label: "Preview",
+    title: "Review the visual direction",
+    blurb: "See the mood, imagery, and styling story we will use as a starting point.",
+  },
+  {
+    id: "summary",
+    label: "Submit",
+    title: "Confirm and request consultation",
+    blurb: "Review everything in one place before we take it into consultation.",
+  },
 ];
 
 type GuidedPreviewCategoryConfig = {
@@ -610,7 +635,6 @@ export default function EventRequestForm({
   const decorSidebarRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState(initialState);
   const [step, setStep] = useState(0);
-  const [mobileSummaryExpanded, setMobileSummaryExpanded] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [selectedEventExperience, setSelectedEventExperience] = useState("");
   const [showOptionalStyleFields, setShowOptionalStyleFields] = useState(false);
@@ -781,10 +805,6 @@ export default function EventRequestForm({
     return () => window.cancelAnimationFrame(frame);
   }, [step]);
 
-  useEffect(() => {
-    setMobileSummaryExpanded(false);
-  }, [step]);
-
   const preview = useMemo(() => {
     const eventNeedles = [form.eventType, form.decorStyle, form.venueType, form.colorsTheme]
       .filter(Boolean)
@@ -901,7 +921,9 @@ export default function EventRequestForm({
     const images =
       selectedImages.length || uploadedImages.length
         ? [...selectedImages, ...uploadedImages].slice(0, 4)
-        : fallbackImages;
+        : activeExperience
+          ? fallbackImages
+          : [];
     const leadImage = images[0] ?? null;
     const supportingImages = images.slice(1, 3);
     const baseContent =
@@ -986,6 +1008,7 @@ export default function EventRequestForm({
   );
 
   const completionPercent = Math.round(((step + 1) / steps.length) * 100);
+  const currentStepConfig = steps[step];
   const estimatedGuestCount = getEstimatedGuestCount(form.guestCount, form.guestCountRange);
   const estimatedTableCount = estimatedGuestCount ? Math.max(1, Math.ceil(estimatedGuestCount / 8)) : null;
   const venueComplexityMultiplier = getVenueComplexityMultiplier(form.venueType, form.venueStatus);
@@ -1001,29 +1024,7 @@ export default function EventRequestForm({
       : selectedDecorCategories.length >= 2
         ? "$3,000-$5,000"
         : "Custom quote";
-  const mobileSummaryItems = useMemo(
-    () => [
-      { label: "Event type", value: effectiveEventType || "Not selected" },
-      { label: "Decor style", value: form.decorStyle || "To be refined" },
-      { label: "Decor pieces", value: selectedDecorCategories.length ? `${selectedDecorCategories.length} selected` : "None yet" },
-      { label: "Venue", value: form.venueName || form.venueStatus || "Not added" },
-      { label: "Inspiration", value: `${preview.selectedImageCount + preview.uploadedImageCount} image picks` },
-      { label: "Color theme", value: form.colorsTheme || "Open palette" },
-      { label: "Consultation", value: form.preferredContactMethod || "To be confirmed" },
-    ],
-    [
-      effectiveEventType,
-      form.colorsTheme,
-      form.decorStyle,
-      form.preferredContactMethod,
-      form.venueName,
-      form.venueStatus,
-      preview.selectedImageCount,
-      preview.uploadedImageCount,
-      selectedDecorCategories.length,
-    ]
-  );
-
+  const totalInspirationCount = preview.selectedImageCount + preview.uploadedImageCount;
   const visualSelectionNotes = useMemo(() => {
     const lines = guidedPreviewOptions
       .map((category) => {
@@ -1444,12 +1445,12 @@ export default function EventRequestForm({
       <section className="booking-hero card">
         <div>
           <p className="eyebrow">Consultation request</p>
-          <h3>Build the event direction step by step.</h3>
+          <h3>Build the event direction with a guided concierge flow.</h3>
           <p className="muted">
-            Move through the request one clear step at a time, then preview and submit with confidence.
+            Move one clear decision at a time. We keep the structure calm, the preview visible, and the final request easy to review.
           </p>
         </div>
-        <div className="booking-wizard-track" aria-label="Booking steps">
+        <div className="booking-wizard-track booking-wizard-track--mobile" aria-label="Booking steps">
           {steps.map((item, index) => (
             <div
               key={item.id}
@@ -1463,15 +1464,55 @@ export default function EventRequestForm({
         </div>
       </section>
 
-      <div className="form-wrap booking-layout">
-        <div ref={formCardRef} className="card form-card booking-form-card">
+      <div className="booking-workspace">
+        <aside className="card booking-progress-rail">
+          <div className="booking-progress-rail-head">
+            <span className="booking-pane-tag">Booking concierge</span>
+            <strong>{completionPercent}% complete</strong>
+            <p>{currentStepConfig.title}</p>
+          </div>
+          <div className="booking-progress-list" aria-label="Booking progress">
+            {steps.map((item, index) => {
+              const state =
+                index < step ? "done" : index === step ? "current" : "upcoming";
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`booking-progress-item booking-progress-item--${state}`}
+                  onClick={() => {
+                    if (index <= step) {
+                      setError("");
+                      setStep(index);
+                    }
+                  }}
+                  disabled={index > step}
+                >
+                  <span>{index < step ? "✓" : index + 1}</span>
+                  <div>
+                    <strong>{item.label}</strong>
+                    <p>{item.title}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="booking-progress-rail-note">
+            <small>Current step</small>
+            <p>{currentStepConfig.blurb}</p>
+          </div>
+        </aside>
+
+        <div className="booking-main-column">
+          <div ref={formCardRef} className="card form-card booking-form-card">
           <div className="booking-pane-head">
             <div className="booking-mobile-progress-card">
               <div className="booking-mobile-progress-meta">
                 <span className="booking-pane-tag">Booking concierge</span>
                 <p className="booking-progress-copy">{completionPercent}% complete</p>
               </div>
-              <strong>{steps[step]?.label}</strong>
+              <strong>{currentStepConfig.label}</strong>
               <p className="muted">Step {step + 1} of {steps.length} • Your dream setup is taking shape</p>
               <div className="booking-mobile-progress-bar" aria-hidden="true">
                 <span style={{ width: `${completionPercent}%` }} />
@@ -2308,70 +2349,120 @@ export default function EventRequestForm({
           </form>
         </div>
 
-      </div>
-
-      {isMobileViewport && !success && step === steps.length - 1 ? (
-        <aside
-          className={`booking-mobile-summary-drawer${mobileSummaryExpanded ? " is-expanded" : ""}`}
-        >
-          <button
-            type="button"
-            className="booking-mobile-summary-trigger"
-            aria-expanded={mobileSummaryExpanded}
-            onClick={() => setMobileSummaryExpanded((current) => !current)}
-          >
-            <div className="booking-mobile-summary-copy">
-              <strong>Your Event Summary</strong>
-              <span>
-                {[effectiveEventType || "Event type pending", form.eventDate || "Date pending"]
-                  .filter(Boolean)
-                  .join(" • ")}
-              </span>
+          {isMobileViewport ? (
+            <div className="booking-mobile-vision-shell">
+              <div className="booking-mobile-vision-head">
+                <span className="booking-pane-tag">Current vision</span>
+                <strong>{effectiveEventType || "Event type pending"}</strong>
+                <p>{selectedDecorCategories.length} decor items selected • {totalInspirationCount} image picks</p>
+              </div>
+              <LiveEstimatePreview
+                selectedItems={estimateItems}
+                guestCount={estimatedGuestCount}
+                tableCount={estimatedTableCount}
+                eventType={effectiveEventType || form.eventType || "Other"}
+                venueMultiplier={venueComplexityMultiplier}
+              />
             </div>
-            <div className="booking-mobile-summary-meta">
-              <small>{selectedDecorCategories.length} item{selectedDecorCategories.length === 1 ? "" : "s"}</small>
-              <em>{startingInvestment}</em>
+          ) : null}
+        </div>
+
+        <aside className="card booking-live-preview-shell">
+          <div className="booking-live-preview-head">
+            <span className="booking-pane-tag">Live preview</span>
+            <strong>Your event vision</strong>
+            <p>{currentStepConfig.blurb}</p>
+          </div>
+
+          <div className="booking-live-preview-summary">
+            <div>
+              <small>Event</small>
+              <span>{effectiveEventType || "Not selected yet"}</span>
             </div>
-          </button>
-
-          <div className="booking-mobile-summary-panel">
-            <LiveEstimatePreview
-              selectedItems={estimateItems}
-              guestCount={estimatedGuestCount}
-              tableCount={estimatedTableCount}
-              eventType={effectiveEventType || form.eventType || "Other"}
-              venueMultiplier={venueComplexityMultiplier}
-            />
-
-            <div className="booking-mobile-summary-grid">
-              {mobileSummaryItems.map((item) => (
-                <div key={item.label}>
-                  <small>{item.label}</small>
-                  <span>{item.value}</span>
-                </div>
-              ))}
+            <div>
+              <small>Date</small>
+              <span>{form.eventDate || "Pending"}</span>
             </div>
-
-            <div className="booking-mobile-summary-shortcuts">
-              <button type="button" className="btn secondary" onClick={() => setStep(0)}>
-                Event Type
-              </button>
-              <button type="button" className="btn secondary" onClick={() => setStep(2)}>
-                Decor
-              </button>
-              <button type="button" className="btn secondary" onClick={() => setStep(4)}>
-                Photos
-              </button>
+            <div>
+              <small>Decor items</small>
+              <span>{selectedDecorCategories.length || 0} selected</span>
             </div>
-
-            <div className="booking-mobile-trust">
-              <span>Response within 12–24 hours</span>
-              <span>Serving Atlanta since 2019</span>
-              <span>Trusted for luxury weddings &amp; events</span>
+            <div>
+              <small>Investment</small>
+              <span>{startingInvestment}</span>
             </div>
           </div>
+
+          <LiveEstimatePreview
+            selectedItems={estimateItems}
+            guestCount={estimatedGuestCount}
+            tableCount={estimatedTableCount}
+            eventType={effectiveEventType || form.eventType || "Other"}
+            venueMultiplier={venueComplexityMultiplier}
+          />
+
+          <div className="booking-live-preview-stage">
+            {preview.leadImage ? (
+              <div className="booking-preview-hero">
+                <img
+                  key={`aside-preview-hero-${previewSignature}`}
+                  src={preview.leadImage.image_url}
+                  alt={preview.leadImage.title}
+                  loading="lazy"
+                />
+                <div className="booking-preview-hero-copy">
+                  <span>Based on your selection</span>
+                  <strong>{preview.previewStateLabel}</strong>
+                </div>
+              </div>
+            ) : (
+              <div className="booking-preview-hero booking-preview-hero--empty">
+                <div className="booking-preview-empty-copy">
+                  <strong>Select an event type to start shaping the direction.</strong>
+                </div>
+              </div>
+            )}
+
+            <div className="booking-preview-meta-row">
+              <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
+              {preview.selectedImageCount ? (
+                <span className="booking-preview-meta-pill">{preview.selectedImageCount} selected image{preview.selectedImageCount === 1 ? "" : "s"}</span>
+              ) : null}
+              {preview.uploadedImageCount ? (
+                <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
+              ) : null}
+            </div>
+
+            {preview.supportingImages.length ? (
+              <div className="booking-preview-grid booking-preview-grid--animated">
+                {preview.supportingImages.map((item) => (
+                  <div key={`${item.id}-${previewSignature}-aside`} className="booking-preview-image">
+                    <img src={item.image_url} alt={item.title} loading="lazy" />
+                    <span>{item.category || item.title}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="summary-stack">
+              <div className="booking-preview-copy booking-preview-copy--highlight">
+                <small className="booking-preview-kicker">Style snapshot</small>
+                <p>{preview.styleDescription}</p>
+              </div>
+              <div className="booking-preview-copy">
+                <small className="booking-preview-kicker">Recommended decor direction</small>
+                <p>{preview.decorDirection}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="booking-live-preview-foot">
+            <span>Response within 12–24 hours</span>
+            <span>Serving Atlanta since 2019</span>
+            <span>Trusted for luxury weddings &amp; events</span>
+          </div>
         </aside>
-      ) : null}
+      </div>
     </div>
   );
 }
