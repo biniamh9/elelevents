@@ -58,22 +58,32 @@ const guestCountRangeOptions = [
   { label: "100-200", value: "100–200", hint: "Large guest floor" },
   { label: "200+", value: "200+", hint: "Full-scale setup" },
 ];
-const decorStyleOptions = [
-  "Classic elegance",
-  "Soft romantic",
-  "Modern clean",
-  "Garden luxe",
-  "Traditional ceremony",
-  "Bold glam",
-];
-const venueTypeOptions = [
-  "Ballroom / hotel",
-  "Banquet hall",
-  "Church reception",
-  "Private home",
-  "Outdoor garden",
-  "Mixed indoor-outdoor",
-];
+const decorDirectionOptions = [
+  {
+    key: "Classic elegance",
+    title: "Elegant",
+    subtitle: "Soft florals, layered focal styling, and timeless polish.",
+    keywords: ["head table", "wedding", "reception", "white floral"],
+  },
+  {
+    key: "Traditional ceremony",
+    title: "Traditional",
+    subtitle: "Ceremonial detail with cultural warmth and statement presence.",
+    keywords: ["melsi", "traditional", "ceremony"],
+  },
+  {
+    key: "Modern clean",
+    title: "Modern",
+    subtitle: "Clean lines, refined balance, and crisp room styling.",
+    keywords: ["backdrop", "modern", "clean", "white"],
+  },
+  {
+    key: "Garden luxe",
+    title: "Luxury",
+    subtitle: "Editorial florals, candlelight, and an immersive grand reveal.",
+    keywords: ["floral", "luxury", "ceiling drape", "romantic"],
+  },
+] as const;
 const budgetRangeOptions = [
   "Under $3,000",
   "$3,000-$5,000",
@@ -108,22 +118,34 @@ const steps = [
     blurb: "Confirm the date, guest size, venue context, and how we should reach you.",
   },
   {
-    id: "visual-builder",
-    label: "Decor",
-    title: "Shape the decor direction",
-    blurb: "Pick the focal moments that matter and refine them one by one.",
+    id: "decor-direction",
+    label: "Direction",
+    title: "Choose the decor direction",
+    blurb: "Start with one styling direction so the rest of the booking flow feels guided and cohesive.",
   },
   {
-    id: "preview",
-    label: "Preview",
-    title: "Review the visual direction",
-    blurb: "See the mood, imagery, and styling story we will use as a starting point.",
+    id: "key-moments",
+    label: "Moments",
+    title: "Select the key moments",
+    blurb: "Choose the spaces and focal points you want us to elevate.",
+  },
+  {
+    id: "styling",
+    label: "Styles",
+    title: "Style each selected moment",
+    blurb: "Refine one selected moment at a time with curated image directions.",
+  },
+  {
+    id: "review",
+    label: "Review",
+    title: "Review the design direction",
+    blurb: "See the visual summary, estimated investment, and the room direction in one place.",
   },
   {
     id: "summary",
     label: "Submit",
     title: "Confirm and request consultation",
-    blurb: "Review everything in one place before we take it into consultation.",
+    blurb: "Add the final consultation preferences and send the request when you are ready.",
   },
 ];
 
@@ -133,12 +155,6 @@ type GuidedPreviewCategoryConfig = {
   helper: string;
   keywords: string[];
   emptyState: string;
-};
-
-type DecorCategoryGroup = {
-  title: string;
-  emphasis: "primary" | "secondary";
-  items: string[];
 };
 
 type DecorRefinementConfig = {
@@ -282,24 +298,6 @@ const guidedPreviewCategories: Record<string, GuidedPreviewCategoryConfig> = {
   },
 };
 
-const decorCategoryGroups: DecorCategoryGroup[] = [
-  {
-    title: "Main focal areas",
-    emphasis: "primary",
-    items: ["head_table", "backdrop", "sweetheart_table", "bride_groom_chairs", "vip_table"],
-  },
-  {
-    title: "Guest experience",
-    emphasis: "secondary",
-    items: ["centerpiece", "guest_tables", "plate_chargers", "napkins", "ceiling_drape"],
-  },
-  {
-    title: "Floral & specialty",
-    emphasis: "secondary",
-    items: ["florals", "bouquet", "boutonniere", "traditional_setup", "other"],
-  },
-];
-
 const decorRefinementOptions: Record<string, DecorRefinementConfig> = {
   centerpiece: {
     label: "Centerpiece size",
@@ -343,6 +341,13 @@ const recommendedDecorByEventType: Record<string, string[]> = {
   "Corporate Event": ["backdrop", "guest_tables", "welcome_area", "ceiling_drape"],
   Anniversary: ["backdrop", "sweetheart_table", "centerpiece", "florals"],
   Other: ["backdrop", "guest_tables", "centerpiece", "other"],
+};
+
+type KeyMomentCard = {
+  key: string;
+  title: string;
+  description: string;
+  imageUrl: string;
 };
 
 const eventTypeKeywords: Record<string, string[]> = {
@@ -665,6 +670,14 @@ export default function EventRequestForm({
   const otherEventExperienceCards = experienceCards.filter((option) =>
     ["celebrations", "corporate", "other"].includes(option.key)
   );
+  const decorDirectionCards = useMemo(
+    () =>
+      decorDirectionOptions.map((option, index) => ({
+        ...option,
+        imageUrl: getExperienceCardImage([...option.keywords], portfolioItems, index + 1),
+      })),
+    [portfolioItems]
+  );
 
   const missingEventType = !form.eventType || (form.eventType === "Other" && !form.customEventType.trim());
   const missingEventDetails =
@@ -691,24 +704,79 @@ export default function EventRequestForm({
     [form.eventType, portfolioItems]
   );
   const activeGuidedCategory =
+    guidedPreviewOptions.find((item) => item.key === activeDecorKey) ??
+    guidedPreviewOptions[0] ??
     availableGuidedCategories.find((item) => item.key === activeDecorKey) ??
     availableGuidedCategories[0] ??
     null;
   const recommendedDecorKeys = recommendedDecorByEventType[form.eventType] ?? recommendedDecorByEventType.Other;
-  const stepThreeCategoryGroups = useMemo(
+  const keyMomentCards = useMemo(() => {
+    const cards: Array<Omit<KeyMomentCard, "imageUrl">> = [
+      {
+        key: "head_table",
+        title: "Head Table",
+        description: "Elevate the couple-facing focal table.",
+      },
+      {
+        key: "backdrop",
+        title: "Backdrop",
+        description: "Create the hero frame for the room.",
+      },
+      {
+        key: "centerpiece",
+        title: "Centerpieces",
+        description: "Shape the guest-table rhythm.",
+      },
+      {
+        key: "guest_tables",
+        title: "Guest Tables",
+        description: "Style the guest seating experience.",
+      },
+      {
+        key: "ceiling_drape",
+        title: "Ceiling Drapes",
+        description: "Soften the room overhead with draping.",
+      },
+      {
+        key: "full_package",
+        title: "Full Package",
+        description: "Let us shape the full room direction.",
+      },
+    ];
+
+    const mapped = cards.map((card, index) => {
+      const keywords =
+        card.key === "full_package"
+          ? recommendedDecorKeys.flatMap((key) => guidedPreviewCategories[key]?.keywords ?? [])
+          : guidedPreviewCategories[card.key]?.keywords ?? [];
+
+      return {
+        ...card,
+        imageUrl: getExperienceCardImage(keywords, portfolioItems, index + 2),
+      };
+    });
+
+    if (form.eventType === "Traditional (Melsi)") {
+      mapped.splice(1, 0, {
+        key: "traditional_setup",
+        title: "Traditional Setup",
+        description: "Highlight ceremonial moments with warmth.",
+        imageUrl: getExperienceCardImage(guidedPreviewCategories.traditional_setup.keywords, portfolioItems, 3),
+      });
+    }
+
+    return mapped;
+  }, [form.eventType, portfolioItems, recommendedDecorKeys]);
+  const configuredDecorCount = useMemo(
     () =>
-      decorCategoryGroups
-        .map((group) => ({
-          ...group,
-          items: group.items
-            .filter((categoryKey) =>
-              (eventTypeCategoryMap[form.eventType] ?? eventTypeCategoryMap.Other).includes(categoryKey)
-            )
-            .map((categoryKey) => availableGuidedCategories.find((item) => item.key === categoryKey))
-            .filter(Boolean) as Array<GuidedPreviewCategoryConfig & { images: GalleryItem[] }>,
-        }))
-        .filter((group) => group.items.length > 0),
-    [availableGuidedCategories, form.eventType]
+      selectedDecorCategories.filter((key) => {
+        const hasImages = (selectedPreviewImages[key] ?? []).length > 0;
+        const hasUploads = (categoryUploads[key] ?? []).length > 0;
+        const hasNote = Boolean(categoryNotes[key]?.trim());
+        const hasRefinement = Boolean(categoryRefinements[key]);
+        return hasImages || hasUploads || hasNote || hasRefinement;
+      }).length,
+    [selectedDecorCategories, selectedPreviewImages, categoryUploads, categoryNotes, categoryRefinements]
   );
   const selectedCategoryKeys = selectedDecorCategories;
   const hasCategoryNotesOrUploads =
@@ -756,10 +824,12 @@ export default function EventRequestForm({
       return;
     }
 
-    if (!activeDecorKey || !availableGuidedCategories.some((item) => item.key === activeDecorKey)) {
-      setActiveDecorKey(availableGuidedCategories[0]?.key ?? "");
+    const activePool = guidedPreviewOptions.length ? guidedPreviewOptions : availableGuidedCategories;
+
+    if (!activeDecorKey || !activePool.some((item) => item.key === activeDecorKey)) {
+      setActiveDecorKey(activePool[0]?.key ?? "");
     }
-  }, [activeDecorKey, availableGuidedCategories]);
+  }, [activeDecorKey, availableGuidedCategories, guidedPreviewOptions]);
 
   useEffect(() => {
     const panel = detailPanelRef.current;
@@ -835,7 +905,7 @@ export default function EventRequestForm({
         styleDescription:
           "Choose an event type to start building your visual direction.",
         decorDirection:
-          "Select a category on the left and the preview will respond here.",
+          "Choose your direction, key moments, and styled references to build the preview here.",
       },
     } as const;
 
@@ -1076,11 +1146,28 @@ export default function EventRequestForm({
     );
   }
 
-  function removeDecorCategory(categoryKey: string) {
-    setSelectedDecorCategories((current) => current.filter((item) => item !== categoryKey));
+  function focusDecorCategory(categoryKey: string) {
+    setActiveDecorKey(categoryKey);
   }
 
-  function focusDecorCategory(categoryKey: string) {
+  function toggleKeyMoment(categoryKey: string) {
+    if (categoryKey === "full_package") {
+      const packageKeys = Array.from(new Set(recommendedDecorKeys));
+      setSelectedDecorCategories((current) => {
+        const hasAll = packageKeys.every((key) => current.includes(key));
+        return hasAll
+          ? current.filter((key) => !packageKeys.includes(key))
+          : Array.from(new Set([...current, ...packageKeys]));
+      });
+      setActiveDecorKey(packageKeys[0] ?? "");
+      return;
+    }
+
+    setSelectedDecorCategories((current) =>
+      current.includes(categoryKey)
+        ? current.filter((item) => item !== categoryKey)
+        : [...current, categoryKey]
+    );
     setActiveDecorKey(categoryKey);
   }
 
@@ -1155,41 +1242,6 @@ export default function EventRequestForm({
     }));
   }
 
-  function clearCategorySelection(categoryKey: string) {
-    const uploads = categoryUploads[categoryKey] ?? [];
-
-    setSelectedPreviewImages((current) => {
-      const next = { ...current };
-      delete next[categoryKey];
-      return next;
-    });
-    setCategoryNotes((current) => {
-      const next = { ...current };
-      delete next[categoryKey];
-      return next;
-    });
-    setCategoryUploads((current) => {
-      const next = { ...current };
-      delete next[categoryKey];
-      return next;
-    });
-    setCategoryRefinements((current) => {
-      const next = { ...current };
-      delete next[categoryKey];
-      return next;
-    });
-
-    if (uploads.length) {
-      setForm((prev) => ({
-        ...prev,
-        visionBoardUrls: prev.visionBoardUrls.filter((url) => !uploads.includes(url)),
-      }));
-    }
-
-    removeDecorCategory(categoryKey);
-    setActiveDecorKey((current) => (current === categoryKey ? "" : current));
-  }
-
   function nextStep() {
     if (step === 0 && missingEventType) {
       setError("Select the event type before continuing.");
@@ -1198,6 +1250,16 @@ export default function EventRequestForm({
 
     if (step === 1 && (missingEventDetails || missingContactDetails)) {
       setError("Add the event details and contact details before continuing.");
+      return;
+    }
+
+    if (step === 2 && !form.decorStyle) {
+      setError("Choose the decor direction before continuing.");
+      return;
+    }
+
+    if (step === 3 && selectedDecorCategories.length === 0) {
+      setError("Select at least one key moment before continuing.");
       return;
     }
 
@@ -1212,8 +1274,8 @@ export default function EventRequestForm({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (missingEventDetails || missingEventType || missingContactDetails) {
-      setError("Complete the event details and contact details before submitting.");
+    if (missingEventDetails || missingEventType || missingContactDetails || !form.decorStyle) {
+      setError("Complete the required details before submitting.");
       return;
     }
 
@@ -1505,7 +1567,7 @@ export default function EventRequestForm({
             {step === 0 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 1 of 5</p>
+                  <p className="eyebrow">Step 1 of 7</p>
                   <h3>Select the event type.</h3>
                   <p className="muted">
                     Choose the kind of event experience you are planning first. We will tailor the next steps around it.
@@ -1630,7 +1692,7 @@ export default function EventRequestForm({
             {step === 1 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 2 of 5</p>
+                  <p className="eyebrow">Step 2 of 7</p>
                   <h3>Add the event basics.</h3>
                   <p className="muted">Keep this step compact. Add the date, guest count, location, budget range, and the contact details we need to follow up.</p>
                 </div>
@@ -1712,128 +1774,147 @@ export default function EventRequestForm({
             {step === 2 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 3 of 5</p>
-                  <h3>Let&apos;s design your focal moments.</h3>
-                  <p className="muted">Choose the moments you want us to elevate, then shape one category at a time with curated references.</p>
+                  <p className="eyebrow">Step 3 of 7</p>
+                  <h3>Choose your decor direction.</h3>
+                  <p className="muted">Start with one visual mood so the rest of the selections feel guided, calm, and cohesive.</p>
                 </div>
 
-                <div className="field">
-                  <div className="guided-preview-builder guided-preview-builder--curated">
-                    <div className="guided-preview-step-summary">
-                      <div>
-                        <p className="eyebrow">Decor progress</p>
-                        <h4>{selectedDecorCategories.length} {selectedDecorCategories.length === 1 ? "moment" : "moments"} taking shape</h4>
-                      </div>
-                      <span>{effectiveEventType || "Event"} direction</span>
-                    </div>
-                    <div className="guided-preview-curated-shell">
-                      <div className="guided-preview-curated-nav">
-                        {stepThreeCategoryGroups.map((group) => (
-                          <div key={group.title} className="guided-preview-curated-group">
-                            <p className="eyebrow">{group.title}</p>
-                            <div className="guided-preview-curated-tabs">
-                              {group.items.map((guidedCategory) => {
-                                const isSelected = selectedDecorCategories.includes(guidedCategory.key);
-                                const isActive = activeGuidedCategory?.key === guidedCategory.key;
-                                const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
-                                const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
-                                const noteCount = categoryNotes[guidedCategory.key]?.trim() ? 1 : 0;
-                                const refinement = categoryRefinements[guidedCategory.key];
-                                const isRecommended = recommendedDecorKeys.includes(guidedCategory.key);
-                                const hasContent =
-                                  selectedImageCount > 0 ||
-                                  uploadedImageCount > 0 ||
-                                  noteCount > 0 ||
-                                  Boolean(refinement);
-                                const detailBits = [
-                                  selectedImageCount > 0 ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
-                                  uploadedImageCount > 0 ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
-                                  noteCount > 0 ? "Note added" : "",
-                                  refinement ? refinement : "",
-                                ].filter(Boolean);
-                                const statusText = isActive
-                                  ? "Now editing"
-                                  : isSelected
-                                    ? "Included in request"
-                                    : isRecommended
-                                      ? "Recommended for this event"
-                                      : "Tap to explore";
+                <div className="design-direction-grid">
+                  {decorDirectionCards.map((option) => {
+                    const isSelected = form.decorStyle === option.key;
 
-                                return (
-                                  <button
-                                    key={guidedCategory.key}
-                                    type="button"
-                                    className={`guided-preview-curated-tab ${isActive ? "active" : ""} ${isSelected ? "selected" : ""} ${hasContent ? "has-content" : ""}`}
-                                    onClick={() => focusDecorCategory(guidedCategory.key)}
-                                  >
-                                    <span>{guidedCategory.title}</span>
-                                    <small>{statusText}</small>
-                                    <em>{detailBits.length ? detailBits.join(" • ") : isRecommended ? "Elegant focal setup" : "Ready to style"}</em>
-                                    {isSelected || hasContent ? (
-                                      <i aria-hidden="true">{selectedImageCount > 0 ? selectedImageCount : "✓"}</i>
-                                    ) : null}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div
-                        key={activeGuidedCategory?.key ?? "empty"}
-                        ref={detailPanelRef}
-                        className="guided-preview-curated-stage"
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        className={`design-direction-card ${isSelected ? "selected" : ""}`}
+                        onClick={() => updateField("decorStyle", option.key)}
                       >
+                        {option.imageUrl ? <img src={option.imageUrl} alt={option.title} loading="lazy" /> : null}
+                        <span className="design-direction-overlay" />
+                        {isSelected ? <span className="design-direction-badge">Selected</span> : null}
+                        <div className="design-direction-copy">
+                          <small>Decor direction</small>
+                          <strong>{option.title}</strong>
+                          <span>{option.subtitle}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            {step === 3 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 4 of 7</p>
+                  <h3>Select the key moments.</h3>
+                  <p className="muted">Choose the focal spaces you want us to elevate first. We will style them one by one in the next step.</p>
+                </div>
+
+                <div className="key-moment-grid">
+                  {keyMomentCards.map((moment) => {
+                    const isPackage = moment.key === "full_package";
+                    const packageKeys = recommendedDecorKeys;
+                    const isSelected = isPackage
+                      ? packageKeys.every((key) => selectedDecorCategories.includes(key))
+                      : selectedDecorCategories.includes(moment.key);
+
+                    return (
+                      <button
+                        key={moment.key}
+                        type="button"
+                        className={`key-moment-card ${isSelected ? "selected" : ""}`}
+                        onClick={() => toggleKeyMoment(moment.key)}
+                      >
+                        {moment.imageUrl ? <img src={moment.imageUrl} alt={moment.title} loading="lazy" /> : null}
+                        <span className="key-moment-overlay" />
+                        {isSelected ? <span className="key-moment-badge">Included</span> : null}
+                        <div className="key-moment-copy">
+                          <strong>{moment.title}</strong>
+                          <span>{moment.description}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            {step === 4 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 5 of 7</p>
+                  <h3>Style each selected moment.</h3>
+                  <p className="muted">Move through your chosen moments one at a time and pick the visual direction that feels right.</p>
+                </div>
+
+                <div className="guided-preview-builder guided-preview-builder--curated">
+                  <div className="guided-preview-step-summary">
+                    <div>
+                      <p className="eyebrow">Styling progress</p>
+                      <h4>{configuredDecorCount} of {selectedDecorCategories.length || 0} moments refined</h4>
+                    </div>
+                    <span>{form.decorStyle || "Decor"} direction</span>
+                  </div>
+
+                  {guidedPreviewOptions.length ? (
+                    <>
+                      <div className="guided-preview-curated-nav">
+                        <div className="guided-preview-curated-tabs">
+                          {guidedPreviewOptions.map((guidedCategory) => {
+                            const isSelected = activeGuidedCategory?.key === guidedCategory.key;
+                            const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
+                            const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
+                            const hasNote = Boolean(categoryNotes[guidedCategory.key]?.trim());
+                            const hasContent = selectedImageCount > 0 || uploadedImageCount > 0 || hasNote || Boolean(categoryRefinements[guidedCategory.key]);
+
+                            return (
+                              <button
+                                key={guidedCategory.key}
+                                type="button"
+                                className={`guided-preview-curated-tab ${isSelected ? "active" : ""} ${hasContent ? "selected has-content" : ""}`}
+                                onClick={() => focusDecorCategory(guidedCategory.key)}
+                              >
+                                <span>{guidedCategory.title}</span>
+                                <small>{isSelected ? "Now styling" : hasContent ? "Refined" : "Choose a look"}</small>
+                                <em>
+                                  {hasContent
+                                    ? [
+                                        selectedImageCount > 0 ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
+                                        uploadedImageCount > 0 ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
+                                        hasNote ? "Note added" : "",
+                                      ].filter(Boolean).join(" • ")
+                                    : "Tap to choose a direction"}
+                                </em>
+                                {hasContent ? <i aria-hidden="true">{selectedImageCount > 0 ? selectedImageCount : "✓"}</i> : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div key={activeGuidedCategory?.key ?? "empty"} ref={detailPanelRef} className="guided-preview-curated-stage">
                         {activeGuidedCategory ? (
                           <>
                             <div className="guided-preview-curated-hero">
                               <div className="guided-preview-curated-copy">
                                 <span className="guided-preview-curated-kicker">
-                                  {recommendedDecorKeys.includes(activeGuidedCategory.key)
-                                    ? "Recommended for your event"
-                                    : "Curated decor direction"}
+                                  {recommendedDecorKeys.includes(activeGuidedCategory.key) ? "Recommended for your event" : "Curated visual direction"}
                                 </span>
                                 <h4>{activeGuidedCategory.title}</h4>
                                 <p>{activeGuidedCategory.helper}</p>
                                 <p className="guided-preview-curated-editor-note">
-                                  Choose the look that best matches the feeling you want guests to experience.
+                                  Select one image direction, or upload inspiration if you have something more specific in mind.
                                 </p>
-                                <div className="guided-preview-stage-nav">
-                                  {selectedDecorCategories.includes(activeGuidedCategory.key) ? (
-                                    <span className="guided-preview-selection-pill">Included in request</span>
-                                  ) : null}
-                                  {decorRefinementOptions[activeGuidedCategory.key] ? (
-                                    <span className="guided-preview-selection-pill guided-preview-selection-pill--soft">
-                                      {decorRefinementOptions[activeGuidedCategory.key].label}
-                                    </span>
-                                  ) : null}
-                                  <button
-                                    type="button"
-                                    className={`btn ${selectedDecorCategories.includes(activeGuidedCategory.key) ? "secondary" : ""}`}
-                                    onClick={() => {
-                                      if (selectedDecorCategories.includes(activeGuidedCategory.key)) {
-                                        clearCategorySelection(activeGuidedCategory.key);
-                                        return;
-                                      }
-
-                                      ensureDecorCategory(activeGuidedCategory.key);
-                                    }}
-                                  >
-                                    {selectedDecorCategories.includes(activeGuidedCategory.key) ? "Remove" : "Include"}
-                                  </button>
-                                </div>
                               </div>
 
                               {activeGuidedCategory.images[0] ? (
                                 <div className="guided-preview-curated-hero-media">
-                                  <img
-                                    src={activeGuidedCategory.images[0].image_url}
-                                    alt={activeGuidedCategory.images[0].title}
-                                    loading="lazy"
-                                  />
+                                  <img src={activeGuidedCategory.images[0].image_url} alt={activeGuidedCategory.images[0].title} loading="lazy" />
                                   <div className="guided-preview-curated-hero-overlay">
-                                    <span>{effectiveEventType || "Event"} focal moment</span>
+                                    <span>{form.decorStyle || "Styled"} direction</span>
                                     <strong>{activeGuidedCategory.images[0].title}</strong>
                                   </div>
                                 </div>
@@ -1870,16 +1951,11 @@ export default function EventRequestForm({
                                 <div className="guided-preview-curated-options">
                                   {(expandedCategoryImages[activeGuidedCategory.key]
                                     ? activeGuidedCategory.images
-                                    : activeGuidedCategory.images.slice(0, 3)
+                                    : activeGuidedCategory.images.slice(0, 4)
                                   ).map((item, index) => {
                                     const selectedIds = selectedPreviewImages[activeGuidedCategory.key] ?? [];
                                     const isSelected = selectedIds.includes(item.id);
-                                    const visualTag =
-                                      index === 0
-                                        ? "Featured look"
-                                        : index === 1
-                                          ? "Alternate direction"
-                                          : "Styled option";
+                                    const visualTag = index === 0 ? "Featured look" : "Styled option";
 
                                     return (
                                       <button
@@ -1891,7 +1967,7 @@ export default function EventRequestForm({
                                             const currentIds = current[activeGuidedCategory.key] ?? [];
                                             const nextIds = currentIds.includes(item.id)
                                               ? currentIds.filter((id) => id !== item.id)
-                                              : [...currentIds, item.id];
+                                              : [item.id];
 
                                             if (nextIds.length > 0) {
                                               ensureDecorCategory(activeGuidedCategory.key);
@@ -1910,16 +1986,12 @@ export default function EventRequestForm({
                                           <small>{visualTag}</small>
                                           <strong>{item.title}</strong>
                                         </div>
-                                        {isSelected ? (
-                                          <span className="guided-preview-option-check" aria-hidden="true">
-                                            Selected
-                                          </span>
-                                        ) : null}
+                                        {isSelected ? <span className="guided-preview-option-check" aria-hidden="true">Selected</span> : null}
                                       </button>
                                     );
                                   })}
                                 </div>
-                                {activeGuidedCategory.images.length > 3 ? (
+                                {activeGuidedCategory.images.length > 4 ? (
                                   <button
                                     type="button"
                                     className="guided-preview-more"
@@ -1930,7 +2002,7 @@ export default function EventRequestForm({
                                       }))
                                     }
                                   >
-                                    {expandedCategoryImages[activeGuidedCategory.key] ? "Show fewer visuals" : `View ${activeGuidedCategory.images.length - 3} more looks`}
+                                    {expandedCategoryImages[activeGuidedCategory.key] ? "Show fewer looks" : `View ${activeGuidedCategory.images.length - 4} more looks`}
                                   </button>
                                 ) : null}
                               </>
@@ -1955,7 +2027,7 @@ export default function EventRequestForm({
                                       ensureDecorCategory(activeGuidedCategory.key);
                                     }
                                   }}
-                                  placeholder="Tell us how you want your guests to feel when they see this moment."
+                                  placeholder="Tell us how you want guests to feel when they see this moment."
                                 />
                                 <label className="guided-preview-upload">
                                   <input
@@ -1969,36 +2041,26 @@ export default function EventRequestForm({
                                   <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
                                 </label>
                               </div>
-
-                              <div className="guided-preview-global-note">
-                                <label className="label">Concierge note</label>
-                                <textarea
-                                  className="textarea"
-                                  value={form.inspirationNotes}
-                                  onChange={(e) => updateField("inspirationNotes", e.target.value)}
-                                  placeholder="Anything important you want our design team to keep in mind across the full room."
-                                />
-                              </div>
                             </div>
                           </>
-                        ) : (
-                          <div className="guided-preview-empty">
-                            <p className="muted">Choose a decor category to start shaping the room.</p>
-                          </div>
-                        )}
+                        ) : null}
                       </div>
+                    </>
+                  ) : (
+                    <div className="guided-preview-empty">
+                      <p className="muted">Choose at least one key moment first, then we will guide the styling one by one here.</p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </section>
             ) : null}
 
-            {step === 3 ? (
+            {step === 5 ? (
               <section className="booking-panel">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 4 of 5</p>
-                  <h3>Live Preview</h3>
-                  <p className="muted">See the current event direction in one place before moving to the final submit step.</p>
+                  <p className="eyebrow">Step 6 of 7</p>
+                  <h3>Review your event vision.</h3>
+                  <p className="muted">See the visual summary, selected moments, and pricing intelligence before moving to the final request step.</p>
                 </div>
 
                 <div className="scope-card booking-preview-step-card">
@@ -2066,16 +2128,6 @@ export default function EventRequestForm({
                     </div>
                   </div>
                 </div>
-              </section>
-            ) : null}
-
-            {step === 4 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 5 of 5</p>
-                  <h3>Review and submit.</h3>
-                  <p className="muted">Confirm the request details, add the remaining consultation preferences, and submit when ready.</p>
-                </div>
 
                 <div className="booking-review-grid">
                   <div className="scope-card booking-review-card">
@@ -2085,23 +2137,22 @@ export default function EventRequestForm({
                       <p><strong>Event date:</strong> {form.eventDate || "—"}</p>
                       <p><strong>Guest count:</strong> {form.guestCount || form.guestCountRange || "—"}</p>
                       <p><strong>Location:</strong> {form.venueName || "—"}</p>
-                      <p><strong>Budget range:</strong> {form.budgetRange || "—"}</p>
+                      <p><strong>Decor direction:</strong> {form.decorStyle || "—"}</p>
                     </div>
                   </div>
-
                   <div className="scope-card booking-review-card">
-                    <h4>Contact & consultation</h4>
+                    <h4>Selected moments</h4>
                     <div className="review-grid">
-                      <p><strong>Name:</strong> {[form.firstName, form.lastName].filter(Boolean).join(" ") || "—"}</p>
-                      <p><strong>Email:</strong> {form.email || "—"}</p>
-                      <p><strong>Phone:</strong> {form.phone || "—"}</p>
-                      <p><strong>Preferred consultation:</strong> {form.preferredContactMethod || "—"}</p>
+                      <p><strong>Decor items:</strong> {selectedDecorCategories.length || 0}</p>
+                      <p><strong>Configured moments:</strong> {configuredDecorCount}</p>
+                      <p><strong>Inspiration images:</strong> {totalInspirationCount}</p>
+                      <p><strong>Estimated starting investment:</strong> {startingInvestment}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="scope-card booking-review-card">
-                  <h4>Selected decor items</h4>
+                  <h4>Styled moments</h4>
                   {guidedPreviewOptions.length ? (
                     <div className="booking-review-decor-grid">
                       {guidedPreviewOptions.map((category) => {
@@ -2141,7 +2192,7 @@ export default function EventRequestForm({
                             ) : null}
 
                             {note ? <p className="muted">{note}</p> : null}
-                            {!hasContent ? <p className="muted">Selected for review. No image or note added yet.</p> : null}
+                            {!hasContent ? <p className="muted">Selected, but still open for refinement during consultation.</p> : null}
                           </div>
                         );
                       })}
@@ -2153,10 +2204,20 @@ export default function EventRequestForm({
 
                 <div className="summary-stack">
                   <div className="booking-edit-links">
-                    <button type="button" className="btn secondary" onClick={() => setStep(0)}>Edit Event Type</button>
-                    <button type="button" className="btn secondary" onClick={() => setStep(1)}>Edit Basics</button>
-                    <button type="button" className="btn secondary" onClick={() => setStep(2)}>Edit Visual Builder</button>
+                    <button type="button" className="btn secondary" onClick={() => setStep(2)}>Edit direction</button>
+                    <button type="button" className="btn secondary" onClick={() => setStep(3)}>Edit moments</button>
+                    <button type="button" className="btn secondary" onClick={() => setStep(4)}>Edit styles</button>
                   </div>
+                </div>
+              </section>
+            ) : null}
+
+            {step === 6 ? (
+              <section className="booking-panel">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 7 of 7</p>
+                  <h3>Confirm and submit.</h3>
+                  <p className="muted">Add the final consultation preferences and send the request when you are ready.</p>
                 </div>
 
                 <div className="scope-card booking-review-card">
@@ -2255,22 +2316,6 @@ export default function EventRequestForm({
 
                   {showOptionalStyleFields ? (
                     <div className="booking-review-subgrid">
-                      <div className="field">
-                        <label className="label">Decor Style</label>
-                        <div className="option-pills">
-                          {decorStyleOptions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              className={`pill ${form.decorStyle === option ? "selected" : ""}`}
-                              onClick={() => updateField("decorStyle", option)}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
                       <div className="field">
                         <label className="label">Color Palette</label>
                         <div className="option-pills">
