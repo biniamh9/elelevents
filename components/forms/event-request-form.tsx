@@ -1874,22 +1874,18 @@ export default function EventRequestForm({
                                   ).map((item, index) => {
                                     const selectedIds = selectedPreviewImages[activeGuidedCategory.key] ?? [];
                                     const isSelected = selectedIds.includes(item.id);
-                                    const descriptors = [
+                                    const visualTag =
                                       index === 0
-                                        ? "Elegant focal setup"
+                                        ? "Featured look"
                                         : index === 1
-                                          ? "Layered room detail"
-                                          : "Refined guest-facing look",
-                                      recommendedDecorKeys.includes(activeGuidedCategory.key)
-                                        ? "Recommended for your event"
-                                        : "Curated for inspiration",
-                                    ];
+                                          ? "Alternate direction"
+                                          : "Styled option";
 
                                     return (
                                       <button
                                         key={item.id}
                                         type="button"
-                                        className={`guided-preview-option guided-preview-option--editorial ${isSelected ? "selected" : ""}`}
+                                        className={`guided-preview-option guided-preview-option--editorial ${index === 0 ? "guided-preview-option--featured" : "guided-preview-option--supporting"} ${isSelected ? "selected" : ""}`}
                                         onClick={() => {
                                           setSelectedPreviewImages((current) => {
                                             const currentIds = current[activeGuidedCategory.key] ?? [];
@@ -1911,13 +1907,12 @@ export default function EventRequestForm({
                                         <img src={item.image_url} alt={item.title} loading="lazy" />
                                         <span className="guided-preview-option-wash" />
                                         <div className="guided-preview-option-copy">
-                                          <small>{descriptors[0]}</small>
+                                          <small>{visualTag}</small>
                                           <strong>{item.title}</strong>
-                                          <span>{descriptors[1]}</span>
                                         </div>
                                         {isSelected ? (
                                           <span className="guided-preview-option-check" aria-hidden="true">
-                                            ✓
+                                            Selected
                                           </span>
                                         ) : null}
                                       </button>
