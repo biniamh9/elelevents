@@ -1441,6 +1441,28 @@ export default function EventRequestForm({
     setStep((current) => Math.max(current - 1, 0));
   }
 
+  async function handleShareVision() {
+    const shareData = {
+      title: "Elel Events & Design",
+      text: `I’m building my event vision with Elel Events & Design for ${effectiveEventType || "my event"}.`,
+      url: typeof window !== "undefined" ? window.location.href : "",
+    };
+
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard && shareData.url) {
+        await navigator.clipboard.writeText(shareData.url);
+        setSuccess("Link copied. Share it with anyone helping plan the event.");
+      }
+    } catch {
+      setError("Unable to share right now. Please try again.");
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (missingEventDetails || missingEventType || missingContactDetails || !form.decorStyle) {
@@ -2580,174 +2602,309 @@ export default function EventRequestForm({
               <section className="booking-panel">
                 <div className="panel-head">
                   <p className="eyebrow">Step 7 of 7</p>
-                  <h3>Confirm and submit.</h3>
-                  <p className="muted">Add the final consultation preferences and send the request when you are ready.</p>
+                  <h3>Book your consultation.</h3>
+                  <p className="muted">Your event vision is taking shape. Confirm the consultation details and send the request when you are ready.</p>
                 </div>
 
-                <div className="scope-card booking-review-card">
-                  <h4>Final details</h4>
-                  <div className="field">
-                    <label className="label">How should we start the consultation?</label>
-                    <div className="option-pills">
-                      {consultationOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
-                          onClick={() => {
-                            updateField("preferredContactMethod", option);
-                            if (option !== "Video meeting") {
-                              updateField("consultationVideoPlatform", "");
-                            }
-                            if (!requiresConsultationScheduling(option)) {
-                              updateField("consultationPreferenceDate", "");
-                              updateField("consultationPreferenceTime", "");
-                            }
-                          }}
-                        >
-                          {option}
-                        </button>
-                      ))}
+                <div className="booking-final-screen">
+                  <div className="booking-final-hero">
+                    {preview.leadImage ? (
+                      <div className="booking-final-hero-media">
+                        <img
+                          key={`final-preview-hero-${previewSignature}`}
+                          src={preview.leadImage.image_url}
+                          alt={preview.leadImage.title}
+                          loading="lazy"
+                        />
+                        <div className="booking-final-hero-copy">
+                          <span className="booking-pane-tag">Your Event Vision</span>
+                          <h3>Your Event Vision</h3>
+                          <p>{preview.styleDescription}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="booking-final-hero-media booking-final-hero-media--empty">
+                        <div className="booking-final-hero-copy">
+                          <span className="booking-pane-tag">Your Event Vision</span>
+                          <h3>Your Event Vision</h3>
+                          <p>Choose a few focal moments and references, and we will shape the rest together.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="booking-final-hero-body">
+                      <div className="booking-final-tag-list">
+                        {selectedDecorCategories.length ? (
+                          selectedDecorCategories.map((key) => {
+                            const title = guidedPreviewCategories[key]?.title;
+                            return title ? (
+                              <span key={key} className="booking-final-tag">
+                                {title}
+                              </span>
+                            ) : null;
+                          })
+                        ) : (
+                          <span className="booking-final-tag">Moments will be refined in consultation</span>
+                        )}
+                      </div>
+
+                      <div className="booking-final-confidence">
+                        <strong>You’re not locked into anything — we’ll refine everything together.</strong>
+                        <p>
+                          This is the starting point for your consultation. We will align on the room, budget, and guest experience before anything is finalized.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {requiresConsultationScheduling(form.preferredContactMethod) ? (
-                    <div className="form-grid">
-                      <div className="field">
-                        <label className="label">Preferred consultation day</label>
-                        <input
-                          className="input"
-                          type="date"
-                          value={form.consultationPreferenceDate}
-                          onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
-                        />
+                  <div className="booking-final-side">
+                    <div className="scope-card booking-final-summary-card">
+                      <div className="booking-final-summary-head">
+                        <h4>Booking summary</h4>
+                        <span className="booking-pane-tag">Ready to send</span>
                       </div>
-                      <div className="field">
-                        <label className="label">Preferred consultation time</label>
-                        <input
-                          className="input"
-                          value={form.consultationPreferenceTime}
-                          onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
-                          placeholder="Example: Weekdays after 6 PM"
-                        />
+
+                      <div className="booking-final-summary-grid">
+                        <div>
+                          <small>Event type</small>
+                          <span>{effectiveEventType || "—"}</span>
+                        </div>
+                        <div>
+                          <small>Date</small>
+                          <span>{form.eventDate || "Pending"}</span>
+                        </div>
+                        <div>
+                          <small>Decor style</small>
+                          <span>{form.decorStyle || "To be refined"}</span>
+                        </div>
+                        <div>
+                          <small>Estimated price</small>
+                          <span>{startingInvestment}</span>
+                        </div>
+                      </div>
+
+                      <div className="booking-final-selection-row">
+                        <small>Selected items</small>
+                        <div className="booking-final-chip-row">
+                          {selectedDecorCategories.length ? (
+                            selectedDecorCategories.map((key) => {
+                              const title = guidedPreviewCategories[key]?.title;
+                              return title ? <span key={key} className="booking-final-chip">{title}</span> : null;
+                            })
+                          ) : (
+                            <span className="booking-final-chip">No moments selected yet</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  ) : null}
 
-                  {form.preferredContactMethod === "Video meeting" ? (
+                    <div className="scope-card booking-final-next-card">
+                      <h4>What happens next</h4>
+                      <div className="booking-final-timeline">
+                        <div className="booking-final-timeline-item">
+                          <i>1</i>
+                          <div>
+                            <strong>We review your vision</strong>
+                            <p>Our team reviews your selected moments, references, and design direction.</p>
+                          </div>
+                        </div>
+                        <div className="booking-final-timeline-item">
+                          <i>2</i>
+                          <div>
+                            <strong>We connect to refine details &amp; budget</strong>
+                            <p>We align on venue context, priorities, and the right level of styling for your event.</p>
+                          </div>
+                        </div>
+                        <div className="booking-final-timeline-item">
+                          <i>3</i>
+                          <div>
+                            <strong>We secure your date</strong>
+                            <p>Once scope, quote, and contract are approved, your celebration is officially reserved.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scope-card booking-review-card">
+                      <h4>Consultation details</h4>
+                      <div className="field">
+                        <label className="label">How should we start the consultation?</label>
+                        <div className="option-pills">
+                          {consultationOptions.map((option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
+                              onClick={() => {
+                                updateField("preferredContactMethod", option);
+                                if (option !== "Video meeting") {
+                                  updateField("consultationVideoPlatform", "");
+                                }
+                                if (!requiresConsultationScheduling(option)) {
+                                  updateField("consultationPreferenceDate", "");
+                                  updateField("consultationPreferenceTime", "");
+                                }
+                              }}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {requiresConsultationScheduling(form.preferredContactMethod) ? (
+                        <div className="form-grid">
+                          <div className="field">
+                            <label className="label">Preferred consultation day</label>
+                            <input
+                              className="input"
+                              type="date"
+                              value={form.consultationPreferenceDate}
+                              onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
+                            />
+                          </div>
+                          <div className="field">
+                            <label className="label">Preferred consultation time</label>
+                            <input
+                              className="input"
+                              value={form.consultationPreferenceTime}
+                              onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
+                              placeholder="Example: Weekdays after 6 PM"
+                            />
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {form.preferredContactMethod === "Video meeting" ? (
+                        <div className="field">
+                          <label className="label">Preferred video platform</label>
+                          <div className="option-pills">
+                            {videoPlatformOptions.map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
+                                onClick={() => updateField("consultationVideoPlatform", option)}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="booking-final-secondary-actions">
+                      <a href="/gallery" className="btn secondary">
+                        View Inspiration Gallery
+                      </a>
+                      <button type="button" className="btn secondary" onClick={handleShareVision}>
+                        Share
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="booking-final-detail-stack">
+                  <div className="scope-card booking-review-card">
+                    <h4>Final details</h4>
                     <div className="field">
-                      <label className="label">Preferred video platform</label>
+                      <label className="label">Venue Status</label>
                       <div className="option-pills">
-                        {videoPlatformOptions.map((option) => (
+                        {venueStatusOptions.map((option) => (
                           <button
                             key={option}
                             type="button"
-                            className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
-                            onClick={() => updateField("consultationVideoPlatform", option)}
+                            className={`pill ${form.venueStatus === option ? "selected" : ""}`}
+                            onClick={() => updateField("venueStatus", option)}
                           >
                             {option}
                           </button>
                         ))}
                       </div>
                     </div>
-                  ) : null}
 
-                  <div className="field">
-                    <label className="label">Venue Status</label>
-                    <div className="option-pills">
-                      {venueStatusOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`pill ${form.venueStatus === option ? "selected" : ""}`}
-                          onClick={() => updateField("venueStatus", option)}
-                        >
-                          {option}
-                        </button>
-                      ))}
+                    <div className="field">
+                      <button
+                        type="button"
+                        className="btn secondary"
+                        onClick={() => setShowOptionalStyleFields((current) => !current)}
+                      >
+                        {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
+                      </button>
                     </div>
-                  </div>
 
-                  <div className="field">
-                    <button
-                      type="button"
-                      className="btn secondary"
-                      onClick={() => setShowOptionalStyleFields((current) => !current)}
-                    >
-                      {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
-                    </button>
-                  </div>
-
-                  {showOptionalStyleFields ? (
-                    <div className="booking-review-subgrid">
-                      <div className="field">
-                        <label className="label">Color Palette</label>
-                        <div className="option-pills">
-                          {paletteSuggestions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
-                              onClick={() => updateField("colorsTheme", option)}
-                            >
-                              {option}
-                            </button>
-                          ))}
+                    {showOptionalStyleFields ? (
+                      <div className="booking-review-subgrid">
+                        <div className="field">
+                          <label className="label">Color Palette</label>
+                          <div className="option-pills">
+                            {paletteSuggestions.map((option) => (
+                              <button
+                                key={option}
+                                type="button"
+                                className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
+                                onClick={() => updateField("colorsTheme", option)}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                          <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
                         </div>
-                        <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
+                      </div>
+                    ) : null}
+
+                    <div className="field">
+                      <label className="checkline">
+                        <input
+                          type="checkbox"
+                          checked={form.needsDeliverySetup}
+                          onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
+                        />
+                        <span>Include delivery, setup, or teardown support in the request.</span>
+                      </label>
+                    </div>
+
+                    <div className="field">
+                      <label className="label">Partner vendor support</label>
+                      <div className="option-pills">
+                        {vendorCategories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
+                            onClick={() => toggleVendorCategory(category)}
+                          >
+                            {category}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ) : null}
-
-                  <div className="field">
-                    <label className="checkline">
-                      <input
-                        type="checkbox"
-                        checked={form.needsDeliverySetup}
-                        onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
-                      />
-                      <span>Include delivery, setup, or teardown support in the request.</span>
-                    </label>
                   </div>
 
                   <div className="field">
-                    <label className="label">Partner vendor support</label>
-                    <div className="option-pills">
-                      {vendorCategories.map((category) => (
-                        <button
-                          key={category}
-                          type="button"
-                          className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
-                          onClick={() => toggleVendorCategory(category)}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label className="label">Anything else we should know before the consultation?</label>
-                  <textarea
-                    className="textarea"
-                    value={form.additionalInfo}
-                    onChange={(e) => updateField("additionalInfo", e.target.value)}
-                    placeholder="Budget expectations, timing constraints, venue rules, or family priorities."
-                  />
-                </div>
-
-                {form.requestedVendorCategories.length ? (
-                  <div className="field">
-                    <label className="label">Vendor notes</label>
+                    <label className="label">Anything else we should know before the consultation?</label>
                     <textarea
                       className="textarea"
-                      value={form.vendorRequestNotes}
-                      onChange={(e) => updateField("vendorRequestNotes", e.target.value)}
-                      placeholder="Budget range, location, or style notes for vendors."
+                      value={form.additionalInfo}
+                      onChange={(e) => updateField("additionalInfo", e.target.value)}
+                      placeholder="Budget expectations, timing constraints, venue rules, or family priorities."
                     />
                   </div>
-                ) : null}
+
+                  {form.requestedVendorCategories.length ? (
+                    <div className="field">
+                      <label className="label">Vendor notes</label>
+                      <textarea
+                        className="textarea"
+                        value={form.vendorRequestNotes}
+                        onChange={(e) => updateField("vendorRequestNotes", e.target.value)}
+                        placeholder="Budget range, location, or style notes for vendors."
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </section>
             ) : null}
 
@@ -2770,7 +2927,7 @@ export default function EventRequestForm({
                 </button>
               ) : (
                 <button className="btn" type="submit" disabled={loading}>
-                  {loading ? "Submitting..." : "Send Consultation Request"}
+                  {loading ? "Submitting..." : "Book Your Consultation"}
                 </button>
               )}
             </div>
