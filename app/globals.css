@@ -3685,7 +3685,7 @@ th { background: var(--surface-soft); }
 }
 .guided-preview-curated-hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(240px, 0.9fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 0.9fr);
   gap: 18px;
   align-items: stretch;
   min-width: 0;
@@ -3725,6 +3725,9 @@ th { background: var(--surface-soft); }
 .guided-preview-curated-hero-media {
   position: relative;
   overflow: hidden;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   min-height: 280px;
   border-radius: 24px;
   box-shadow: 0 18px 32px rgba(48, 24, 11, 0.12);
@@ -3744,6 +3747,7 @@ th { background: var(--surface-soft); }
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(18, 14, 11, 0.12), rgba(18, 14, 11, 0.72));
   color: #fff8f1;
+  min-width: 0;
 }
 .guided-preview-curated-hero-overlay span {
   font-size: 0.72rem;
@@ -3754,11 +3758,13 @@ th { background: var(--surface-soft); }
 .guided-preview-curated-hero-overlay strong {
   font-size: 1.15rem;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .guided-preview-curated-refinements {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
 }
 .guided-preview-curated-options {
   display: grid;
@@ -3843,6 +3849,7 @@ th { background: var(--surface-soft); }
 .guided-preview-curated-support {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 .guided-preview-master-detail {
   display: grid;
@@ -4336,10 +4343,16 @@ th { background: var(--surface-soft); }
   margin: 6px 0 0;
 }
 .guided-preview-stage-nav {
-  display: inline-flex;
+  display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  min-width: 0;
+  width: 100%;
+}
+.guided-preview-stage-nav .btn {
+  max-width: 100%;
+  white-space: normal;
 }
 .guided-preview-selection-pill {
   display: inline-flex;
@@ -4354,6 +4367,8 @@ th { background: var(--surface-soft); }
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  max-width: 100%;
+  white-space: normal;
 }
 .guided-preview-options {
   display: grid;
@@ -4441,6 +4456,9 @@ th { background: var(--surface-soft); }
   border: 1px dashed rgba(var(--accent-rgb), 0.35);
   background: rgba(255,255,255,0.82);
   cursor: pointer;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 .guided-preview-upload input {
   display: none;
@@ -4455,6 +4473,7 @@ th { background: var(--surface-soft); }
 .guided-preview-support {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 .guided-preview-next-actions {
   display: grid;
