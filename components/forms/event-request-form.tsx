@@ -1796,6 +1796,9 @@ export default function EventRequestForm({
                                 </span>
                                 <h4>{activeGuidedCategory.title}</h4>
                                 <p>{activeGuidedCategory.helper}</p>
+                                <p className="guided-preview-curated-editor-note">
+                                  Choose the look that best matches the feeling you want guests to experience.
+                                </p>
                                 <div className="guided-preview-stage-nav">
                                   {selectedDecorCategories.includes(activeGuidedCategory.key) ? (
                                     <span className="guided-preview-selection-pill">Included in request</span>
