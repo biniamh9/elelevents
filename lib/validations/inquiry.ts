@@ -46,6 +46,11 @@ const decorSelectionSchema = z.object({
   uploadedImageUrls: z.array(z.string().url()).default([]),
   refinement: optionalText,
   notes: optionalText,
+  sizeOption: optionalText,
+  floralDensity: optionalText,
+  colorPalette: optionalText,
+  inspirationLink: optionalText,
+  designerLed: z.boolean().optional().default(false),
 });
 
 export const inquirySchema = z.object({

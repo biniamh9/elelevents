@@ -102,6 +102,11 @@ export default async function InquiryDetailPage({
         categoryKey: string;
         categoryTitle: string;
         refinement?: string | null;
+        sizeOption?: string | null;
+        floralDensity?: string | null;
+        colorPalette?: string | null;
+        inspirationLink?: string | null;
+        designerLed?: boolean;
         selectedGalleryImages?: Array<{
           id: string;
           title: string;
@@ -274,6 +279,27 @@ export default async function InquiryDetailPage({
                     <div className="admin-vision-block">
                       <strong>Refinement</strong>
                       <p>{selection.refinement}</p>
+                    </div>
+                  ) : null}
+
+                  {(selection.sizeOption || selection.floralDensity || selection.colorPalette || selection.inspirationLink || selection.designerLed) ? (
+                    <div className="admin-vision-block">
+                      <strong>Styling preferences</strong>
+                      <p>
+                        {[
+                          selection.designerLed ? "Elel-led design requested" : "",
+                          selection.sizeOption ? `Size: ${selection.sizeOption}` : "",
+                          selection.floralDensity ? `Floral density: ${selection.floralDensity}` : "",
+                          selection.colorPalette ? `Palette: ${selection.colorPalette}` : "",
+                        ].filter(Boolean).join(" • ")}
+                      </p>
+                      {selection.inspirationLink ? (
+                        <p>
+                          <a href={selection.inspirationLink} target="_blank" rel="noreferrer">
+                            {selection.inspirationLink}
+                          </a>
+                        </p>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

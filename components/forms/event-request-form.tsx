@@ -104,6 +104,8 @@ const paletteSuggestions = [
   "Terracotta + candlelight",
   "Emerald + gold",
 ];
+const momentSizeOptions = ["Small", "Medium", "Large"] as const;
+const momentFloralDensityOptions = ["Light", "Full", "Luxury"] as const;
 const steps = [
   {
     id: "event-type",
@@ -161,6 +163,13 @@ type DecorRefinementConfig = {
   label: string;
   options: string[];
 };
+
+type MomentCustomizationField =
+  | "size"
+  | "floralDensity"
+  | "colorPalette"
+  | "inspirationLink"
+  | "designerLed";
 
 type SubmittedRequestSummary = {
   customerName: string;
@@ -559,10 +568,12 @@ function getVenueComplexityMultiplier(venueType: string, venueStatus: string) {
 
 function buildReviewNotes(
   form: typeof initialState,
-  visualSelectionNotes?: string
+  visualSelectionNotes?: string,
+  momentGuidanceRequested?: boolean
 ) {
   const detailLines = [
     form.additionalInfo.trim(),
+    momentGuidanceRequested ? "Client requested Elel to guide key moment selection." : "",
     form.preferredContactMethod
       ? `Consultation preference: ${form.preferredContactMethod}.`
       : "",
@@ -652,6 +663,12 @@ export default function EventRequestForm({
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [categoryUploads, setCategoryUploads] = useState<Record<string, string[]>>({});
   const [categoryRefinements, setCategoryRefinements] = useState<Record<string, string>>({});
+  const [categorySizes, setCategorySizes] = useState<Record<string, string>>({});
+  const [categoryFloralDensity, setCategoryFloralDensity] = useState<Record<string, string>>({});
+  const [categoryPalettes, setCategoryPalettes] = useState<Record<string, string>>({});
+  const [categoryInspirationLinks, setCategoryInspirationLinks] = useState<Record<string, string>>({});
+  const [categoryDesignerLed, setCategoryDesignerLed] = useState<Record<string, boolean>>({});
+  const [momentGuidanceRequested, setMomentGuidanceRequested] = useState(false);
   const [activeDecorKey, setActiveDecorKey] = useState("");
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
   const effectiveEventType =
@@ -709,9 +726,20 @@ export default function EventRequestForm({
     availableGuidedCategories.find((item) => item.key === activeDecorKey) ??
     availableGuidedCategories[0] ??
     null;
+  const activeGuidedCategoryIndex = activeGuidedCategory
+    ? guidedPreviewOptions.findIndex((item) => item.key === activeGuidedCategory.key)
+    : -1;
+  const activeGuidedCategoryIsDesignerLed = activeGuidedCategory
+    ? Boolean(categoryDesignerLed[activeGuidedCategory.key])
+    : false;
   const recommendedDecorKeys = recommendedDecorByEventType[form.eventType] ?? recommendedDecorByEventType.Other;
   const keyMomentCards = useMemo(() => {
     const cards: Array<Omit<KeyMomentCard, "imageUrl">> = [
+      {
+        key: "not_sure",
+        title: "Not sure, guide me",
+        description: "Let our team recommend the right moments to prioritize.",
+      },
       {
         key: "head_table",
         title: "Head Table",
@@ -746,7 +774,7 @@ export default function EventRequestForm({
 
     const mapped = cards.map((card, index) => {
       const keywords =
-        card.key === "full_package"
+        card.key === "full_package" || card.key === "not_sure"
           ? recommendedDecorKeys.flatMap((key) => guidedPreviewCategories[key]?.keywords ?? [])
           : guidedPreviewCategories[card.key]?.keywords ?? [];
 
@@ -774,14 +802,31 @@ export default function EventRequestForm({
         const hasUploads = (categoryUploads[key] ?? []).length > 0;
         const hasNote = Boolean(categoryNotes[key]?.trim());
         const hasRefinement = Boolean(categoryRefinements[key]);
-        return hasImages || hasUploads || hasNote || hasRefinement;
+        const hasSize = Boolean(categorySizes[key]);
+        const hasDensity = Boolean(categoryFloralDensity[key]);
+        const hasPalette = Boolean(categoryPalettes[key]);
+        const hasLink = Boolean(categoryInspirationLinks[key]?.trim());
+        const isDesignerLed = Boolean(categoryDesignerLed[key]);
+        return hasImages || hasUploads || hasNote || hasRefinement || hasSize || hasDensity || hasPalette || hasLink || isDesignerLed;
       }).length,
-    [selectedDecorCategories, selectedPreviewImages, categoryUploads, categoryNotes, categoryRefinements]
+    [
+      selectedDecorCategories,
+      selectedPreviewImages,
+      categoryUploads,
+      categoryNotes,
+      categoryRefinements,
+      categorySizes,
+      categoryFloralDensity,
+      categoryPalettes,
+      categoryInspirationLinks,
+      categoryDesignerLed,
+    ]
   );
   const selectedCategoryKeys = selectedDecorCategories;
   const hasCategoryNotesOrUploads =
     Object.values(categoryNotes).some((value) => value?.trim()) ||
     Object.values(categoryUploads).some((urls) => urls.length > 0) ||
+    Object.values(categoryInspirationLinks).some((value) => value?.trim()) ||
     form.visionBoardUrls.length > 0;
   const derivedServices = useMemo(
     () =>
@@ -810,6 +855,12 @@ export default function EventRequestForm({
     setCategoryNotes({});
     setCategoryUploads({});
     setCategoryRefinements({});
+    setCategorySizes({});
+    setCategoryFloralDensity({});
+    setCategoryPalettes({});
+    setCategoryInspirationLinks({});
+    setCategoryDesignerLed({});
+    setMomentGuidanceRequested(false);
     setExpandedCategoryImages({});
     setActiveDecorKey(eventTypeCategoryMap[form.eventType]?.[0] ?? eventTypeCategoryMap.Other[0] ?? "");
   }, [form.eventType]);
@@ -1108,13 +1159,39 @@ export default function EventRequestForm({
         if (categoryRefinements[category.key]) {
           pieces.push(`refinement: ${categoryRefinements[category.key]}`);
         }
+        if (categorySizes[category.key]) {
+          pieces.push(`size: ${categorySizes[category.key]}`);
+        }
+        if (categoryFloralDensity[category.key]) {
+          pieces.push(`floral density: ${categoryFloralDensity[category.key]}`);
+        }
+        if (categoryPalettes[category.key]) {
+          pieces.push(`palette: ${categoryPalettes[category.key]}`);
+        }
+        if (categoryInspirationLinks[category.key]?.trim()) {
+          pieces.push(`link: ${categoryInspirationLinks[category.key].trim()}`);
+        }
+        if (categoryDesignerLed[category.key]) {
+          pieces.push("designer-led direction requested");
+        }
 
         return `${category.title} — ${pieces.join(" • ")}`;
       })
       .filter(Boolean);
 
     return lines.length ? `Visual direction picks:\n${lines.map((line) => `- ${line}`).join("\n")}` : "";
-  }, [categoryNotes, categoryRefinements, categoryUploads, guidedPreviewOptions, selectedPreviewImages]);
+  }, [
+    categoryDesignerLed,
+    categoryFloralDensity,
+    categoryInspirationLinks,
+    categoryNotes,
+    categoryPalettes,
+    categoryRefinements,
+    categorySizes,
+    categoryUploads,
+    guidedPreviewOptions,
+    selectedPreviewImages,
+  ]);
 
   const decorSelections = useMemo(
     () =>
@@ -1129,12 +1206,28 @@ export default function EventRequestForm({
             title: item.title,
             image_url: item.image_url,
             category: item.category,
-          })),
+        })),
         uploadedImageUrls: categoryUploads[category.key] ?? [],
         refinement: categoryRefinements[category.key] ?? null,
         notes: categoryNotes[category.key]?.trim() || null,
+        sizeOption: categorySizes[category.key] ?? null,
+        floralDensity: categoryFloralDensity[category.key] ?? null,
+        colorPalette: categoryPalettes[category.key] ?? null,
+        inspirationLink: categoryInspirationLinks[category.key]?.trim() || null,
+        designerLed: Boolean(categoryDesignerLed[category.key]),
       })),
-    [categoryNotes, categoryRefinements, categoryUploads, guidedPreviewOptions, selectedPreviewImages]
+    [
+      categoryDesignerLed,
+      categoryFloralDensity,
+      categoryInspirationLinks,
+      categoryNotes,
+      categoryPalettes,
+      categoryRefinements,
+      categorySizes,
+      categoryUploads,
+      guidedPreviewOptions,
+      selectedPreviewImages,
+    ]
   );
   function updateField(name: string, value: string | boolean | string[]) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -1150,7 +1243,83 @@ export default function EventRequestForm({
     setActiveDecorKey(categoryKey);
   }
 
+  function updateMomentCustomization(
+    categoryKey: string,
+    field: MomentCustomizationField,
+    value: string | boolean
+  ) {
+    ensureDecorCategory(categoryKey);
+
+    if (field === "size" && typeof value === "string") {
+      setCategorySizes((current) => ({ ...current, [categoryKey]: value }));
+      return;
+    }
+
+    if (field === "floralDensity" && typeof value === "string") {
+      setCategoryFloralDensity((current) => ({ ...current, [categoryKey]: value }));
+      return;
+    }
+
+    if (field === "colorPalette" && typeof value === "string") {
+      setCategoryPalettes((current) => ({ ...current, [categoryKey]: value }));
+      return;
+    }
+
+    if (field === "inspirationLink" && typeof value === "string") {
+      setCategoryInspirationLinks((current) => ({ ...current, [categoryKey]: value }));
+      return;
+    }
+
+    if (field === "designerLed" && typeof value === "boolean") {
+      setCategoryDesignerLed((current) => ({ ...current, [categoryKey]: value }));
+    }
+  }
+
+  function setDesignerLedForCategory(categoryKey: string, nextValue: boolean) {
+    updateMomentCustomization(categoryKey, "designerLed", nextValue);
+
+    if (nextValue) {
+      const recommendedImageId = guidedPreviewOptions.find((item) => item.key === categoryKey)?.images[0]?.id;
+      if (recommendedImageId) {
+        setSelectedPreviewImages((current) => ({
+          ...current,
+          [categoryKey]: [recommendedImageId],
+        }));
+      }
+    }
+  }
+
+  function moveToAdjacentMoment(direction: "previous" | "next") {
+    if (!guidedPreviewOptions.length || !activeGuidedCategory) {
+      return;
+    }
+
+    const nextIndex =
+      direction === "next" ? activeGuidedCategoryIndex + 1 : activeGuidedCategoryIndex - 1;
+    const nextMoment = guidedPreviewOptions[nextIndex];
+
+    if (nextMoment) {
+      setActiveDecorKey(nextMoment.key);
+    }
+  }
+
   function toggleKeyMoment(categoryKey: string) {
+    if (categoryKey === "not_sure") {
+      const nextGuidanceState = !momentGuidanceRequested;
+      setMomentGuidanceRequested(nextGuidanceState);
+
+      if (nextGuidanceState) {
+        const packageKeys = Array.from(new Set(recommendedDecorKeys));
+        setSelectedDecorCategories((current) => Array.from(new Set([...current, ...packageKeys])));
+        setCategoryDesignerLed((current) => ({
+          ...current,
+          ...Object.fromEntries(packageKeys.map((key) => [key, true])),
+        }));
+        setActiveDecorKey(packageKeys[0] ?? "");
+      }
+      return;
+    }
+
     if (categoryKey === "full_package") {
       const packageKeys = Array.from(new Set(recommendedDecorKeys));
       setSelectedDecorCategories((current) => {
@@ -1293,7 +1462,7 @@ export default function EventRequestForm({
         guestCount: form.guestCount ? Number(form.guestCount) : null,
         selectedDecorCategories,
         decorSelections,
-        additionalInfo: buildReviewNotes(form, visualSelectionNotes),
+        additionalInfo: buildReviewNotes(form, visualSelectionNotes, momentGuidanceRequested),
       }),
     });
 
@@ -1344,6 +1513,12 @@ export default function EventRequestForm({
     setCategoryNotes({});
     setCategoryUploads({});
     setCategoryRefinements({});
+    setCategorySizes({});
+    setCategoryFloralDensity({});
+    setCategoryPalettes({});
+    setCategoryInspirationLinks({});
+    setCategoryDesignerLed({});
+    setMomentGuidanceRequested(false);
     setExpandedCategoryImages({});
     setStep(0);
     setLoading(false);
@@ -1810,14 +1985,17 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 4 of 7</p>
                   <h3>Select the key moments.</h3>
-                  <p className="muted">Choose the focal spaces you want us to elevate first. We will style them one by one in the next step.</p>
+                  <p className="muted">Choose the focal spaces you want us to elevate first. Then we will style each one with you, one moment at a time.</p>
                 </div>
 
                 <div className="key-moment-grid">
                   {keyMomentCards.map((moment) => {
                     const isPackage = moment.key === "full_package";
+                    const isGuided = moment.key === "not_sure";
                     const packageKeys = recommendedDecorKeys;
-                    const isSelected = isPackage
+                    const isSelected = isGuided
+                      ? momentGuidanceRequested
+                      : isPackage
                       ? packageKeys.every((key) => selectedDecorCategories.includes(key))
                       : selectedDecorCategories.includes(moment.key);
 
@@ -1830,7 +2008,11 @@ export default function EventRequestForm({
                       >
                         {moment.imageUrl ? <img src={moment.imageUrl} alt={moment.title} loading="lazy" /> : null}
                         <span className="key-moment-overlay" />
-                        {isSelected ? <span className="key-moment-badge">Included</span> : null}
+                        {isSelected ? (
+                          <span className="key-moment-badge">
+                            {isGuided ? "Guided" : isPackage ? "Included" : "Included"}
+                          </span>
+                        ) : null}
                         <div className="key-moment-copy">
                           <strong>{moment.title}</strong>
                           <span>{moment.description}</span>
@@ -1838,6 +2020,18 @@ export default function EventRequestForm({
                       </button>
                     );
                   })}
+                </div>
+
+                <div className="guided-preview-step-summary guided-preview-step-summary--compact">
+                  <div>
+                    <p className="eyebrow">Moment summary</p>
+                    <h4>{selectedDecorCategories.length} key moments selected</h4>
+                  </div>
+                  <span>
+                    {momentGuidanceRequested
+                      ? "Designer guidance is on"
+                      : "You can refine every selected moment in the next step"}
+                  </span>
                 </div>
               </section>
             ) : null}
@@ -1847,7 +2041,7 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 5 of 7</p>
                   <h3>Style each selected moment.</h3>
-                  <p className="muted">Move through your chosen moments one at a time and pick the visual direction that feels right.</p>
+                  <p className="muted">Move through your chosen moments one at a time, choose a visual direction, and optionally add your own inspiration.</p>
                 </div>
 
                 <div className="guided-preview-builder guided-preview-builder--curated">
@@ -1856,7 +2050,11 @@ export default function EventRequestForm({
                       <p className="eyebrow">Styling progress</p>
                       <h4>{configuredDecorCount} of {selectedDecorCategories.length || 0} moments refined</h4>
                     </div>
-                    <span>{form.decorStyle || "Decor"} direction</span>
+                    <span>
+                      {activeGuidedCategory
+                        ? `Moment ${Math.max(activeGuidedCategoryIndex + 1, 1)} of ${guidedPreviewOptions.length}`
+                        : `${form.decorStyle || "Decor"} direction`}
+                    </span>
                   </div>
 
                   {guidedPreviewOptions.length ? (
@@ -1868,7 +2066,16 @@ export default function EventRequestForm({
                             const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
                             const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
                             const hasNote = Boolean(categoryNotes[guidedCategory.key]?.trim());
-                            const hasContent = selectedImageCount > 0 || uploadedImageCount > 0 || hasNote || Boolean(categoryRefinements[guidedCategory.key]);
+                            const hasContent =
+                              selectedImageCount > 0 ||
+                              uploadedImageCount > 0 ||
+                              hasNote ||
+                              Boolean(categoryRefinements[guidedCategory.key]) ||
+                              Boolean(categorySizes[guidedCategory.key]) ||
+                              Boolean(categoryFloralDensity[guidedCategory.key]) ||
+                              Boolean(categoryPalettes[guidedCategory.key]) ||
+                              Boolean(categoryInspirationLinks[guidedCategory.key]?.trim()) ||
+                              Boolean(categoryDesignerLed[guidedCategory.key]);
 
                             return (
                               <button
@@ -1882,6 +2089,7 @@ export default function EventRequestForm({
                                 <em>
                                   {hasContent
                                     ? [
+                                        categoryDesignerLed[guidedCategory.key] ? "Elel-led" : "",
                                         selectedImageCount > 0 ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
                                         uploadedImageCount > 0 ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
                                         hasNote ? "Note added" : "",
@@ -1906,7 +2114,7 @@ export default function EventRequestForm({
                                 <h4>{activeGuidedCategory.title}</h4>
                                 <p>{activeGuidedCategory.helper}</p>
                                 <p className="guided-preview-curated-editor-note">
-                                  Select one image direction, or upload inspiration if you have something more specific in mind.
+                                  Choose one style direction, then add any custom notes or inspiration that will help us refine it beautifully.
                                 </p>
                               </div>
 
@@ -1921,32 +2129,30 @@ export default function EventRequestForm({
                               ) : null}
                             </div>
 
-                            {decorRefinementOptions[activeGuidedCategory.key] ? (
-                              <div className="guided-preview-curated-refinements">
-                                {decorRefinementOptions[activeGuidedCategory.key].options.map((option) => (
-                                  <button
-                                    key={option}
-                                    type="button"
-                                    className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
-                                    onClick={() => {
-                                      const nextValue =
-                                        categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
-                                      setCategoryRefinements((current) => ({
-                                        ...current,
-                                        [activeGuidedCategory.key]: nextValue,
-                                      }));
-                                      if (nextValue) {
-                                        ensureDecorCategory(activeGuidedCategory.key);
-                                      }
-                                    }}
-                                  >
-                                    {option}
-                                  </button>
-                                ))}
-                              </div>
-                            ) : null}
+                            <div className="guided-preview-designer-led">
+                              <button
+                                type="button"
+                                className={`guided-preview-designer-led-toggle ${activeGuidedCategoryIsDesignerLed ? "selected" : ""}`}
+                                onClick={() =>
+                                  setDesignerLedForCategory(
+                                    activeGuidedCategory.key,
+                                    !activeGuidedCategoryIsDesignerLed
+                                  )
+                                }
+                              >
+                                <div>
+                                  <strong>Let Elel design this for me</strong>
+                                  <span>
+                                    {activeGuidedCategoryIsDesignerLed
+                                      ? "Our designers will create a look tailored to your event."
+                                      : "Skip the detailed configuration and let us recommend the right look."}
+                                  </span>
+                                </div>
+                                <i aria-hidden="true">{activeGuidedCategoryIsDesignerLed ? "✓" : "+"}</i>
+                              </button>
+                            </div>
 
-                            {activeGuidedCategory.images.length ? (
+                            {!activeGuidedCategoryIsDesignerLed && activeGuidedCategory.images.length ? (
                               <>
                                 <div className="guided-preview-curated-options">
                                   {(expandedCategoryImages[activeGuidedCategory.key]
@@ -2008,12 +2214,132 @@ export default function EventRequestForm({
                               </>
                             ) : (
                               <div className="guided-preview-empty">
-                                <p className="muted">{activeGuidedCategory.emptyState}</p>
+                                <p className="muted">
+                                  {activeGuidedCategoryIsDesignerLed
+                                    ? "We will build a tailored look for this moment and refine it during consultation."
+                                    : activeGuidedCategory.emptyState}
+                                </p>
                               </div>
                             )}
 
+                            {!activeGuidedCategoryIsDesignerLed ? (
+                              <div className="guided-preview-moment-customizations">
+                                {decorRefinementOptions[activeGuidedCategory.key] ? (
+                                  <div className="guided-preview-curated-refinements">
+                                    <p className="guided-preview-customization-label">
+                                      {decorRefinementOptions[activeGuidedCategory.key].label}
+                                    </p>
+                                    {decorRefinementOptions[activeGuidedCategory.key].options.map((option) => (
+                                      <button
+                                        key={option}
+                                        type="button"
+                                        className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                        onClick={() => {
+                                          const nextValue =
+                                            categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
+                                          setCategoryRefinements((current) => ({
+                                            ...current,
+                                            [activeGuidedCategory.key]: nextValue,
+                                          }));
+                                          if (nextValue) {
+                                            ensureDecorCategory(activeGuidedCategory.key);
+                                          }
+                                        }}
+                                      >
+                                        {option}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : null}
+
+                                <div className="guided-preview-curated-refinements">
+                                  <p className="guided-preview-customization-label">Size</p>
+                                  {momentSizeOptions.map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      className={`pill ${categorySizes[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                      onClick={() =>
+                                        updateMomentCustomization(
+                                          activeGuidedCategory.key,
+                                          "size",
+                                          categorySizes[activeGuidedCategory.key] === option ? "" : option
+                                        )
+                                      }
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <div className="guided-preview-curated-refinements">
+                                  <p className="guided-preview-customization-label">Floral density</p>
+                                  {momentFloralDensityOptions.map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      className={`pill ${categoryFloralDensity[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                      onClick={() =>
+                                        updateMomentCustomization(
+                                          activeGuidedCategory.key,
+                                          "floralDensity",
+                                          categoryFloralDensity[activeGuidedCategory.key] === option ? "" : option
+                                        )
+                                      }
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                </div>
+
+                                <div className="guided-preview-curated-refinements">
+                                  <p className="guided-preview-customization-label">Color palette</p>
+                                  {paletteSuggestions.slice(0, 4).map((option) => (
+                                    <button
+                                      key={option}
+                                      type="button"
+                                      className={`pill ${categoryPalettes[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                      onClick={() =>
+                                        updateMomentCustomization(
+                                          activeGuidedCategory.key,
+                                          "colorPalette",
+                                          categoryPalettes[activeGuidedCategory.key] === option ? "" : option
+                                        )
+                                      }
+                                    >
+                                      {option}
+                                    </button>
+                                  ))}
+                                  <input
+                                    className="input"
+                                    value={categoryPalettes[activeGuidedCategory.key] ?? ""}
+                                    onChange={(e) =>
+                                      updateMomentCustomization(
+                                        activeGuidedCategory.key,
+                                        "colorPalette",
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="Or type your own palette"
+                                  />
+                                </div>
+                              </div>
+                            ) : null}
+
                             <div className="guided-preview-curated-support">
                               <div className="guided-preview-support">
+                                <input
+                                  className="input"
+                                  value={categoryInspirationLinks[activeGuidedCategory.key] ?? ""}
+                                  onChange={(e) =>
+                                    updateMomentCustomization(
+                                      activeGuidedCategory.key,
+                                      "inspirationLink",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Paste a Pinterest or Instagram link"
+                                />
                                 <textarea
                                   className="textarea"
                                   value={categoryNotes[activeGuidedCategory.key] ?? ""}
@@ -2027,7 +2353,7 @@ export default function EventRequestForm({
                                       ensureDecorCategory(activeGuidedCategory.key);
                                     }
                                   }}
-                                  placeholder="Tell us how you want guests to feel when they see this moment."
+                                  placeholder="Describe your vision for this moment."
                                 />
                                 <label className="guided-preview-upload">
                                   <input
@@ -2041,6 +2367,25 @@ export default function EventRequestForm({
                                   <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
                                 </label>
                               </div>
+                            </div>
+
+                            <div className="guided-preview-stage-nav">
+                              <button
+                                type="button"
+                                className="btn secondary"
+                                onClick={() => moveToAdjacentMoment("previous")}
+                                disabled={activeGuidedCategoryIndex <= 0}
+                              >
+                                Previous moment
+                              </button>
+                              <button
+                                type="button"
+                                className="btn secondary"
+                                onClick={() => moveToAdjacentMoment("next")}
+                                disabled={activeGuidedCategoryIndex === -1 || activeGuidedCategoryIndex >= guidedPreviewOptions.length - 1}
+                              >
+                                Next moment
+                              </button>
                             </div>
                           </>
                         ) : null}
@@ -2162,17 +2507,27 @@ export default function EventRequestForm({
                         const uploads = categoryUploads[category.key] ?? [];
                         const note = categoryNotes[category.key]?.trim();
                         const refinement = categoryRefinements[category.key];
+                        const size = categorySizes[category.key];
+                        const floralDensity = categoryFloralDensity[category.key];
+                        const palette = categoryPalettes[category.key];
+                        const inspirationLink = categoryInspirationLinks[category.key]?.trim();
+                        const designerLed = Boolean(categoryDesignerLed[category.key]);
                         const hasContent =
                           selected.length > 0 ||
                           uploads.length > 0 ||
                           Boolean(note) ||
-                          Boolean(refinement);
+                          Boolean(refinement) ||
+                          Boolean(size) ||
+                          Boolean(floralDensity) ||
+                          Boolean(palette) ||
+                          Boolean(inspirationLink) ||
+                          designerLed;
 
                         return (
                           <div key={category.key} className={`booking-review-decor-card ${hasContent ? "" : "booking-review-decor-card--empty"}`}>
                             <div className="booking-review-decor-head">
                               <strong>{category.title}</strong>
-                              {refinement ? <span>{refinement}</span> : null}
+                              {designerLed ? <span>Elel-led</span> : refinement ? <span>{refinement}</span> : null}
                             </div>
 
                             {selected.length ? (
@@ -2188,6 +2543,15 @@ export default function EventRequestForm({
                                 {uploads.slice(0, 3).map((url, index) => (
                                   <img key={`${category.key}-upload-${index}`} src={url} alt={`${category.title} upload ${index + 1}`} loading="lazy" />
                                 ))}
+                              </div>
+                            ) : null}
+
+                            {(size || floralDensity || palette || inspirationLink) ? (
+                              <div className="booking-review-detail-list">
+                                {size ? <p><strong>Size:</strong> {size}</p> : null}
+                                {floralDensity ? <p><strong>Floral density:</strong> {floralDensity}</p> : null}
+                                {palette ? <p><strong>Palette:</strong> {palette}</p> : null}
+                                {inspirationLink ? <p><strong>Link:</strong> <a href={inspirationLink} target="_blank" rel="noreferrer">{inspirationLink}</a></p> : null}
                               </div>
                             ) : null}
 
