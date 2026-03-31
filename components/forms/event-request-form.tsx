@@ -1965,14 +1965,16 @@ export default function EventRequestForm({
                 <div className="panel-head">
                   <p className="eyebrow">Step 3 of 5</p>
                   <h3>Build your decor story.</h3>
-                  <p className="muted">Choose the focal moments that matter, then open one category at a time to shape the direction without feeling overwhelmed.</p>
+                  <p className="muted">Keep the categories visible on the left, then refine the active decor moment on the right with spacious image-led options.</p>
                 </div>
 
-                <div className="booking-decor-builder booking-decor-builder--accordion">
+                <div className="booking-decor-builder booking-decor-builder--detail">
+                  <div className="booking-decor-builder-layout">
+                    <div className="booking-decor-builder-sidebar">
                   {decorBuilderGroups.map(([groupLabel, categories]) => (
                     <div key={groupLabel} className="booking-decor-group">
                       <p className="event-experience-section-label">{groupLabel}</p>
-                      <div className="booking-decor-accordion">
+                          <div className="booking-decor-builder-list">
                         {categories.map((category) => {
                           const isActive = activeGuidedCategory?.key === category.key;
                           const isSelected = selectedDecorCategories.includes(category.key);
@@ -1991,16 +1993,13 @@ export default function EventRequestForm({
                             Boolean(categoryDesignerLed[category.key]);
 
                           return (
-                            <article
+                                <button
                               key={category.key}
-                              className={`booking-decor-accordion-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""} ${hasContent ? "has-content" : ""}`}
+                                  type="button"
+                                  className={`booking-decor-builder-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""} ${hasContent ? "has-content" : ""}`}
+                                  onClick={() => focusDecorCategory(category.key)}
                             >
-                              <button
-                                type="button"
-                                className="booking-decor-accordion-trigger"
-                                onClick={() => focusDecorCategory(category.key)}
-                              >
-                                <div className="booking-decor-accordion-copy">
+                                  <div className="booking-decor-builder-item-copy">
                                   <strong>{category.title}</strong>
                                   <span>
                                     {isSelected
@@ -2010,142 +2009,155 @@ export default function EventRequestForm({
                                       : "Tap to explore this moment"}
                                   </span>
                                 </div>
-                                <div className="booking-decor-accordion-status">
+                                  <div className="booking-decor-builder-item-status">
                                   {recommendedDecorKeys.includes(category.key) ? (
                                     <span className="booking-decor-builder-chip">Recommended</span>
                                   ) : null}
                                   {hasContent ? <span className="guided-preview-category-check">✓</span> : null}
                                 </div>
-                              </button>
-
-                              {isActive ? (
-                                <div className="booking-decor-accordion-panel">
-                                  <div className="booking-decor-builder-head">
-                                    <div className="booking-decor-builder-copy">
-                                      <span className="guided-preview-curated-kicker">Active moment</span>
-                                      <h4>{category.title}</h4>
-                                      <p>{category.helper}</p>
-                                      <div className="booking-decor-builder-meta">
-                                        {recommendedDecorKeys.includes(category.key) ? (
-                                          <span className="booking-decor-builder-chip">Recommended for your event</span>
-                                        ) : null}
-                                        {selectedIds.length ? (
-                                          <span className="booking-decor-builder-chip">
-                                            {selectedIds.length} look{selectedIds.length === 1 ? "" : "s"} saved
-                                          </span>
-                                        ) : null}
-                                        {categoryDesignerLed[category.key] ? (
-                                          <span className="booking-decor-builder-chip">Elel will guide this moment</span>
-                                        ) : null}
-                                      </div>
-                                    </div>
-                                    <div className="booking-decor-builder-actions">
-                                      <button
-                                        type="button"
-                                        className={`btn ${isSelected ? "secondary" : ""}`}
-                                        onClick={() => toggleKeyMoment(category.key)}
-                                      >
-                                        {isSelected ? "Included" : "Add this moment"}
-                                      </button>
-                                    </div>
-                                  </div>
-
-                                  {category.images.length ? (
-                                    <div className="guided-preview-curated-options">
-                                      {category.images.slice(0, 4).map((item, index) => {
-                                        const isImageSelected = selectedIds.includes(item.id);
-
-                                        return (
-                                          <button
-                                            key={item.id}
-                                            type="button"
-                                            className={`guided-preview-option guided-preview-option--editorial ${index === 0 ? "guided-preview-option--featured" : "guided-preview-option--supporting"} ${isImageSelected ? "selected" : ""}`}
-                                            onClick={() => {
-                                              const nextIds = isImageSelected ? [] : [item.id];
-                                              setSelectedPreviewImages((current) => ({
-                                                ...current,
-                                                [category.key]: nextIds,
-                                              }));
-                                              ensureDecorCategory(category.key);
-                                            }}
-                                          >
-                                            <img src={item.image_url} alt={item.title} loading="lazy" />
-                                            <span className="guided-preview-option-wash" />
-                                            <div className="guided-preview-option-copy">
-                                              <small>{index === 0 ? "Featured look" : "Curated option"}</small>
-                                              <strong>{item.title}</strong>
-                                            </div>
-                                            {isImageSelected ? <span className="guided-preview-option-check">Selected</span> : null}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  ) : (
-                                    <div className="guided-preview-empty">
-                                      <p>{category.emptyState}</p>
-                                    </div>
-                                  )}
-
-                                  {decorRefinementOptions[category.key]?.options?.length ? (
-                                    <div className="guided-preview-curated-refinements">
-                                      <p className="guided-preview-customization-label">
-                                        {decorRefinementOptions[category.key]?.label}
-                                      </p>
-                                      {decorRefinementOptions[category.key]?.options.map((option) => (
-                                        <button
-                                          key={option}
-                                          type="button"
-                                          className={`pill ${categoryRefinements[category.key] === option ? "selected" : ""}`}
-                                          onClick={() => {
-                                            const nextValue =
-                                              categoryRefinements[category.key] === option ? "" : option;
-                                            setCategoryRefinements((current) => ({
-                                              ...current,
-                                              [category.key]: nextValue,
-                                            }));
-                                            if (nextValue) ensureDecorCategory(category.key);
-                                          }}
-                                        >
-                                          {option}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  ) : null}
-
-                                  <div className="guided-preview-support">
-                                    <textarea
-                                      className="textarea"
-                                      value={categoryNotes[category.key] ?? ""}
-                                      onChange={(e) => {
-                                        const nextValue = e.target.value;
-                                        setCategoryNotes((current) => ({
-                                          ...current,
-                                          [category.key]: nextValue,
-                                        }));
-                                        if (nextValue.trim()) ensureDecorCategory(category.key);
-                                      }}
-                                      placeholder="Describe the feeling, details, or must-haves for this moment."
-                                    />
-                                    <label className="guided-preview-upload">
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={(e) => handleCategoryUpload(category.key, e)}
-                                        disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
-                                      />
-                                      <strong>Upload your own inspiration</strong>
-                                      <span>{uploadedCount} uploaded</span>
-                                    </label>
-                                  </div>
-                                </div>
-                              ) : null}
-                            </article>
+                                </button>
                           );
                         })}
                       </div>
                     </div>
                   ))}
+                    </div>
+
+                    <div className="booking-decor-builder-detail">
+                      {activeGuidedCategory ? (() => {
+                        const selectedIds = selectedPreviewImages[activeGuidedCategory.key] ?? [];
+                        const uploadedCount = (categoryUploads[activeGuidedCategory.key] ?? []).length;
+                        const isSelected = selectedDecorCategories.includes(activeGuidedCategory.key);
+
+                        return (
+                          <>
+                            <div className="booking-decor-builder-head">
+                              <div className="booking-decor-builder-copy">
+                                <span className="guided-preview-curated-kicker">Active moment</span>
+                                <h4>{activeGuidedCategory.title}</h4>
+                                <p>{activeGuidedCategory.helper}</p>
+                                <div className="booking-decor-builder-meta">
+                                  {recommendedDecorKeys.includes(activeGuidedCategory.key) ? (
+                                    <span className="booking-decor-builder-chip">Recommended for your event</span>
+                                  ) : null}
+                                  {selectedIds.length ? (
+                                    <span className="booking-decor-builder-chip">
+                                      {selectedIds.length} look{selectedIds.length === 1 ? "" : "s"} saved
+                                    </span>
+                                  ) : null}
+                                  {categoryDesignerLed[activeGuidedCategory.key] ? (
+                                    <span className="booking-decor-builder-chip">Elel will guide this moment</span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="booking-decor-builder-actions">
+                                <button
+                                  type="button"
+                                  className={`btn ${isSelected ? "secondary" : ""}`}
+                                  onClick={() => toggleKeyMoment(activeGuidedCategory.key)}
+                                >
+                                  {isSelected ? "Included" : "Add this moment"}
+                                </button>
+                              </div>
+                            </div>
+
+                            {activeGuidedCategory.images.length ? (
+                              <div className="guided-preview-curated-options">
+                                {activeGuidedCategory.images.slice(0, 4).map((item) => {
+                                  const isImageSelected = selectedIds.includes(item.id);
+
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      className={`guided-preview-option guided-preview-option--editorial ${isImageSelected ? "selected" : ""}`}
+                                      onClick={() => {
+                                        const nextIds = isImageSelected ? [] : [item.id];
+                                        setSelectedPreviewImages((current) => ({
+                                          ...current,
+                                          [activeGuidedCategory.key]: nextIds,
+                                        }));
+                                        ensureDecorCategory(activeGuidedCategory.key);
+                                      }}
+                                    >
+                                      <img src={item.image_url} alt={item.title} loading="lazy" />
+                                      <span className="guided-preview-option-wash" />
+                                      <div className="guided-preview-option-copy">
+                                        <small>Curated option</small>
+                                        <strong>{item.title}</strong>
+                                      </div>
+                                      {isImageSelected ? <span className="guided-preview-option-check">Selected</span> : null}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="guided-preview-empty">
+                                <p>{activeGuidedCategory.emptyState}</p>
+                              </div>
+                            )}
+
+                            {decorRefinementOptions[activeGuidedCategory.key]?.options?.length ? (
+                              <div className="guided-preview-curated-refinements">
+                                <p className="guided-preview-customization-label">
+                                  {decorRefinementOptions[activeGuidedCategory.key]?.label}
+                                </p>
+                                {decorRefinementOptions[activeGuidedCategory.key]?.options.map((option) => (
+                                  <button
+                                    key={option}
+                                    type="button"
+                                    className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                    onClick={() => {
+                                      const nextValue =
+                                        categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
+                                      setCategoryRefinements((current) => ({
+                                        ...current,
+                                        [activeGuidedCategory.key]: nextValue,
+                                      }));
+                                      if (nextValue) ensureDecorCategory(activeGuidedCategory.key);
+                                    }}
+                                  >
+                                    {option}
+                                  </button>
+                                ))}
+                              </div>
+                            ) : null}
+
+                            <div className="guided-preview-support">
+                              <textarea
+                                className="textarea"
+                                value={categoryNotes[activeGuidedCategory.key] ?? ""}
+                                onChange={(e) => {
+                                  const nextValue = e.target.value;
+                                  setCategoryNotes((current) => ({
+                                    ...current,
+                                    [activeGuidedCategory.key]: nextValue,
+                                  }));
+                                  if (nextValue.trim()) ensureDecorCategory(activeGuidedCategory.key);
+                                }}
+                                placeholder="Describe the feeling, details, or must-haves for this moment."
+                              />
+                              <label className="guided-preview-upload">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => handleCategoryUpload(activeGuidedCategory.key, e)}
+                                  disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                                />
+                                <strong>Upload your own inspiration</strong>
+                                <span>{uploadedCount} uploaded</span>
+                              </label>
+                            </div>
+                          </>
+                        );
+                      })() : (
+                        <div className="guided-preview-empty">
+                          <p>Choose a decor category to begin shaping the room.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </section>
             ) : null}
