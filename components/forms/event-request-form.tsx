@@ -108,46 +108,34 @@ const momentSizeOptions = ["Small", "Medium", "Large"] as const;
 const momentFloralDensityOptions = ["Light", "Full", "Luxury"] as const;
 const steps = [
   {
-    id: "event-type",
-    label: "Type",
-    title: "Choose the celebration",
-    blurb: "Select the event experience first so the rest of the flow adapts around it.",
+    id: "vision",
+    label: "01 Vision",
+    title: "Tell us what you are planning",
+    blurb: "Choose the celebration first so the rest of the journey adapts around your event.",
+  },
+  {
+    id: "style",
+    label: "02 Style",
+    title: "Choose the visual direction",
+    blurb: "Select a design mood and share any inspiration that helps us understand the atmosphere you want.",
+  },
+  {
+    id: "decor",
+    label: "03 Decor",
+    title: "Build the decor story",
+    blurb: "Choose the focal moments that matter and refine them one by one without losing context.",
   },
   {
     id: "details",
-    label: "Details",
-    title: "Add the event basics",
-    blurb: "Confirm the date, guest size, venue context, and how we should reach you.",
-  },
-  {
-    id: "decor-direction",
-    label: "Direction",
-    title: "Choose the decor direction",
-    blurb: "Start with one styling direction so the rest of the booking flow feels guided and cohesive.",
-  },
-  {
-    id: "key-moments",
-    label: "Moments",
-    title: "Select the key moments",
-    blurb: "Choose the spaces and focal points you want us to elevate.",
-  },
-  {
-    id: "styling",
-    label: "Styles",
-    title: "Style each selected moment",
-    blurb: "Refine one selected moment at a time with curated image directions.",
+    label: "04 Details",
+    title: "Add the event details",
+    blurb: "Keep the logistics calm and clear so we know how to follow up and prepare your consultation.",
   },
   {
     id: "review",
-    label: "Review",
-    title: "Review the design direction",
-    blurb: "See the visual summary, estimated investment, and the room direction in one place.",
-  },
-  {
-    id: "summary",
-    label: "Submit",
-    title: "Confirm and request consultation",
-    blurb: "Add the final consultation preferences and send the request when you are ready.",
+    label: "05 Review",
+    title: "Review and book consultation",
+    blurb: "See your event vision together, review the next steps, and send the request with confidence.",
   },
 ];
 
@@ -350,6 +338,26 @@ const recommendedDecorByEventType: Record<string, string[]> = {
   "Corporate Event": ["backdrop", "guest_tables", "welcome_area", "ceiling_drape"],
   Anniversary: ["backdrop", "sweetheart_table", "centerpiece", "florals"],
   Other: ["backdrop", "guest_tables", "centerpiece", "other"],
+};
+
+const decorBuilderGroupLabels: Record<string, string> = {
+  welcome_area: "Arrival",
+  head_table: "Focal Moments",
+  backdrop: "Focal Moments",
+  sweetheart_table: "Focal Moments",
+  bride_groom_chairs: "Focal Moments",
+  vip_table: "Focal Moments",
+  traditional_setup: "Focal Moments",
+  centerpiece: "Guest Experience",
+  guest_tables: "Guest Experience",
+  plate_chargers: "Guest Experience",
+  napkins: "Guest Experience",
+  ceiling_drape: "Room Styling",
+  dessert_table: "Hosting Details",
+  bouquet: "Florals & Personal Details",
+  boutonniere: "Florals & Personal Details",
+  florals: "Florals & Personal Details",
+  other: "Custom Requests",
 };
 
 type KeyMomentCard = {
@@ -795,6 +803,15 @@ export default function EventRequestForm({
 
     return mapped;
   }, [form.eventType, portfolioItems, recommendedDecorKeys]);
+  const decorBuilderGroups = useMemo(() => {
+    const grouped = availableGuidedCategories.reduce<Record<string, typeof availableGuidedCategories>>((acc, category) => {
+      const group = decorBuilderGroupLabels[category.key] ?? "Other";
+      acc[group] = [...(acc[group] ?? []), category];
+      return acc;
+    }, {});
+
+    return Object.entries(grouped);
+  }, [availableGuidedCategories]);
   const configuredDecorCount = useMemo(
     () =>
       selectedDecorCategories.filter((key) => {
@@ -1417,18 +1434,18 @@ export default function EventRequestForm({
       return;
     }
 
-    if (step === 1 && (missingEventDetails || missingContactDetails)) {
+    if (step === 1 && !form.decorStyle) {
+      setError("Choose the style direction before continuing.");
+      return;
+    }
+
+    if (step === 2 && selectedDecorCategories.length === 0) {
+      setError("Choose at least one decor moment before continuing.");
+      return;
+    }
+
+    if (step === 3 && (missingEventDetails || missingContactDetails)) {
       setError("Add the event details and contact details before continuing.");
-      return;
-    }
-
-    if (step === 2 && !form.decorStyle) {
-      setError("Choose the decor direction before continuing.");
-      return;
-    }
-
-    if (step === 3 && selectedDecorCategories.length === 0) {
-      setError("Select at least one key moment before continuing.");
       return;
     }
 
@@ -1684,11 +1701,11 @@ export default function EventRequestForm({
   return (
     <div className="booking-shell">
       <section className="booking-hero card">
-        <div>
-          <p className="eyebrow">Consultation request</p>
-          <h3>Build the event direction with a guided concierge flow.</h3>
+        <div className="booking-hero-copy">
+          <p className="eyebrow">Luxury request experience</p>
+          <h3>Tell us your vision, then let the room take shape.</h3>
           <p className="muted">
-            Move one clear decision at a time. We keep the structure calm, the preview visible, and the final request easy to review.
+            This request is designed like a concierge conversation: one clear decision at a time, a live vision on the right, and a polished review before you book your consultation.
           </p>
         </div>
         <div className="booking-wizard-track booking-wizard-track--mobile" aria-label="Booking steps">
@@ -1762,12 +1779,12 @@ export default function EventRequestForm({
           </div>
           <form onSubmit={handleSubmit}>
             {step === 0 ? (
-              <section className="booking-panel">
+              <section className="booking-panel booking-panel--vision">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 1 of 7</p>
-                  <h3>Select the event type.</h3>
+                  <p className="eyebrow">Step 1 of 5</p>
+                  <h3>What are you planning?</h3>
                   <p className="muted">
-                    Choose the kind of event experience you are planning first. We will tailor the next steps around it.
+                    Choose the celebration first. The next steps will adapt around the atmosphere, focal moments, and consultation needs that fit your event.
                   </p>
                 </div>
 
@@ -1887,93 +1904,11 @@ export default function EventRequestForm({
             ) : null}
 
             {step === 1 ? (
-              <section className="booking-panel">
+              <section className="booking-panel booking-panel--style">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 2 of 7</p>
-                  <h3>Add the event basics.</h3>
-                  <p className="muted">Keep this step compact. Add the date, guest count, location, budget range, and the contact details we need to follow up.</p>
-                </div>
-
-                <div className="scope-card">
-                  <h4>Event details</h4>
-                  <div className="form-grid">
-                    <div className="field">
-                      <label className="label">Event Date</label>
-                      <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Guest Count Range</label>
-                      <select
-                        className="select"
-                        value={form.guestCountRange}
-                        onChange={(e) => updateField("guestCountRange", e.target.value)}
-                        required
-                      >
-                        <option value="">Select a range</option>
-                        {guestCountSelectOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label className="label">Exact Guest Count, if known</label>
-                      <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
-                    </div>
-                    <div className="field">
-                      <label className="label">Location / Venue</label>
-                      <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} placeholder="Venue name, neighborhood, or city" />
-                    </div>
-                    <div className="field">
-                      <label className="label">Budget Range</label>
-                      <select
-                        className="select"
-                        value={form.budgetRange}
-                        onChange={(e) => updateField("budgetRange", e.target.value)}
-                      >
-                        <option value="">Select a range</option>
-                        {budgetRangeOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="scope-card">
-                  <h4>Contact details</h4>
-                  <div className="form-grid">
-                    <div className="field">
-                      <label className="label">First Name</label>
-                      <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Last Name</label>
-                      <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Email</label>
-                      <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
-                    </div>
-                    <div className="field">
-                      <label className="label">Phone</label>
-                      <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
-                    </div>
-                  </div>
-                </div>
-
-              </section>
-            ) : null}
-
-            {step === 2 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 3 of 7</p>
-                  <h3>Choose your decor direction.</h3>
-                  <p className="muted">Start with one visual mood so the rest of the selections feel guided, calm, and cohesive.</p>
+                  <p className="eyebrow">Step 2 of 5</p>
+                  <h3>Choose your style direction.</h3>
+                  <p className="muted">Pick the atmosphere you want guests to feel the moment they walk in.</p>
                 </div>
 
                 <div className="design-direction-grid">
@@ -1991,7 +1926,7 @@ export default function EventRequestForm({
                         <span className="design-direction-overlay" />
                         {isSelected ? <span className="design-direction-badge">Selected</span> : null}
                         <div className="design-direction-copy">
-                          <small>Decor direction</small>
+                          <small>Style direction</small>
                           <strong>{option.title}</strong>
                           <span>{option.subtitle}</span>
                         </div>
@@ -1999,611 +1934,362 @@ export default function EventRequestForm({
                     );
                   })}
                 </div>
-              </section>
-            ) : null}
 
-            {step === 3 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 4 of 7</p>
-                  <h3>Select the key moments.</h3>
-                  <p className="muted">Choose the focal spaces you want us to elevate first. Then we will style each one with you, one moment at a time.</p>
-                </div>
-
-                <div className="key-moment-grid">
-                  {keyMomentCards.map((moment) => {
-                    const isPackage = moment.key === "full_package";
-                    const isGuided = moment.key === "not_sure";
-                    const packageKeys = recommendedDecorKeys;
-                    const isSelected = isGuided
-                      ? momentGuidanceRequested
-                      : isPackage
-                      ? packageKeys.every((key) => selectedDecorCategories.includes(key))
-                      : selectedDecorCategories.includes(moment.key);
-
-                    return (
-                      <button
-                        key={moment.key}
-                        type="button"
-                        className={`key-moment-card ${isSelected ? "selected" : ""}`}
-                        onClick={() => toggleKeyMoment(moment.key)}
-                      >
-                        {moment.imageUrl ? <img src={moment.imageUrl} alt={moment.title} loading="lazy" /> : null}
-                        <span className="key-moment-overlay" />
-                        {isSelected ? (
-                          <span className="key-moment-badge">
-                            {isGuided ? "Guided" : isPackage ? "Included" : "Included"}
-                          </span>
-                        ) : null}
-                        <div className="key-moment-copy">
-                          <strong>{moment.title}</strong>
-                          <span>{moment.description}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="guided-preview-step-summary guided-preview-step-summary--compact">
-                  <div>
-                    <p className="eyebrow">Moment summary</p>
-                    <h4>{selectedDecorCategories.length} key moments selected</h4>
-                  </div>
-                  <span>
-                    {momentGuidanceRequested
-                      ? "Designer guidance is on"
-                      : "You can refine every selected moment in the next step"}
-                  </span>
-                </div>
-              </section>
-            ) : null}
-
-            {step === 4 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 5 of 7</p>
-                  <h3>Style each selected moment.</h3>
-                  <p className="muted">Move through your chosen moments one at a time, choose a visual direction, and optionally add your own inspiration.</p>
-                </div>
-
-                <div className="guided-preview-builder guided-preview-builder--curated">
-                  <div className="guided-preview-step-summary">
-                    <div>
-                      <p className="eyebrow">Styling progress</p>
-                      <h4>{configuredDecorCount} of {selectedDecorCategories.length || 0} moments refined</h4>
+                <div className="booking-style-grid">
+                  <div className="scope-card booking-style-card">
+                    <h4>Preferred palette</h4>
+                    <div className="option-pills">
+                      {paletteSuggestions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
+                          onClick={() => updateField("colorsTheme", option)}
+                        >
+                          {option}
+                        </button>
+                      ))}
                     </div>
-                    <span>
-                      {activeGuidedCategory
-                        ? `Moment ${Math.max(activeGuidedCategoryIndex + 1, 1)} of ${guidedPreviewOptions.length}`
-                        : `${form.decorStyle || "Decor"} direction`}
-                    </span>
+                    <input
+                      className="input"
+                      value={form.colorsTheme}
+                      onChange={(e) => updateField("colorsTheme", e.target.value)}
+                      placeholder="Or type your own palette"
+                      style={{ marginTop: "12px" }}
+                    />
                   </div>
 
-                  {guidedPreviewOptions.length ? (
-                    <>
-                      <div className="guided-preview-curated-nav">
-                        <div className="guided-preview-curated-tabs">
-                          {guidedPreviewOptions.map((guidedCategory) => {
-                            const isSelected = activeGuidedCategory?.key === guidedCategory.key;
-                            const selectedImageCount = (selectedPreviewImages[guidedCategory.key] ?? []).length;
-                            const uploadedImageCount = (categoryUploads[guidedCategory.key] ?? []).length;
-                            const hasNote = Boolean(categoryNotes[guidedCategory.key]?.trim());
+                  <div className="scope-card booking-style-card">
+                    <h4>Tell us what you love</h4>
+                    <textarea
+                      className="textarea"
+                      value={form.inspirationNotes}
+                      onChange={(e) => updateField("inspirationNotes", e.target.value)}
+                      placeholder="Describe the atmosphere, mood, or design details you already know you want."
+                    />
+                    <p className="muted">Keep it simple: elegant, romantic, dramatic, intimate, or anything in between.</p>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {step === 2 ? (
+              <section className="booking-panel booking-panel--decor">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 3 of 5</p>
+                  <h3>Build your decor story.</h3>
+                  <p className="muted">Choose the focal moments that matter, then refine one moment at a time with curated visual directions.</p>
+                </div>
+
+                <div className="guided-preview-master-detail booking-decor-builder">
+                  <div className="guided-preview-sidebar">
+                    {decorBuilderGroups.map(([groupLabel, categories]) => (
+                      <div key={groupLabel} className="guided-preview-sidebar-group">
+                        <p className="event-experience-section-label">{groupLabel}</p>
+                        <div className="guided-preview-sidebar-list">
+                          {categories.map((category) => {
+                            const isActive = activeGuidedCategory?.key === category.key;
+                            const isSelected = selectedDecorCategories.includes(category.key);
+                            const selectedImageCount = (selectedPreviewImages[category.key] ?? []).length;
+                            const uploadedCount = (categoryUploads[category.key] ?? []).length;
                             const hasContent =
+                              isSelected ||
                               selectedImageCount > 0 ||
-                              uploadedImageCount > 0 ||
-                              hasNote ||
-                              Boolean(categoryRefinements[guidedCategory.key]) ||
-                              Boolean(categorySizes[guidedCategory.key]) ||
-                              Boolean(categoryFloralDensity[guidedCategory.key]) ||
-                              Boolean(categoryPalettes[guidedCategory.key]) ||
-                              Boolean(categoryInspirationLinks[guidedCategory.key]?.trim()) ||
-                              Boolean(categoryDesignerLed[guidedCategory.key]);
+                              uploadedCount > 0 ||
+                              Boolean(categoryNotes[category.key]?.trim()) ||
+                              Boolean(categoryRefinements[category.key]) ||
+                              Boolean(categorySizes[category.key]) ||
+                              Boolean(categoryFloralDensity[category.key]) ||
+                              Boolean(categoryPalettes[category.key]) ||
+                              Boolean(categoryInspirationLinks[category.key]?.trim()) ||
+                              Boolean(categoryDesignerLed[category.key]);
 
                             return (
                               <button
-                                key={guidedCategory.key}
+                                key={category.key}
                                 type="button"
-                                className={`guided-preview-curated-tab ${isSelected ? "active" : ""} ${hasContent ? "selected has-content" : ""}`}
-                                onClick={() => focusDecorCategory(guidedCategory.key)}
+                                className={`guided-preview-sidebar-item ${isActive ? "active" : ""} ${isSelected ? "selected" : ""} ${hasContent ? "has-content" : ""}`}
+                                onClick={() => focusDecorCategory(category.key)}
                               >
-                                <span>{guidedCategory.title}</span>
-                                <small>{isSelected ? "Now styling" : hasContent ? "Refined" : "Choose a look"}</small>
-                                <em>
-                                  {hasContent
-                                    ? [
-                                        categoryDesignerLed[guidedCategory.key] ? "Elel-led" : "",
-                                        selectedImageCount > 0 ? `${selectedImageCount} image${selectedImageCount === 1 ? "" : "s"}` : "",
-                                        uploadedImageCount > 0 ? `${uploadedImageCount} upload${uploadedImageCount === 1 ? "" : "s"}` : "",
-                                        hasNote ? "Note added" : "",
-                                      ].filter(Boolean).join(" • ")
-                                    : "Tap to choose a direction"}
-                                </em>
-                                {hasContent ? <i aria-hidden="true">{selectedImageCount > 0 ? selectedImageCount : "✓"}</i> : null}
+                                <div className="guided-preview-sidebar-copy">
+                                  <strong>{category.title}</strong>
+                                  <span>
+                                    {isSelected
+                                      ? selectedImageCount || uploadedCount
+                                        ? `${selectedImageCount + uploadedCount} visual reference${selectedImageCount + uploadedCount === 1 ? "" : "s"}`
+                                        : "Included in your request"
+                                      : "Tap to add this moment"}
+                                  </span>
+                                </div>
+                                <div className="guided-preview-sidebar-status">
+                                  {isSelected ? <span className="guided-preview-category-badge">Selected</span> : null}
+                                  {hasContent ? <span className="guided-preview-category-check">✓</span> : null}
+                                </div>
                               </button>
                             );
                           })}
                         </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <div key={activeGuidedCategory?.key ?? "empty"} ref={detailPanelRef} className="guided-preview-curated-stage">
-                        {activeGuidedCategory ? (
-                          <>
-                            <div className="guided-preview-curated-hero">
-                              <div className="guided-preview-curated-copy">
-                                <span className="guided-preview-curated-kicker">
-                                  {recommendedDecorKeys.includes(activeGuidedCategory.key) ? "Recommended for your event" : "Curated visual direction"}
+                  <div className="guided-preview-detail-panel">
+                    {activeGuidedCategory ? (
+                      <>
+                        <div className="guided-preview-category-head booking-decor-builder-head">
+                          <div className="booking-decor-builder-copy">
+                            <span className="guided-preview-curated-kicker">Active moment</span>
+                            <h4>{activeGuidedCategory.title}</h4>
+                            <p>{activeGuidedCategory.helper}</p>
+                            <div className="booking-decor-builder-meta">
+                              {recommendedDecorKeys.includes(activeGuidedCategory.key) ? (
+                                <span className="booking-decor-builder-chip">Recommended for your event</span>
+                              ) : null}
+                              {selectedPreviewImages[activeGuidedCategory.key]?.length ? (
+                                <span className="booking-decor-builder-chip">
+                                  {selectedPreviewImages[activeGuidedCategory.key].length} look
+                                  {selectedPreviewImages[activeGuidedCategory.key].length === 1 ? "" : "s"} saved
                                 </span>
-                                <h4>{activeGuidedCategory.title}</h4>
-                                <p>{activeGuidedCategory.helper}</p>
-                                <p className="guided-preview-curated-editor-note">
-                                  Choose one style direction, then add any custom notes or inspiration that will help us refine it beautifully.
-                                </p>
-                              </div>
-
-                              {activeGuidedCategory.images[0] ? (
-                                <div className="guided-preview-curated-hero-media">
-                                  <img src={activeGuidedCategory.images[0].image_url} alt={activeGuidedCategory.images[0].title} loading="lazy" />
-                                  <div className="guided-preview-curated-hero-overlay">
-                                    <span>{form.decorStyle || "Styled"} direction</span>
-                                    <strong>{activeGuidedCategory.images[0].title}</strong>
-                                  </div>
-                                </div>
+                              ) : null}
+                              {categoryDesignerLed[activeGuidedCategory.key] ? (
+                                <span className="booking-decor-builder-chip">Elel will guide this moment</span>
                               ) : null}
                             </div>
+                          </div>
+                          <div className="booking-decor-builder-actions">
+                            <button
+                              type="button"
+                              className={`btn ${selectedDecorCategories.includes(activeGuidedCategory.key) ? "secondary" : ""}`}
+                              onClick={() => toggleKeyMoment(activeGuidedCategory.key)}
+                            >
+                              {selectedDecorCategories.includes(activeGuidedCategory.key) ? "Included" : "Add this moment"}
+                            </button>
+                          </div>
+                        </div>
 
-                            <div className="guided-preview-designer-led">
-                              <button
-                                type="button"
-                                className={`guided-preview-designer-led-toggle ${activeGuidedCategoryIsDesignerLed ? "selected" : ""}`}
-                                onClick={() =>
-                                  setDesignerLedForCategory(
-                                    activeGuidedCategory.key,
-                                    !activeGuidedCategoryIsDesignerLed
-                                  )
-                                }
-                              >
-                                <div>
-                                  <strong>Let Elel design this for me</strong>
-                                  <span>
-                                    {activeGuidedCategoryIsDesignerLed
-                                      ? "Our designers will create a look tailored to your event."
-                                      : "Skip the detailed configuration and let us recommend the right look."}
-                                  </span>
-                                </div>
-                                <i aria-hidden="true">{activeGuidedCategoryIsDesignerLed ? "✓" : "+"}</i>
-                              </button>
-                            </div>
+                        {activeGuidedCategory.images.length ? (
+                          <div className="guided-preview-curated-options">
+                            {activeGuidedCategory.images.slice(0, 4).map((item, index) => {
+                              const selectedIds = selectedPreviewImages[activeGuidedCategory.key] ?? [];
+                              const isSelected = selectedIds.includes(item.id);
 
-                            {!activeGuidedCategoryIsDesignerLed && activeGuidedCategory.images.length ? (
-                              <>
-                                <div className="guided-preview-curated-options">
-                                  {(expandedCategoryImages[activeGuidedCategory.key]
-                                    ? activeGuidedCategory.images
-                                    : activeGuidedCategory.images.slice(0, 4)
-                                  ).map((item, index) => {
-                                    const selectedIds = selectedPreviewImages[activeGuidedCategory.key] ?? [];
-                                    const isSelected = selectedIds.includes(item.id);
-                                    const visualTag = index === 0 ? "Featured look" : "Styled option";
-
-                                    return (
-                                      <button
-                                        key={item.id}
-                                        type="button"
-                                        className={`guided-preview-option guided-preview-option--editorial ${index === 0 ? "guided-preview-option--featured" : "guided-preview-option--supporting"} ${isSelected ? "selected" : ""}`}
-                                        onClick={() => {
-                                          setSelectedPreviewImages((current) => {
-                                            const currentIds = current[activeGuidedCategory.key] ?? [];
-                                            const nextIds = currentIds.includes(item.id)
-                                              ? currentIds.filter((id) => id !== item.id)
-                                              : [item.id];
-
-                                            if (nextIds.length > 0) {
-                                              ensureDecorCategory(activeGuidedCategory.key);
-                                            }
-
-                                            return {
-                                              ...current,
-                                              [activeGuidedCategory.key]: nextIds,
-                                            };
-                                          });
-                                        }}
-                                      >
-                                        <img src={item.image_url} alt={item.title} loading="lazy" />
-                                        <span className="guided-preview-option-wash" />
-                                        <div className="guided-preview-option-copy">
-                                          <small>{visualTag}</small>
-                                          <strong>{item.title}</strong>
-                                        </div>
-                                        {isSelected ? <span className="guided-preview-option-check" aria-hidden="true">Selected</span> : null}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                                {activeGuidedCategory.images.length > 4 ? (
-                                  <button
-                                    type="button"
-                                    className="guided-preview-more"
-                                    onClick={() =>
-                                      setExpandedCategoryImages((current) => ({
-                                        ...current,
-                                        [activeGuidedCategory.key]: !current[activeGuidedCategory.key],
-                                      }))
-                                    }
-                                  >
-                                    {expandedCategoryImages[activeGuidedCategory.key] ? "Show fewer looks" : `View ${activeGuidedCategory.images.length - 4} more looks`}
-                                  </button>
-                                ) : null}
-                              </>
-                            ) : (
-                              <div className="guided-preview-empty">
-                                <p className="muted">
-                                  {activeGuidedCategoryIsDesignerLed
-                                    ? "We will build a tailored look for this moment and refine it during consultation."
-                                    : activeGuidedCategory.emptyState}
-                                </p>
-                              </div>
-                            )}
-
-                            {!activeGuidedCategoryIsDesignerLed ? (
-                              <div className="guided-preview-moment-customizations">
-                                {decorRefinementOptions[activeGuidedCategory.key] ? (
-                                  <div className="guided-preview-curated-refinements">
-                                    <p className="guided-preview-customization-label">
-                                      {decorRefinementOptions[activeGuidedCategory.key].label}
-                                    </p>
-                                    {decorRefinementOptions[activeGuidedCategory.key].options.map((option) => (
-                                      <button
-                                        key={option}
-                                        type="button"
-                                        className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
-                                        onClick={() => {
-                                          const nextValue =
-                                            categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
-                                          setCategoryRefinements((current) => ({
-                                            ...current,
-                                            [activeGuidedCategory.key]: nextValue,
-                                          }));
-                                          if (nextValue) {
-                                            ensureDecorCategory(activeGuidedCategory.key);
-                                          }
-                                        }}
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
-                                  </div>
-                                ) : null}
-
-                                <div className="guided-preview-curated-refinements">
-                                  <p className="guided-preview-customization-label">Size</p>
-                                  {momentSizeOptions.map((option) => (
-                                    <button
-                                      key={option}
-                                      type="button"
-                                      className={`pill ${categorySizes[activeGuidedCategory.key] === option ? "selected" : ""}`}
-                                      onClick={() =>
-                                        updateMomentCustomization(
-                                          activeGuidedCategory.key,
-                                          "size",
-                                          categorySizes[activeGuidedCategory.key] === option ? "" : option
-                                        )
-                                      }
-                                    >
-                                      {option}
-                                    </button>
-                                  ))}
-                                </div>
-
-                                <div className="guided-preview-curated-refinements">
-                                  <p className="guided-preview-customization-label">Floral density</p>
-                                  {momentFloralDensityOptions.map((option) => (
-                                    <button
-                                      key={option}
-                                      type="button"
-                                      className={`pill ${categoryFloralDensity[activeGuidedCategory.key] === option ? "selected" : ""}`}
-                                      onClick={() =>
-                                        updateMomentCustomization(
-                                          activeGuidedCategory.key,
-                                          "floralDensity",
-                                          categoryFloralDensity[activeGuidedCategory.key] === option ? "" : option
-                                        )
-                                      }
-                                    >
-                                      {option}
-                                    </button>
-                                  ))}
-                                </div>
-
-                                <div className="guided-preview-curated-refinements">
-                                  <p className="guided-preview-customization-label">Color palette</p>
-                                  {paletteSuggestions.slice(0, 4).map((option) => (
-                                    <button
-                                      key={option}
-                                      type="button"
-                                      className={`pill ${categoryPalettes[activeGuidedCategory.key] === option ? "selected" : ""}`}
-                                      onClick={() =>
-                                        updateMomentCustomization(
-                                          activeGuidedCategory.key,
-                                          "colorPalette",
-                                          categoryPalettes[activeGuidedCategory.key] === option ? "" : option
-                                        )
-                                      }
-                                    >
-                                      {option}
-                                    </button>
-                                  ))}
-                                  <input
-                                    className="input"
-                                    value={categoryPalettes[activeGuidedCategory.key] ?? ""}
-                                    onChange={(e) =>
-                                      updateMomentCustomization(
-                                        activeGuidedCategory.key,
-                                        "colorPalette",
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder="Or type your own palette"
-                                  />
-                                </div>
-                              </div>
-                            ) : null}
-
-                            <div className="guided-preview-curated-support">
-                              <div className="guided-preview-support">
-                                <input
-                                  className="input"
-                                  value={categoryInspirationLinks[activeGuidedCategory.key] ?? ""}
-                                  onChange={(e) =>
-                                    updateMomentCustomization(
-                                      activeGuidedCategory.key,
-                                      "inspirationLink",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Paste a Pinterest or Instagram link"
-                                />
-                                <textarea
-                                  className="textarea"
-                                  value={categoryNotes[activeGuidedCategory.key] ?? ""}
-                                  onChange={(e) => {
-                                    const nextValue = e.target.value;
-                                    setCategoryNotes((current) => ({
+                              return (
+                                <button
+                                  key={item.id}
+                                  type="button"
+                                  className={`guided-preview-option guided-preview-option--editorial ${index === 0 ? "guided-preview-option--featured" : "guided-preview-option--supporting"} ${isSelected ? "selected" : ""}`}
+                                  onClick={() => {
+                                    const nextIds = isSelected ? [] : [item.id];
+                                    setSelectedPreviewImages((current) => ({
                                       ...current,
-                                      [activeGuidedCategory.key]: nextValue,
+                                      [activeGuidedCategory.key]: nextIds,
                                     }));
-                                    if (nextValue.trim()) {
-                                      ensureDecorCategory(activeGuidedCategory.key);
-                                    }
+                                    ensureDecorCategory(activeGuidedCategory.key);
                                   }}
-                                  placeholder="Describe your vision for this moment."
-                                />
-                                <label className="guided-preview-upload">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={(e) => handleCategoryUpload(activeGuidedCategory.key, e)}
-                                    disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
-                                  />
-                                  <strong>Have a different idea? Upload your inspiration.</strong>
-                                  <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
-                                </label>
-                              </div>
-                            </div>
+                                >
+                                  <img src={item.image_url} alt={item.title} loading="lazy" />
+                                  <span className="guided-preview-option-wash" />
+                                  <div className="guided-preview-option-copy">
+                                    <small>{index === 0 ? "Featured look" : "Curated option"}</small>
+                                    <strong>{item.title}</strong>
+                                  </div>
+                                  {isSelected ? <span className="guided-preview-option-check">Selected</span> : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="guided-preview-empty">
+                            <p>{activeGuidedCategory.emptyState}</p>
+                          </div>
+                        )}
 
-                            <div className="guided-preview-stage-nav">
+                        {decorRefinementOptions[activeGuidedCategory.key]?.options?.length ? (
+                          <div className="guided-preview-curated-refinements">
+                            <p className="guided-preview-customization-label">
+                              {decorRefinementOptions[activeGuidedCategory.key]?.label}
+                            </p>
+                            {decorRefinementOptions[activeGuidedCategory.key]?.options.map((option) => (
                               <button
+                                key={option}
                                 type="button"
-                                className="btn secondary"
-                                onClick={() => moveToAdjacentMoment("previous")}
-                                disabled={activeGuidedCategoryIndex <= 0}
+                                className={`pill ${categoryRefinements[activeGuidedCategory.key] === option ? "selected" : ""}`}
+                                onClick={() => {
+                                  const nextValue =
+                                    categoryRefinements[activeGuidedCategory.key] === option ? "" : option;
+                                  setCategoryRefinements((current) => ({
+                                    ...current,
+                                    [activeGuidedCategory.key]: nextValue,
+                                  }));
+                                  if (nextValue) ensureDecorCategory(activeGuidedCategory.key);
+                                }}
                               >
-                                Previous moment
+                                {option}
                               </button>
-                              <button
-                                type="button"
-                                className="btn secondary"
-                                onClick={() => moveToAdjacentMoment("next")}
-                                disabled={activeGuidedCategoryIndex === -1 || activeGuidedCategoryIndex >= guidedPreviewOptions.length - 1}
-                              >
-                                Next moment
-                              </button>
-                            </div>
-                          </>
+                            )) ?? null}
+                          </div>
                         ) : null}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="guided-preview-empty">
-                      <p className="muted">Choose at least one key moment first, then we will guide the styling one by one here.</p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            ) : null}
 
-            {step === 5 ? (
-              <section className="booking-panel">
-                <div className="panel-head">
-                  <p className="eyebrow">Step 6 of 7</p>
-                  <h3>Review your event vision.</h3>
-                  <p className="muted">See the visual summary, selected moments, and pricing intelligence before moving to the final request step.</p>
-                </div>
-
-                <div className="scope-card booking-preview-step-card">
-                  <div className="booking-summary-head">
-                    <span className="booking-pane-tag">Live Preview</span>
-                    <h3>Your Event Preview</h3>
-                    <p className="muted">Built from your selections</p>
-                    <div className={`booking-preview-state ${preview.isPlaceholder ? "placeholder" : ""}`}>
-                      {preview.eventDirectionLabel}
-                    </div>
-                  </div>
-
-                  <div className="booking-preview-stage">
-                    {preview.leadImage ? (
-                      <div className="booking-preview-hero">
-                        <img
-                          key={`preview-hero-${previewSignature}`}
-                          src={preview.leadImage.image_url}
-                          alt={preview.leadImage.title}
-                          loading="lazy"
-                        />
-                        <div className="booking-preview-hero-copy">
-                          <span>Based on your selection</span>
-                          <strong>{preview.previewStateLabel}</strong>
+                        <div className="guided-preview-support">
+                          <textarea
+                            className="textarea"
+                            value={categoryNotes[activeGuidedCategory.key] ?? ""}
+                            onChange={(e) => {
+                              const nextValue = e.target.value;
+                              setCategoryNotes((current) => ({
+                                ...current,
+                                [activeGuidedCategory.key]: nextValue,
+                              }));
+                              if (nextValue.trim()) ensureDecorCategory(activeGuidedCategory.key);
+                            }}
+                            placeholder="Describe the feeling, details, or must-haves for this moment."
+                          />
+                          <label className="guided-preview-upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => handleCategoryUpload(activeGuidedCategory.key, e)}
+                              disabled={uploadingVisionBoard || form.visionBoardUrls.length >= 5}
+                            />
+                            <strong>Upload your own inspiration</strong>
+                            <span>{(categoryUploads[activeGuidedCategory.key] ?? []).length} uploaded</span>
+                          </label>
                         </div>
-                      </div>
+                      </>
                     ) : (
-                      <div className="booking-preview-hero booking-preview-hero--empty">
-                        <div className="booking-preview-empty-copy">
-                          <strong>Choose decor items and visual references to build your preview.</strong>
-                        </div>
+                      <div className="guided-preview-empty">
+                        <p>Choose a decor category to begin shaping the room.</p>
                       </div>
                     )}
-
-                    <div className="booking-preview-meta-row">
-                      <span className="booking-preview-meta-pill">{preview.selectedDecorSummary}</span>
-                      {preview.selectedImageCount ? (
-                        <span className="booking-preview-meta-pill">{preview.selectedImageCount} selected image{preview.selectedImageCount === 1 ? "" : "s"}</span>
-                      ) : null}
-                      {preview.uploadedImageCount ? (
-                        <span className="booking-preview-meta-pill">{preview.uploadedImageCount} upload{preview.uploadedImageCount === 1 ? "" : "s"}</span>
-                      ) : null}
-                    </div>
-
-                    {preview.supportingImages.length ? (
-                      <div className="booking-preview-grid booking-preview-grid--animated">
-                        {preview.supportingImages.map((item) => (
-                          <div key={`${item.id}-${previewSignature}`} className="booking-preview-image">
-                            <img src={item.image_url} alt={item.title} loading="lazy" />
-                            <span>{item.category || item.title}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <div className="summary-stack">
-                      <div className="booking-preview-copy booking-preview-copy--highlight">
-                        <small className="booking-preview-kicker">Style snapshot</small>
-                        <p>{preview.styleDescription}</p>
-                      </div>
-                      <div className="booking-preview-copy">
-                        <small className="booking-preview-kicker">Recommended decor direction</small>
-                        <p>{preview.decorDirection}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="booking-review-grid">
-                  <div className="scope-card booking-review-card">
-                    <h4>Event summary</h4>
-                    <div className="review-grid">
-                      <p><strong>Event type:</strong> {effectiveEventType || "—"}</p>
-                      <p><strong>Event date:</strong> {form.eventDate || "—"}</p>
-                      <p><strong>Guest count:</strong> {form.guestCount || form.guestCountRange || "—"}</p>
-                      <p><strong>Location:</strong> {form.venueName || "—"}</p>
-                      <p><strong>Decor direction:</strong> {form.decorStyle || "—"}</p>
-                    </div>
-                  </div>
-                  <div className="scope-card booking-review-card">
-                    <h4>Selected moments</h4>
-                    <div className="review-grid">
-                      <p><strong>Decor items:</strong> {selectedDecorCategories.length || 0}</p>
-                      <p><strong>Configured moments:</strong> {configuredDecorCount}</p>
-                      <p><strong>Inspiration images:</strong> {totalInspirationCount}</p>
-                      <p><strong>Estimated starting investment:</strong> {startingInvestment}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="scope-card booking-review-card">
-                  <h4>Styled moments</h4>
-                  {guidedPreviewOptions.length ? (
-                    <div className="booking-review-decor-grid">
-                      {guidedPreviewOptions.map((category) => {
-                        const selected = category.images.filter((item) =>
-                          (selectedPreviewImages[category.key] ?? []).includes(item.id)
-                        );
-                        const uploads = categoryUploads[category.key] ?? [];
-                        const note = categoryNotes[category.key]?.trim();
-                        const refinement = categoryRefinements[category.key];
-                        const size = categorySizes[category.key];
-                        const floralDensity = categoryFloralDensity[category.key];
-                        const palette = categoryPalettes[category.key];
-                        const inspirationLink = categoryInspirationLinks[category.key]?.trim();
-                        const designerLed = Boolean(categoryDesignerLed[category.key]);
-                        const hasContent =
-                          selected.length > 0 ||
-                          uploads.length > 0 ||
-                          Boolean(note) ||
-                          Boolean(refinement) ||
-                          Boolean(size) ||
-                          Boolean(floralDensity) ||
-                          Boolean(palette) ||
-                          Boolean(inspirationLink) ||
-                          designerLed;
-
-                        return (
-                          <div key={category.key} className={`booking-review-decor-card ${hasContent ? "" : "booking-review-decor-card--empty"}`}>
-                            <div className="booking-review-decor-head">
-                              <strong>{category.title}</strong>
-                              {designerLed ? <span>Elel-led</span> : refinement ? <span>{refinement}</span> : null}
-                            </div>
-
-                            {selected.length ? (
-                              <div className="booking-review-media-grid">
-                                {selected.slice(0, 3).map((item) => (
-                                  <img key={item.id} src={item.image_url} alt={item.title} loading="lazy" />
-                                ))}
-                              </div>
-                            ) : null}
-
-                            {uploads.length ? (
-                              <div className="booking-review-media-grid">
-                                {uploads.slice(0, 3).map((url, index) => (
-                                  <img key={`${category.key}-upload-${index}`} src={url} alt={`${category.title} upload ${index + 1}`} loading="lazy" />
-                                ))}
-                              </div>
-                            ) : null}
-
-                            {(size || floralDensity || palette || inspirationLink) ? (
-                              <div className="booking-review-detail-list">
-                                {size ? <p><strong>Size:</strong> {size}</p> : null}
-                                {floralDensity ? <p><strong>Floral density:</strong> {floralDensity}</p> : null}
-                                {palette ? <p><strong>Palette:</strong> {palette}</p> : null}
-                                {inspirationLink ? <p><strong>Link:</strong> <a href={inspirationLink} target="_blank" rel="noreferrer">{inspirationLink}</a></p> : null}
-                              </div>
-                            ) : null}
-
-                            {note ? <p className="muted">{note}</p> : null}
-                            {!hasContent ? <p className="muted">Selected, but still open for refinement during consultation.</p> : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="muted">No decor items selected yet.</p>
-                  )}
-                </div>
-
-                <div className="summary-stack">
-                  <div className="booking-edit-links">
-                    <button type="button" className="btn secondary" onClick={() => setStep(2)}>Edit direction</button>
-                    <button type="button" className="btn secondary" onClick={() => setStep(3)}>Edit moments</button>
-                    <button type="button" className="btn secondary" onClick={() => setStep(4)}>Edit styles</button>
                   </div>
                 </div>
               </section>
             ) : null}
 
-            {step === 6 ? (
-              <section className="booking-panel">
+            {step === 3 ? (
+              <section className="booking-panel booking-panel--details">
                 <div className="panel-head">
-                  <p className="eyebrow">Step 7 of 7</p>
-                  <h3>Book your consultation.</h3>
-                  <p className="muted">Your event vision is taking shape. Confirm the consultation details and send the request when you are ready.</p>
+                  <p className="eyebrow">Step 4 of 5</p>
+                  <h3>Share the event details.</h3>
+                  <p className="muted">This step is intentionally calm. We only need the logistics that help us prepare your consultation properly.</p>
+                </div>
+
+                <div className="booking-details-grid">
+                  <div className="scope-card">
+                    <h4>Event basics</h4>
+                    <div className="form-grid">
+                      <div className="field">
+                        <label className="label">Event Date</label>
+                        <input className="input" type="date" value={form.eventDate} onChange={(e) => updateField("eventDate", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Guest Count Range</label>
+                        <select
+                          className="select"
+                          value={form.guestCountRange}
+                          onChange={(e) => updateField("guestCountRange", e.target.value)}
+                          required
+                        >
+                          <option value="">Select a range</option>
+                          {guestCountSelectOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="field">
+                        <label className="label">Exact Guest Count, if known</label>
+                        <input className="input" type="number" min="0" value={form.guestCount} onChange={(e) => updateField("guestCount", e.target.value)} placeholder="Optional exact count" />
+                      </div>
+                      <div className="field">
+                        <label className="label">Location / Venue</label>
+                        <input className="input" value={form.venueName} onChange={(e) => updateField("venueName", e.target.value)} placeholder="Venue name, neighborhood, or city" />
+                      </div>
+                      <div className="field">
+                        <label className="label">Budget Range</label>
+                        <select
+                          className="select"
+                          value={form.budgetRange}
+                          onChange={(e) => updateField("budgetRange", e.target.value)}
+                        >
+                          <option value="">Select a range</option>
+                          {budgetRangeOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="scope-card">
+                    <h4>Contact &amp; consultation</h4>
+                    <div className="form-grid">
+                      <div className="field">
+                        <label className="label">First Name</label>
+                        <input className="input" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Last Name</label>
+                        <input className="input" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Email</label>
+                        <input className="input" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required />
+                      </div>
+                      <div className="field">
+                        <label className="label">Phone</label>
+                        <input className="input" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} required />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label className="label">Preferred consultation type</label>
+                      <div className="option-pills">
+                        {consultationOptions.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
+                            onClick={() => {
+                              updateField("preferredContactMethod", option);
+                              if (option !== "Video meeting") {
+                                updateField("consultationVideoPlatform", "");
+                              }
+                              if (!requiresConsultationScheduling(option)) {
+                                updateField("consultationPreferenceDate", "");
+                                updateField("consultationPreferenceTime", "");
+                              }
+                            }}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="scope-card">
+                    <h4>Additional notes</h4>
+                    <textarea
+                      className="textarea"
+                      value={form.additionalInfo}
+                      onChange={(e) => updateField("additionalInfo", e.target.value)}
+                      placeholder="Anything else we should know about your venue, timing, priorities, or family preferences?"
+                    />
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {step === 4 ? (
+              <section className="booking-panel booking-panel--review">
+                <div className="panel-head">
+                  <p className="eyebrow">Step 5 of 5</p>
+                  <h3>Your Event Vision Is Ready.</h3>
+                  <p className="muted">Review the direction, confirm how you want us to follow up, and send your request with confidence.</p>
                 </div>
 
                 <div className="booking-final-screen">
@@ -2627,7 +2313,7 @@ export default function EventRequestForm({
                         <div className="booking-final-hero-copy">
                           <span className="booking-pane-tag">Your Event Vision</span>
                           <h3>Your Event Vision</h3>
-                          <p>Choose a few focal moments and references, and we will shape the rest together.</p>
+                          <p>We have the beginning of your event story. Send the request and we will refine everything together in consultation.</p>
                         </div>
                       </div>
                     )}
@@ -2644,14 +2330,14 @@ export default function EventRequestForm({
                             ) : null;
                           })
                         ) : (
-                          <span className="booking-final-tag">Moments will be refined in consultation</span>
+                          <span className="booking-final-tag">No moments selected yet</span>
                         )}
                       </div>
 
                       <div className="booking-final-confidence">
                         <strong>You’re not locked into anything — we’ll refine everything together.</strong>
                         <p>
-                          This is the starting point for your consultation. We will align on the room, budget, and guest experience before anything is finalized.
+                          This request simply gives us a polished starting point. We will align on details, budget, and venue realities before anything is finalized.
                         </p>
                       </div>
                     </div>
@@ -2661,9 +2347,8 @@ export default function EventRequestForm({
                     <div className="scope-card booking-final-summary-card">
                       <div className="booking-final-summary-head">
                         <h4>Booking summary</h4>
-                        <span className="booking-pane-tag">Ready to send</span>
+                        <span className="booking-pane-tag">Luxury request</span>
                       </div>
-
                       <div className="booking-final-summary-grid">
                         <div>
                           <small>Event type</small>
@@ -2675,25 +2360,11 @@ export default function EventRequestForm({
                         </div>
                         <div>
                           <small>Decor style</small>
-                          <span>{form.decorStyle || "To be refined"}</span>
+                          <span>{form.decorStyle || "—"}</span>
                         </div>
                         <div>
                           <small>Estimated price</small>
                           <span>{startingInvestment}</span>
-                        </div>
-                      </div>
-
-                      <div className="booking-final-selection-row">
-                        <small>Selected items</small>
-                        <div className="booking-final-chip-row">
-                          {selectedDecorCategories.length ? (
-                            selectedDecorCategories.map((key) => {
-                              const title = guidedPreviewCategories[key]?.title;
-                              return title ? <span key={key} className="booking-final-chip">{title}</span> : null;
-                            })
-                          ) : (
-                            <span className="booking-final-chip">No moments selected yet</span>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -2704,97 +2375,31 @@ export default function EventRequestForm({
                         <div className="booking-final-timeline-item">
                           <i>1</i>
                           <div>
-                            <strong>We review your vision</strong>
-                            <p>Our team reviews your selected moments, references, and design direction.</p>
+                            <strong>We review your request</strong>
+                            <p>We study the event type, selected moments, and overall direction you submitted.</p>
                           </div>
                         </div>
                         <div className="booking-final-timeline-item">
                           <i>2</i>
                           <div>
-                            <strong>We connect to refine details &amp; budget</strong>
-                            <p>We align on venue context, priorities, and the right level of styling for your event.</p>
+                            <strong>We contact you for consultation</strong>
+                            <p>We connect to refine priorities, budget, and the experience you want your guests to feel.</p>
                           </div>
                         </div>
                         <div className="booking-final-timeline-item">
                           <i>3</i>
                           <div>
-                            <strong>We secure your date</strong>
-                            <p>Once scope, quote, and contract are approved, your celebration is officially reserved.</p>
+                            <strong>We prepare your quote and secure your date</strong>
+                            <p>Once the scope is approved, we move into quote, contract, and reservation details.</p>
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="scope-card booking-review-card">
-                      <h4>Consultation details</h4>
-                      <div className="field">
-                        <label className="label">How should we start the consultation?</label>
-                        <div className="option-pills">
-                          {consultationOptions.map((option) => (
-                            <button
-                              key={option}
-                              type="button"
-                              className={`pill ${form.preferredContactMethod === option ? "selected" : ""}`}
-                              onClick={() => {
-                                updateField("preferredContactMethod", option);
-                                if (option !== "Video meeting") {
-                                  updateField("consultationVideoPlatform", "");
-                                }
-                                if (!requiresConsultationScheduling(option)) {
-                                  updateField("consultationPreferenceDate", "");
-                                  updateField("consultationPreferenceTime", "");
-                                }
-                              }}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {requiresConsultationScheduling(form.preferredContactMethod) ? (
-                        <div className="form-grid">
-                          <div className="field">
-                            <label className="label">Preferred consultation day</label>
-                            <input
-                              className="input"
-                              type="date"
-                              value={form.consultationPreferenceDate}
-                              onChange={(e) => updateField("consultationPreferenceDate", e.target.value)}
-                            />
-                          </div>
-                          <div className="field">
-                            <label className="label">Preferred consultation time</label>
-                            <input
-                              className="input"
-                              value={form.consultationPreferenceTime}
-                              onChange={(e) => updateField("consultationPreferenceTime", e.target.value)}
-                              placeholder="Example: Weekdays after 6 PM"
-                            />
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {form.preferredContactMethod === "Video meeting" ? (
-                        <div className="field">
-                          <label className="label">Preferred video platform</label>
-                          <div className="option-pills">
-                            {videoPlatformOptions.map((option) => (
-                              <button
-                                key={option}
-                                type="button"
-                                className={`pill ${form.consultationVideoPlatform === option ? "selected" : ""}`}
-                                onClick={() => updateField("consultationVideoPlatform", option)}
-                              >
-                                {option}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
                     </div>
 
                     <div className="booking-final-secondary-actions">
+                      <button type="button" className="btn secondary" onClick={() => setStep(3)}>
+                        Back to Edit Details
+                      </button>
                       <a href="/gallery" className="btn secondary">
                         View Inspiration Gallery
                       </a>
@@ -2803,107 +2408,6 @@ export default function EventRequestForm({
                       </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="booking-final-detail-stack">
-                  <div className="scope-card booking-review-card">
-                    <h4>Final details</h4>
-                    <div className="field">
-                      <label className="label">Venue Status</label>
-                      <div className="option-pills">
-                        {venueStatusOptions.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            className={`pill ${form.venueStatus === option ? "selected" : ""}`}
-                            onClick={() => updateField("venueStatus", option)}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="field">
-                      <button
-                        type="button"
-                        className="btn secondary"
-                        onClick={() => setShowOptionalStyleFields((current) => !current)}
-                      >
-                        {showOptionalStyleFields ? "Hide Optional Style Details" : "Add Optional Style Details"}
-                      </button>
-                    </div>
-
-                    {showOptionalStyleFields ? (
-                      <div className="booking-review-subgrid">
-                        <div className="field">
-                          <label className="label">Color Palette</label>
-                          <div className="option-pills">
-                            {paletteSuggestions.map((option) => (
-                              <button
-                                key={option}
-                                type="button"
-                                className={`pill ${form.colorsTheme === option ? "selected" : ""}`}
-                                onClick={() => updateField("colorsTheme", option)}
-                              >
-                                {option}
-                              </button>
-                            ))}
-                          </div>
-                          <input className="input" value={form.colorsTheme} onChange={(e) => updateField("colorsTheme", e.target.value)} placeholder="Or type your own palette" style={{ marginTop: "12px" }} />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div className="field">
-                      <label className="checkline">
-                        <input
-                          type="checkbox"
-                          checked={form.needsDeliverySetup}
-                          onChange={(e) => updateField("needsDeliverySetup", e.target.checked)}
-                        />
-                        <span>Include delivery, setup, or teardown support in the request.</span>
-                      </label>
-                    </div>
-
-                    <div className="field">
-                      <label className="label">Partner vendor support</label>
-                      <div className="option-pills">
-                        {vendorCategories.map((category) => (
-                          <button
-                            key={category}
-                            type="button"
-                            className={`pill ${form.requestedVendorCategories.includes(category) ? "selected" : ""}`}
-                            onClick={() => toggleVendorCategory(category)}
-                          >
-                            {category}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label className="label">Anything else we should know before the consultation?</label>
-                    <textarea
-                      className="textarea"
-                      value={form.additionalInfo}
-                      onChange={(e) => updateField("additionalInfo", e.target.value)}
-                      placeholder="Budget expectations, timing constraints, venue rules, or family priorities."
-                    />
-                  </div>
-
-                  {form.requestedVendorCategories.length ? (
-                    <div className="field">
-                      <label className="label">Vendor notes</label>
-                      <textarea
-                        className="textarea"
-                        value={form.vendorRequestNotes}
-                        onChange={(e) => updateField("vendorRequestNotes", e.target.value)}
-                        placeholder="Budget range, location, or style notes for vendors."
-                      />
-                    </div>
-                  ) : null}
                 </div>
               </section>
             ) : null}
@@ -2937,9 +2441,9 @@ export default function EventRequestForm({
           {isMobileViewport ? (
             <div className="booking-mobile-vision-shell">
               <div className="booking-mobile-vision-head">
-                <span className="booking-pane-tag">Current vision</span>
+                <span className="booking-pane-tag">Vision summary</span>
                 <strong>{effectiveEventType || "Event type pending"}</strong>
-                <p>{selectedDecorCategories.length} decor items selected • {totalInspirationCount} image picks</p>
+                <p>{selectedDecorCategories.length} decor moments selected • {totalInspirationCount} inspiration reference{totalInspirationCount === 1 ? "" : "s"}</p>
               </div>
               <LiveEstimatePreview
                 selectedItems={estimateItems}
