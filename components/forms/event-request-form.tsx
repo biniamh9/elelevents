@@ -1713,8 +1713,12 @@ export default function EventRequestForm({
         <aside className="card booking-progress-rail">
           <div className="booking-progress-rail-head">
             <strong>{completionPercent}% complete</strong>
-            <h3>Let's plan your event</h3>
-            <p>With our support we are here to make your event planning journey seamless.</p>
+            <h3>{step === 0 ? "Let's plan your event" : currentStepConfig.title}</h3>
+            <p>
+              {step === 0
+                ? "With our support we are here to make your event planning journey seamless."
+                : currentStepConfig.blurb}
+            </p>
           </div>
           <div className="booking-progress-list" aria-label="Booking progress">
             {steps.map((item, index) => {
@@ -1744,8 +1748,12 @@ export default function EventRequestForm({
             })}
           </div>
           <div className="booking-progress-rail-note">
-            <small>Common tip:</small>
-            <p>To ensure a smooth consultation process, we will send you breathing room in every step and a polished review before you book your consultation.</p>
+            <small>{step === 0 ? "Common tip:" : "Current step"}</small>
+            <p>
+              {step === 0
+                ? "To ensure a smooth consultation process, we will send you breathing room in every step and a polished review before you book your consultation."
+                : currentStepConfig.blurb}
+            </p>
           </div>
         </aside>
 
@@ -1808,7 +1816,7 @@ export default function EventRequestForm({
                             ) : null}
                             <span className="event-experience-overlay" />
                             <span className="event-experience-accent" />
-                            {isSelected ? <span className="event-experience-badge">Selected</span> : null}
+                            {isSelected ? <span className="event-experience-badge" aria-label="Selected">✓</span> : null}
                             <strong>{option.title}</strong>
                           </button>
                         );
@@ -1848,7 +1856,7 @@ export default function EventRequestForm({
                             ) : null}
                             <span className="event-experience-overlay" />
                             <span className="event-experience-accent" />
-                            {isSelected ? <span className="event-experience-badge">Selected</span> : null}
+                            {isSelected ? <span className="event-experience-badge" aria-label="Selected">✓</span> : null}
                             <strong>{option.title}</strong>
                           </button>
                         );

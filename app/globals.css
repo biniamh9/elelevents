@@ -10028,12 +10028,12 @@ th { background: var(--surface-soft); }
 }
 
 .booking-progress-item--current span {
-  background: rgba(255, 255, 255, 0.16);
+  background: #9ccc6b;
   color: #ffffff;
 }
 
 .booking-progress-item--done span {
-  background: rgba(255, 255, 255, 0.12);
+  background: #9ccc6b;
   color: #ffffff;
 }
 
@@ -10157,16 +10157,22 @@ th { background: var(--surface-soft); }
 }
 
 .event-experience-badge {
-  top: 16px;
+  top: auto;
   right: 16px;
-  padding: 8px 12px;
+  bottom: 16px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #553117;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  background: #e67f3a;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .event-experience-card:hover {
@@ -10175,7 +10181,136 @@ th { background: var(--surface-soft); }
 
 .event-experience-card.selected {
   transform: translateY(-2px);
-  box-shadow: 0 0 0 3px rgba(229, 187, 152, 0.9), 0 18px 36px rgba(58, 33, 16, 0.18);
+  box-shadow: 0 0 0 3px rgba(230, 127, 58, 0.92), 0 18px 36px rgba(58, 33, 16, 0.18);
+}
+
+.design-direction-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.design-direction-card {
+  position: relative;
+  min-height: 332px;
+  border: 0;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.design-direction-card img {
+  height: 100%;
+}
+
+.design-direction-overlay {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.68) 88%);
+}
+
+.design-direction-copy {
+  left: 22px;
+  right: 22px;
+  bottom: 22px;
+  gap: 8px;
+}
+
+.design-direction-copy small {
+  display: none;
+}
+
+.design-direction-copy strong {
+  font-size: 1.24rem;
+  line-height: 1.08;
+}
+
+.design-direction-copy span {
+  max-width: 24ch;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.design-direction-badge {
+  top: 18px;
+  left: 18px;
+  right: auto;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(167, 89, 21, 0.9);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.design-direction-card.selected {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(230, 127, 58, 0.92), 0 18px 36px rgba(58, 33, 16, 0.18);
+}
+
+.design-direction-card.selected::after {
+  content: "✓";
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #e67f3a;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 900;
+  z-index: 3;
+}
+
+.booking-style-grid {
+  margin-top: 8px;
+  gap: 22px;
+}
+
+.booking-style-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.booking-style-card h4 {
+  margin: 0 0 10px;
+  color: #3f4c60;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.booking-style-card .option-pills {
+  display: none;
+}
+
+.booking-style-card .input,
+.booking-style-card .textarea {
+  border-radius: 18px;
+  border: 1px solid rgba(93, 39, 4, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: none;
+}
+
+.booking-style-card .input {
+  min-height: 64px;
+  font-size: 0.98rem;
+}
+
+.booking-style-card .textarea {
+  min-height: 64px;
+}
+
+.booking-style-card .muted {
+  margin-top: 8px;
+  font-size: 0.83rem;
+  line-height: 1.5;
 }
 
 .booking-actions {
@@ -10239,6 +10374,11 @@ th { background: var(--surface-soft); }
 
   .event-experience-card {
     min-height: 208px;
+  }
+
+  .design-direction-grid,
+  .booking-style-grid {
+    grid-template-columns: 1fr;
   }
 
   .booking-actions {
