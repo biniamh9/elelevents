@@ -46,58 +46,46 @@ export default async function HomePage() {
         <div className="container">
           <div className="home-hero-signature">
             <div className="home-hero-copy-panel">
-              <span className="home-hero-micro-badge">Atlanta Luxury Event Decor</span>
               <h1>Where Your Dream Event Becomes a Breathtaking Reality</h1>
               <p className="hero-stage-lead">
-                From weddings to unforgettable celebrations, we design immersive spaces that leave your guests speechless.
+                From intimate gatherings to grand celebrations, we craft unforgettable experiences with meticulous attention to every detail.
               </p>
-              <div className="home-hero-trust-line" aria-label="Trust highlights">
-                <span><i aria-hidden="true" />12+ Years Experience</span>
-                <span><i aria-hidden="true" />Serving Atlanta Since 2019</span>
-                <span><i aria-hidden="true" />Trusted by Happy Clients</span>
-              </div>
               <div className="btn-row home-hero-actions">
-                <Button href="/request" className="home-hero-primary-cta">Book Consultation</Button>
+                <Button href="/request" className="home-hero-primary-cta">Start Consultation</Button>
                 <Button href="/gallery" variant="secondary" className="home-hero-secondary-cta">View Portfolio</Button>
               </div>
             </div>
 
             <div className="home-hero-floating-showcase" aria-hidden="true">
-              <div className="home-hero-spark home-hero-spark--one" />
-              <div className="home-hero-spark home-hero-spark--two" />
               <article className="home-hero-floating-card home-hero-floating-card--sweetheart">
                 <img src={sweetheartImage?.image_url} alt="" />
                 <div className="home-hero-floating-card-copy">
-                  <span>Sweetheart Table</span>
-                  <strong>Layered romance</strong>
+                  <span>Wedding</span>
+                  <strong>Elegant Garden Wedding</strong>
                 </div>
               </article>
               <article className="home-hero-floating-card home-hero-floating-card--drape">
                 <img src={drapeImage?.image_url} alt="" />
                 <div className="home-hero-floating-card-copy">
-                  <span>Ceiling Drape</span>
-                  <strong>Soft dramatic draping</strong>
+                  <span>Reception</span>
+                  <strong>Luxury Reception Hall</strong>
                 </div>
               </article>
               <article className="home-hero-floating-card home-hero-floating-card--floral">
                 <img src={floralImage?.image_url} alt="" />
                 <div className="home-hero-floating-card-copy">
-                  <span>Floral Stage Decor</span>
-                  <strong>Grand focal styling</strong>
+                  <span>Corporate</span>
+                  <strong>Modern Corporate Gala</strong>
                 </div>
               </article>
               <article className="home-hero-floating-card home-hero-floating-card--reaction">
                 <img src={reactionImage?.image_url} alt="" />
                 <div className="home-hero-floating-card-copy">
-                  <span>Reveal Moment</span>
-                  <strong>Emotion guests remember</strong>
+                  <span>Cultural</span>
+                  <strong>Traditional Celebration</strong>
                 </div>
               </article>
             </div>
-          </div>
-
-          <div className="home-hero-scroll-indicator" aria-hidden="true">
-            <span />
           </div>
         </div>
       </section>

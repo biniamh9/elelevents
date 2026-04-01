@@ -29,9 +29,9 @@ export default function HomeProcessFlow({
   return (
     <section className="simple-process-shell">
       <div className="simple-process-head">
-        <p className="eyebrow">How it works</p>
+        <p className="eyebrow">Our process</p>
         <h2>A simple, guided process from inquiry to event day.</h2>
-        <p className="muted">A simple, guided process from inquiry to execution.</p>
+        <p className="muted">A clearly defined process that makes it easy to connect, collaborate, and feel confident every step of the way.</p>
       </div>
 
       <div className="simple-process-grid" role="tablist" aria-label="Booking process steps">
@@ -51,22 +51,17 @@ export default function HomeProcessFlow({
                 onFocus={() => setActiveIndex(index)}
                 onClick={() => setActiveIndex(index)}
               >
-                <span className="simple-process-index">{String(index + 1).padStart(2, "0")}</span>
-                <h3>{item.title}</h3>
+                <span className="simple-process-index">{index + 1}</span>
               </button>
+
+              <div className="simple-process-step-copy">
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </div>
 
               {index < steps.length - 1 ? (
                 <div className={`simple-process-connector ${isActive ? "is-active" : ""}`} aria-hidden="true">
-                  <svg viewBox="0 0 20 20">
-                    <path
-                      d="M4 10h10m0 0-4-4m4 4-4 4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <span />
                 </div>
               ) : null}
             </div>
@@ -81,12 +76,12 @@ export default function HomeProcessFlow({
         className="simple-process-panel"
       >
         <div key={activeIndex} className="simple-process-panel-copy">
-          <span className="simple-process-panel-kicker">
-            Step {String(activeIndex + 1).padStart(2, "0")}
-          </span>
+          <span className="simple-process-panel-kicker">Step {activeIndex + 1}</span>
           <h3>{activeStep.title}</h3>
           <p>{activeStep.text}</p>
-          <span className="simple-process-panel-note">Every step is personalized to your event priorities.</span>
+          <button type="button" className="simple-process-panel-cta">
+            Start Now
+          </button>
         </div>
 
         <div key={`media-${activeIndex}`} className="simple-process-panel-media">
