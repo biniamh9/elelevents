@@ -11079,3 +11079,127 @@ th { background: var(--surface-soft); }
     order: -1;
   }
 }
+
+.home-proof-band {
+  padding: 96px 0 88px;
+  background: #ffffff;
+}
+
+.home-proof-shell {
+  display: grid;
+  justify-items: center;
+  gap: 38px;
+  text-align: center;
+}
+
+.home-proof-shell h2 {
+  margin: 0;
+  max-width: 760px;
+  color: #121826;
+  font-family: var(--font-body), sans-serif;
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+.home-proof-stats {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 64px;
+  flex-wrap: wrap;
+}
+
+.home-proof-stat {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-width: 120px;
+}
+
+.home-proof-stat strong {
+  color: #de7b3d;
+  font-size: clamp(2.3rem, 4vw, 3.1rem);
+  line-height: 1;
+  font-weight: 700;
+}
+
+.home-proof-stat span {
+  color: #48566c;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.home-cta-band {
+  padding: 94px 0;
+  background: #2c2c2c;
+}
+
+.home-cta-band-shell {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  text-align: center;
+}
+
+.home-cta-band-shell h2 {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-body), sans-serif;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+}
+
+.home-cta-band-shell p {
+  margin: 0;
+  max-width: 820px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.home-cta-band-button {
+  margin-top: 14px;
+  min-height: 60px;
+  padding-inline: 48px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .home-proof-band {
+    padding: 72px 0 64px;
+  }
+
+  .home-proof-shell {
+    gap: 28px;
+  }
+
+  .home-proof-shell h2 {
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+  }
+
+  .home-proof-stats {
+    gap: 28px;
+  }
+
+  .home-cta-band {
+    padding: 72px 0;
+  }
+
+  .home-cta-band-shell h2 {
+    font-size: clamp(2.1rem, 11vw, 3rem);
+  }
+
+  .home-cta-band-shell p {
+    font-size: 0.98rem;
+  }
+
+  .home-cta-band-button {
+    width: 100%;
+    max-width: 320px;
+  }
+}

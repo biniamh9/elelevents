@@ -4,14 +4,13 @@ import { getGalleryItems } from "@/lib/gallery";
 import { getHomeProcessSteps } from "@/lib/home-process";
 import Button from "@/components/ui/button";
 import GalleryStrip from "@/components/site/gallery-strip";
-import PageCTA from "@/components/site/page-cta";
 
 export const dynamic = "force-dynamic";
 
-const trustCards = [
-  "12+ Years Experience",
-  "Serving Atlanta Since 2019",
-  "Trusted by Satisfied Clients",
+const trustStats = [
+  { value: "500+", label: "Events Planned" },
+  { value: "4.9", label: "Average Rating" },
+  { value: "100%", label: "Satisfaction Rate" },
 ];
 
 function pickHeroImage(
@@ -126,23 +125,30 @@ export default async function HomePage() {
         />
       </section>
 
-      <section className="container section">
-        <section className="home-trust-strip" aria-label="Trust highlights">
-          {trustCards.map((item) => (
-            <span key={item} className="home-trust-item">
-              {item}
-            </span>
-          ))}
-        </section>
+      <section className="home-proof-band" aria-labelledby="home-proof-title">
+        <div className="container">
+          <div className="home-proof-shell">
+            <h2 id="home-proof-title">Trusted by hundreds of happy couples and event hosts</h2>
+            <div className="home-proof-stats" aria-label="Trust statistics">
+              {trustStats.map((item) => (
+                <div key={item.label} className="home-proof-stat">
+                  <strong>{item.value}</strong>
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="container section">
-        <PageCTA
-          eyebrow="Ready to begin"
-          title="Ready to plan your event?"
-          description="Let&apos;s bring your vision to life."
-          showSecondary={false}
-        />
+      <section className="home-cta-band">
+        <div className="container">
+          <div className="home-cta-band-shell">
+            <h2>Ready to start planning?</h2>
+            <p>Let&apos;s create something unforgettable together. Our team is ready to bring your vision to life.</p>
+            <Button href="/request" className="home-cta-band-button">Begin Your Journey</Button>
+          </div>
+        </div>
       </section>
     </main>
   );
