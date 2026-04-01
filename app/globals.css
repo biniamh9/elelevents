@@ -10385,3 +10385,325 @@ th { background: var(--surface-soft); }
     padding-top: 12px;
   }
 }
+
+.booking-panel--decor {
+  max-width: 1080px;
+}
+
+.booking-decor-accordion {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.booking-decor-accordion-item {
+  border-radius: 28px;
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 22px rgba(48, 24, 11, 0.06);
+  overflow: hidden;
+}
+
+.booking-decor-accordion-item.open {
+  border-color: rgba(146, 191, 105, 0.92);
+  box-shadow: 0 0 0 2px rgba(146, 191, 105, 0.24), 0 18px 32px rgba(48, 24, 11, 0.08);
+}
+
+.booking-decor-accordion-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 22px 26px;
+}
+
+.booking-decor-accordion-select {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 2px solid #d4d9e3;
+  background: #fff;
+  color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+  transition: all 220ms ease;
+}
+
+.booking-decor-accordion-select.selected {
+  border-color: #92bf69;
+  background: #92bf69;
+  color: #fff;
+}
+
+.booking-decor-accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+
+.booking-decor-accordion-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.booking-decor-accordion-copy strong {
+  color: #1f2633;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.booking-decor-accordion-copy span {
+  color: #53627a;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+.booking-decor-accordion-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.booking-decor-accordion-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(146, 191, 105, 0.16);
+  color: #6a8a48;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.booking-decor-accordion-chevron {
+  color: #9aa5b7;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 220ms ease;
+}
+
+.booking-decor-accordion-chevron.open {
+  transform: rotate(180deg);
+}
+
+.booking-decor-accordion-panel {
+  display: grid;
+  gap: 22px;
+  padding: 0 26px 26px;
+  border-top: 1px solid rgba(93, 39, 4, 0.08);
+}
+
+.booking-decor-accordion-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.booking-decor-accordion-section-head h4 {
+  margin: 0;
+  color: #1f2633;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.booking-decor-accordion-section-head span {
+  color: #66758b;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.booking-decor-option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.booking-decor-option-card {
+  position: relative;
+  min-height: 260px;
+  width: 100%;
+  border: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #e9edf3;
+  box-shadow: none;
+}
+
+.booking-decor-option-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.booking-decor-option-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.06) 0%, rgba(10, 10, 10, 0.62) 86%);
+}
+
+.booking-decor-option-card strong {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  z-index: 2;
+  color: #fff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.booking-decor-option-card.selected {
+  box-shadow: 0 0 0 3px rgba(230, 127, 58, 0.92);
+}
+
+.booking-decor-option-check {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #e67f3a;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.booking-decor-text-action {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #6a8a48;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.booking-decor-upload-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.booking-decor-upload-label {
+  margin: 0;
+  color: #2b3546;
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.booking-decor-upload-zone {
+  min-height: 168px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 2px dashed #d7dde7;
+  background: #fff;
+  text-align: center;
+}
+
+.booking-decor-upload-zone input {
+  display: none;
+}
+
+.booking-decor-upload-icon {
+  color: #9aa5b7;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.booking-decor-upload-zone strong {
+  color: #2b3546;
+  font-size: 1rem;
+}
+
+.booking-decor-upload-zone span {
+  color: #7b889b;
+  font-size: 0.9rem;
+}
+
+.booking-decor-more-options {
+  display: grid;
+  gap: 16px;
+}
+
+.booking-decor-more-options-block {
+  display: grid;
+  gap: 10px;
+}
+
+.booking-decor-more-options-block p {
+  margin: 0;
+  color: #2b3546;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.booking-decor-more-options .option-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.booking-decor-more-options .input,
+.booking-decor-more-options .textarea {
+  border-radius: 18px;
+  border: 1px solid rgba(93, 39, 4, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.booking-decor-more-options .textarea {
+  min-height: 132px;
+}
+
+.booking-decor-designer-led {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 900px) {
+  .booking-decor-accordion-row {
+    padding: 18px;
+    gap: 14px;
+  }
+
+  .booking-decor-accordion-panel {
+    padding: 0 18px 18px;
+  }
+
+  .booking-decor-accordion-section-head {
+    padding-top: 14px;
+  }
+
+  .booking-decor-option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-decor-option-card {
+    min-height: 220px;
+  }
+}
