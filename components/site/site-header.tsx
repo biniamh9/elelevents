@@ -7,11 +7,10 @@ import { usePathname } from "next/navigation";
 import Button from "@/components/ui/button";
 
 const links = [
-  { href: "/", label: "Home" },
   { href: "/gallery", label: "Portfolio" },
   { href: "/services", label: "Services" },
-  { href: "/#process", label: "How It Works" },
-  { href: "/about#reviews", label: "Reviews" },
+  { href: "/#process", label: "Process" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -275,8 +274,7 @@ export default function SiteHeader() {
               className="brand-logo-image"
             />
             <span className="brand-logo-copy">
-              <strong>Elel Events</strong>
-              <small>Luxury Event Design</small>
+              <strong>ElelEvents</strong>
             </span>
           </Link>
 
@@ -303,7 +301,7 @@ export default function SiteHeader() {
 
           <div className="nav-main">
             <Button href="/gallery" variant="secondary" className="nav-ghost-cta">View Gallery</Button>
-            <Button href="/request" className="nav-cta">Book Consultation</Button>
+            <Button href="/request" className="nav-cta">Start Planning</Button>
           </div>
 
           <button

@@ -62,17 +62,18 @@ a { color: inherit; text-decoration: none; }
 .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
 .site-header {
   position: fixed;
-  top: 12px;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 40;
-  background: transparent;
-  backdrop-filter: none;
-  box-shadow: none;
-  transition: top 0.24s ease, transform 0.24s ease;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.06);
+  transition: background 0.24s ease, box-shadow 0.24s ease;
 }
 .site-header.is-home {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.94);
 }
 .nav-shell {
   position: relative;
@@ -89,70 +90,60 @@ a { color: inherit; text-decoration: none; }
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 24px;
-  min-height: calc(var(--site-header-height) - 8px);
-  padding: 10px 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(237, 203, 158, 0.24);
-  background: linear-gradient(180deg, rgba(16, 12, 10, 0.42), rgba(16, 12, 10, 0.28));
-  box-shadow: 0 18px 42px rgba(12, 8, 6, 0.18);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: min-height 0.24s ease, padding 0.24s ease, background 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+  gap: 28px;
+  min-height: 72px;
+  padding: 0;
+  border-radius: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transition: min-height 0.24s ease;
 }
 .site-header.is-scrolled .nav {
-  min-height: calc(var(--site-header-height) - 16px);
-  padding-block: 8px;
-  background: linear-gradient(180deg, rgba(18, 13, 11, 0.78), rgba(18, 13, 11, 0.62));
-  border-color: rgba(237, 203, 158, 0.18);
-  box-shadow: 0 20px 46px rgba(12, 8, 6, 0.26);
+  min-height: 68px;
 }
 .nav-main {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 14px;
 }
 .brand { font-size: 2rem; font-weight: 600; }
 .brand-logo {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  max-width: 250px;
+  gap: 10px;
+  max-width: 220px;
   flex: 0 0 auto;
 }
 .brand-logo-image {
   width: auto;
-  height: 58px;
+  height: 42px;
   max-width: 100%;
   object-fit: contain;
   display: block;
 }
 .brand-logo-copy {
-  display: grid;
-  gap: 1px;
+  display: block;
 }
 .brand-logo-copy strong {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-body), sans-serif;
   letter-spacing: -0.03em;
-  font-size: 1.02rem;
-  color: #fff5eb;
-}
-.brand-logo-copy small {
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(241, 218, 192, 0.76);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
 }
 .nav-links {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 28px;
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgba(255, 239, 223, 0.84);
+  gap: 30px;
+  font-size: 0.96rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #111827;
 }
 .nav-links--desktop {
   min-width: 0;
@@ -172,8 +163,8 @@ a { color: inherit; text-decoration: none; }
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  border: 1px solid rgba(237, 203, 158, 0.2);
-  background: rgba(14, 11, 10, 0.42);
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.92);
   align-items: center;
   justify-content: center;
   gap: 4px;
@@ -184,7 +175,7 @@ a { color: inherit; text-decoration: none; }
   width: 18px;
   height: 2px;
   border-radius: 999px;
-  background: #fff2e4;
+  background: #111827;
   transition: transform 0.18s ease, opacity 0.18s ease;
 }
 .nav-toggle.is-open span:nth-child(1) {
@@ -209,49 +200,49 @@ a { color: inherit; text-decoration: none; }
   bottom: 0;
   width: calc(100% + 4px);
   height: 1px;
-  background: linear-gradient(90deg, rgba(214, 170, 105, 0), rgba(214, 170, 105, 0.9), rgba(214, 170, 105, 0));
+  background: linear-gradient(90deg, rgba(230, 127, 58, 0), rgba(230, 127, 58, 0.95), rgba(230, 127, 58, 0));
   transform: scaleX(0);
   transform-origin: center;
   translate: -50% 0;
   transition: transform 0.25s ease;
 }
 .nav-links a.is-active,
-.nav-links a:hover { color: #fff8f1; opacity: 1; }
+.nav-links a:hover { color: #111827; opacity: 1; }
 .nav-links a:hover::after { transform: scaleX(1); }
 .nav-links a.is-active::after {
   transform: scaleX(1);
 }
 .nav-links a.is-active {
-  color: #fff8f1;
+  color: #111827;
 }
 .site-header.is-scrolled .nav-links {
-  color: rgba(255, 239, 223, 0.92);
+  color: #111827;
 }
 .site-header.is-scrolled .brand-logo-copy strong {
-  color: #fff8f1;
+  color: #111827;
 }
 .nav-cta {
-  min-height: 42px;
-  padding-inline: 20px;
+  min-height: 40px;
+  padding-inline: 22px;
   letter-spacing: 0.02em;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   flex-shrink: 0;
-  box-shadow: 0 18px 32px rgba(225, 121, 38, 0.28);
+  box-shadow: none;
 }
 .nav-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 0 1px rgba(240, 198, 136, 0.28), 0 22px 36px rgba(225, 121, 38, 0.38);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(225, 121, 38, 0.18);
 }
 .nav-ghost-cta {
   min-height: 40px;
-  padding-inline: 16px;
-  background: rgba(255, 250, 244, 0.08);
-  border-color: rgba(241, 218, 192, 0.24);
-  color: #fff7ef;
-  font-size: 0.84rem;
+  padding-inline: 18px;
+  background: #fff;
+  border-color: rgba(17, 24, 39, 0.12);
+  color: #111827;
+  font-size: 0.9rem;
 }
 .nav-ghost-cta:hover {
-  background: rgba(255, 250, 244, 0.14);
+  background: #fafafa;
   transform: translateY(-1px);
 }
 .nav-drawer-backdrop {
@@ -10731,10 +10722,15 @@ th { background: var(--surface-soft); }
 
 .home-hero-copy-panel h1 {
   max-width: 8.2ch;
-  font-family: var(--font-accent), Georgia, serif;
-  font-size: clamp(4.5rem, 8vw, 6.9rem);
+  font-family: var(--font-display), serif;
+  font-size: clamp(4.4rem, 8vw, 6.7rem);
   line-height: 0.93;
   font-weight: 500;
+}
+
+.home-hero-emphasis {
+  font-style: italic;
+  font-weight: 400;
 }
 
 .home-hero-copy-panel .hero-stage-lead {

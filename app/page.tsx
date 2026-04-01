@@ -46,7 +46,17 @@ export default async function HomePage() {
         <div className="container">
           <div className="home-hero-signature">
             <div className="home-hero-copy-panel">
-              <h1>Where Your Dream Event Becomes a Breathtaking Reality</h1>
+              <h1>
+                Where Your
+                <br />
+                Dream Event
+                <br />
+                Becomes a
+                <br />
+                <span className="home-hero-emphasis">Breathtaking</span>
+                <br />
+                Reality
+              </h1>
               <p className="hero-stage-lead">
                 From intimate gatherings to grand celebrations, we craft unforgettable experiences with meticulous attention to every detail.
               </p>
