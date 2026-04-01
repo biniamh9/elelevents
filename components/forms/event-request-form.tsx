@@ -108,33 +108,33 @@ const momentFloralDensityOptions = ["Light", "Full", "Luxury"] as const;
 const steps = [
   {
     id: "vision",
-    label: "01 Vision",
-    title: "Tell us what you are planning",
-    blurb: "Choose the celebration first so the rest of the journey adapts around your event.",
+    label: "Type",
+    title: "Let us know what you are planning",
+    blurb: "Choose the celebration first so the next steps can adapt around your event.",
   },
   {
     id: "style",
-    label: "02 Style",
-    title: "Choose the visual direction",
-    blurb: "Select a design mood and share any inspiration that helps us understand the atmosphere you want.",
+    label: "Style",
+    title: "Tell us your style",
+    blurb: "Select the atmosphere and inspiration that best matches how you want the room to feel.",
   },
   {
     id: "decor",
-    label: "03 Decor",
-    title: "Build the decor story",
-    blurb: "Choose the focal moments that matter and refine them one by one without losing context.",
+    label: "Decor",
+    title: "Select your decoration",
+    blurb: "Choose the focal moments that matter most and refine them one by one without feeling overwhelmed.",
   },
   {
     id: "details",
-    label: "04 Details",
-    title: "Add the event details",
-    blurb: "Keep the logistics calm and clear so we know how to follow up and prepare your consultation.",
+    label: "Details",
+    title: "Fill the form",
+    blurb: "Add the key event details and the best contact information so we can prepare your consultation.",
   },
   {
     id: "review",
-    label: "05 Review",
-    title: "Review and book consultation",
-    blurb: "See your event vision together, review the next steps, and send the request with confidence.",
+    label: "Review",
+    title: "Review and approve",
+    blurb: "Review everything clearly before you send your request and move into consultation.",
   },
 ];
 
@@ -1712,9 +1712,9 @@ export default function EventRequestForm({
       <div className="booking-workspace">
         <aside className="card booking-progress-rail">
           <div className="booking-progress-rail-head">
-            <span className="booking-pane-tag">Booking concierge</span>
             <strong>{completionPercent}% complete</strong>
-            <p>{currentStepConfig.title}</p>
+            <h3>Let's plan your event</h3>
+            <p>With our support we are here to make your event planning journey seamless.</p>
           </div>
           <div className="booking-progress-list" aria-label="Booking progress">
             {steps.map((item, index) => {
@@ -1744,8 +1744,8 @@ export default function EventRequestForm({
             })}
           </div>
           <div className="booking-progress-rail-note">
-            <small>Current step</small>
-            <p>{currentStepConfig.blurb}</p>
+            <small>Common tip:</small>
+            <p>To ensure a smooth consultation process, we will send you breathing room in every step and a polished review before you book your consultation.</p>
           </div>
         </aside>
 

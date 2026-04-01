@@ -9923,3 +9923,325 @@ th { background: var(--surface-soft); }
     display: grid;
   }
 }
+
+/* Step 1 desktop reference alignment */
+.booking-shell {
+  gap: 18px;
+}
+
+.booking-hero {
+  display: none;
+}
+
+.booking-workspace {
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+  gap: 56px !important;
+  align-items: start;
+}
+
+.booking-progress-rail {
+  position: sticky;
+  top: calc(var(--site-header-height) + 20px);
+  min-height: calc(100vh - var(--site-header-height) - 40px);
+  padding: 34px 28px 30px;
+  border: 0;
+  border-radius: 0;
+  background: #252525;
+  box-shadow: none;
+}
+
+.booking-progress-rail-head {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 30px;
+}
+
+.booking-progress-rail-head strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.booking-progress-rail-head h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.booking-progress-rail-head p {
+  margin: 0;
+  color: rgba(217, 221, 230, 0.82);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.booking-progress-list {
+  gap: 8px;
+}
+
+.booking-progress-item {
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 12px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.booking-progress-item span {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.booking-progress-item strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.booking-progress-item p {
+  color: rgba(217, 221, 230, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.booking-progress-item--current,
+.booking-progress-item--done,
+.booking-progress-item:not(:disabled):hover {
+  transform: none;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.booking-progress-item--current span {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.booking-progress-item--done span {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.booking-progress-rail-note {
+  margin-top: auto;
+  gap: 12px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.booking-progress-rail-note small {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.booking-progress-rail-note p {
+  margin: 0;
+  color: rgba(217, 221, 230, 0.76);
+  font-size: 0.82rem;
+  line-height: 1.62;
+}
+
+.booking-main-column {
+  min-width: 0;
+}
+
+.booking-form-card {
+  padding: 48px 8px 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.booking-pane-head {
+  margin-bottom: 0;
+}
+
+.booking-mobile-progress-card {
+  display: none;
+}
+
+.booking-panel {
+  gap: 34px;
+}
+
+.panel-head {
+  gap: 14px;
+  max-width: 980px;
+  padding-bottom: 0;
+}
+
+.panel-head .eyebrow {
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+}
+
+.panel-head h3 {
+  font-size: clamp(3rem, 5vw, 4.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.panel-head .muted {
+  max-width: 880px;
+  color: #4f5e73;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.event-experience-sections {
+  display: grid;
+  gap: 30px;
+}
+
+.event-experience-section {
+  display: grid;
+  gap: 18px;
+}
+
+.event-experience-section-label {
+  color: #3f4c60;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.event-experience-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.event-experience-card {
+  position: relative;
+  min-height: 192px;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.event-experience-card img {
+  height: 100%;
+}
+
+.event-experience-overlay {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.54) 82%);
+}
+
+.event-experience-card strong {
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  font-size: 1.28rem;
+  line-height: 1.15;
+}
+
+.event-experience-badge {
+  top: 16px;
+  right: 16px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #553117;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.event-experience-card:hover {
+  transform: translateY(-2px);
+}
+
+.event-experience-card.selected {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(229, 187, 152, 0.9), 0 18px 36px rgba(58, 33, 16, 0.18);
+}
+
+.booking-actions {
+  margin-top: 36px;
+  padding-top: 0;
+}
+
+.booking-actions .btn.secondary {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #32415a;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.booking-actions .btn:not(.secondary) {
+  min-width: 194px;
+  min-height: 64px;
+  border-radius: 999px;
+  font-size: 1.12rem;
+}
+
+@media (max-width: 900px) {
+  .booking-hero {
+    display: grid;
+  }
+
+  .booking-workspace {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .booking-progress-rail {
+    display: none !important;
+  }
+
+  .booking-form-card {
+    padding: 22px;
+    border: 1px solid rgba(93, 39, 4, 0.08);
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(252, 249, 245, 0.99)),
+      radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.04), transparent 30%);
+    box-shadow: 0 24px 46px rgba(48, 24, 11, 0.06);
+  }
+
+  .booking-mobile-progress-card {
+    display: grid;
+  }
+
+  .panel-head h3 {
+    font-size: clamp(2.25rem, 11vw, 3.15rem);
+    line-height: 0.98;
+  }
+
+  .event-experience-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .event-experience-card {
+    min-height: 208px;
+  }
+
+  .booking-actions {
+    padding-top: 12px;
+  }
+}
