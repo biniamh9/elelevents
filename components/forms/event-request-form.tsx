@@ -20,7 +20,7 @@ const primaryEventExperienceOptions = [
     title: "Wedding",
     eventType: "Wedding",
     preferredImageUrl:
-      "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["wedding", "reception", "head table"],
   },
   {
@@ -28,7 +28,7 @@ const primaryEventExperienceOptions = [
     title: "Traditional (Melsi)",
     eventType: "Traditional (Melsi)",
     preferredImageUrl:
-      "https://images.unsplash.com/photo-1525258946800-98cfd641d0de?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["melsi", "traditional"],
   },
   {
@@ -36,7 +36,7 @@ const primaryEventExperienceOptions = [
     title: "Celebrations",
     eventType: null,
     preferredImageUrl:
-      "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["birthday", "baby shower", "anniversary", "bridal shower", "engagement"],
   },
   {
@@ -44,7 +44,7 @@ const primaryEventExperienceOptions = [
     title: "Corporate Events",
     eventType: "Corporate Event",
     preferredImageUrl:
-      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["corporate", "conference", "brand"],
   },
   {
@@ -52,7 +52,7 @@ const primaryEventExperienceOptions = [
     title: "Other",
     eventType: "Other",
     preferredImageUrl:
-      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1400&q=80",
+      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: [],
   },
 ] as const;
