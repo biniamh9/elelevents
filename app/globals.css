@@ -10076,41 +10076,42 @@ th { background: var(--surface-soft); }
 
 .panel-head {
   gap: 14px;
-  max-width: 980px;
+  max-width: 760px;
   padding-bottom: 0;
 }
 
 .panel-head .eyebrow {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   letter-spacing: 0.08em;
 }
 
 .panel-head h3 {
-  font-size: clamp(3rem, 5vw, 4.6rem);
-  line-height: 0.96;
+  font-size: clamp(2.6rem, 4.2vw, 3.9rem);
+  line-height: 0.98;
   letter-spacing: -0.04em;
 }
 
 .panel-head .muted {
-  max-width: 880px;
+  max-width: 700px;
   color: #4f5e73;
-  font-size: 1rem;
-  line-height: 1.55;
+  font-size: 0.98rem;
+  line-height: 1.58;
 }
 
 .event-experience-sections {
   display: grid;
-  gap: 30px;
+  gap: 26px;
+  max-width: 820px;
 }
 
 .event-experience-section {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .event-experience-section-label {
   color: #3f4c60;
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -10118,15 +10119,15 @@ th { background: var(--surface-soft); }
 
 .event-experience-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .event-experience-card {
   position: relative;
-  min-height: 192px;
+  min-height: 124px;
   aspect-ratio: auto;
   border: 0;
-  border-radius: 22px;
+  border-radius: 18px;
   overflow: hidden;
   box-shadow: none;
 }
@@ -10140,24 +10141,24 @@ th { background: var(--surface-soft); }
 }
 
 .event-experience-card strong {
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  font-size: 1.28rem;
-  line-height: 1.15;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  font-size: 0.96rem;
+  line-height: 1.18;
 }
 
 .event-experience-badge {
   top: auto;
-  right: 16px;
-  bottom: 16px;
-  width: 42px;
-  height: 42px;
+  right: 12px;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border-radius: 999px;
   background: #e67f3a;
   color: #ffffff;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 900;
   letter-spacing: 0;
   text-transform: none;
@@ -10177,14 +10178,15 @@ th { background: var(--surface-soft); }
 
 .design-direction-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
+  max-width: 820px;
 }
 
 .design-direction-card {
   position: relative;
-  min-height: 332px;
+  min-height: 260px;
   border: 0;
-  border-radius: 24px;
+  border-radius: 20px;
   overflow: hidden;
   box-shadow: none;
 }
@@ -10198,10 +10200,10 @@ th { background: var(--surface-soft); }
 }
 
 .design-direction-copy {
-  left: 22px;
-  right: 22px;
-  bottom: 22px;
-  gap: 8px;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  gap: 6px;
 }
 
 .design-direction-copy small {
@@ -10209,26 +10211,26 @@ th { background: var(--surface-soft); }
 }
 
 .design-direction-copy strong {
-  font-size: 1.24rem;
+  font-size: 1.02rem;
   line-height: 1.08;
 }
 
 .design-direction-copy span {
-  max-width: 24ch;
-  font-size: 0.86rem;
-  line-height: 1.45;
+  max-width: 22ch;
+  font-size: 0.8rem;
+  line-height: 1.42;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .design-direction-badge {
-  top: 18px;
-  left: 18px;
+  top: 14px;
+  left: 14px;
   right: auto;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-radius: 999px;
   background: rgba(167, 89, 21, 0.9);
   color: #ffffff;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -10242,25 +10244,26 @@ th { background: var(--surface-soft); }
 .design-direction-card.selected::after {
   content: "✓";
   position: absolute;
-  right: 18px;
+  right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   background: #e67f3a;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 900;
   z-index: 3;
 }
 
 .booking-style-grid {
-  margin-top: 8px;
-  gap: 22px;
+  margin-top: 6px;
+  gap: 18px;
+  max-width: 820px;
 }
 
 .booking-style-card {
@@ -10354,7 +10357,7 @@ th { background: var(--surface-soft); }
   }
 
   .panel-head h3 {
-    font-size: clamp(2.25rem, 11vw, 3.15rem);
+    font-size: clamp(2.2rem, 11vw, 3rem);
     line-height: 0.98;
   }
 
@@ -10364,12 +10367,16 @@ th { background: var(--surface-soft); }
   }
 
   .event-experience-card {
-    min-height: 208px;
+    min-height: 180px;
   }
 
   .design-direction-grid,
   .booking-style-grid {
     grid-template-columns: 1fr;
+  }
+
+  .design-direction-card {
+    min-height: 220px;
   }
 
   .booking-actions {
