@@ -1227,6 +1227,25 @@ export default function EventRequestForm({
     setActiveDecorKey(categoryKey);
   }
 
+  function focusNextDecorCategory(currentCategoryKey: string) {
+    const currentIndex = availableGuidedCategories.findIndex((category) => category.key === currentCategoryKey);
+
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const nextCategory = availableGuidedCategories[currentIndex + 1];
+
+    if (nextCategory) {
+      setActiveDecorKey(nextCategory.key);
+    }
+  }
+
+  function activateDecorCategory(categoryKey: string) {
+    ensureDecorCategory(categoryKey);
+    focusDecorCategory(categoryKey);
+  }
+
   function updateMomentCustomization(
     categoryKey: string,
     field: MomentCustomizationField,
@@ -1969,35 +1988,29 @@ export default function EventRequestForm({
                         key={category.key}
                         className={`booking-decor-accordion-item ${isActive ? "open" : ""} ${hasContent ? "configured" : ""}`}
                       >
-                        <div className="booking-decor-accordion-row">
-                          <button
-                            type="button"
-                            className={`booking-decor-accordion-select ${isSelected || hasContent ? "selected" : ""}`}
-                            onClick={() => toggleKeyMoment(category.key)}
-                            aria-pressed={isSelected}
-                            aria-label={`${isSelected ? "Remove" : "Include"} ${category.title}`}
-                          >
+                        <button
+                          type="button"
+                          className="booking-decor-accordion-row"
+                          onClick={() => activateDecorCategory(category.key)}
+                          aria-expanded={isActive}
+                        >
+                          <span className={`booking-decor-accordion-select ${isSelected || hasContent ? "selected" : ""}`}>
                             {isSelected || hasContent ? "✓" : ""}
-                          </button>
+                          </span>
 
-                          <button
-                            type="button"
-                            className="booking-decor-accordion-trigger"
-                            onClick={() => focusDecorCategory(category.key)}
-                            aria-expanded={isActive}
-                          >
-                            <div className="booking-decor-accordion-copy">
+                          <span className="booking-decor-accordion-trigger">
+                            <span className="booking-decor-accordion-copy">
                               <strong>{category.title}</strong>
                               <span>{category.helper}</span>
-                            </div>
-                            <div className="booking-decor-accordion-meta">
+                            </span>
+                            <span className="booking-decor-accordion-meta">
                               {recommendedDecorKeys.includes(category.key) ? (
                                 <span className="booking-decor-accordion-chip">Recommended</span>
                               ) : null}
                               <span className={`booking-decor-accordion-chevron ${isActive ? "open" : ""}`}>⌄</span>
-                            </div>
-                          </button>
-                        </div>
+                            </span>
+                          </span>
+                        </button>
 
                         {isActive ? (
                           <div ref={detailPanelRef} className="booking-decor-accordion-panel">
@@ -2026,6 +2039,9 @@ export default function EventRequestForm({
                                             [category.key]: nextIds,
                                           }));
                                           ensureDecorCategory(category.key);
+                                          if (!isImageSelected) {
+                                            focusNextDecorCategory(category.key);
+                                          }
                                         }}
                                       >
                                         <img src={item.image_url} alt={item.title} loading="lazy" />
@@ -2097,7 +2113,10 @@ export default function EventRequestForm({
                                             ...current,
                                             [category.key]: nextValue,
                                           }));
-                                          if (nextValue) ensureDecorCategory(category.key);
+                                          if (nextValue) {
+                                            ensureDecorCategory(category.key);
+                                            focusNextDecorCategory(category.key);
+                                          }
                                         }}
                                       >
                                         {option}
@@ -2138,7 +2157,13 @@ export default function EventRequestForm({
                                 <button
                                   type="button"
                                   className={`pill ${categoryDesignerLed[category.key] ? "selected" : ""}`}
-                                  onClick={() => setDesignerLedForCategory(category.key, !categoryDesignerLed[category.key])}
+                                  onClick={() => {
+                                    const nextValue = !categoryDesignerLed[category.key];
+                                    setDesignerLedForCategory(category.key, nextValue);
+                                    if (nextValue) {
+                                      focusNextDecorCategory(category.key);
+                                    }
+                                  }}
                                 >
                                   Let Elel guide this moment
                                 </button>

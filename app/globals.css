@@ -10417,7 +10417,12 @@ th { background: var(--surface-soft); }
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 16px;
+  width: 100%;
   padding: 22px 26px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
 .booking-decor-accordion-select {
@@ -10447,10 +10452,6 @@ th { background: var(--surface-soft); }
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  text-align: left;
 }
 
 .booking-decor-accordion-copy {
