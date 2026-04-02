@@ -19,30 +19,40 @@ const primaryEventExperienceOptions = [
     key: "wedding",
     title: "Wedding",
     eventType: "Wedding",
+    preferredImageUrl:
+      "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["wedding", "reception", "head table"],
   },
   {
     key: "traditional",
     title: "Traditional (Melsi)",
     eventType: "Traditional (Melsi)",
+    preferredImageUrl:
+      "https://images.unsplash.com/photo-1525258946800-98cfd641d0de?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["melsi", "traditional"],
   },
   {
     key: "celebrations",
     title: "Celebrations",
     eventType: null,
+    preferredImageUrl:
+      "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["birthday", "baby shower", "anniversary", "bridal shower", "engagement"],
   },
   {
     key: "corporate",
     title: "Corporate Events",
     eventType: "Corporate Event",
+    preferredImageUrl:
+      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: ["corporate", "conference", "brand"],
   },
   {
     key: "other",
     title: "Other",
     eventType: "Other",
+    preferredImageUrl:
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1400&q=80",
     imageKeywords: [],
   },
 ] as const;
@@ -663,7 +673,9 @@ export default function EventRequestForm({
     () =>
       primaryEventExperienceOptions.map((option, index) => ({
         ...option,
-        imageUrl: getExperienceCardImage([...option.imageKeywords], portfolioItems, index),
+        imageUrl:
+          option.preferredImageUrl ??
+          getExperienceCardImage([...option.imageKeywords], portfolioItems, index),
       })),
     [portfolioItems]
   );
