@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import PageCTA from "@/components/site/page-cta";
 import { getGalleryItems } from "@/lib/gallery";
+import { getSiteSocialLinks } from "@/lib/social-links";
 import Card from "@/components/ui/card";
 
 export default async function RequestPage() {
@@ -13,6 +14,7 @@ export default async function RequestPage() {
     .eq("is_active", true)
     .order("business_name", { ascending: true });
   const images = await getGalleryItems(12);
+  const socialLinks = await getSiteSocialLinks();
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
@@ -50,7 +52,7 @@ export default async function RequestPage() {
         }
       />
 
-      <EventRequestForm vendors={vendors ?? []} portfolioItems={images} />
+      <EventRequestForm vendors={vendors ?? []} portfolioItems={images} socialLinks={socialLinks} />
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
         <Card>

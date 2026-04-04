@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
+import type { SiteSocialLinks } from "@/lib/social-links";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
 
@@ -639,9 +640,11 @@ function getMatchingVendors(
 export default function EventRequestForm({
   vendors,
   portfolioItems,
+  socialLinks,
 }: {
   vendors: PublicVendorRecommendation[];
   portfolioItems: GalleryItem[];
+  socialLinks: SiteSocialLinks;
 }) {
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
@@ -1536,6 +1539,41 @@ export default function EventRequestForm({
   }
 
   if (success && submittedSummary) {
+    const availableSocialLinks = [
+      {
+        key: "instagram",
+        label: "Instagram",
+        href: socialLinks.instagramUrl,
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none" />
+          </svg>
+        ),
+      },
+      {
+        key: "facebook",
+        label: "Facebook",
+        href: socialLinks.facebookUrl,
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13.5 20v-6h2.4l.6-3h-3V9.4c0-.9.3-1.6 1.6-1.6H16V5.1c-.2 0-.9-.1-1.8-.1-2.2 0-3.7 1.3-3.7 3.9V11H8v3h2.5v6h3Z" fill="currentColor" stroke="none" />
+          </svg>
+        ),
+      },
+      {
+        key: "tiktok",
+        label: "TikTok",
+        href: socialLinks.tiktokUrl,
+        icon: (
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 4c.4 1.6 1.4 2.9 3 3.7 1 .5 2 .7 3 .7v2.8a8 8 0 0 1-3.4-.8v5.3a5.8 5.8 0 1 1-5.1-5.8v3c-1.4 0-2.5 1.1-2.5 2.6s1.1 2.6 2.5 2.6c1.5 0 2.5-1.1 2.5-2.6V4H14Z" fill="currentColor" stroke="none" />
+          </svg>
+        ),
+      },
+    ].filter((item) => item.href);
+
     return (
       <section className="booking-success-shell">
         {submittedSummary.leadImageUrl ? (
@@ -1661,9 +1699,27 @@ export default function EventRequestForm({
 
           <div className="booking-success-share">
             <p>Know someone planning a special event?</p>
-            <a className="btn secondary" href="/contact">
-              Share Elel With a Friend
-            </a>
+            {availableSocialLinks.length ? (
+              <div className="booking-success-social-links">
+                {availableSocialLinks.map((item) => (
+                  <a
+                    key={item.key}
+                    className="booking-success-social-link"
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Share Elel Events on ${item.label}`}
+                  >
+                    <span className="booking-success-social-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <a className="btn secondary" href="/contact">
+                Share Elel With a Friend
+              </a>
+            )}
           </div>
         </div>
       </section>

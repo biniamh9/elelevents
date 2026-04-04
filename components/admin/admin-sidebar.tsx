@@ -65,6 +65,12 @@ const navItems: NavItem[] = [
     description: "Homepage reviews",
     icon: "quote",
   },
+  {
+    href: "/admin/social",
+    label: "Social Links",
+    description: "Success screen sharing",
+    icon: "share",
+  },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -122,6 +128,16 @@ function SidebarIcon({ icon }: { icon: string }) {
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M10 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
           <path d="M19 9h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
+        </svg>
+      );
+    case "share":
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <path d="M8.7 10.7 15.4 6.8" />
+          <path d="m8.7 13.3 6.7 3.9" />
         </svg>
       );
     case "flow":
