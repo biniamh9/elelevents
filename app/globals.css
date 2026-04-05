@@ -2353,6 +2353,15 @@ a { color: inherit; text-decoration: none; }
   border-color: rgba(230, 127, 58, 0.55);
   background: rgba(230, 127, 58, 0.14);
 }
+
+.booking-success-social-link--button {
+  cursor: pointer;
+}
+
+.booking-success-social-link--button.is-copied {
+  border-color: rgba(146, 191, 105, 0.62);
+  background: rgba(146, 191, 105, 0.18);
+}
 .booking-success-social-icon {
   display: inline-flex;
   align-items: center;

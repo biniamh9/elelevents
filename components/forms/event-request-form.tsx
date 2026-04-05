@@ -656,6 +656,7 @@ export default function EventRequestForm({
   const [submittedSummary, setSubmittedSummary] = useState<SubmittedRequestSummary | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const [uploadingVisionBoard, setUploadingVisionBoard] = useState(false);
   const [selectedDecorCategories, setSelectedDecorCategories] = useState<string[]>([]);
   const [selectedPreviewImages, setSelectedPreviewImages] = useState<Record<string, string[]>>({});
@@ -1361,6 +1362,26 @@ export default function EventRequestForm({
     }
   }
 
+  async function handleCopyShareLink() {
+    const fallbackUrl =
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "";
+    const shareUrl =
+      (typeof window !== "undefined" && window.location?.origin) || fallbackUrl;
+
+    if (!shareUrl) {
+      setError("Unable to copy the website link right now.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedShareLink(true);
+      window.setTimeout(() => setCopiedShareLink(false), 2200);
+    } catch {
+      setError("Unable to copy the website link right now.");
+    }
+  }
+
   async function handleCategoryUpload(
     categoryKey: string,
     e: React.ChangeEvent<HTMLInputElement>
@@ -1714,11 +1735,29 @@ export default function EventRequestForm({
                     <span>{item.label}</span>
                   </a>
                 ))}
+                <button
+                  type="button"
+                  className={`booking-success-social-link booking-success-social-link--button ${copiedShareLink ? "is-copied" : ""}`}
+                  onClick={handleCopyShareLink}
+                  aria-live="polite"
+                >
+                  <span className="booking-success-social-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="9" y="9" width="10" height="10" rx="2" />
+                      <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+                    </svg>
+                  </span>
+                  <span>{copiedShareLink ? "Link copied" : "Copy link"}</span>
+                </button>
               </div>
             ) : (
-              <a className="btn secondary" href="/contact">
-                Share Elel With a Friend
-              </a>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={handleCopyShareLink}
+              >
+                {copiedShareLink ? "Link copied" : "Copy Elel link"}
+              </button>
             )}
           </div>
         </div>
