@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -34,6 +35,7 @@ export default function SiteHeader() {
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [dismissedFloatingCta, setDismissedFloatingCta] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [showMobileBookingBar, setShowMobileBookingBar] = useState(false);
   const [mobileBookingExpanded, setMobileBookingExpanded] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
@@ -49,6 +51,10 @@ export default function SiteHeader() {
       setMobileBookingExpanded(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const updateViewport = () => {
@@ -262,7 +268,7 @@ export default function SiteHeader() {
 
   const isHome = pathname === "/";
   const isRequestPage = pathname === "/request";
-  const showMobileMenu = isMobileViewport && open;
+  const showMobileMenu = isMounted && isMobileViewport && open;
 
   const isLinkActive = (href: string) => {
     if (href === "/#process") {
@@ -337,71 +343,74 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {showMobileMenu ? (
-        <>
-          <div
-            className="nav-drawer-backdrop is-open"
-            aria-hidden="true"
-            onClick={() => setOpen(false)}
-          />
-
-          <div className="nav-mobile-overlay is-open" aria-hidden={false}>
-            <div className="nav-mobile-head">
-              <button
-                type="button"
-                className="nav-mobile-close"
-                aria-label="Close menu"
+      {showMobileMenu
+        ? createPortal(
+            <>
+              <div
+                className="nav-drawer-backdrop is-open"
+                aria-hidden="true"
                 onClick={() => setOpen(false)}
-              >
-                ×
-              </button>
-              <div className="nav-mobile-brand">
-                <Image
-                  src="/logo.png"
-                  alt="Elel Events logo"
-                  width={320}
-                  height={120}
-                  className="nav-mobile-brand-image"
-                />
-                <strong>Elel Events &amp; Design</strong>
-                <span>Luxury Event Design in Atlanta</span>
-                <small>Transforming dream celebrations into unforgettable moments</small>
-              </div>
-            </div>
+              />
 
-            <div className="nav-mobile-links">
-              {links.map((link) => {
-                const isActive = isLinkActive(link.href);
-
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    aria-current={isActive ? "page" : undefined}
-                    className={isActive ? "is-active" : undefined}
+              <div className="nav-mobile-overlay is-open" aria-hidden={false}>
+                <div className="nav-mobile-head">
+                  <button
+                    type="button"
+                    className="nav-mobile-close"
+                    aria-label="Close menu"
                     onClick={() => setOpen(false)}
                   >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
+                    ×
+                  </button>
+                  <div className="nav-mobile-brand">
+                    <Image
+                      src="/logo.png"
+                      alt="Elel Events logo"
+                      width={320}
+                      height={120}
+                      className="nav-mobile-brand-image"
+                    />
+                    <strong>Elel Events &amp; Design</strong>
+                    <span>Luxury Event Design in Atlanta</span>
+                    <small>Transforming dream celebrations into unforgettable moments</small>
+                  </div>
+                </div>
 
-            <div className="nav-mobile-booking">
-              <small>Dates fill quickly for weddings &amp; special events</small>
-              <div className="nav-mobile-booking-actions">
-                <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
-                <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+                <div className="nav-mobile-links">
+                  {links.map((link) => {
+                    const isActive = isLinkActive(link.href);
+
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        aria-current={isActive ? "page" : undefined}
+                        className={isActive ? "is-active" : undefined}
+                        onClick={() => setOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                <div className="nav-mobile-booking">
+                  <small>Dates fill quickly for weddings &amp; special events</small>
+                  <div className="nav-mobile-booking-actions">
+                    <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
+                    <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+                  </div>
+                  <div className="nav-mobile-trust">
+                    <span>★★★★★ Google Reviews</span>
+                    <span>Serving Atlanta since 2019</span>
+                    <span>12+ years of luxury decor</span>
+                  </div>
+                </div>
               </div>
-              <div className="nav-mobile-trust">
-                <span>★★★★★ Google Reviews</span>
-                <span>Serving Atlanta since 2019</span>
-                <span>12+ years of luxury decor</span>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : null}
+            </>,
+            document.body
+          )
+        : null}
 
       {isHome && !isRequestPage ? (
         <aside className={`floating-booking-cta${showFloatingCta ? " is-visible" : ""}`}>
