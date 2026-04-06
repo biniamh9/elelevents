@@ -11308,3 +11308,52 @@ th { background: var(--surface-soft); }
     max-width: 320px;
   }
 }
+
+@media (max-width: 900px) {
+  .site-header.menu-open {
+    z-index: 320 !important;
+  }
+
+  .site-header .nav-toggle {
+    display: inline-flex !important;
+    position: relative;
+    z-index: 340;
+  }
+
+  .site-header .nav-drawer-backdrop {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 330;
+  }
+
+  .site-header .nav-mobile-overlay {
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+    z-index: 335;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(16px);
+  }
+
+  .site-header .nav-mobile-overlay.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .site-header .nav-mobile-head {
+    display: grid !important;
+  }
+
+  .site-header .nav-mobile-links {
+    display: grid !important;
+  }
+
+  .site-header .nav-mobile-booking {
+    display: grid !important;
+  }
+}
