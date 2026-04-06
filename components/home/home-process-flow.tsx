@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type ProcessStep = {
   title: string;
@@ -9,13 +9,76 @@ type ProcessStep = {
   imageLabel?: string | null;
 };
 
-const defaultImageLabels: Record<string, string> = {
-  "Submit Request": "Start Here",
-  Consultation: "Planning",
-  "Quote + Contract": "Approval",
-  "Secure Your Date": "Reserved",
-  "Event Day": "Execution",
+type ProcessStepDetail = {
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaHref: string;
+  imageCaption: string;
 };
+
+const stepDetailMap: Record<string, ProcessStepDetail> = {
+  "Submit Request": {
+    title: "Submit Request",
+    description:
+      "Tell us your date and event details so we can begin shaping your vision.",
+    ctaLabel: "Start Now",
+    ctaHref: "/request",
+    imageCaption: "First look",
+  },
+  Consultation: {
+    title: "Consultation",
+    description:
+      "We align on your style, scope, priorities, and the overall event experience you want to create.",
+    ctaLabel: "Book Consultation",
+    ctaHref: "/request",
+    imageCaption: "Planning call",
+  },
+  "Quote + Contract": {
+    title: "Quote + Contract",
+    description:
+      "You receive your custom pricing, proposal details, and agreement with clarity on next steps.",
+    ctaLabel: "View Process",
+    ctaHref: "/#process",
+    imageCaption: "Proposal ready",
+  },
+  "Secure Your Date": {
+    title: "Secure Your Date",
+    description:
+      "Once your agreement is signed and deposit is paid, your event date is officially reserved.",
+    ctaLabel: "Reserve Your Date",
+    ctaHref: "/request",
+    imageCaption: "Date secured",
+  },
+  "Event Day": {
+    title: "Event Day",
+    description:
+      "Walk into a beautifully styled celebration with details thoughtfully prepared and executed.",
+    ctaLabel: "See Gallery",
+    ctaHref: "/gallery",
+    imageCaption: "Event reveal",
+  },
+};
+
+const fallbackImageLabels: Record<string, string> = {
+  "Submit Request": "Inquire",
+  Consultation: "Consult",
+  "Quote + Contract": "Proposal",
+  "Secure Your Date": "Reserved",
+  "Event Day": "Event day",
+};
+
+function getStepDetail(step: ProcessStep) {
+  return (
+    stepDetailMap[step.title] ?? {
+      title: step.title,
+      description: step.text,
+      ctaLabel: "Learn More",
+      ctaHref: "/request",
+      imageCaption: step.imageLabel ?? fallbackImageLabels[step.title] ?? "Process",
+    }
+  );
+}
 
 export default function HomeProcessFlow({
   steps,
@@ -25,42 +88,48 @@ export default function HomeProcessFlow({
   const [activeIndex, setActiveIndex] = useState(0);
 
   const activeStep = steps[activeIndex];
+  const activeDetail = useMemo(() => getStepDetail(activeStep), [activeStep]);
 
   return (
-    <section className="simple-process-shell">
-      <div className="simple-process-head">
+    <section className="process-flow-shell">
+      <div className="process-flow-head">
         <p className="eyebrow">Our process</p>
         <h2>A simple, guided process from inquiry to event day.</h2>
-        <p className="muted">A clearly defined process that makes it easy to connect, collaborate, and feel confident every step of the way.</p>
+        <p className="muted">
+          A clearly defined process that makes it easy to connect, collaborate, and feel
+          confident every step of the way.
+        </p>
       </div>
 
-      <div className="simple-process-grid" role="tablist" aria-label="Booking process steps">
-        {steps.map((item, index) => {
-          const isActive = index === activeIndex;
+      <div className="process-flow-timeline" role="tablist" aria-label="Booking process steps">
+        {steps.map((step, index) => {
+          const isActive = activeIndex === index;
 
           return (
-            <div key={item.title} className="simple-process-step-wrap">
+            <div key={step.title} className="process-flow-step-wrap">
               <button
                 type="button"
                 role="tab"
+                id={`process-flow-tab-${index}`}
+                aria-controls={`process-flow-panel-${index}`}
                 aria-selected={isActive}
-                aria-controls={`process-panel-${index}`}
-                id={`process-tab-${index}`}
-                className={`simple-process-card ${isActive ? "is-active" : ""}`}
+                className={`process-flow-step ${isActive ? "is-active" : ""}`}
+                onClick={() => setActiveIndex(index)}
                 onMouseEnter={() => setActiveIndex(index)}
                 onFocus={() => setActiveIndex(index)}
-                onClick={() => setActiveIndex(index)}
               >
-                <span className="simple-process-index">{index + 1}</span>
+                <span className="process-flow-step-index">{index + 1}</span>
+                <div className="process-flow-step-copy">
+                  <strong>{step.title}</strong>
+                  <small>{getStepDetail(step).description}</small>
+                </div>
               </button>
 
-              <div className="simple-process-step-copy">
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </div>
-
               {index < steps.length - 1 ? (
-                <div className={`simple-process-connector ${isActive ? "is-active" : ""}`} aria-hidden="true">
+                <div
+                  className={`process-flow-step-connector ${isActive || activeIndex > index ? "is-active" : ""}`}
+                  aria-hidden="true"
+                >
                   <span />
                 </div>
               ) : null}
@@ -70,28 +139,31 @@ export default function HomeProcessFlow({
       </div>
 
       <div
-        id={`process-panel-${activeIndex}`}
+        id={`process-flow-panel-${activeIndex}`}
         role="tabpanel"
-        aria-labelledby={`process-tab-${activeIndex}`}
-        className="simple-process-panel"
+        aria-labelledby={`process-flow-tab-${activeIndex}`}
+        className="process-flow-feature"
       >
-        <div key={activeIndex} className="simple-process-panel-copy">
-          <span className="simple-process-panel-kicker">Step {activeIndex + 1}</span>
-          <h3>{activeStep.title}</h3>
-          <p>{activeStep.text}</p>
-          <button type="button" className="simple-process-panel-cta">
-            Start Now
-          </button>
+        <div key={`copy-${activeIndex}`} className="process-flow-feature-copy">
+          <span className="process-flow-feature-kicker">Step {activeIndex + 1}</span>
+          <h3>{activeDetail.title}</h3>
+          <p>{activeDetail.description}</p>
+          <a href={activeDetail.ctaHref} className="process-flow-feature-cta">
+            {activeDetail.ctaLabel}
+          </a>
         </div>
 
-        <div key={`media-${activeIndex}`} className="simple-process-panel-media">
+        <div key={`media-${activeIndex}`} className="process-flow-feature-media">
           {activeStep.imageUrl ? (
             <img src={activeStep.imageUrl} alt={activeStep.title} />
           ) : (
-            <div className="simple-process-panel-media-placeholder" aria-hidden="true" />
+            <div className="process-flow-feature-placeholder" aria-hidden="true" />
           )}
-          <span className="simple-process-panel-media-label">
-            {activeStep.imageLabel ?? defaultImageLabels[activeStep.title] ?? "Event Flow"}
+          <span className="process-flow-feature-caption">
+            {activeStep.imageLabel ??
+              activeDetail.imageCaption ??
+              fallbackImageLabels[activeStep.title] ??
+              "Event flow"}
           </span>
         </div>
       </div>
