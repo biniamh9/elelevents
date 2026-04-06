@@ -68,6 +68,23 @@ export default function SiteHeader() {
   }, [isMobileViewport]);
 
   useEffect(() => {
+    if (!isMobileViewport) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileViewport, open]);
+
+  useEffect(() => {
     if (pathname !== "/") {
       setScrolled(window.scrollY > 24);
       setShowFloatingCta(false);
@@ -245,6 +262,7 @@ export default function SiteHeader() {
 
   const isHome = pathname === "/";
   const isRequestPage = pathname === "/request";
+  const showMobileMenu = isMobileViewport && open;
 
   const isLinkActive = (href: string) => {
     if (href === "/#process") {
@@ -319,67 +337,71 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      <div
-        className={`nav-drawer-backdrop${open ? " is-open" : ""}`}
-        aria-hidden="true"
-        onClick={() => setOpen(false)}
-      />
-
-      <div className={`nav-mobile-overlay${open ? " is-open" : ""}`} aria-hidden={!open}>
-        <div className="nav-mobile-head">
-          <button
-            type="button"
-            className="nav-mobile-close"
-            aria-label="Close menu"
+      {showMobileMenu ? (
+        <>
+          <div
+            className="nav-drawer-backdrop is-open"
+            aria-hidden="true"
             onClick={() => setOpen(false)}
-          >
-            ×
-          </button>
-          <div className="nav-mobile-brand">
-            <Image
-              src="/logo.png"
-              alt="Elel Events logo"
-              width={320}
-              height={120}
-              className="nav-mobile-brand-image"
-            />
-            <strong>Elel Events &amp; Design</strong>
-            <span>Luxury Event Design in Atlanta</span>
-            <small>Transforming dream celebrations into unforgettable moments</small>
-          </div>
-        </div>
+          />
 
-        <div className="nav-mobile-links">
-          {links.map((link) => {
-            const isActive = isLinkActive(link.href);
-
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                aria-current={isActive ? "page" : undefined}
-                className={isActive ? "is-active" : undefined}
+          <div className="nav-mobile-overlay is-open" aria-hidden={false}>
+            <div className="nav-mobile-head">
+              <button
+                type="button"
+                className="nav-mobile-close"
+                aria-label="Close menu"
                 onClick={() => setOpen(false)}
               >
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
+                ×
+              </button>
+              <div className="nav-mobile-brand">
+                <Image
+                  src="/logo.png"
+                  alt="Elel Events logo"
+                  width={320}
+                  height={120}
+                  className="nav-mobile-brand-image"
+                />
+                <strong>Elel Events &amp; Design</strong>
+                <span>Luxury Event Design in Atlanta</span>
+                <small>Transforming dream celebrations into unforgettable moments</small>
+              </div>
+            </div>
 
-        <div className="nav-mobile-booking">
-          <small>Dates fill quickly for weddings &amp; special events</small>
-          <div className="nav-mobile-booking-actions">
-            <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
-            <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+            <div className="nav-mobile-links">
+              {links.map((link) => {
+                const isActive = isLinkActive(link.href);
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={isActive ? "page" : undefined}
+                    className={isActive ? "is-active" : undefined}
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="nav-mobile-booking">
+              <small>Dates fill quickly for weddings &amp; special events</small>
+              <div className="nav-mobile-booking-actions">
+                <Button href="/request" className="nav-mobile-booking-primary">Check Availability</Button>
+                <Button href="/request" variant="secondary" className="nav-mobile-booking-secondary">Book Consultation</Button>
+              </div>
+              <div className="nav-mobile-trust">
+                <span>★★★★★ Google Reviews</span>
+                <span>Serving Atlanta since 2019</span>
+                <span>12+ years of luxury decor</span>
+              </div>
+            </div>
           </div>
-          <div className="nav-mobile-trust">
-            <span>★★★★★ Google Reviews</span>
-            <span>Serving Atlanta since 2019</span>
-            <span>12+ years of luxury decor</span>
-          </div>
-        </div>
-      </div>
+        </>
+      ) : null}
 
       {isHome && !isRequestPage ? (
         <aside className={`floating-booking-cta${showFloatingCta ? " is-visible" : ""}`}>
