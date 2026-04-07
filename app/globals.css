@@ -11851,6 +11851,7 @@ th { background: var(--surface-soft); }
 
 .admin-document-section {
   padding: 24px;
+  border-radius: 24px;
 }
 
 .admin-document-section-head {
@@ -11863,6 +11864,11 @@ th { background: var(--surface-soft); }
 
 .admin-document-section-head h3 {
   margin: 6px 0 0;
+}
+
+.admin-document-section-head .muted {
+  max-width: 46ch;
+  margin: 8px 0 0;
 }
 
 .admin-document-grid,
@@ -11917,6 +11923,8 @@ th { background: var(--surface-soft); }
   top: 100px;
   display: grid;
   gap: 16px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fffdfa 0%, #f8f1e7 100%);
 }
 
 .admin-document-summary-fields {
@@ -11961,10 +11969,25 @@ th { background: var(--surface-soft); }
 .document-preview-page {
   display: grid;
   gap: 22px;
-  padding: 28px;
+  padding: 32px;
   background: linear-gradient(180deg, #fffefb 0%, #fcf7f0 100%);
   border: 1px solid rgba(121, 94, 61, 0.12);
-  border-radius: 28px;
+  border-radius: 30px;
+}
+
+.document-preview-page--quote {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 241, 0.98) 0%, rgba(252, 245, 236, 0.98) 100%);
+}
+
+.document-preview-page--invoice {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 241, 0.98) 100%);
+}
+
+.document-preview-page--receipt {
+  background:
+    linear-gradient(180deg, rgba(252, 249, 244, 0.98) 0%, rgba(246, 241, 232, 0.98) 100%);
 }
 
 .document-preview-header {
@@ -11974,24 +11997,52 @@ th { background: var(--surface-soft); }
   align-items: start;
 }
 
+.document-preview-brand-block {
+  display: grid;
+  gap: 10px;
+}
+
+.document-preview-label {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(223, 141, 81, 0.1);
+  color: #bb6d33;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .document-preview-header h2 {
-  margin: 8px 0 8px;
+  margin: 0;
   font-family: var(--font-serif), Georgia, serif;
-  font-size: 2.1rem;
-  line-height: 1.02;
+  font-size: 2.35rem;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
 }
 
 .document-preview-meta-card {
   display: grid;
   gap: 8px;
-  padding: 18px;
-  border-radius: 22px;
-  background: #fff;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(121, 94, 61, 0.12);
 }
 
 .document-preview-meta-card p {
   margin: 0;
+}
+
+.document-preview-meta-eyebrow {
+  color: #6f5a46;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .document-preview-info-grid {
@@ -12017,8 +12068,8 @@ th { background: var(--surface-soft); }
 .document-preview-sheet {
   display: grid;
   gap: 22px;
-  padding: 24px;
-  border-radius: 24px;
+  padding: 28px;
+  border-radius: 28px;
   background: #fff;
   border: 1px solid rgba(121, 94, 61, 0.12);
   box-shadow: 0 18px 42px rgba(44, 31, 18, 0.08);
@@ -12031,7 +12082,7 @@ th { background: var(--surface-soft); }
 
 .document-preview-table th,
 .document-preview-table td {
-  padding: 12px 10px;
+  padding: 14px 10px;
   border-bottom: 1px solid rgba(121, 94, 61, 0.1);
   text-align: left;
   vertical-align: top;
@@ -12049,6 +12100,10 @@ th { background: var(--surface-soft); }
   justify-self: end;
   display: grid;
   gap: 10px;
+  padding: 20px;
+  border-radius: 22px;
+  background: #fbf7f1;
+  border: 1px solid rgba(121, 94, 61, 0.1);
 }
 
 .document-preview-totals div {
@@ -12062,14 +12117,29 @@ th { background: var(--surface-soft); }
   border-top: 1px solid rgba(121, 94, 61, 0.16);
 }
 
+.document-preview-total-row strong {
+  font-size: 1.35rem;
+  color: #8c5327;
+}
+
 .document-preview-notes {
   display: grid;
   gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .document-preview-notes p {
   margin: 0;
   line-height: 1.7;
+}
+
+.document-preview-notes > div {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #fffdfa;
+  border: 1px solid rgba(121, 94, 61, 0.08);
 }
 
 .document-preview-payments {
@@ -12123,7 +12193,8 @@ th { background: var(--surface-soft); }
   .admin-document-grid,
   .admin-document-notes-grid,
   .document-preview-header,
-  .document-preview-info-grid {
+  .document-preview-info-grid,
+  .document-preview-notes {
     grid-template-columns: 1fr;
   }
 }
@@ -12138,6 +12209,10 @@ th { background: var(--surface-soft); }
   .document-preview-page,
   .document-preview-sheet {
     padding: 18px;
+  }
+
+  .document-preview-header h2 {
+    font-size: 1.9rem;
   }
 
   .document-preview-totals {

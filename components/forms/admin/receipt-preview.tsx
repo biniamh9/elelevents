@@ -11,8 +11,14 @@ export default function ReceiptPreview({
       document={document}
       lineItems={document.line_items}
       payments={document.payments}
-      primaryHeading="Payment Receipt"
-      primaryMessage="Payment confirmed. Keep this receipt for your records and event planning file."
+      documentLabel="Payment Receipt"
+      emphasisLabel="Payment confirmed"
+      primaryHeading="Thank you. Your payment has been received."
+      primaryMessage="This receipt confirms your payment and keeps your event record clear as we continue planning the final details with you."
+      totalLabel="Amount received"
+      balanceLabel="Balance remaining"
+      showDeposit={false}
+      footerMessage="Thank you for trusting Elel Events & Design. Keep this receipt for your records and planning file."
     />
   );
 }

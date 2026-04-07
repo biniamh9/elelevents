@@ -11,8 +11,13 @@ export default function InvoicePreview({
       document={document}
       lineItems={document.line_items}
       payments={document.payments}
-      primaryHeading="Invoice"
-      primaryMessage="A formal payment document with clear due date, balance, and payment instructions."
+      documentLabel="Invoice"
+      emphasisLabel="Payment due"
+      primaryHeading="Invoice for your confirmed event scope."
+      primaryMessage="This invoice outlines the approved scope, current charges, and the amount due to keep production and event scheduling on track."
+      totalLabel="Total due"
+      balanceLabel="Remaining balance"
+      footerMessage="Please reference the invoice number with your payment and contact Elel Events & Design if you need any billing clarification."
     />
   );
 }

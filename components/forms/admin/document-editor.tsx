@@ -292,6 +292,9 @@ export default function DocumentEditor({
               <div>
                 <p className="eyebrow">Preview</p>
                 <h3>{documentTypeLabels[document.document_type]}</h3>
+                <p className="muted">
+                  Review the client-facing version before sending or converting this document.
+                </p>
               </div>
             </div>
             {previewForDocument({

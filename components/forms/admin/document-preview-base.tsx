@@ -1,7 +1,6 @@
 import {
   formatDocumentDate,
   formatMoney,
-  documentTypeLabels,
   type ClientDocumentLineItem,
   type ClientDocumentPayment,
   type ClientDocumentRecord,
@@ -45,6 +44,12 @@ export default function DocumentPreviewBase({
   payments,
   primaryHeading,
   primaryMessage,
+  documentLabel,
+  emphasisLabel,
+  footerMessage,
+  totalLabel = "Total",
+  balanceLabel = "Balance due",
+  showDeposit = true,
   actionCopy,
 }: {
   document: ClientDocumentRecord;
@@ -52,19 +57,26 @@ export default function DocumentPreviewBase({
   payments?: ClientDocumentPayment[];
   primaryHeading: string;
   primaryMessage: string;
+  documentLabel: string;
+  emphasisLabel: string;
+  footerMessage: string;
+  totalLabel?: string;
+  balanceLabel?: string;
+  showDeposit?: boolean;
   actionCopy?: React.ReactNode;
 }) {
   return (
-    <section className="document-preview-page">
+    <section className={`document-preview-page document-preview-page--${document.document_type}`}>
       <header className="document-preview-header">
-        <div>
+        <div className="document-preview-brand-block">
           <p className="eyebrow">Elel Events & Design</p>
-          <h2>{documentTypeLabels[document.document_type]}</h2>
+          <span className="document-preview-label">{documentLabel}</span>
           <p className="muted">{primaryMessage}</p>
+          <h2>{primaryHeading}</h2>
         </div>
         <div className="document-preview-meta-card">
           <DocumentStatusBadge status={document.status} />
-          <p><strong>{primaryHeading}</strong></p>
+          <p className="document-preview-meta-eyebrow">{emphasisLabel}</p>
           <p>#{document.document_number}</p>
           <p>Issued {formatDocumentDate(document.issue_date)}</p>
           {document.due_date ? <p>Due {formatDocumentDate(document.due_date)}</p> : null}
@@ -108,16 +120,16 @@ export default function DocumentPreviewBase({
             <div><span>Tax</span><strong>${formatMoney(document.tax_amount)}</strong></div>
           ) : null}
           <div className="document-preview-total-row">
-            <span>Total</span>
+            <span>{totalLabel}</span>
             <strong>${formatMoney(document.total_amount)}</strong>
           </div>
-          {document.deposit_required > 0 ? (
+          {showDeposit && document.deposit_required > 0 ? (
             <div><span>Deposit required</span><strong>${formatMoney(document.deposit_required)}</strong></div>
           ) : null}
           {document.amount_paid > 0 ? (
             <div><span>Amount paid</span><strong>${formatMoney(document.amount_paid)}</strong></div>
           ) : null}
-          <div><span>Balance due</span><strong>${formatMoney(document.balance_due)}</strong></div>
+          <div><span>{balanceLabel}</span><strong>${formatMoney(document.balance_due)}</strong></div>
         </div>
 
         <div className="document-preview-notes">
@@ -171,7 +183,7 @@ export default function DocumentPreviewBase({
       {actionCopy ? <div className="document-preview-footer-callout">{actionCopy}</div> : null}
       <footer className="document-preview-footer">
         <strong>Elel Events & Design</strong>
-        <span>Atlanta luxury event styling • hello@elelevents.com • elelevents.com</span>
+        <span>{footerMessage}</span>
       </footer>
     </section>
   );
