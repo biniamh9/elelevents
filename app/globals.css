@@ -6704,15 +6704,20 @@ th { background: var(--surface-soft); }
 .admin-records-table-card {
   display: grid;
   gap: 18px;
+  overflow: visible;
 }
 .admin-records-table-wrap {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-right: 8px;
+  scrollbar-gutter: stable both-edges;
 }
 .admin-records-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 1260px;
   border-collapse: separate;
   border-spacing: 0;
+  table-layout: auto;
 }
 .admin-records-table thead th {
   position: sticky;
@@ -6726,6 +6731,38 @@ th { background: var(--surface-soft); }
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
+}
+.admin-records-table th:first-child,
+.admin-records-table td:first-child {
+  min-width: 220px;
+}
+.admin-records-table th:nth-child(5),
+.admin-records-table td:nth-child(5),
+.admin-records-table th:nth-child(6),
+.admin-records-table td:nth-child(6),
+.admin-records-table th:nth-child(7),
+.admin-records-table td:nth-child(7) {
+  min-width: 150px;
+}
+.admin-records-table th:nth-child(8),
+.admin-records-table td:nth-child(8) {
+  min-width: 120px;
+  white-space: nowrap;
+}
+.admin-records-table th:last-child,
+.admin-records-table td:last-child {
+  position: sticky;
+  right: 0;
+  min-width: 176px;
+  width: 176px;
+  background: linear-gradient(180deg, #fffdf9, #fbf4ed);
+  box-shadow: -18px 0 22px rgba(61, 40, 27, 0.06);
+}
+.admin-records-table thead th:last-child {
+  z-index: 4;
+}
+.admin-records-table tbody td:last-child {
+  z-index: 1;
 }
 .admin-records-table th {
   color: var(--muted);
