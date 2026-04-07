@@ -1486,6 +1486,7 @@ export default function EventRequestForm({
     setLoading(true);
     setError("");
     setSuccess("");
+    const submissionNotes = buildReviewNotes(form, visualSelectionNotes, momentGuidanceRequested);
 
     const res = await fetch("/api/inquiries", {
       method: "POST",
@@ -1497,7 +1498,7 @@ export default function EventRequestForm({
         guestCount: form.guestCount ? Number(form.guestCount) : null,
         selectedDecorCategories,
         decorSelections,
-        additionalInfo: buildReviewNotes(form, visualSelectionNotes, momentGuidanceRequested),
+        additionalInfo: submissionNotes,
       }),
     });
 
@@ -1517,6 +1518,23 @@ export default function EventRequestForm({
       setError(details || data.error || "Submission failed.");
       setLoading(false);
       return;
+    }
+
+    try {
+      await fetch("/api/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: [form.firstName, form.lastName].filter(Boolean).join(" ").trim(),
+          email: form.email,
+          phone: form.phone,
+          eventDate: form.eventDate,
+          guestCount: form.guestCount ? Number(form.guestCount) : "",
+          notes: submissionNotes,
+        }),
+      });
+    } catch (sendError) {
+      console.error("Event request email failed:", sendError);
     }
 
     const reminderDate = form.eventDate
