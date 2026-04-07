@@ -220,6 +220,14 @@ export default async function ContractDetailPage({
             <p><strong>Envelope:</strong> {contract.docusign_envelope_id ?? "Not sent yet"}</p>
             <p><strong>Payment method:</strong> {details.payment_record.payment_method ?? "—"}</p>
             <div className="summary-pills">
+              <Link href={`/admin/documents/new?type=invoice&contractId=${contract.id}&inquiryId=${contract.inquiry_id ?? ""}`} className="summary-chip">
+                Create Invoice
+              </Link>
+              <Link href="/admin/documents" className="summary-chip">
+                Open Documents
+              </Link>
+            </div>
+            <div className="summary-pills">
               {scope.services?.length
                 ? scope.services.slice(0, 6).map((service: string) => (
                     <span key={service} className="summary-chip">{service}</span>

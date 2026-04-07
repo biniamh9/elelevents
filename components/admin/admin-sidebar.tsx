@@ -18,6 +18,12 @@ const navItems: NavItem[] = [
     icon: "chart",
   },
   {
+    href: "/admin/documents",
+    label: "Documents",
+    description: "Quotes, invoices, receipts",
+    icon: "doc",
+  },
+  {
     href: "/admin/contracts",
     label: "Contracts",
     description: "Quotes, signatures, payments",

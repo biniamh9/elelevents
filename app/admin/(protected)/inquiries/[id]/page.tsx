@@ -356,6 +356,16 @@ export default async function InquiryDetailPage({
 
         <div className="card">
           <h3>Quote, Contract, and Payment</h3>
+          <div className="summary-pills" style={{ marginBottom: "14px" }}>
+            <Link href={`/admin/documents/new?type=quote&inquiryId=${inquiry.id}`} className="summary-chip">
+              Create Quote Document
+            </Link>
+            {linkedContract ? (
+              <Link href={`/admin/documents/new?type=invoice&inquiryId=${inquiry.id}&contractId=${linkedContract.id}`} className="summary-chip">
+                Create Invoice Document
+              </Link>
+            ) : null}
+          </div>
           <p><strong>Colors / Theme:</strong> {inquiry.colors_theme ?? "—"}</p>
           <p><strong>Selected Decor Elements:</strong></p>
           <div className="summary-pills">
