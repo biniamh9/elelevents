@@ -48,6 +48,32 @@ function formatDateTime(value: string | null | undefined) {
   });
 }
 
+function formatRelativeTimestamp(value: string | null | undefined) {
+  if (!value) {
+    return "Just now";
+  }
+
+  const date = new Date(value);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes}m ago`;
+  }
+
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
+
+  const diffDays = Math.round(diffHours / 24);
+  if (diffDays < 7) {
+    return `${diffDays}d ago`;
+  }
+
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function getPaymentState(contract: {
   deposit_paid?: boolean | null;
   balance_due?: number | null;
@@ -186,10 +212,20 @@ export default async function AdminInquiriesPage({
     .select("*", { count: "exact", head: true })
     .gt("balance_due", 0);
 
+  const { count: unsignedContractsCount } = await supabaseAdmin
+    .from("contracts")
+    .select("*", { count: "exact", head: true })
+    .in("contract_status", ["draft", "sent"]);
+
+  const { count: unpaidDepositsCount } = await supabaseAdmin
+    .from("contracts")
+    .select("*", { count: "exact", head: true })
+    .eq("deposit_paid", false);
+
   const { data: pipelineRows } = await supabaseAdmin
     .from("event_inquiries")
-    .select("estimated_price, status")
-    .in("status", ["new", "contacted", "quoted", "booked"]);
+    .select("estimated_price, status, booking_stage, consultation_status")
+    .in("status", ["new", "contacted", "quoted", "booked", "closed_lost"]);
 
   const pipelineValue =
     pipelineRows?.reduce((sum, row) => sum + Number(row.estimated_price ?? 0), 0) ?? 0;
@@ -295,6 +331,12 @@ export default async function AdminInquiriesPage({
     });
   }
 
+  const { data: recentActivity } = await supabaseAdmin
+    .from("activity_log")
+    .select("id, summary, action, entity_type, created_at")
+    .order("created_at", { ascending: false })
+    .limit(8);
+
   const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
   const eventTypes = [
     "Wedding",
@@ -309,16 +351,10 @@ export default async function AdminInquiriesPage({
 
   const reportCards = [
     {
-      label: "New Requests",
+      label: "New Inquiries",
       value: String(pendingCount ?? 0),
-      note: `${buildShare(pendingCount, totalCount)}% of all inquiries`,
+      note: `${buildShare(pendingCount, totalCount)}% of all requests`,
       tone: "amber",
-    },
-    {
-      label: "Under Review",
-      value: String(underReviewCount ?? 0),
-      note: "Consultations waiting on approval",
-      tone: "blue",
     },
     {
       label: "Consultations Scheduled",
@@ -327,16 +363,126 @@ export default async function AdminInquiriesPage({
       tone: "violet",
     },
     {
-      label: "Reserved Dates",
+      label: "Pending Quotes",
+      value: String(quotedCount ?? 0),
+      note: "Waiting on client movement",
+      tone: "blue",
+    },
+    {
+      label: "Booked Events",
       value: String(reservedCount ?? 0),
-      note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion this month`,
+      note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion`,
       tone: "green",
     },
     {
-      label: "Outstanding Final Payments",
-      value: String(outstandingFinalPayments ?? 0),
-      note: `Revenue this month: $${formatMoney(bookedRevenueThisMonth)} • Pipeline: $${formatMoney(pipelineValue)}`,
+      label: "Revenue / Deposits",
+      value: `$${formatMoney(bookedRevenueThisMonth)}`,
+      note: `Outstanding balances: ${outstandingFinalPayments ?? 0}`,
       tone: "red",
+    },
+  ];
+
+  const attentionItems = [
+    {
+      title: "New inquiries waiting on response",
+      count: pendingCount ?? 0,
+      detail: "Fresh leads that still need a first touch or triage.",
+      tone: "warning" as const,
+      href: "/admin/inquiries?status=new",
+      cta: "Review leads",
+    },
+    {
+      title: "Contracts still unsigned",
+      count: unsignedContractsCount ?? 0,
+      detail: "Quotes are moving, but the agreement is not fully secured yet.",
+      tone: "attention" as const,
+      href: "/admin/contracts",
+      cta: "Open contracts",
+    },
+    {
+      title: "Deposits not yet received",
+      count: unpaidDepositsCount ?? 0,
+      detail: "Follow up before dates drift into soft-hold territory.",
+      tone: "warning" as const,
+      href: "/admin/contracts",
+      cta: "Track payments",
+    },
+    {
+      title: "Upcoming consultations",
+      count: upcomingConsultations?.length ?? 0,
+      detail: "Meetings within the next two weeks that need preparation.",
+      tone: "info" as const,
+      href: "/admin/calendar",
+      cta: "View calendar",
+    },
+  ].filter((item) => item.count > 0);
+
+  const quickActions = [
+    {
+      title: "Review Inquiries",
+      detail: "Triage new requests and move them into consultation.",
+      href: "/admin/inquiries?status=new",
+    },
+    {
+      title: "Create Quote",
+      detail: "Prepare pricing or a proposal draft from a live request.",
+      href: "/admin/documents/new?type=quote",
+    },
+    {
+      title: "Create Invoice",
+      detail: "Prepare deposit or final billing for a confirmed event.",
+      href: "/admin/documents/new?type=invoice",
+    },
+    {
+      title: "Add Gallery Images",
+      detail: "Upload new portfolio images for future leads and previews.",
+      href: "/admin/gallery",
+    },
+    {
+      title: "Update Pricing",
+      detail: "Adjust catalog line items and proposal pricing rules.",
+      href: "/admin/pricing",
+    },
+    {
+      title: "View Calendar",
+      detail: "Check consultation load, reserved dates, and conflicts.",
+      href: "/admin/calendar",
+    },
+  ];
+
+  const pipelineSnapshot = [
+    {
+      label: "New",
+      count: pipelineRows?.filter((row) => row.status === "new").length ?? 0,
+      note: "Incoming requests",
+    },
+    {
+      label: "Contacted",
+      count: pipelineRows?.filter((row) => row.status === "contacted").length ?? 0,
+      note: "Follow-up in motion",
+    },
+    {
+      label: "Consultation Scheduled",
+      count: pipelineRows?.filter((row) => row.consultation_status === "scheduled").length ?? 0,
+      note: "Meetings confirmed",
+    },
+    {
+      label: "Quote Sent",
+      count: pipelineRows?.filter((row) => row.status === "quoted").length ?? 0,
+      note: "Awaiting response",
+    },
+    {
+      label: "Booked",
+      count:
+        pipelineRows?.filter(
+          (row) => row.booking_stage === "reserved" || row.status === "booked"
+        ).length ?? 0,
+      note: "Dates reserved",
+    },
+    {
+      label: "Completed",
+      count: pipelineRows?.filter((row) => row.booking_stage === "completed").length ?? 0,
+      note: "Events delivered",
     },
   ];
 
@@ -362,7 +508,7 @@ export default async function AdminInquiriesPage({
           <p className="eyebrow">Operations dashboard</p>
           <h1>Inquiries</h1>
           <p className="lead">
-            Track new requests, consultation load, reserved dates, quotes, and payments from one operations view.
+            A cleaner operations view for leads, quotes, contracts, booking load, and what needs attention next.
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -374,8 +520,8 @@ export default async function AdminInquiriesPage({
 
       <section className="admin-mini-report">
         <div className="admin-section-title">
-          <h3>Summary</h3>
-          <p className="muted">Top-line numbers for the parts of the booking lifecycle that need attention first.</p>
+          <h3>Overview</h3>
+          <p className="muted">Top-line numbers for business health, inquiry movement, and booked revenue.</p>
         </div>
         <div className="admin-kpi-grid">
           {reportCards.map((card) => (
@@ -388,29 +534,113 @@ export default async function AdminInquiriesPage({
         </div>
       </section>
 
-      <section className="admin-dashboard-grid">
-        <div className="card admin-panel admin-panel--wide">
+      <section className="admin-dashboard-row">
+        <div className="card admin-panel admin-panel--wide admin-section-card">
           <div className="admin-panel-head">
             <div>
-              <p className="eyebrow">Schedule focus</p>
-              <h3>Consultations and reserved dates</h3>
+              <p className="eyebrow">Needs attention</p>
+              <h3>What needs movement now</h3>
+              <p className="muted">Urgent or incomplete items grouped into one action-oriented section.</p>
+            </div>
+          </div>
+
+          {attentionItems.length ? (
+            <div className="admin-attention-grid">
+              {attentionItems.map((item) => (
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  className={`admin-alert-card admin-alert-card--${item.tone} admin-attention-card`}
+                >
+                  <div className="admin-attention-top">
+                    <strong>{item.title}</strong>
+                    <span>{item.count}</span>
+                  </div>
+                  <p>{item.detail}</p>
+                  <small>{item.cta}</small>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="admin-alert-card admin-alert-card--success">
+              <strong>Operations look clear</strong>
+              <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="card admin-panel admin-section-card">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Quick actions</p>
+              <h3>Common next moves</h3>
+              <p className="muted">Shortcuts for the actions the team uses most.</p>
+            </div>
+          </div>
+
+          <div className="admin-quick-actions-grid">
+            {quickActions.map((action) => (
+              <Link key={action.title} href={action.href} className="admin-quick-action-card">
+                <strong>{action.title}</strong>
+                <p>{action.detail}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-dashboard-row">
+        <div className="card admin-panel admin-panel--wide admin-section-card">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Pipeline</p>
+              <h3>Workflow snapshot</h3>
+              <p className="muted">A clear view of how inquiries are moving from first contact to delivered event.</p>
+            </div>
+          </div>
+
+          <div className="admin-stage-grid admin-stage-grid--dashboard">
+            {pipelineSnapshot.map((stage, index) => {
+              const maxCount = Math.max(...pipelineSnapshot.map((item) => item.count), 1);
+              const width = stage.count > 0 ? Math.max(12, Math.round((stage.count / maxCount) * 100)) : 0;
+
+              return (
+                <div key={stage.label} className="admin-stage-card">
+                  <div className="admin-stage-top">
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <strong>{stage.count}</strong>
+                  </div>
+                  <h4>{stage.label}</h4>
+                  <div className="admin-stage-bar">
+                    <div style={{ width: `${width}%` }} />
+                  </div>
+                  <small>{stage.note}</small>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="card admin-panel admin-section-card">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Calendar</p>
+              <h3>Upcoming workload</h3>
+              <p className="muted">Consultations and high-load dates grouped into one schedule block.</p>
             </div>
             <div className="admin-inline-actions">
               <Link href="/admin/calendar" className="admin-topbar-pill">
-                Calendar View
-              </Link>
-              <Link href="/admin/inquiries?sort=event_date" className="admin-topbar-pill">
-                List View
+                View calendar
               </Link>
             </div>
           </div>
 
-          <div className="admin-schedule-board">
+          <div className="admin-agenda-stack">
             <div className="admin-schedule-column">
               <strong className="admin-schedule-heading">Upcoming consultations</strong>
               {(upcomingConsultations ?? []).length ? (
                 <div className="admin-schedule-list">
-                  {upcomingConsultations?.map((item) => (
+                  {upcomingConsultations?.slice(0, 4).map((item) => (
                     <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-schedule-item">
                       <div>
                         <strong>{item.first_name} {item.last_name}</strong>
@@ -426,7 +656,7 @@ export default async function AdminInquiriesPage({
             </div>
 
             <div className="admin-schedule-column">
-              <strong className="admin-schedule-heading">Busiest reserved dates this month</strong>
+              <strong className="admin-schedule-heading">Busiest reserved dates</strong>
               {busiestDates.length ? (
                 <div className="admin-date-load-list">
                   {busiestDates.map(([date, count]) => (
@@ -445,27 +675,58 @@ export default async function AdminInquiriesPage({
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="card admin-panel">
+      <section className="admin-dashboard-row admin-dashboard-row--activity">
+        <div className="card admin-panel admin-panel--wide admin-section-card">
           <div className="admin-panel-head">
             <div>
-              <p className="eyebrow">Alerts</p>
-              <h3>What needs attention now</h3>
+              <p className="eyebrow">Recent activity</p>
+              <h3>What changed most recently</h3>
+              <p className="muted">A rolling feed of inquiry, document, contract, and payment updates.</p>
             </div>
           </div>
 
-          <div className="admin-alert-stack">
+          <div className="admin-activity-panel">
+            {recentActivity?.length ? (
+              <div className="admin-activity-list">
+                {recentActivity.map((entry) => (
+                  <div key={entry.id} className="admin-activity-item">
+                    <div>
+                      <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                      <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
+                    </div>
+                    <span>{formatRelativeTimestamp(entry.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="muted">No recent activity has been logged yet.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="card admin-panel admin-section-card">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Snapshot</p>
+              <h3>Today at a glance</h3>
+              <p className="muted">Condensed context on what is likely to matter in the next few hours.</p>
+            </div>
+          </div>
+
+          <div className="admin-list">
             {alerts.length ? (
               alerts.map((alert) => (
-                <div key={alert.label} className={`admin-alert-card admin-alert-card--${alert.tone}`}>
+                <div key={alert.label} className="admin-list-item">
                   <strong>{alert.label}</strong>
-                  <p>{alert.detail}</p>
+                  <span>{alert.detail}</span>
                 </div>
               ))
             ) : (
-              <div className="admin-alert-card admin-alert-card--success">
-                <strong>Operations look clear</strong>
-                <p>No immediate consultation, booking-load, or payment alerts are blocking the workflow right now.</p>
+              <div className="admin-list-item">
+                <strong>Everything is in motion</strong>
+                <span>There are no blocking alerts at the moment.</span>
               </div>
             )}
           </div>
@@ -475,8 +736,9 @@ export default async function AdminInquiriesPage({
       <div className="card admin-table-card admin-records-table-card">
         <div className="admin-panel-head">
           <div>
-            <p className="eyebrow">Inquiry Records</p>
+            <p className="eyebrow">Inquiry records</p>
             <h3>Manage the existing records</h3>
+            <p className="muted">Search, filter, and act on individual requests once the dashboard summary has oriented you.</p>
           </div>
         </div>
 
