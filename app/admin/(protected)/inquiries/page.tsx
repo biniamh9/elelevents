@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 15;
 
+type WorkspaceTab = "overview" | "pipeline" | "schedule" | "inquiries";
+
 function formatMoney(value: number) {
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
@@ -98,6 +100,7 @@ export default async function AdminInquiriesPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    tab?: string;
     status?: string;
     event_type?: string;
     q?: string;
@@ -106,6 +109,11 @@ export default async function AdminInquiriesPage({
   }>;
 }) {
   const params = await searchParams;
+  const activeTab: WorkspaceTab = ["overview", "pipeline", "schedule", "inquiries"].includes(
+    params.tab ?? ""
+  )
+    ? (params.tab as WorkspaceTab)
+    : "overview";
   const status = params.status || "";
   const eventType = params.event_type || "";
   const queryText = params.q?.trim() || "";
@@ -337,6 +345,12 @@ export default async function AdminInquiriesPage({
     .order("created_at", { ascending: false })
     .limit(8);
 
+  const { data: pipelineBoardRows } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("id, first_name, last_name, event_type, event_date, status, consultation_status, booking_stage, consultation_at, created_at")
+    .order("created_at", { ascending: false })
+    .limit(60);
+
   const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
   const eventTypes = [
     "Wedding",
@@ -388,7 +402,7 @@ export default async function AdminInquiriesPage({
       count: pendingCount ?? 0,
       detail: "Fresh leads that still need a first touch or triage.",
       tone: "warning" as const,
-      href: "/admin/inquiries?status=new",
+      href: "/admin/inquiries?tab=inquiries&status=new",
       cta: "Review leads",
     },
     {
@@ -412,8 +426,8 @@ export default async function AdminInquiriesPage({
       count: upcomingConsultations?.length ?? 0,
       detail: "Meetings within the next two weeks that need preparation.",
       tone: "info" as const,
-      href: "/admin/calendar",
-      cta: "View calendar",
+      href: "/admin/inquiries?tab=schedule",
+      cta: "View schedule",
     },
   ].filter((item) => item.count > 0);
 
@@ -421,7 +435,7 @@ export default async function AdminInquiriesPage({
     {
       title: "Review Inquiries",
       detail: "Triage new requests and move them into consultation.",
-      href: "/admin/inquiries?status=new",
+      href: "/admin/inquiries?tab=inquiries&status=new",
     },
     {
       title: "Create Quote",
@@ -479,10 +493,37 @@ export default async function AdminInquiriesPage({
         ).length ?? 0,
       note: "Dates reserved",
     },
+  ];
+
+  const pipelineColumns = [
     {
-      label: "Completed",
-      count: pipelineRows?.filter((row) => row.booking_stage === "completed").length ?? 0,
-      note: "Events delivered",
+      label: "New",
+      items: pipelineBoardRows?.filter((row) => row.status === "new").slice(0, 8) ?? [],
+    },
+    {
+      label: "Under Review",
+      items:
+        pipelineBoardRows?.filter(
+          (row) => row.consultation_status === "under_review" || row.status === "contacted"
+        ).slice(0, 8) ?? [],
+    },
+    {
+      label: "Consultation",
+      items:
+        pipelineBoardRows?.filter(
+          (row) => row.consultation_status === "scheduled" || Boolean(row.consultation_at)
+        ).slice(0, 8) ?? [],
+    },
+    {
+      label: "Quoted",
+      items: pipelineBoardRows?.filter((row) => row.status === "quoted").slice(0, 8) ?? [],
+    },
+    {
+      label: "Booked",
+      items:
+        pipelineBoardRows?.filter(
+          (row) => row.booking_stage === "reserved" || row.status === "booked"
+        ).slice(0, 8) ?? [],
     },
   ];
 
@@ -492,23 +533,37 @@ export default async function AdminInquiriesPage({
 
   function buildPageHref(nextPageValue: number) {
     const nextParams = new URLSearchParams();
+    nextParams.set("tab", "inquiries");
     if (status) nextParams.set("status", status);
     if (eventType) nextParams.set("event_type", eventType);
     if (queryText) nextParams.set("q", queryText);
     if (sort) nextParams.set("sort", sort);
     if (nextPageValue > 1) nextParams.set("page", String(nextPageValue));
+    return `/admin/inquiries?${nextParams.toString()}`;
+  }
+
+  function buildTabHref(tab: WorkspaceTab) {
+    const nextParams = new URLSearchParams();
+    if (tab !== "overview") nextParams.set("tab", tab);
+    if (tab === "inquiries") {
+      if (status) nextParams.set("status", status);
+      if (eventType) nextParams.set("event_type", eventType);
+      if (queryText) nextParams.set("q", queryText);
+      if (sort) nextParams.set("sort", sort);
+      if (page > 1) nextParams.set("page", String(page));
+    }
     const queryString = nextParams.toString();
     return queryString ? `/admin/inquiries?${queryString}` : "/admin/inquiries";
   }
 
   return (
-    <main className="section admin-page">
+    <main className="section admin-page admin-page--workspace">
       <div className="admin-page-head">
         <div>
           <p className="eyebrow">Operations dashboard</p>
           <h1>Inquiries</h1>
           <p className="lead">
-            A cleaner operations view for leads, quotes, contracts, booking load, and what needs attention next.
+            A cleaner operations workspace for leads, consultations, quotes, bookings, and what needs action next.
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -518,430 +573,504 @@ export default async function AdminInquiriesPage({
         </div>
       </div>
 
-      <section className="admin-mini-report">
-        <div className="admin-section-title">
-          <h3>Overview</h3>
-          <p className="muted">Top-line numbers for business health, inquiry movement, and booked revenue.</p>
-        </div>
-        <div className="admin-kpi-grid">
-          {reportCards.map((card) => (
-            <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
-              <p className="muted">{card.label}</p>
-              <strong>{card.value}</strong>
-              <span>{card.note}</span>
-            </div>
+      <div className="admin-workspace-header">
+        <div className="admin-workspace-tabs" role="tablist" aria-label="Admin overview sections">
+          {([
+            ["overview", "Overview"],
+            ["pipeline", "Pipeline"],
+            ["schedule", "Schedule"],
+            ["inquiries", "Inquiries"],
+          ] as const).map(([tabValue, label]) => (
+            <Link
+              key={tabValue}
+              href={buildTabHref(tabValue)}
+              className={`admin-workspace-tab${activeTab === tabValue ? " is-active" : ""}`}
+            >
+              {label}
+            </Link>
           ))}
         </div>
-      </section>
+        <div className="admin-workspace-actions">
+          <Link href="/request" className="btn">
+            Create Inquiry
+          </Link>
+        </div>
+      </div>
 
-      <section className="admin-dashboard-row">
-        <div className="card admin-panel admin-panel--wide admin-section-card">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Needs attention</p>
-              <h3>What needs movement now</h3>
-              <p className="muted">Urgent or incomplete items grouped into one action-oriented section.</p>
+      {activeTab === "overview" ? (
+        <>
+          <section className="admin-mini-report">
+            <div className="admin-section-title">
+              <h3>Overview</h3>
+              <p className="muted">Top-line numbers for business health, pipeline value, and conversion performance.</p>
             </div>
-          </div>
-
-          {attentionItems.length ? (
-            <div className="admin-attention-grid">
-              {attentionItems.map((item) => (
-                <Link
-                  key={item.title}
-                  href={item.href}
-                  className={`admin-alert-card admin-alert-card--${item.tone} admin-attention-card`}
-                >
-                  <div className="admin-attention-top">
-                    <strong>{item.title}</strong>
-                    <span>{item.count}</span>
-                  </div>
-                  <p>{item.detail}</p>
-                  <small>{item.cta}</small>
-                </Link>
+            <div className="admin-kpi-grid">
+              {reportCards.map((card) => (
+                <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
+                  <p className="muted">{card.label}</p>
+                  <strong>{card.value}</strong>
+                  <span>{card.note}</span>
+                </div>
               ))}
             </div>
-          ) : (
-            <div className="admin-alert-card admin-alert-card--success">
-              <strong>Operations look clear</strong>
-              <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
-            </div>
-          )}
-        </div>
+          </section>
 
-        <div className="card admin-panel admin-section-card">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Quick actions</p>
-              <h3>Common next moves</h3>
-              <p className="muted">Shortcuts for the actions the team uses most.</p>
-            </div>
-          </div>
-
-          <div className="admin-quick-actions-grid">
-            {quickActions.map((action) => (
-              <Link key={action.title} href={action.href} className="admin-quick-action-card">
-                <strong>{action.title}</strong>
-                <p>{action.detail}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="admin-dashboard-row">
-        <div className="card admin-panel admin-panel--wide admin-section-card">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Pipeline</p>
-              <h3>Workflow snapshot</h3>
-              <p className="muted">A clear view of how inquiries are moving from first contact to delivered event.</p>
-            </div>
-          </div>
-
-          <div className="admin-stage-grid admin-stage-grid--dashboard">
-            {pipelineSnapshot.map((stage, index) => {
-              const maxCount = Math.max(...pipelineSnapshot.map((item) => item.count), 1);
-              const width = stage.count > 0 ? Math.max(12, Math.round((stage.count / maxCount) * 100)) : 0;
-
-              return (
-                <div key={stage.label} className="admin-stage-card">
-                  <div className="admin-stage-top">
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <strong>{stage.count}</strong>
-                  </div>
-                  <h4>{stage.label}</h4>
-                  <div className="admin-stage-bar">
-                    <div style={{ width: `${width}%` }} />
-                  </div>
-                  <small>{stage.note}</small>
+          <section className="admin-dashboard-row">
+            <div className="card admin-panel admin-panel--wide admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Needs attention</p>
+                  <h3>What needs movement now</h3>
+                  <p className="muted">Urgent or incomplete items grouped into one action-oriented section.</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        <div className="card admin-panel admin-section-card">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Calendar</p>
-              <h3>Upcoming workload</h3>
-              <p className="muted">Consultations and high-load dates grouped into one schedule block.</p>
-            </div>
-            <div className="admin-inline-actions">
-              <Link href="/admin/calendar" className="admin-topbar-pill">
-                View calendar
-              </Link>
-            </div>
-          </div>
-
-          <div className="admin-agenda-stack">
-            <div className="admin-schedule-column">
-              <strong className="admin-schedule-heading">Upcoming consultations</strong>
-              {(upcomingConsultations ?? []).length ? (
-                <div className="admin-schedule-list">
-                  {upcomingConsultations?.slice(0, 4).map((item) => (
-                    <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-schedule-item">
-                      <div>
-                        <strong>{item.first_name} {item.last_name}</strong>
-                        <p>{item.event_type || "Event"} {item.event_date ? `• ${new Date(item.event_date).toLocaleDateString()}` : ""}</p>
+              {attentionItems.length ? (
+                <div className="admin-attention-grid">
+                  {attentionItems.map((item) => (
+                    <Link
+                      key={item.title}
+                      href={item.href}
+                      className={`admin-alert-card admin-alert-card--${item.tone} admin-attention-card`}
+                    >
+                      <div className="admin-attention-top">
+                        <strong>{item.title}</strong>
+                        <span>{item.count}</span>
                       </div>
-                      <span>{formatDateTime(item.consultation_at)}</span>
+                      <p>{item.detail}</p>
+                      <small>{item.cta}</small>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="muted">No consultations scheduled in the next two weeks.</p>
-              )}
-            </div>
-
-            <div className="admin-schedule-column">
-              <strong className="admin-schedule-heading">Busiest reserved dates</strong>
-              {busiestDates.length ? (
-                <div className="admin-date-load-list">
-                  {busiestDates.map(([date, count]) => (
-                    <div key={date} className={`admin-date-load admin-date-load--${count >= 3 ? "high" : count === 2 ? "medium" : "low"}`}>
-                      <div>
-                        <strong>{new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</strong>
-                        <p>{count} booking{count === 1 ? "" : "s"} on the calendar</p>
-                      </div>
-                      <span>{count >= 3 ? "High Load" : count === 2 ? "Double Booking" : "Reserved"}</span>
-                    </div>
-                  ))}
+                <div className="admin-alert-card admin-alert-card--success">
+                  <strong>Operations look clear</strong>
+                  <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
                 </div>
-              ) : (
-                <p className="muted">No reserved dates are carrying visible load this month.</p>
               )}
             </div>
-          </div>
-        </div>
-      </section>
 
-      <section className="admin-dashboard-row admin-dashboard-row--activity">
-        <div className="card admin-panel admin-panel--wide admin-section-card">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Recent activity</p>
-              <h3>What changed most recently</h3>
-              <p className="muted">A rolling feed of inquiry, document, contract, and payment updates.</p>
-            </div>
-          </div>
+            <div className="card admin-panel admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Quick actions</p>
+                  <h3>Common next moves</h3>
+                  <p className="muted">Shortcuts for the actions the team uses most.</p>
+                </div>
+              </div>
 
-          <div className="admin-activity-panel">
-            {recentActivity?.length ? (
-              <div className="admin-activity-list">
-                {recentActivity.map((entry) => (
-                  <div key={entry.id} className="admin-activity-item">
-                    <div>
-                      <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
-                      <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
-                    </div>
-                    <span>{formatRelativeTimestamp(entry.created_at)}</span>
-                  </div>
+              <div className="admin-quick-actions-grid">
+                {quickActions.map((action) => (
+                  <Link key={action.title} href={action.href} className="admin-quick-action-card">
+                    <strong>{action.title}</strong>
+                    <p>{action.detail}</p>
+                  </Link>
                 ))}
               </div>
-            ) : (
-              <p className="muted">No recent activity has been logged yet.</p>
-            )}
-          </div>
-        </div>
+            </div>
+          </section>
 
-        <div className="card admin-panel admin-section-card">
+          <section className="admin-dashboard-row admin-dashboard-row--activity">
+            <div className="card admin-panel admin-panel--wide admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Recent activity</p>
+                  <h3>What changed most recently</h3>
+                  <p className="muted">A rolling feed of inquiry, document, contract, and payment updates.</p>
+                </div>
+              </div>
+
+              <div className="admin-activity-panel">
+                {recentActivity?.length ? (
+                  <div className="admin-activity-list">
+                    {recentActivity.map((entry) => (
+                      <div key={entry.id} className="admin-activity-item">
+                        <div>
+                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
+                        </div>
+                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No recent activity has been logged yet.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="card admin-panel admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Performance</p>
+                  <h3>Conversion snapshot</h3>
+                  <p className="muted">Compact business indicators for the current month.</p>
+                </div>
+              </div>
+
+              <div className="admin-list">
+                <div className="admin-list-item">
+                  <strong>Pipeline value</strong>
+                  <span>${formatMoney(pipelineValue)}</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Conversion rate</strong>
+                  <span>{conversionRate.toFixed(1)}% this month</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Booked revenue</strong>
+                  <span>${formatMoney(bookedRevenueThisMonth)}</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Outstanding payments</strong>
+                  <span>{outstandingFinalPayments ?? 0} contract balances still open</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      ) : null}
+
+      {activeTab === "pipeline" ? (
+        <section className="card admin-panel admin-section-card">
           <div className="admin-panel-head">
             <div>
-              <p className="eyebrow">Snapshot</p>
-              <h3>Today at a glance</h3>
-              <p className="muted">Condensed context on what is likely to matter in the next few hours.</p>
+              <p className="eyebrow">Pipeline board</p>
+              <h3>Inquiry movement by stage</h3>
+              <p className="muted">Click into any card to move a request forward from review to booking.</p>
             </div>
           </div>
 
-          <div className="admin-list">
-            {alerts.length ? (
-              alerts.map((alert) => (
-                <div key={alert.label} className="admin-list-item">
-                  <strong>{alert.label}</strong>
-                  <span>{alert.detail}</span>
+          <div className="admin-kanban-grid admin-kanban-grid--pipeline">
+            {pipelineColumns.map((column) => (
+              <div key={column.label} className="admin-kanban-column card">
+                <div className="admin-kanban-head">
+                  <span className="eyebrow">{column.items.length} items</span>
+                  <h4>{column.label}</h4>
                 </div>
-              ))
-            ) : (
-              <div className="admin-list-item">
-                <strong>Everything is in motion</strong>
-                <span>There are no blocking alerts at the moment.</span>
+                <div className="admin-kanban-list">
+                  {column.items.length ? (
+                    column.items.map((item) => (
+                      <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-kanban-card">
+                        <strong>{item.first_name} {item.last_name}</strong>
+                        <span>{item.event_type || "Event"}</span>
+                        <small>{item.event_date ? new Date(item.event_date).toLocaleDateString() : "Date pending"}</small>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="admin-kanban-card">
+                      <strong>No records</strong>
+                      <small>This stage is currently clear.</small>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <div className="card admin-table-card admin-records-table-card">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Inquiry records</p>
-            <h3>Manage the existing records</h3>
-            <p className="muted">Search, filter, and act on individual requests once the dashboard summary has oriented you.</p>
-          </div>
-        </div>
+      {activeTab === "schedule" ? (
+        <section className="admin-dashboard-row">
+          <div className="card admin-panel admin-panel--wide admin-section-card">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Consultations and reserved dates</p>
+                <h3>Upcoming schedule</h3>
+                <p className="muted">Consultations, reserved dates, and booking-load signals grouped in one place.</p>
+              </div>
+              <div className="admin-inline-actions">
+                <Link href="/admin/calendar" className="admin-topbar-pill">
+                  Full calendar
+                </Link>
+              </div>
+            </div>
 
-        <form method="GET" className="admin-filters admin-filters--records">
-          <div className="field">
-            <label className="label">Search</label>
-            <input
-              name="q"
-              defaultValue={queryText}
-              className="input"
-              placeholder="Client, email, phone, or venue"
-            />
-          </div>
-
-          <div className="field">
-            <label className="label">Status</label>
-            <select name="status" defaultValue={status} className="input">
-              <option value="">All</option>
-              {statuses.map((item) => (
-                <option key={item} value={item}>
-                  {humanizeLabel(item)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label className="label">Event Type</label>
-            <select name="event_type" defaultValue={eventType} className="input">
-              <option value="">All</option>
-              {eventTypes.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label className="label">Sort By</label>
-            <select name="sort" defaultValue={sort} className="input">
-              <option value="newest">Created date: newest</option>
-              <option value="oldest">Created date: oldest</option>
-              <option value="event_date">Event date</option>
-            </select>
-          </div>
-
-          <div className="admin-filter-actions">
-            <button type="submit" className="btn">
-              Apply
-            </button>
-            <Link href="/admin/inquiries" className="btn secondary">
-              Reset
-            </Link>
-          </div>
-        </form>
-
-        {error ? <p className="error">Failed to load inquiries: {error.message}</p> : null}
-
-        <div className="table-wrap admin-records-table-wrap">
-          <table className="admin-records-table">
-            <thead>
-              <tr>
-                <th>Customer Name</th>
-                <th>Event Type</th>
-                <th>Event Date</th>
-                <th>Consultation Date</th>
-                <th>Status</th>
-                <th>Quote</th>
-                <th>Payment</th>
-                <th>Created Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.length ? (
-                data.map((row) => {
-                  const contract = contractMap.get(row.id) ?? null;
-
-                  return (
-                    <tr key={row.id}>
-                      <td>
-                        <div className="admin-record-main">
-                          <strong>
-                            {row.first_name} {row.last_name}
-                          </strong>
-                          <span>{row.email}</span>
-                          <span>{row.phone}</span>
+            <div className="admin-schedule-board">
+              <div className="admin-schedule-column">
+                <strong className="admin-schedule-heading">Upcoming consultations</strong>
+                {(upcomingConsultations ?? []).length ? (
+                  <div className="admin-schedule-list">
+                    {upcomingConsultations?.map((item) => (
+                      <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-schedule-item">
+                        <div>
+                          <strong>{item.first_name} {item.last_name}</strong>
+                          <p>{item.event_type || "Event"} {item.event_date ? `• ${new Date(item.event_date).toLocaleDateString()}` : ""}</p>
                         </div>
-                      </td>
-                      <td>{row.event_type}</td>
-                      <td>{row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}</td>
-                      <td>{formatDateTime(row.consultation_at)}</td>
-                      <td>
-                        <div className="admin-record-status-stack">
-                          <StatusBadge status={row.status ?? "new"} />
-                          <span className="admin-record-substatus">
-                            {humanizeBookingStage(row.booking_stage)} • {humanizeLabel(row.consultation_status ?? "not_scheduled")}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="admin-record-main">
-                          <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
-                          <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
-                          <span>{row.venue_name ?? "Venue not added"}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="admin-record-main">
-                          <strong>{getPaymentState(contract)}</strong>
-                          <span>{contract?.contract_status ? humanizeLabel(contract.contract_status) : "Contract not created"}</span>
-                        </div>
-                      </td>
-                      <td>{new Date(row.created_at).toLocaleDateString()}</td>
-                      <td>
-                        <InquiryRecordActions
-                          inquiryId={row.id}
-                          contractId={contract?.id ?? null}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={9} className="admin-records-empty">
-                    No inquiry records match the current filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="admin-mobile-records">
-          {data?.map((row) => {
-            const contract = contractMap.get(row.id) ?? null;
-
-            return (
-              <div key={row.id} className="admin-mobile-record">
-                <div className="admin-mobile-record-head">
-                  <div>
-                    <strong>{row.first_name} {row.last_name}</strong>
-                    <span>{row.event_type}</span>
+                        <span>{formatDateTime(item.consultation_at)}</span>
+                      </Link>
+                    ))}
                   </div>
-                  <StatusBadge status={row.status ?? "new"} />
-                </div>
+                ) : (
+                  <p className="muted">No consultations scheduled in the next two weeks.</p>
+                )}
+              </div>
 
-                <div className="admin-mobile-record-grid">
-                  <p>
-                    <span>Event date</span>
-                    {row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}
-                  </p>
-                  <p>
-                    <span>Consultation</span>
-                    {formatDateTime(row.consultation_at)}
-                  </p>
-                  <p>
-                    <span>Booking</span>
-                    {humanizeBookingStage(row.booking_stage)}
-                  </p>
-                  <p>
-                    <span>Quote</span>
-                    ${formatMoney(Number(row.estimated_price ?? 0))}
-                  </p>
-                  <p>
-                    <span>Payment</span>
-                    {getPaymentState(contract)}
-                  </p>
-                  <p>
-                    <span>Created</span>
-                    {new Date(row.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+              <div className="admin-schedule-column">
+                <strong className="admin-schedule-heading">Busiest reserved dates</strong>
+                {busiestDates.length ? (
+                  <div className="admin-date-load-list">
+                    {busiestDates.map(([date, count]) => (
+                      <div key={date} className={`admin-date-load admin-date-load--${count >= 3 ? "high" : count === 2 ? "medium" : "low"}`}>
+                        <div>
+                          <strong>{new Date(date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</strong>
+                          <p>{count} booking{count === 1 ? "" : "s"} on the calendar</p>
+                        </div>
+                        <span>{count >= 3 ? "High Load" : count === 2 ? "Double Booking" : "Reserved"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No reserved dates are carrying visible load this month.</p>
+                )}
+              </div>
+            </div>
+          </div>
 
-                <InquiryRecordActions
-                  inquiryId={row.id}
-                  contractId={contract?.id ?? null}
+          <div className="card admin-panel admin-section-card">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Schedule alerts</p>
+                <h3>Warnings and blockers</h3>
+                <p className="muted">Double-booking alerts, missing details, and payment signals separated from the main overview.</p>
+              </div>
+            </div>
+
+            <div className="admin-alert-stack">
+              {alerts.length ? (
+                alerts.map((alert) => (
+                  <div key={alert.label} className={`admin-alert-card admin-alert-card--${alert.tone}`}>
+                    <strong>{alert.label}</strong>
+                    <p>{alert.detail}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="admin-alert-card admin-alert-card--success">
+                  <strong>Schedule looks clear</strong>
+                  <p>No upcoming load or consultation alerts are blocking the calendar right now.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeTab === "inquiries" ? (
+        <>
+          <div className="admin-workspace-subheader">
+            <form method="GET" className="admin-filters admin-filters--records admin-filters--sticky">
+              <input type="hidden" name="tab" value="inquiries" />
+              <div className="field">
+                <label className="label">Search</label>
+                <input
+                  name="q"
+                  defaultValue={queryText}
+                  className="input"
+                  placeholder="Client, email, phone, or venue"
                 />
               </div>
-            );
-          })}
-        </div>
 
-        <div className="admin-table-pagination">
-          <p className="muted">
-            Page {page} of {totalPages}
-          </p>
-          <div className="admin-package-actions">
-            {previousPage ? (
-              <Link href={buildPageHref(previousPage)} className="btn secondary">
-                Previous
-              </Link>
-            ) : null}
-            {nextPage ? (
-              <Link href={buildPageHref(nextPage)} className="btn secondary">
-                Next
-              </Link>
-            ) : null}
+              <div className="field">
+                <label className="label">Status</label>
+                <select name="status" defaultValue={status} className="input">
+                  <option value="">All</option>
+                  {statuses.map((item) => (
+                    <option key={item} value={item}>
+                      {humanizeLabel(item)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="label">Event Type</label>
+                <select name="event_type" defaultValue={eventType} className="input">
+                  <option value="">All</option>
+                  {eventTypes.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="label">Sort By</label>
+                <select name="sort" defaultValue={sort} className="input">
+                  <option value="newest">Created date: newest</option>
+                  <option value="oldest">Created date: oldest</option>
+                  <option value="event_date">Event date</option>
+                </select>
+              </div>
+
+              <div className="admin-filter-actions">
+                <button type="submit" className="btn">
+                  Apply
+                </button>
+                <Link href={buildTabHref("inquiries")} className="btn secondary">
+                  Reset
+                </Link>
+              </div>
+            </form>
           </div>
-        </div>
-      </div>
+
+          <div className="card admin-table-card admin-records-table-card">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Inquiry records</p>
+                <h3>Manage the existing records</h3>
+                <p className="muted">Search, filter, and act on individual requests without competing dashboard content above the table.</p>
+              </div>
+            </div>
+
+            {error ? <p className="error">Failed to load inquiries: {error.message}</p> : null}
+
+            <div className="table-wrap admin-records-table-wrap">
+              <table className="admin-records-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Event Type</th>
+                    <th>Event Date</th>
+                    <th>Consultation Date</th>
+                    <th>Status</th>
+                    <th>Quote</th>
+                    <th>Payment</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.length ? (
+                    data.map((row) => {
+                      const contract = contractMap.get(row.id) ?? null;
+
+                      return (
+                        <tr key={row.id}>
+                          <td>
+                            <div className="admin-record-main">
+                              <strong>
+                                {row.first_name} {row.last_name}
+                              </strong>
+                              <span>{row.email}</span>
+                              <span>{row.phone}</span>
+                            </div>
+                          </td>
+                          <td>{row.event_type}</td>
+                          <td>{row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}</td>
+                          <td>{formatDateTime(row.consultation_at)}</td>
+                          <td>
+                            <div className="admin-record-status-stack">
+                              <StatusBadge status={row.status ?? "new"} />
+                              <span className="admin-record-substatus">
+                                {humanizeBookingStage(row.booking_stage)} • {humanizeLabel(row.consultation_status ?? "not_scheduled")}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="admin-record-main">
+                              <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
+                              <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
+                              <span>{row.venue_name ?? "Venue not added"}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="admin-record-main">
+                              <strong>{getPaymentState(contract)}</strong>
+                              <span>{contract?.contract_status ? humanizeLabel(contract.contract_status) : "Contract not created"}</span>
+                            </div>
+                          </td>
+                          <td>{new Date(row.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <InquiryRecordActions
+                              inquiryId={row.id}
+                              contractId={contract?.id ?? null}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="admin-records-empty">
+                        No inquiry records match the current filters.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="admin-mobile-records">
+              {data?.map((row) => {
+                const contract = contractMap.get(row.id) ?? null;
+
+                return (
+                  <div key={row.id} className="admin-mobile-record">
+                    <div className="admin-mobile-record-head">
+                      <div>
+                        <strong>{row.first_name} {row.last_name}</strong>
+                        <span>{row.event_type}</span>
+                      </div>
+                      <StatusBadge status={row.status ?? "new"} />
+                    </div>
+
+                    <div className="admin-mobile-record-grid">
+                      <p>
+                        <span>Event date</span>
+                        {row.event_date ? new Date(row.event_date).toLocaleDateString() : "—"}
+                      </p>
+                      <p>
+                        <span>Consultation</span>
+                        {formatDateTime(row.consultation_at)}
+                      </p>
+                      <p>
+                        <span>Booking</span>
+                        {humanizeBookingStage(row.booking_stage)}
+                      </p>
+                      <p>
+                        <span>Quote</span>
+                        ${formatMoney(Number(row.estimated_price ?? 0))}
+                      </p>
+                      <p>
+                        <span>Payment</span>
+                        {getPaymentState(contract)}
+                      </p>
+                      <p>
+                        <span>Created</span>
+                        {new Date(row.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <InquiryRecordActions
+                      inquiryId={row.id}
+                      contractId={contract?.id ?? null}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="admin-table-pagination">
+              <p className="muted">
+                Page {page} of {totalPages}
+              </p>
+              <div className="admin-package-actions">
+                {previousPage ? (
+                  <Link href={buildPageHref(previousPage)} className="btn secondary">
+                    Previous
+                  </Link>
+                ) : null}
+                {nextPage ? (
+                  <Link href={buildPageHref(nextPage)} className="btn secondary">
+                    Next
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
     </main>
   );
 }
