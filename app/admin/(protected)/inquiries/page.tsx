@@ -886,7 +886,7 @@ export default async function AdminInquiriesPage({
                 <button type="submit" className="btn">
                   Apply
                 </button>
-                <Link href={buildTabHref("inquiries")} className="btn secondary">
+                <Link href="/admin/inquiries?tab=inquiries" className="btn secondary">
                   Reset
                 </Link>
               </div>
