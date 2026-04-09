@@ -5930,6 +5930,40 @@ th { background: var(--surface-soft); }
   display: grid;
   gap: 8px;
 }
+.admin-nav-group {
+  display: grid;
+  gap: 10px;
+}
+.admin-nav-link--group {
+  cursor: default;
+}
+.admin-nav-subnav {
+  display: grid;
+  gap: 6px;
+  padding-left: 18px;
+}
+.admin-nav-subnav-link {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: rgba(255,255,255,0.78);
+  font-size: 0.96rem;
+  font-weight: 600;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+.admin-nav-subnav-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: white;
+  transform: translateX(2px);
+}
+.admin-nav-subnav-link.is-active {
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent-dark) 18%, var(--accent)));
+  color: white;
+  box-shadow: 0 14px 24px rgba(var(--accent-rgb), 0.22);
+}
 .admin-nav-link {
   position: relative;
   display: grid;
@@ -5990,6 +6024,14 @@ th { background: var(--surface-soft); }
   color: #ffd8be;
   border-color: rgba(var(--accent-rgb), 0.22);
 }
+.admin-nav-link--group.is-active {
+  border-color: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.06);
+  transform: none;
+}
+.admin-nav-link--group.is-active::before {
+  background: transparent;
+}
 .admin-nav-link:hover .admin-nav-icon {
   border-color: rgba(255,255,255,0.1);
 }
@@ -6012,6 +6054,19 @@ th { background: var(--surface-soft); }
 }
 .admin-signout-button {
   cursor: pointer;
+}
+.admin-mini-report--compact {
+  margin-top: 4px;
+}
+.admin-dashboard-row--overview-focus {
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.72fr);
+  align-items: start;
+}
+.admin-dashboard-row--overview-focus .admin-panel-head {
+  margin-bottom: 18px;
+}
+.admin-dashboard-row--overview-focus .admin-section-card {
+  min-height: 100%;
 }
 .admin-main {
   min-width: 0;
@@ -8803,6 +8858,12 @@ th { background: var(--surface-soft); }
     grid-template-columns: 40px minmax(0, 1fr);
     padding: 14px;
   }
+  .admin-nav-subnav {
+    padding-left: 12px;
+  }
+  .admin-nav-subnav-link {
+    padding: 11px 13px;
+  }
   .admin-nav-icon {
     width: 40px;
     height: 40px;
@@ -8865,6 +8926,9 @@ th { background: var(--surface-soft); }
   }
   .admin-workspace-tab {
     flex: 0 0 auto;
+  }
+  .admin-dashboard-row--overview-focus {
+    grid-template-columns: 1fr;
   }
   .admin-page-head-aside {
     justify-content: flex-start;

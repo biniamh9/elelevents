@@ -542,28 +542,33 @@ export default async function AdminInquiriesPage({
     return `/admin/inquiries?${nextParams.toString()}`;
   }
 
-  function buildTabHref(tab: WorkspaceTab) {
-    const nextParams = new URLSearchParams();
-    if (tab !== "overview") nextParams.set("tab", tab);
-    if (tab === "inquiries") {
-      if (status) nextParams.set("status", status);
-      if (eventType) nextParams.set("event_type", eventType);
-      if (queryText) nextParams.set("q", queryText);
-      if (sort) nextParams.set("sort", sort);
-      if (page > 1) nextParams.set("page", String(page));
-    }
-    const queryString = nextParams.toString();
-    return queryString ? `/admin/inquiries?${queryString}` : "/admin/inquiries";
-  }
+  const tabHeadingMap: Record<WorkspaceTab, { title: string; description: string }> = {
+    overview: {
+      title: "Overview",
+      description: "Recent activity, business indicators, and the clearest next moves for the team.",
+    },
+    pipeline: {
+      title: "Pipeline",
+      description: "Track inquiry movement from new lead to confirmed booking in one place.",
+    },
+    schedule: {
+      title: "Schedule",
+      description: "See consultations, reserved dates, and any scheduling issues coming up next.",
+    },
+    inquiries: {
+      title: "Inquiries",
+      description: "Search, filter, and manage the full inquiry record list without losing context.",
+    },
+  };
 
   return (
     <main className="section admin-page admin-page--workspace">
       <div className="admin-page-head">
         <div>
           <p className="eyebrow">Operations dashboard</p>
-          <h1>Inquiries</h1>
+          <h1>{tabHeadingMap[activeTab].title}</h1>
           <p className="lead">
-            A cleaner operations workspace for leads, consultations, quotes, bookings, and what needs action next.
+            {tabHeadingMap[activeTab].description}
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -573,37 +578,9 @@ export default async function AdminInquiriesPage({
         </div>
       </div>
 
-      <div className="admin-workspace-header">
-        <div className="admin-workspace-tabs" role="tablist" aria-label="Admin overview sections">
-          {([
-            ["overview", "Overview"],
-            ["pipeline", "Pipeline"],
-            ["schedule", "Schedule"],
-            ["inquiries", "Inquiries"],
-          ] as const).map(([tabValue, label]) => (
-            <Link
-              key={tabValue}
-              href={buildTabHref(tabValue)}
-              className={`admin-workspace-tab${activeTab === tabValue ? " is-active" : ""}`}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-        <div className="admin-workspace-actions">
-          <Link href="/request" className="btn">
-            Create Inquiry
-          </Link>
-        </div>
-      </div>
-
       {activeTab === "overview" ? (
         <>
-          <section className="admin-mini-report">
-            <div className="admin-section-title">
-              <h3>Overview</h3>
-              <p className="muted">Top-line numbers for business health, pipeline value, and conversion performance.</p>
-            </div>
+          <section className="admin-mini-report admin-mini-report--compact">
             <div className="admin-kpi-grid">
               {reportCards.map((card) => (
                 <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
@@ -615,12 +592,73 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
+          <section className="admin-dashboard-row admin-dashboard-row--overview-focus">
+            <div className="card admin-panel admin-panel--wide admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Recent activity</p>
+                  <h3>What needs attention most recently</h3>
+                  <p className="muted">
+                    {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-activity-panel">
+                {recentActivity?.length ? (
+                  <div className="admin-activity-list">
+                    {recentActivity.map((entry) => (
+                      <div key={entry.id} className="admin-activity-item">
+                        <div>
+                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
+                        </div>
+                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No recent activity has been logged yet.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="card admin-panel admin-section-card">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Performance</p>
+                  <h3>Conversion snapshot</h3>
+                  <p className="muted">Compare business indicators for the current month.</p>
+                </div>
+              </div>
+
+              <div className="admin-list">
+                <div className="admin-list-item">
+                  <strong>Pipeline value</strong>
+                  <span>${formatMoney(pipelineValue)}</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Conversion rate</strong>
+                  <span>{conversionRate.toFixed(1)}% this month</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Booked revenue</strong>
+                  <span>${formatMoney(bookedRevenueThisMonth)}</span>
+                </div>
+                <div className="admin-list-item">
+                  <strong>Outstanding payments</strong>
+                  <span>{outstandingFinalPayments ?? 0} contract balances still open</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section className="admin-dashboard-row">
             <div className="card admin-panel admin-panel--wide admin-section-card">
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Needs attention</p>
-                  <h3>What needs movement now</h3>
+                  <h3>Priority follow-up</h3>
                   <p className="muted">Urgent or incomplete items grouped into one action-oriented section.</p>
                 </div>
               </div>
@@ -666,65 +704,6 @@ export default async function AdminInquiriesPage({
                     <p>{action.detail}</p>
                   </Link>
                 ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="admin-dashboard-row admin-dashboard-row--activity">
-            <div className="card admin-panel admin-panel--wide admin-section-card">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Recent activity</p>
-                  <h3>What changed most recently</h3>
-                  <p className="muted">A rolling feed of inquiry, document, contract, and payment updates.</p>
-                </div>
-              </div>
-
-              <div className="admin-activity-panel">
-                {recentActivity?.length ? (
-                  <div className="admin-activity-list">
-                    {recentActivity.map((entry) => (
-                      <div key={entry.id} className="admin-activity-item">
-                        <div>
-                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
-                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
-                        </div>
-                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted">No recent activity has been logged yet.</p>
-                )}
-              </div>
-            </div>
-
-            <div className="card admin-panel admin-section-card">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Performance</p>
-                  <h3>Conversion snapshot</h3>
-                  <p className="muted">Compact business indicators for the current month.</p>
-                </div>
-              </div>
-
-              <div className="admin-list">
-                <div className="admin-list-item">
-                  <strong>Pipeline value</strong>
-                  <span>${formatMoney(pipelineValue)}</span>
-                </div>
-                <div className="admin-list-item">
-                  <strong>Conversion rate</strong>
-                  <span>{conversionRate.toFixed(1)}% this month</span>
-                </div>
-                <div className="admin-list-item">
-                  <strong>Booked revenue</strong>
-                  <span>${formatMoney(bookedRevenueThisMonth)}</span>
-                </div>
-                <div className="admin-list-item">
-                  <strong>Outstanding payments</strong>
-                  <span>{outstandingFinalPayments ?? 0} contract balances still open</span>
-                </div>
               </div>
             </div>
           </section>

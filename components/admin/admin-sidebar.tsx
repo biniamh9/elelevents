@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 type NavItem = {
   href: string;
@@ -180,6 +180,15 @@ export default function AdminSidebar({
   userEmail: string | null | undefined;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeWorkspaceTab = searchParams.get("tab") || "overview";
+  const overviewOpen = pathname === "/admin/inquiries";
+  const overviewTabs = [
+    { href: "/admin/inquiries", label: "Overview", tab: "overview" },
+    { href: "/admin/inquiries?tab=pipeline", label: "Pipeline", tab: "pipeline" },
+    { href: "/admin/inquiries?tab=schedule", label: "Schedule", tab: "schedule" },
+    { href: "/admin/inquiries?tab=inquiries", label: "Inquiries", tab: "inquiries" },
+  ] as const;
 
   return (
     <aside className="admin-sidebar-shell">
@@ -204,7 +213,35 @@ export default function AdminSidebar({
         <div className="admin-sidebar-section">
           <p className="admin-sidebar-label">Navigation</p>
           <nav className="admin-nav" aria-label="Admin navigation">
-            {navItems.map((item) => {
+            <div className="admin-nav-group">
+              <div className={`admin-nav-link admin-nav-link--group${overviewOpen ? " is-active" : ""}`}>
+                <div className="admin-nav-icon">
+                  <SidebarIcon icon="chart" />
+                </div>
+                <div>
+                  <strong>Overview</strong>
+                  <span>Business operations</span>
+                </div>
+              </div>
+
+              <div className="admin-nav-subnav">
+                {overviewTabs.map((item) => {
+                  const active = activeWorkspaceTab === item.tab;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`admin-nav-subnav-link${active ? " is-active" : ""}`}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {navItems.slice(1).map((item) => {
               const active = isActivePath(pathname, item.href);
 
               return (
@@ -231,8 +268,7 @@ export default function AdminSidebar({
           <div className="admin-sidebar-note">
             <strong>Simple path</strong>
             <p className="muted">
-              Lead, consultation, quote, contract, payment. Anything outside that
-              path should stay secondary.
+              Latest consultation, quote, contract, payment and secondary follow-up should stay easy to scan.
             </p>
           </div>
           <Link href="/request" className="admin-create-link">
