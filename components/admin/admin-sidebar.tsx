@@ -2,80 +2,90 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-type NavItem = {
+type NavChild = {
   href: string;
   label: string;
-  description: string;
-  icon: string;
+  matchTab?: string;
 };
 
-const navItems: NavItem[] = [
+type NavSection = {
+  id: string;
+  label: string;
+  description: string;
+  href?: string;
+  children?: NavChild[];
+};
+
+const navSections: NavSection[] = [
   {
-    href: "/admin/inquiries",
-    label: "Overview",
-    description: "Leads, consultations, follow-ups",
-    icon: "chart",
+    id: "homepage",
+    label: "Homepage now",
+    description: "Review for Flow",
+    href: "/admin/flow",
   },
   {
-    href: "/admin/documents",
+    id: "overview",
+    label: "Overview",
+    description: "Business operations",
+    children: [
+      { href: "/admin/inquiries", label: "Overview", matchTab: "overview" },
+      { href: "/admin/inquiries?tab=pipeline", label: "Pipeline", matchTab: "pipeline" },
+      { href: "/admin/inquiries?tab=schedule", label: "Schedule", matchTab: "schedule" },
+      { href: "/admin/inquiries?tab=inquiries", label: "Inquiries", matchTab: "inquiries" },
+    ],
+  },
+  {
+    id: "documents",
     label: "Documents",
     description: "Quotes, invoices, receipts",
-    icon: "doc",
+    children: [
+      { href: "/admin/documents", label: "Documents" },
+      { href: "/admin/contracts", label: "Contracts" },
+    ],
   },
   {
-    href: "/admin/contracts",
-    label: "Contracts",
-    description: "Quotes, signatures, payments",
-    icon: "doc",
-  },
-  {
-    href: "/admin/calendar",
+    id: "calendar",
     label: "Calendar",
     description: "Event dates and load",
-    icon: "calendar",
+    href: "/admin/calendar",
   },
   {
-    href: "/admin/gallery",
+    id: "gallery",
     label: "Gallery",
     description: "Portfolio images",
-    icon: "image",
+    href: "/admin/gallery",
   },
   {
-    href: "/admin/flow",
-    label: "Homepage Flow",
-    description: "Process text and images",
-    icon: "flow",
-  },
-  {
-    href: "/admin/packages",
+    id: "packages",
     label: "Packages",
-    description: "Public offers",
-    icon: "box",
+    description: "Service offerings",
+    href: "/admin/packages",
   },
   {
-    href: "/admin/pricing",
+    id: "pricing",
     label: "Pricing",
-    description: "Quote catalog",
-    icon: "tag",
+    description: "Quote tiers",
+    href: "/admin/pricing",
   },
   {
-    href: "/admin/vendors",
+    id: "vendors",
     label: "Vendors",
-    description: "Referral partners",
-    icon: "users",
+    description: "Partner network",
+    href: "/admin/vendors",
   },
   {
-    href: "/admin/testimonials",
+    id: "testimonials",
     label: "Testimonials",
     description: "Homepage reviews",
-    icon: "quote",
+    href: "/admin/testimonials",
   },
   {
-    href: "/admin/social",
+    id: "social",
     label: "Social Links",
-    description: "Success screen sharing",
-    icon: "share",
+    description: "Presence & sharing",
+    href: "/admin/social",
   },
 ];
 
@@ -83,180 +93,133 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function SidebarIcon({ icon }: { icon: string }) {
-  switch (icon) {
-    case "chart":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 18h16" />
-          <path d="M7 16V9" />
-          <path d="M12 16V6" />
-          <path d="M17 16v-4" />
-        </svg>
-      );
-    case "doc":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8 3h6l4 4v14H8z" />
-          <path d="M14 3v4h4" />
-          <path d="M10 12h6" />
-          <path d="M10 16h6" />
-        </svg>
-      );
-    case "image":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="4" y="5" width="16" height="14" rx="2" />
-          <path d="m8 14 3-3 3 3 2-2 4 4" />
-          <circle cx="9" cy="9" r="1.4" />
-        </svg>
-      );
-    case "users":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M16 19v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1" />
-          <circle cx="10" cy="8" r="3" />
-          <path d="M20 19v-1a4 4 0 0 0-3-3.87" />
-          <path d="M16 5.13a3 3 0 0 1 0 5.74" />
-        </svg>
-      );
-    case "calendar":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M7 3v3" />
-          <path d="M17 3v3" />
-          <rect x="4" y="5" width="16" height="15" rx="2" />
-          <path d="M4 10h16" />
-        </svg>
-      );
-    case "quote":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M10 9H7a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
-          <path d="M19 9h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v3l3-3v-4a2 2 0 0 0-1-2Z" />
-        </svg>
-      );
-    case "share":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <path d="M8.7 10.7 15.4 6.8" />
-          <path d="m8.7 13.3 6.7 3.9" />
-        </svg>
-      );
-    case "flow":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="6" cy="12" r="2" />
-          <circle cx="12" cy="6" r="2" />
-          <circle cx="18" cy="12" r="2" />
-          <circle cx="12" cy="18" r="2" />
-          <path d="M8 12h8" />
-          <path d="M12 8v8" />
-        </svg>
-      );
-    case "tag":
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m20 13-7 7-9-9V4h7l9 9Z" />
-          <circle cx="8.5" cy="8.5" r="1.3" />
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M5 7h14v10H5z" />
-          <path d="M9 7V5h6v2" />
-        </svg>
-      );
-  }
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`admin-nav-group-chevron${open ? " is-open" : ""}`}
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+    >
+      <path d="m5 7 5 5 5-5" />
+    </svg>
+  );
 }
 
 export default function AdminSidebar({
-  userEmail,
+  userEmail: _userEmail,
 }: {
   userEmail: string | null | undefined;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeWorkspaceTab = searchParams.get("tab") || "overview";
-  const overviewOpen = pathname === "/admin/inquiries";
-  const overviewTabs = [
-    { href: "/admin/inquiries", label: "Overview", tab: "overview" },
-    { href: "/admin/inquiries?tab=pipeline", label: "Pipeline", tab: "pipeline" },
-    { href: "/admin/inquiries?tab=schedule", label: "Schedule", tab: "schedule" },
-    { href: "/admin/inquiries?tab=inquiries", label: "Inquiries", tab: "inquiries" },
-  ] as const;
+
+  const activeGroupIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    for (const section of navSections) {
+      if (section.href && isActivePath(pathname, section.href)) {
+        ids.add(section.id);
+      }
+
+      if (section.children?.some((child) => {
+        const childPath = child.href.split("?")[0];
+        if (!isActivePath(pathname, childPath)) return false;
+        if (!child.matchTab) return true;
+        return activeWorkspaceTab === child.matchTab;
+      })) {
+        ids.add(section.id);
+      }
+    }
+
+    ids.add("overview");
+    return ids;
+  }, [pathname, activeWorkspaceTab]);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    overview: true,
+    documents: false,
+  });
+
+  useEffect(() => {
+    setOpenGroups((current) => {
+      const next = { ...current };
+      for (const id of activeGroupIds) {
+        next[id] = true;
+      }
+      return next;
+    });
+  }, [activeGroupIds]);
+
+  function toggleGroup(id: string) {
+    setOpenGroups((current) => ({ ...current, [id]: !current[id] }));
+  }
 
   return (
     <aside className="admin-sidebar-shell">
       <div className="admin-sidebar admin-sidebar-panel">
-        <div className="admin-sidebar-brand">
-          <div className="admin-sidebar-brandmark">EE</div>
-          <div>
-            <p className="eyebrow">Workspace</p>
-            <h3>Elel Events</h3>
-          </div>
-        </div>
-
-        <div className="admin-workspace-card">
-          <div className="admin-workspace-avatar">ED</div>
-          <div>
-            <span>Active workspace</span>
-            <strong>Decor CRM</strong>
-            <small>{userEmail || "Admin access"}</small>
-          </div>
+        <div className="admin-sidebar-brand admin-sidebar-brand--simple">
+          <h3>Elel Events</h3>
+          <p>Business operations</p>
         </div>
 
         <div className="admin-sidebar-section">
-          <p className="admin-sidebar-label">Navigation</p>
-          <nav className="admin-nav" aria-label="Admin navigation">
-            <div className="admin-nav-group">
-              <div className={`admin-nav-link admin-nav-link--group${overviewOpen ? " is-active" : ""}`}>
-                <div className="admin-nav-icon">
-                  <SidebarIcon icon="chart" />
-                </div>
-                <div>
-                  <strong>Overview</strong>
-                  <span>Business operations</span>
-                </div>
-              </div>
+          <nav className="admin-nav admin-nav--stacked" aria-label="Admin navigation">
+            {navSections.map((section) => {
+              const hasChildren = Boolean(section.children?.length);
+              const groupOpen = Boolean(openGroups[section.id]);
+              const sectionActive = activeGroupIds.has(section.id);
 
-              <div className="admin-nav-subnav">
-                {overviewTabs.map((item) => {
-                  const active = activeWorkspaceTab === item.tab;
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`admin-nav-subnav-link${active ? " is-active" : ""}`}
+              if (hasChildren) {
+                return (
+                  <div key={section.id} className="admin-nav-group-card">
+                    <button
+                      type="button"
+                      className={`admin-nav-group-head${sectionActive ? " is-active" : ""}`}
+                      onClick={() => toggleGroup(section.id)}
+                      aria-expanded={groupOpen}
                     >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+                      <div>
+                        <strong>{section.label}</strong>
+                        <span>{section.description}</span>
+                      </div>
+                      <Chevron open={groupOpen} />
+                    </button>
 
-            {navItems.slice(1).map((item) => {
-              const active = isActivePath(pathname, item.href);
+                    {groupOpen ? (
+                      <div className="admin-nav-subnav admin-nav-subnav--stacked">
+                        {section.children!.map((child) => {
+                          const childPath = child.href.split("?")[0];
+                          const active =
+                            isActivePath(pathname, childPath) &&
+                            (!child.matchTab || activeWorkspaceTab === child.matchTab);
+
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              className={`admin-nav-subnav-link${active ? " is-active" : ""}`}
+                            >
+                              {child.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              }
+
+              const active = section.href ? isActivePath(pathname, section.href) : false;
 
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`admin-nav-link${active ? " is-active" : ""}`}
+                  key={section.id}
+                  href={section.href || "#"}
+                  className={`admin-nav-card-link${active ? " is-active" : ""}`}
                 >
-                  <div className="admin-nav-icon">
-                    <SidebarIcon icon={item.icon} />
-                  </div>
-                  <div>
-                    <strong>{item.label}</strong>
-                    <span>{item.description}</span>
-                  </div>
+                  <strong>{section.label}</strong>
+                  <span>{section.description}</span>
                 </Link>
               );
             })}
@@ -264,9 +227,8 @@ export default function AdminSidebar({
         </div>
 
         <div className="admin-sidebar-section">
-          <p className="admin-sidebar-label">Workflow</p>
-          <div className="admin-sidebar-note">
-            <strong>Simple path</strong>
+          <p className="admin-sidebar-label">Simple path</p>
+          <div className="admin-sidebar-note admin-sidebar-note--plain">
             <p className="muted">
               Latest consultation, quote, contract, payment and secondary follow-up should stay easy to scan.
             </p>
@@ -278,11 +240,11 @@ export default function AdminSidebar({
         </div>
 
         <div className="admin-sidebar-footer">
-          <Link href="/" className="admin-support-link">
+          <Link href="/" className="admin-support-link admin-support-link--plain">
             View website
           </Link>
           <form action="/auth/signout" method="post">
-            <button type="submit" className="admin-signout-button">
+            <button type="submit" className="admin-signout-button admin-signout-button--plain">
               Sign out
             </button>
           </form>
