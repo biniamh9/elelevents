@@ -1,4 +1,3 @@
-import HeroBackdropRotator from "@/components/home/hero-backdrop-rotator";
 import HomeProcessFlow from "@/components/home/home-process-flow";
 import { getGalleryItems } from "@/lib/gallery";
 import { getHomeProcessSteps } from "@/lib/home-process";
@@ -28,74 +27,34 @@ function pickHeroImage(
 
 export default async function HomePage() {
   const galleryPreview = await getGalleryItems(12);
-  const heroBackdropImages = galleryPreview.map((item) => item.image_url);
   const processSteps = await getHomeProcessSteps();
-  const sweetheartImage = pickHeroImage(galleryPreview, ["head table", "sweetheart", "wedding"], 0);
-  const drapeImage = pickHeroImage(galleryPreview, ["ceiling", "drape", "reception"], 1);
-  const floralImage = pickHeroImage(galleryPreview, ["floral", "arrangement", "centerpiece"], 2);
-  const reactionImage = pickHeroImage(galleryPreview, ["wedding", "reception", "luxury"], 3);
+  const heroImage = pickHeroImage(galleryPreview, ["garden", "centerpiece", "head table", "wedding"], 0);
 
   return (
     <main className="home-shell home-shell--simple">
       <div className="home-veil" />
 
-      <section className="hero-stage hero-stage--simple">
-        <HeroBackdropRotator images={heroBackdropImages} />
+      <section className="hero-stage hero-stage--timeless">
+        <div className="luxury-hero-media">
+          <img src={heroImage?.image_url} alt="Luxury event decor table styling by Elel Events" />
+          <div className="luxury-hero-overlay" />
+        </div>
 
-        <div className="container">
-          <div className="home-hero-signature">
-            <div className="home-hero-copy-panel">
-              <h1>
-                Where Your
-                <br />
-                Dream Event
-                <br />
-                Becomes a
-                <br />
-                <span className="home-hero-emphasis">Breathtaking</span>
-                <br />
-                Reality
-              </h1>
-              <p className="hero-stage-lead">
-                From intimate gatherings to grand celebrations, we craft unforgettable experiences with meticulous attention to every detail.
-              </p>
-              <div className="btn-row home-hero-actions">
-                <Button href="/request" className="home-hero-primary-cta">Start Consultation</Button>
-                <Button href="/gallery" variant="secondary" className="home-hero-secondary-cta">View Portfolio</Button>
-              </div>
-            </div>
-
-            <div className="home-hero-floating-showcase" aria-hidden="true">
-              <article className="home-hero-floating-card home-hero-floating-card--sweetheart">
-                <img src={sweetheartImage?.image_url} alt="" />
-                <div className="home-hero-floating-card-copy">
-                  <span>Wedding</span>
-                  <strong>Elegant Garden Wedding</strong>
-                </div>
-              </article>
-              <article className="home-hero-floating-card home-hero-floating-card--drape">
-                <img src={drapeImage?.image_url} alt="" />
-                <div className="home-hero-floating-card-copy">
-                  <span>Reception</span>
-                  <strong>Luxury Reception Hall</strong>
-                </div>
-              </article>
-              <article className="home-hero-floating-card home-hero-floating-card--floral">
-                <img src={floralImage?.image_url} alt="" />
-                <div className="home-hero-floating-card-copy">
-                  <span>Corporate</span>
-                  <strong>Modern Corporate Gala</strong>
-                </div>
-              </article>
-              <article className="home-hero-floating-card home-hero-floating-card--reaction">
-                <img src={reactionImage?.image_url} alt="" />
-                <div className="home-hero-floating-card-copy">
-                  <span>Cultural</span>
-                  <strong>Traditional Celebration</strong>
-                </div>
-              </article>
-            </div>
+        <div className="luxury-hero-content container">
+          <span className="luxury-hero-badge">Atlanta&apos;s premier event design</span>
+          <h1>
+            Timeless Elegance,
+            <br />
+            <em>Unforgettable Moments</em>
+          </h1>
+          <p>
+            Curating extraordinary celebrations with meticulous attention to every exquisite detail.
+          </p>
+          <div className="luxury-hero-actions">
+            <Button href="/request" className="luxury-hero-primary">Begin Your Journey</Button>
+            <Button href="/gallery" variant="secondary" className="luxury-hero-secondary">Explore Our Work</Button>
           </div>
+          <span className="luxury-hero-scroll">Scroll</span>
         </div>
       </section>
 

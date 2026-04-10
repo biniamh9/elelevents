@@ -98,7 +98,7 @@ export default function SiteHeader() {
       return;
     }
 
-    const hero = document.querySelector<HTMLElement>(".hero-stage--simple");
+    const hero = document.querySelector<HTMLElement>(".hero-stage--timeless");
 
     const updateScroll = () => {
       setScrolled(window.scrollY > 18);
@@ -227,7 +227,7 @@ export default function SiteHeader() {
     }
 
     const sections = [
-      { id: "home", element: document.querySelector(".hero-stage--simple") },
+      { id: "home", element: document.querySelector(".hero-stage--timeless") },
       { id: "process", element: document.getElementById("process") },
     ].filter((item) => item.element) as Array<{ id: string; element: Element }>;
 
@@ -289,15 +289,7 @@ export default function SiteHeader() {
       <div className="container nav-shell">
         <div className="nav">
           <Link href="/" className="brand brand-logo" aria-label="Elel Events home">
-            <Image
-              src="/logo.png"
-              alt="Elel Events logo"
-              width={320}
-              height={120}
-              priority
-              className="brand-logo-image"
-            />
-            <span className="brand-logo-copy">
+            <span className="brand-logo-copy brand-logo-copy--wordmark">
               <strong>ElelEvents</strong>
             </span>
           </Link>
@@ -324,7 +316,6 @@ export default function SiteHeader() {
           </nav>
 
           <div className="nav-main">
-            <Button href="/gallery" variant="secondary" className="nav-ghost-cta">View Gallery</Button>
             <Button href="/request" className="nav-cta">Start Planning</Button>
           </div>
 
