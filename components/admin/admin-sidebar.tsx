@@ -37,12 +37,14 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    id: "documents",
-    label: "Documents",
-    description: "Quotes, invoices, receipts",
+    id: "sales",
+    label: "Sales",
+    description: "Quotes, contracts, pricing",
     children: [
       { href: "/admin/documents", label: "Documents" },
       { href: "/admin/contracts", label: "Contracts" },
+      { href: "/admin/packages", label: "Packages" },
+      { href: "/admin/pricing", label: "Pricing" },
     ],
   },
   {
@@ -52,40 +54,20 @@ const navSections: NavSection[] = [
     href: "/admin/calendar",
   },
   {
-    id: "gallery",
-    label: "Gallery",
-    description: "Portfolio images",
-    href: "/admin/gallery",
-  },
-  {
-    id: "packages",
-    label: "Packages",
-    description: "Service offerings",
-    href: "/admin/packages",
-  },
-  {
-    id: "pricing",
-    label: "Pricing",
-    description: "Quote tiers",
-    href: "/admin/pricing",
-  },
-  {
     id: "vendors",
     label: "Vendors",
     description: "Partner network",
     href: "/admin/vendors",
   },
   {
-    id: "testimonials",
-    label: "Testimonials",
-    description: "Homepage reviews",
-    href: "/admin/testimonials",
-  },
-  {
-    id: "social",
-    label: "Social Links",
-    description: "Presence & sharing",
-    href: "/admin/social",
+    id: "content",
+    label: "Content",
+    description: "Gallery, reviews, sharing",
+    children: [
+      { href: "/admin/gallery", label: "Gallery" },
+      { href: "/admin/testimonials", label: "Testimonials" },
+      { href: "/admin/social", label: "Social Links" },
+    ],
   },
 ];
 
@@ -138,7 +120,8 @@ export default function AdminSidebar({
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     overview: true,
-    documents: false,
+    sales: false,
+    content: false,
   });
 
   useEffect(() => {

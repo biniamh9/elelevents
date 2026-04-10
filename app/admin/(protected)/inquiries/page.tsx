@@ -563,19 +563,20 @@ export default async function AdminInquiriesPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className="admin-page-head">
+      <div className={`admin-page-head${activeTab === "overview" ? " admin-page-head--compact" : ""}`}>
         <div>
-          <p className="eyebrow">Operations dashboard</p>
           <h1>{tabHeadingMap[activeTab].title}</h1>
           <p className="lead">
             {tabHeadingMap[activeTab].description}
           </p>
         </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Showing: {filteredCount ?? 0}</span>
-          <span className="admin-head-pill">Pipeline: ${formatMoney(pipelineValue)}</span>
-          <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
-        </div>
+        {activeTab !== "overview" ? (
+          <div className="admin-page-head-aside">
+            <span className="admin-head-pill">Showing: {filteredCount ?? 0}</span>
+            <span className="admin-head-pill">Pipeline: ${formatMoney(pipelineValue)}</span>
+            <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
+          </div>
+        ) : null}
       </div>
 
       {activeTab === "overview" ? (
@@ -592,38 +593,40 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
-          <section className="admin-dashboard-row admin-dashboard-row--overview-focus">
-            <div className="card admin-panel admin-panel--wide admin-section-card">
+          <section className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <div className="card admin-panel admin-section-card">
               <div className="admin-panel-head">
                 <div>
-                  <p className="eyebrow">Recent activity</p>
-                  <h3>What needs attention most recently</h3>
-                  <p className="muted">
-                    {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
-                  </p>
+                  <p className="eyebrow">Needs attention</p>
+                  <h3>Priority follow-up</h3>
                 </div>
               </div>
 
-              <div className="admin-activity-panel">
-                {recentActivity?.length ? (
-                  <div className="admin-activity-list">
-                    {recentActivity.map((entry) => (
-                      <div key={entry.id} className="admin-activity-item">
-                        <div>
-                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
-                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
-                        </div>
-                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
+              {attentionItems.length ? (
+                <div className="admin-attention-list">
+                  {attentionItems.map((item) => (
+                    <Link
+                      key={item.title}
+                      href={item.href}
+                      className="admin-attention-row"
+                    >
+                      <div>
+                        <strong>{item.title}</strong>
+                        <p>{item.detail}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted">No recent activity has been logged yet.</p>
-                )}
-              </div>
+                      <span>{item.count}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="admin-alert-card admin-alert-card--success">
+                  <strong>Operations look clear</strong>
+                  <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
+                </div>
+              )}
             </div>
 
-            <div className="card admin-panel admin-section-card">
+            <div className="card admin-panel admin-section-card admin-panel--performance">
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Performance</p>
@@ -653,55 +656,50 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
-          <section className="admin-dashboard-row">
+          <section className="admin-dashboard-row admin-dashboard-row--overview-activity">
             <div className="card admin-panel admin-panel--wide admin-section-card">
               <div className="admin-panel-head">
                 <div>
-                  <p className="eyebrow">Needs attention</p>
-                  <h3>Priority follow-up</h3>
-                  <p className="muted">Urgent or incomplete items grouped into one action-oriented section.</p>
+                  <p className="eyebrow">Recent activity</p>
+                  <h3>What changed most recently</h3>
+                  <p className="muted">
+                    {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
+                  </p>
                 </div>
               </div>
 
-              {attentionItems.length ? (
-                <div className="admin-attention-grid">
-                  {attentionItems.map((item) => (
-                    <Link
-                      key={item.title}
-                      href={item.href}
-                      className={`admin-alert-card admin-alert-card--${item.tone} admin-attention-card`}
-                    >
-                      <div className="admin-attention-top">
-                        <strong>{item.title}</strong>
-                        <span>{item.count}</span>
+              <div className="admin-activity-panel">
+                {recentActivity?.length ? (
+                  <div className="admin-activity-list">
+                    {recentActivity.map((entry) => (
+                      <div key={entry.id} className="admin-activity-item">
+                        <div>
+                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
+                        </div>
+                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
                       </div>
-                      <p>{item.detail}</p>
-                      <small>{item.cta}</small>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="admin-alert-card admin-alert-card--success">
-                  <strong>Operations look clear</strong>
-                  <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No recent activity has been logged yet.</p>
+                )}
+              </div>
             </div>
 
-            <div className="card admin-panel admin-section-card">
+            <div className="card admin-panel admin-section-card admin-panel--quick-actions">
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Quick actions</p>
                   <h3>Common next moves</h3>
-                  <p className="muted">Shortcuts for the actions the team uses most.</p>
                 </div>
               </div>
 
-              <div className="admin-quick-actions-grid">
-                {quickActions.map((action) => (
-                  <Link key={action.title} href={action.href} className="admin-quick-action-card">
+              <div className="admin-quick-actions-list">
+                {quickActions.slice(0, 4).map((action) => (
+                  <Link key={action.title} href={action.href} className="admin-quick-action-row">
                     <strong>{action.title}</strong>
-                    <p>{action.detail}</p>
+                    <span>{action.detail}</span>
                   </Link>
                 ))}
               </div>
