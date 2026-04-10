@@ -6426,10 +6426,37 @@ th { background: var(--surface-soft); }
 .admin-main > main .admin-focus-card .eyebrow {
   color: rgba(255,255,255,0.72);
 }
+.admin-main > main .crm-hero-card .lead,
+.admin-main > main .admin-hero-card .lead,
+.admin-main > main .admin-focus-card .lead,
+.admin-main > main .crm-hero-card p,
+.admin-main > main .admin-hero-card p,
+.admin-main > main .admin-focus-card p,
+.admin-main > main .crm-hero-card span,
+.admin-main > main .admin-hero-card span,
+.admin-main > main .admin-focus-card span {
+  color: rgba(255,255,255,0.76);
+}
+.admin-main > main .crm-hero-card h1,
+.admin-main > main .admin-hero-card h1,
+.admin-main > main .admin-focus-card h1,
+.admin-main > main .crm-hero-card h2,
+.admin-main > main .admin-hero-card h2,
+.admin-main > main .admin-focus-card h2,
 .admin-main > main .crm-hero-card h3,
 .admin-main > main .admin-hero-card h3,
 .admin-main > main .admin-focus-card h3 {
   color: #fffaf5;
+}
+.admin-main > main .admin-focus-card .admin-mini-metrics div {
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.92);
+}
+.admin-main > main .admin-focus-card .admin-mini-metrics strong {
+  color: #1f1712;
+}
+.admin-main > main .admin-focus-card .admin-mini-metrics span {
+  color: rgba(31,23,18,0.76);
 }
 .admin-main > main .summary-chip,
 .admin-main > main .admin-head-pill {
