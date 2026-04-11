@@ -12,23 +12,9 @@ const trustStats = [
   { value: "100%", label: "Satisfaction Rate" },
 ];
 
-function pickHeroImage(
-  items: Awaited<ReturnType<typeof getGalleryItems>>,
-  needles: string[],
-  fallbackIndex = 0
-) {
-  const match = items.find((item) => {
-    const haystack = `${item.title} ${item.category ?? ""}`.toLowerCase();
-    return needles.some((needle) => haystack.includes(needle));
-  });
-
-  return match ?? items[fallbackIndex] ?? items[0];
-}
-
 export default async function HomePage() {
   const galleryPreview = await getGalleryItems(12);
   const processSteps = await getHomeProcessSteps();
-  const heroImage = pickHeroImage(galleryPreview, ["garden", "centerpiece", "head table", "wedding"], 0);
 
   return (
     <main className="home-shell home-shell--simple">
@@ -36,7 +22,7 @@ export default async function HomePage() {
 
       <section className="hero-stage hero-stage--timeless">
         <div className="luxury-hero-media">
-          <img src={heroImage?.image_url} alt="Luxury event decor table styling by Elel Events" />
+          <img src="/hero2.jpeg" alt="Grand chandelier ballroom styling by Elel Events" />
           <div className="luxury-hero-overlay" />
         </div>
 
@@ -48,7 +34,7 @@ export default async function HomePage() {
             <em>Unforgettable Moments</em>
           </h1>
           <p>
-            Curating extraordinary celebrations with meticulous attention to every exquisite detail.
+            Curating extraordinary celebrations with meticulous attention to every detail.
           </p>
           <div className="luxury-hero-actions">
             <Button href="/request" className="luxury-hero-primary">Begin Your Journey</Button>
