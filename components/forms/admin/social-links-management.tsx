@@ -52,7 +52,19 @@ export default function SocialLinksManagement({
             These links power the social buttons shown on the booking confirmation screen.
           </p>
         </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Instagram: {instagramUrl ? "Connected" : "Not set"}</span>
+          <span className="admin-head-pill">Facebook: {facebookUrl ? "Connected" : "Not set"}</span>
+          <span className="admin-head-pill">TikTok: {tiktokUrl ? "Connected" : "Not set"}</span>
+        </div>
       </div>
+
+      <section className="admin-mini-report">
+        <div className="admin-section-title">
+          <h3>Summary</h3>
+          <p className="muted">Keep public sharing destinations current so clients always land on the right channels.</p>
+        </div>
+      </section>
 
       <div className="card admin-package-editor">
         <div className="admin-panel-head">

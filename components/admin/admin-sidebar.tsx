@@ -48,22 +48,20 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    id: "calendar",
-    label: "Calendar",
-    description: "Event dates and load",
-    href: "/admin/calendar",
-  },
-  {
-    id: "vendors",
-    label: "Vendors",
-    description: "Partner network",
-    href: "/admin/vendors",
+    id: "operations",
+    label: "Operations",
+    description: "Calendar and partners",
+    children: [
+      { href: "/admin/calendar", label: "Calendar" },
+      { href: "/admin/vendors", label: "Vendors" },
+    ],
   },
   {
     id: "content",
     label: "Content",
-    description: "Gallery, reviews, sharing",
+    description: "Homepage and public touchpoints",
     children: [
+      { href: "/admin/flow", label: "Homepage Flow" },
       { href: "/admin/gallery", label: "Gallery" },
       { href: "/admin/testimonials", label: "Testimonials" },
       { href: "/admin/social", label: "Social Links" },
@@ -121,6 +119,7 @@ export default function AdminSidebar({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     overview: true,
     sales: false,
+    operations: false,
     content: false,
   });
 
