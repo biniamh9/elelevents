@@ -6670,6 +6670,11 @@ th { background: var(--surface-soft); }
 .admin-dashboard-row--crm-leads {
   grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.72fr);
 }
+.admin-stack {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 18px;
+}
 .admin-dashboard-row--overview-activity {
   grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.62fr);
 }

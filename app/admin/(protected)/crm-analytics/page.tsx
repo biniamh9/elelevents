@@ -184,55 +184,12 @@ export default async function AdminCrmAnalyticsPage({
             </section>
           </div>
 
-          <div className="admin-dashboard-row">
-            <CrmLeadsTable leads={filteredLeads.slice(0, 4)} filters={{}} />
-            <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
-          </div>
-
-          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-            <section className="card admin-section-card admin-panel admin-panel--wide">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Revenue trend</p>
-                  <h3>Monthly booked revenue</h3>
-                </div>
-              </div>
-              <div className="crm-chart">
-                {crmRevenueTrend.map((point) => (
-                  <div key={point.month} className="crm-chart-bar">
-                    <div style={{ height: `${Math.max(18, (point.value / 31400) * 180)}px` }} />
-                    <strong>{point.month}</strong>
-                    <span>{formatMoney(point.value)}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="card admin-section-card admin-panel">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Source performance</p>
-                  <h3>Lead sources</h3>
-                </div>
-              </div>
-              <div className="crm-source-list">
-                {crmSourceMetrics.map((item) => (
-                  <div key={item.source} className="crm-source-row">
-                    <div>
-                      <strong>{item.source}</strong>
-                      <span>{item.leads} leads · {item.booked} booked</span>
-                    </div>
-                    <small>{item.rate}%</small>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
+          <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
         </>
       ) : null}
 
       {activeTab === "leads" ? (
-        <div className="admin-dashboard-row admin-dashboard-row--crm-leads">
+        <div className="admin-stack">
           <CrmLeadsTable
             leads={filteredLeads}
             filters={{
@@ -277,6 +234,10 @@ export default async function AdminCrmAnalyticsPage({
                 <h3>Booked pipeline trend</h3>
               </div>
             </div>
+            <p className="muted">
+              CRM shows forecast and booking momentum. Finance remains the source of truth for actual cash, receipts,
+              collected deposits, and expenses.
+            </p>
             <div className="crm-chart">
               {crmRevenueTrend.map((point) => (
                 <div key={point.month} className="crm-chart-bar">
