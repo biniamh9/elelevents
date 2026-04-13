@@ -1,13 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 
 type NavChild = {
   href: string;
   label: string;
-  matchTab?: string;
 };
 
 type NavSection = {
@@ -15,6 +10,7 @@ type NavSection = {
   label: string;
   description: string;
   href?: string;
+  defaultOpen?: boolean;
   children?: NavChild[];
 };
 
@@ -29,11 +25,12 @@ const navSections: NavSection[] = [
     id: "overview",
     label: "Overview",
     description: "Business operations",
+    defaultOpen: true,
     children: [
-      { href: "/admin/inquiries", label: "Overview", matchTab: "overview" },
-      { href: "/admin/inquiries?tab=pipeline", label: "Pipeline", matchTab: "pipeline" },
-      { href: "/admin/inquiries?tab=schedule", label: "Schedule", matchTab: "schedule" },
-      { href: "/admin/inquiries?tab=inquiries", label: "Inquiries", matchTab: "inquiries" },
+      { href: "/admin/inquiries", label: "Overview" },
+      { href: "/admin/inquiries?tab=pipeline", label: "Pipeline" },
+      { href: "/admin/inquiries?tab=schedule", label: "Schedule" },
+      { href: "/admin/inquiries?tab=inquiries", label: "Inquiries" },
     ],
   },
   {
@@ -53,8 +50,8 @@ const navSections: NavSection[] = [
     description: "Income, expenses, payments",
     children: [
       { href: "/admin/finance", label: "Overview" },
-      { href: "/admin/finance?tab=income", label: "Income", matchTab: "income" },
-      { href: "/admin/finance?tab=expenses", label: "Expenses", matchTab: "expenses" },
+      { href: "/admin/finance?tab=income", label: "Income" },
+      { href: "/admin/finance?tab=expenses", label: "Expenses" },
     ],
   },
   {
@@ -83,23 +80,15 @@ const navSections: NavSection[] = [
     description: "Access, roles, workspace",
     children: [
       { href: "/admin/settings", label: "Access & Roles" },
-      { href: "/admin/settings?tab=workspace", label: "Workspace", matchTab: "workspace" },
-      { href: "/admin/settings?tab=modules", label: "Modules", matchTab: "modules" },
+      { href: "/admin/settings?tab=workspace", label: "Workspace" },
+      { href: "/admin/settings?tab=modules", label: "Modules" },
     ],
   },
 ];
 
-function isActivePath(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function Chevron({ open }: { open: boolean }) {
+function Chevron() {
   return (
-    <svg
-      className={`admin-nav-group-chevron${open ? " is-open" : ""}`}
-      viewBox="0 0 20 20"
-      aria-hidden="true"
-    >
+    <svg className="admin-nav-group-chevron" viewBox="0 0 20 20" aria-hidden="true">
       <path d="m5 7 5 5 5-5" />
     </svg>
   );
@@ -110,55 +99,6 @@ export default function AdminSidebar({
 }: {
   userEmail: string | null | undefined;
 }) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const activeWorkspaceTab = searchParams.get("tab") || "overview";
-
-  const activeGroupIds = useMemo(() => {
-    const ids = new Set<string>();
-
-    for (const section of navSections) {
-      if (section.href && isActivePath(pathname, section.href)) {
-        ids.add(section.id);
-      }
-
-      if (section.children?.some((child) => {
-        const childPath = child.href.split("?")[0];
-        if (!isActivePath(pathname, childPath)) return false;
-        if (!child.matchTab) return true;
-        return activeWorkspaceTab === child.matchTab;
-      })) {
-        ids.add(section.id);
-      }
-    }
-
-    ids.add("overview");
-    return ids;
-  }, [pathname, activeWorkspaceTab]);
-
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    overview: true,
-    sales: false,
-    finance: false,
-    operations: false,
-    content: false,
-    settings: false,
-  });
-
-  useEffect(() => {
-    setOpenGroups((current) => {
-      const next = { ...current };
-      for (const id of activeGroupIds) {
-        next[id] = true;
-      }
-      return next;
-    });
-  }, [activeGroupIds]);
-
-  function toggleGroup(id: string) {
-    setOpenGroups((current) => ({ ...current, [id]: !current[id] }));
-  }
-
   return (
     <aside className="admin-sidebar-shell">
       <div className="admin-sidebar admin-sidebar-panel">
@@ -170,57 +110,41 @@ export default function AdminSidebar({
         <div className="admin-sidebar-section">
           <nav className="admin-nav admin-nav--stacked" aria-label="Admin navigation">
             {navSections.map((section) => {
-              const hasChildren = Boolean(section.children?.length);
-              const groupOpen = Boolean(openGroups[section.id]);
-              const sectionActive = activeGroupIds.has(section.id);
-
-              if (hasChildren) {
+              if (section.children?.length) {
                 return (
-                  <div key={section.id} className="admin-nav-group-card">
-                    <button
-                      type="button"
-                      className={`admin-nav-group-head${sectionActive ? " is-active" : ""}`}
-                      onClick={() => toggleGroup(section.id)}
-                      aria-expanded={groupOpen}
-                    >
+                  <details
+                    key={section.id}
+                    className="admin-nav-group-card"
+                    open={section.defaultOpen}
+                  >
+                    <summary className="admin-nav-group-head">
                       <div>
                         <strong>{section.label}</strong>
                         <span>{section.description}</span>
                       </div>
-                      <Chevron open={groupOpen} />
-                    </button>
+                      <Chevron />
+                    </summary>
 
-                    {groupOpen ? (
-                      <div className="admin-nav-subnav admin-nav-subnav--stacked">
-                        {section.children!.map((child) => {
-                          const childPath = child.href.split("?")[0];
-                          const active =
-                            isActivePath(pathname, childPath) &&
-                            (!child.matchTab || activeWorkspaceTab === child.matchTab);
-
-                          return (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className={`admin-nav-subnav-link${active ? " is-active" : ""}`}
-                            >
-                              {child.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
+                    <div className="admin-nav-subnav admin-nav-subnav--stacked">
+                      {section.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className="admin-nav-subnav-link"
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
                 );
               }
-
-              const active = section.href ? isActivePath(pathname, section.href) : false;
 
               return (
                 <Link
                   key={section.id}
                   href={section.href || "#"}
-                  className={`admin-nav-card-link${active ? " is-active" : ""}`}
+                  className="admin-nav-card-link"
                 >
                   <strong>{section.label}</strong>
                   <span>{section.description}</span>
