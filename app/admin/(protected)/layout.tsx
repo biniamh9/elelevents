@@ -8,12 +8,16 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await requireAdminPage();
+  const { user, profile } = await requireAdminPage();
 
   return (
     <div className="container admin-shell">
       <Suspense fallback={<aside className="admin-sidebar-shell" />}>
-        <AdminSidebar userEmail={user.email} />
+        <AdminSidebar
+          userEmail={user.email}
+          userRole={profile.role}
+          allowedModules={profile.allowed_modules ?? []}
+        />
       </Suspense>
 
       <div className="admin-main">

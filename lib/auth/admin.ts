@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { isAdminWorkspaceRole } from "@/lib/admin-access";
 
 async function getAdminProfile(userId: string) {
   const { data: profile } = await supabaseAdmin
     .from("crm_profiles")
-    .select("id, role, is_active")
+    .select("id, role, is_active, allowed_modules, full_name")
     .eq("id", userId)
     .maybeSingle();
 
@@ -25,7 +26,7 @@ export async function requireAdminPage() {
 
   const profile = await getAdminProfile(user.id);
 
-  if (!profile || profile.role !== "admin" || !profile.is_active) {
+  if (!profile || !isAdminWorkspaceRole(profile.role) || !profile.is_active) {
     redirect("/admin/login");
   }
 
@@ -48,7 +49,7 @@ export async function requireAdminApi() {
 
   const profile = await getAdminProfile(user.id);
 
-  if (!profile || profile.role !== "admin" || !profile.is_active) {
+  if (!profile || !isAdminWorkspaceRole(profile.role) || !profile.is_active) {
     return {
       errorResponse: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
       user,

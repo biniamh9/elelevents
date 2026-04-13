@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import AdminLoginForm from "@/components/forms/admin/admin-login-form";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { isAdminWorkspaceRole } from "@/lib/admin-access";
 
 export default async function AdminLoginPage() {
   const supabase = await createSupabaseServerClient();
@@ -16,7 +17,7 @@ export default async function AdminLoginPage() {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.role === "admin" && profile.is_active) {
+    if (profile && isAdminWorkspaceRole(profile.role) && profile.is_active) {
       redirect("/admin/inquiries");
     }
   }

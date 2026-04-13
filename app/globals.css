@@ -6819,6 +6819,105 @@ th { background: var(--surface-soft); }
 .admin-placeholder-list > div span {
   color: var(--muted);
 }
+.admin-users-workspace {
+  display: grid;
+  gap: 1.5rem;
+}
+.admin-settings-form {
+  display: grid;
+  gap: 1rem;
+}
+.admin-settings-form label {
+  display: grid;
+  gap: 0.45rem;
+}
+.admin-settings-form label span,
+.admin-dashboard-form-grid label span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.admin-dashboard-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.admin-settings-form input,
+.admin-settings-form select,
+.admin-dashboard-form-grid input,
+.admin-dashboard-form-grid select {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.12);
+  background: rgba(255,255,255,0.92);
+  padding: 0 1rem;
+  font: inherit;
+  color: var(--text);
+}
+.admin-settings-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+.admin-user-module-preview,
+.admin-user-modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.admin-users-list {
+  display: grid;
+  gap: 1rem;
+}
+.admin-user-card {
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
+  display: grid;
+  gap: 1rem;
+}
+.admin-user-card-head,
+.admin-user-card-foot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.admin-user-card-head strong {
+  display: block;
+  font-size: 1.05rem;
+}
+.admin-user-card-head span,
+.admin-user-card-foot small {
+  color: var(--muted);
+}
+.admin-checkbox-row {
+  display: flex !important;
+  align-items: center;
+  gap: 0.65rem;
+  padding-top: 2rem;
+}
+.admin-checkbox-row input {
+  min-height: unset !important;
+  width: 18px;
+  height: 18px;
+}
+.admin-module-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(73, 49, 31, 0.12);
+  background: rgba(255,255,255,0.84);
+  color: var(--text);
+}
+.admin-module-chip input {
+  width: 16px;
+  height: 16px;
+}
 .admin-schedule-board {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -12767,6 +12866,15 @@ th { background: var(--surface-soft); }
 }
 
 @media (max-width: 1100px) {
+  .admin-dashboard-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-user-card-head,
+  .admin-user-card-foot {
+    flex-direction: column;
+  }
+
   .admin-document-grid-layout {
     grid-template-columns: 1fr;
   }
