@@ -16,12 +16,12 @@ export default async function AdminFinancePage({
           <p className="eyebrow">Finance</p>
           <h1>Income and expense tracking</h1>
           <p className="lead">
-            Keep finance visible in one place so deposits, receipts, outstanding balances,
-            and upcoming expense tracking stay easy to review.
+            Review actual cash movement, collected deposits, receipts, outstanding balances,
+            and expense tracking in one accounting-focused workspace.
           </p>
         </div>
         <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Income workspace</span>
+          <span className="admin-head-pill">Cash + payments</span>
           <span className="admin-head-pill">Expenses ready next</span>
         </div>
       </div>
@@ -43,22 +43,22 @@ export default async function AdminFinancePage({
           <div className="card metric-card metric-card--neutral">
             <p className="muted">Recorded income</p>
             <strong>$0</strong>
-            <span>Ready to populate from invoices and receipts</span>
+              <span>Recognized cash from invoices and receipts</span>
           </div>
           <div className="card metric-card metric-card--amber">
             <p className="muted">Outstanding deposits</p>
             <strong>0</strong>
-            <span>Deposit follow-up stays visible here</span>
+              <span>Payment obligations still open in finance</span>
           </div>
           <div className="card metric-card metric-card--green">
             <p className="muted">Paid receipts</p>
             <strong>0</strong>
-            <span>Receipts will roll into finance reporting</span>
+              <span>Confirmed receipts recognized in cash tracking</span>
           </div>
           <div className="card metric-card metric-card--neutral">
             <p className="muted">Tracked expenses</p>
             <strong>0</strong>
-            <span>Vendor and production costs can be added next</span>
+              <span>Vendor and production costs can be tracked next</span>
           </div>
         </div>
       </section>
@@ -70,7 +70,7 @@ export default async function AdminFinancePage({
             <p className="muted">
               {tab === "expenses"
                 ? "This section is ready for expense entries, vendor payouts, and cost reporting."
-                : "Use this workspace to consolidate invoice payments, receipts, deposits, and future expenses."}
+                : "Use this workspace to consolidate actual payments, receipts, deposits, and future expenses."}
             </p>
           </div>
           <div className="admin-placeholder-list">

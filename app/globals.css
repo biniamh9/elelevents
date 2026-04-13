@@ -6661,8 +6661,14 @@ th { background: var(--surface-soft); }
   margin-bottom: 18px;
   align-items: start;
 }
+.admin-dashboard-row > * {
+  min-width: 0;
+}
 .admin-dashboard-row--overview-clean {
   grid-template-columns: minmax(0, 1.38fr) minmax(320px, 0.72fr);
+}
+.admin-dashboard-row--crm-leads {
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.72fr);
 }
 .admin-dashboard-row--overview-activity {
   grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.62fr);
@@ -7033,10 +7039,20 @@ th { background: var(--surface-soft); }
 }
 .crm-interactions-list {
   gap: 0;
+  min-width: 0;
 }
 .crm-interaction-item {
   text-decoration: none;
   color: inherit;
+  min-width: 0;
+}
+.crm-interaction-item div {
+  min-width: 0;
+}
+.crm-interaction-item strong,
+.crm-interaction-item span {
+  display: block;
+  overflow-wrap: anywhere;
 }
 .crm-chart {
   display: grid;

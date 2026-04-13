@@ -46,7 +46,7 @@ const navSections: NavSection[] = [
       { href: "/admin/crm-analytics", label: "Overview" },
       { href: "/admin/crm-analytics?tab=leads", label: "Leads" },
       { href: "/admin/crm-analytics?tab=customers", label: "Customers" },
-      { href: "/admin/crm-analytics?tab=revenue", label: "Revenue" },
+      { href: "/admin/crm-analytics?tab=revenue", label: "Revenue signals" },
       { href: "/admin/crm-analytics?tab=tasks", label: "Tasks" },
     ],
   },

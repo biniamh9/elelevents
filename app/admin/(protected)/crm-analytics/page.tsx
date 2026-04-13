@@ -97,8 +97,8 @@ export default async function AdminCrmAnalyticsPage({
     { label: "Hot Leads", value: String(hotLeads), detail: "Needs timely follow-up this week", tone: "amber" as const },
     { label: "Quotes Sent", value: String(quotesSent), detail: "Currently under client review", tone: "violet" as const },
     { label: "Conversion Rate", value: `${conversionRate}%`, detail: "Inquiry to booked this cycle", tone: "blue" as const },
-    { label: "Booked Revenue", value: formatMoney(totalBookedRevenue), detail: "Confirmed event value on the books", tone: "green" as const },
-    { label: "Outstanding Balances", value: formatMoney(Math.round(totalOutstanding)), detail: "Deposits or follow-up still open", tone: "red" as const },
+    { label: "Booked Pipeline Value", value: formatMoney(totalBookedRevenue), detail: "Confirmed event value associated with booked leads", tone: "green" as const },
+    { label: "Deposits Pending", value: formatMoney(Math.round(totalOutstanding)), detail: "Open deposit follow-up still tied to pipeline movement", tone: "red" as const },
   ];
 
   const stageCounts = Object.entries(CRM_STAGE_LABELS).map(([stage, label]) => ({
@@ -121,7 +121,7 @@ export default async function AdminCrmAnalyticsPage({
           <p className="eyebrow">CRM &amp; Analytics</p>
           <h1>CRM &amp; Analytics</h1>
           <p className="lead">
-            Track customer relationships, pipeline movement, conversion health, and revenue performance.
+            Track customer relationships, pipeline movement, follow-up health, and booking momentum.
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -141,7 +141,7 @@ export default async function AdminCrmAnalyticsPage({
         <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "overview" ? " is-active" : ""}`}>Overview</Link>
         <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads</Link>
         <Link href="/admin/crm-analytics?tab=customers" className={`admin-workspace-tab${activeTab === "customers" ? " is-active" : ""}`}>Customers</Link>
-        <Link href="/admin/crm-analytics?tab=revenue" className={`admin-workspace-tab${activeTab === "revenue" ? " is-active" : ""}`}>Revenue</Link>
+        <Link href="/admin/crm-analytics?tab=revenue" className={`admin-workspace-tab${activeTab === "revenue" ? " is-active" : ""}`}>Revenue Signals</Link>
         <Link href="/admin/crm-analytics?tab=tasks" className={`admin-workspace-tab${activeTab === "tasks" ? " is-active" : ""}`}>Tasks</Link>
       </div>
 
@@ -232,7 +232,7 @@ export default async function AdminCrmAnalyticsPage({
       ) : null}
 
       {activeTab === "leads" ? (
-        <div className="admin-dashboard-row">
+        <div className="admin-dashboard-row admin-dashboard-row--crm-leads">
           <CrmLeadsTable
             leads={filteredLeads}
             filters={{
@@ -273,8 +273,8 @@ export default async function AdminCrmAnalyticsPage({
           <section className="card admin-section-card admin-panel admin-panel--wide">
             <div className="admin-panel-head">
               <div>
-                <p className="eyebrow">Revenue</p>
-                <h3>Booked revenue trend</h3>
+                <p className="eyebrow">Revenue signals</p>
+                <h3>Booked pipeline trend</h3>
               </div>
             </div>
             <div className="crm-chart">
@@ -291,7 +291,7 @@ export default async function AdminCrmAnalyticsPage({
             <div className="admin-panel-head">
               <div>
                 <p className="eyebrow">Source performance</p>
-                <h3>Lead source breakdown</h3>
+                <h3>Lead source contribution</h3>
               </div>
             </div>
             <div className="crm-source-list">
