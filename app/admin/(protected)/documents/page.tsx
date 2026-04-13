@@ -27,52 +27,72 @@ export default async function DocumentsPage() {
 
   return (
     <main className="section admin-page">
-      <div className="admin-dashboard-hero">
-        <div className="card admin-hero-card">
-          <p className="eyebrow">Document system</p>
+      <div className="admin-page-head">
+        <div>
+          <p className="eyebrow">Documents</p>
           <h1>Client documents</h1>
           <p className="lead">
-            Create polished quotes, invoices, and receipts with one luxury-branded workflow.
+            Keep quotes, invoices, and receipts in one polished workflow so client-facing
+            financial communication stays clear and consistent.
           </p>
         </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Documents: {totalCount ?? 0}</span>
+          <span className="admin-head-pill">Quotes: {quoteCount ?? 0}</span>
+          <span className="admin-head-pill">Invoices: {invoiceCount ?? 0}</span>
+        </div>
+      </div>
 
-        <div className="card admin-focus-card">
-          <p className="eyebrow">Current Focus</p>
-          <div className="admin-mini-metrics">
-            <div>
+      <section className="admin-mini-report">
+        <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+          <div className="admin-kpi-grid admin-kpi-grid--compact">
+            <div className="card metric-card">
+              <p className="muted">Total documents</p>
+              <strong>{totalCount ?? 0}</strong>
+              <span>All quotes, invoices, and receipts</span>
+            </div>
+            <div className="card metric-card metric-card--violet">
+              <p className="muted">Quotes</p>
               <strong>{quoteCount ?? 0}</strong>
-              <span>Quotes</span>
+              <span>Proposal-stage client documents</span>
             </div>
-            <div>
+            <div className="card metric-card metric-card--amber">
+              <p className="muted">Invoices</p>
               <strong>{invoiceCount ?? 0}</strong>
-              <span>Invoices</span>
+              <span>Payment requests in progress</span>
             </div>
-            <div>
+            <div className="card metric-card metric-card--green">
+              <p className="muted">Receipts</p>
               <strong>{receiptCount ?? 0}</strong>
-              <span>Receipts</span>
+              <span>Confirmed client payments</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="admin-kpi-grid">
-        <div className="card metric-card">
-          <p className="muted">Total documents</p>
-          <strong>{totalCount ?? 0}</strong>
+          <aside className="card admin-section-card">
+            <div className="admin-section-title">
+              <h3>Document system</h3>
+              <p className="muted">
+                Quotes move into invoices, and invoices into receipts. This page keeps the whole
+                client document path in one place.
+              </p>
+            </div>
+            <div className="admin-mini-metrics admin-mini-metrics--plain">
+              <div>
+                <strong>{quoteCount ?? 0}</strong>
+                <span>Quotes ready for client review</span>
+              </div>
+              <div>
+                <strong>{invoiceCount ?? 0}</strong>
+                <span>Invoices waiting on payment action</span>
+              </div>
+              <div>
+                <strong>{receiptCount ?? 0}</strong>
+                <span>Receipts already recorded</span>
+              </div>
+            </div>
+          </aside>
         </div>
-        <div className="card metric-card metric-card--violet">
-          <p className="muted">Quotes</p>
-          <strong>{quoteCount ?? 0}</strong>
-        </div>
-        <div className="card metric-card metric-card--amber">
-          <p className="muted">Invoices</p>
-          <strong>{invoiceCount ?? 0}</strong>
-        </div>
-        <div className="card metric-card metric-card--green">
-          <p className="muted">Receipts</p>
-          <strong>{receiptCount ?? 0}</strong>
-        </div>
-      </div>
+      </section>
 
       {error ? (
         <div className="card">

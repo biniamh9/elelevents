@@ -373,63 +373,105 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
 
   return (
     <div className="admin-package-shell">
-      <div className="card admin-package-intro">
-        <div>
-          <p className="eyebrow">Gallery Upload</p>
-          <h3>Add finished event images without touching code</h3>
+      <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+        <div className="card admin-package-intro">
+          <div>
+            <p className="eyebrow">Gallery management</p>
+            <h3>Keep the portfolio clean, visible, and easy to curate</h3>
+          </div>
+          <p className="lead">
+            Upload finished event images, manage their visibility, and jump straight into editing
+            the selected gallery item without losing track of the full library.
+          </p>
         </div>
-        <p className="lead">
-          Upload the assets first, then manage the existing portfolio images in the table below.
-        </p>
+
+        <aside className="card admin-section-card admin-management-sidecard">
+          <div className="admin-section-title">
+            <h3>Current selection</h3>
+            <p className="muted">Review the active image before editing its details.</p>
+          </div>
+          {selectedItem ? (
+            <div className="admin-media-spotlight">
+              <img src={selectedItem.image_url} alt={selectedItem.title} className="admin-gallery-preview-image" />
+              <div className="admin-media-spotlight-copy">
+                <strong>{selectedItem.title}</strong>
+                <span>{selectedItem.category || "Uncategorized"}</span>
+                <small>{selectedItem.is_active ? "Visible in public gallery" : "Hidden from public gallery"}</small>
+              </div>
+            </div>
+          ) : (
+            <p className="muted">Select a gallery item from the records table to review it here.</p>
+          )}
+        </aside>
       </div>
 
-      <div className="card admin-package-create">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Upload Images</p>
-            <h3>Send new images into the gallery</h3>
+      <div className="admin-package-workspace">
+        <div className="admin-package-list-wrap">
+          <div className="card admin-package-create">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Upload images</p>
+                <h3>Send new images into the gallery</h3>
+                <p className="muted">Add assets once, then organize them from the records below.</p>
+              </div>
+            </div>
+
+            <form onSubmit={uploadImage}>
+              <div className="form-grid">
+                <div className="field">
+                  <label className="label">Title</label>
+                  <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
+
+                <div className="field">
+                  <label className="label">Category</label>
+                  <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Wedding, Melsi, Bridal Shower..." />
+                </div>
+
+                <div className="field">
+                  <label className="label">Sort Order</label>
+                  <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
+                </div>
+
+                <div className="field">
+                  <label className="label">Image Files</label>
+                  <input
+                    className="input"
+                    type="file"
+                    accept={allowedImageTypes}
+                    multiple
+                    onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                    required
+                  />
+                  <p className="muted" style={{ marginTop: "8px" }}>
+                    JPG, PNG, or WEBP. If you choose multiple files, the same title/category/sort base is used.
+                  </p>
+                </div>
+              </div>
+
+              <button className="btn" type="submit" disabled={uploading}>
+                {uploading ? "Uploading..." : "Upload Images"}
+              </button>
+            </form>
+
+            {message ? <p className={message.includes("Uploaded") ? "success" : "error"}>{message}</p> : null}
           </div>
         </div>
 
-        <form onSubmit={uploadImage}>
-          <div className="form-grid">
-            <div className="field">
-              <label className="label">Title</label>
-              <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <div className="admin-package-editor-wrap" id="gallery-editor">
+          {selectedItem ? (
+            <GalleryEditor
+              key={selectedItem.id}
+              item={selectedItem}
+              onDeleted={handleDeleted}
+            />
+          ) : (
+            <div className="card admin-package-empty">
+              <h3>No gallery image selected</h3>
+              <p className="muted">Choose a row from the table below to edit an existing image.</p>
             </div>
-
-            <div className="field">
-              <label className="label">Category</label>
-              <input className="input" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Wedding, Melsi, Bridal Shower..." />
-            </div>
-
-            <div className="field">
-              <label className="label">Sort Order</label>
-              <input className="input" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
-            </div>
-
-            <div className="field">
-              <label className="label">Image Files</label>
-              <input
-                className="input"
-                type="file"
-                accept={allowedImageTypes}
-                multiple
-                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-                required
-              />
-              <p className="muted" style={{ marginTop: "8px" }}>
-                JPG, PNG, or WEBP. If you choose multiple files, the same title/category/sort base is used.
-              </p>
-            </div>
-          </div>
-
-          <button className="btn" type="submit" disabled={uploading}>
-            {uploading ? "Uploading..." : "Upload Images"}
-          </button>
-        </form>
-
-        {message ? <p className={message.includes("Uploaded") ? "success" : "error"}>{message}</p> : null}
+          )}
+        </div>
       </div>
 
       <div className="card admin-table-card admin-records-table-card">
@@ -437,6 +479,7 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
           <div>
             <p className="eyebrow">Gallery Records</p>
             <h3>Manage existing images</h3>
+            <p className="muted">Search and filter the full library, then open any row to edit it above.</p>
           </div>
         </div>
 
@@ -582,35 +625,6 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
               />
             </div>
           ))}
-        </div>
-      </div>
-
-      <div className="admin-package-workspace">
-        <div className="admin-package-list-wrap">
-          <div className="card admin-package-intro">
-            <div>
-              <p className="eyebrow">Selected Asset</p>
-              <h3>Edit title, category, visibility, and order</h3>
-            </div>
-            <p className="lead">
-              Use the records table to select an image, then manage the asset details here.
-            </p>
-          </div>
-        </div>
-
-        <div className="admin-package-editor-wrap" id="gallery-editor">
-          {selectedItem ? (
-            <GalleryEditor
-              key={selectedItem.id}
-              item={selectedItem}
-              onDeleted={handleDeleted}
-            />
-          ) : (
-            <div className="card admin-package-empty">
-              <h3>No gallery image selected</h3>
-              <p className="muted">Choose a row from the table to edit an existing image.</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

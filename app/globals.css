@@ -6756,6 +6756,69 @@ th { background: var(--surface-soft); }
   flex-wrap: wrap;
   gap: 10px;
 }
+.admin-inline-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.admin-workspace-tabs--inline {
+  margin-bottom: 20px;
+}
+.admin-management-sidecard {
+  min-height: 100%;
+  align-content: start;
+}
+.admin-media-spotlight {
+  display: grid;
+  gap: 14px;
+}
+.admin-media-spotlight-copy {
+  display: grid;
+  gap: 4px;
+}
+.admin-media-spotlight-copy strong {
+  font-size: 1.15rem;
+}
+.admin-media-spotlight-copy span,
+.admin-media-spotlight-copy small,
+.admin-selection-summary span,
+.admin-selection-summary small {
+  color: var(--muted);
+}
+.admin-selection-summary {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,241,234,0.96));
+}
+.admin-selection-summary strong {
+  font-size: 1.15rem;
+}
+.admin-mini-metrics--plain div {
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,239,232,0.98));
+  border: 1px solid rgba(73, 49, 31, 0.08);
+}
+.admin-management-card {
+  display: grid;
+  gap: 16px;
+}
+.admin-placeholder-list {
+  display: grid;
+  gap: 14px;
+}
+.admin-placeholder-list > div {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
+}
+.admin-placeholder-list > div span {
+  color: var(--muted);
+}
 .admin-schedule-board {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;

@@ -400,15 +400,35 @@ export default function PricingCatalogManagement({
 
   return (
     <div className="admin-package-shell">
-      <div className="card admin-package-intro">
-        <div>
-          <p className="eyebrow">Pricing Catalog</p>
-          <h3>Maintain the decor pricing list once, reuse it in every quote</h3>
+      <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+        <div className="card admin-package-intro">
+          <div>
+            <p className="eyebrow">Pricing catalog</p>
+            <h3>Maintain the decor pricing list once and reuse it in every quote</h3>
+          </div>
+          <p className="lead">
+            Keep pricing records clean, searchable, and easy to update so quote building stays
+            reliable across inquiries, documents, and contracts.
+          </p>
         </div>
-        <p className="lead">
-          Use the table to scan existing pricing records quickly, then edit the selected
-          item below when you need to make changes.
-        </p>
+
+        <aside className="card admin-section-card admin-management-sidecard">
+          <div className="admin-section-title">
+            <h3>Current selection</h3>
+            <p className="muted">Review the active pricing item before editing its details.</p>
+          </div>
+          {selectedItem ? (
+            <div className="admin-selection-summary">
+              <strong>{formatCatalogLabel(selectedItem)}</strong>
+              <span>{selectedItem.category || "Uncategorized"}</span>
+              <small>
+                ${Number(selectedItem.unit_price ?? 0).toLocaleString()} per {selectedItem.unit_label || "each"}
+              </small>
+            </div>
+          ) : (
+            <p className="muted">Select a pricing item from the records table to review it here.</p>
+          )}
+        </aside>
       </div>
 
       <div className="card admin-table-card admin-records-table-card">
@@ -416,6 +436,7 @@ export default function PricingCatalogManagement({
           <div>
             <p className="eyebrow">Pricing Records</p>
             <h3>Reusable pricing items</h3>
+            <p className="muted">Search and filter the catalog, then open any row to edit it below.</p>
           </div>
         </div>
 
@@ -567,6 +588,7 @@ export default function PricingCatalogManagement({
               <div>
                 <p className="eyebrow">Create Pricing Item</p>
                 <h3>Add a reusable decor price</h3>
+                <p className="muted">New items become available to the quote builder after creation.</p>
               </div>
             </div>
 

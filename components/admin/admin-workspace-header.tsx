@@ -125,6 +125,58 @@ function getHeaderConfig(pathname: string, tab: string | null): HeaderConfig {
     };
   }
 
+  if (pathname.startsWith("/admin/finance")) {
+    const currentTab = tab || "overview";
+
+    if (currentTab === "income") {
+      return {
+        title: "Finance",
+        subtitle: "Track recorded income, deposits, and paid client documents.",
+        context: "Finance workspace",
+      };
+    }
+
+    if (currentTab === "expenses") {
+      return {
+        title: "Finance",
+        subtitle: "Keep expenses, vendor outflow, and cost visibility organized.",
+        context: "Finance workspace",
+      };
+    }
+
+    return {
+      title: "Finance",
+      subtitle: "Monitor revenue, payouts, and the financial picture in one workspace.",
+      context: "Finance workspace",
+    };
+  }
+
+  if (pathname.startsWith("/admin/settings")) {
+    const currentTab = tab || "access";
+
+    if (currentTab === "workspace") {
+      return {
+        title: "Settings",
+        subtitle: "Adjust workspace defaults and operational preferences.",
+        context: "Settings",
+      };
+    }
+
+    if (currentTab === "modules") {
+      return {
+        title: "Settings",
+        subtitle: "Control which admin modules stay visible and who can use them.",
+        context: "Settings",
+      };
+    }
+
+    return {
+      title: "Settings",
+      subtitle: "Manage roles, access levels, and admin workflow controls.",
+      context: "Settings",
+    };
+  }
+
   return {
     title: "Admin Workspace",
     subtitle: "Run Elel Events operations with a clear, focused workspace.",

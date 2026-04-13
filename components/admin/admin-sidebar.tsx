@@ -48,6 +48,16 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    id: "finance",
+    label: "Finance",
+    description: "Income, expenses, payments",
+    children: [
+      { href: "/admin/finance", label: "Overview" },
+      { href: "/admin/finance?tab=income", label: "Income", matchTab: "income" },
+      { href: "/admin/finance?tab=expenses", label: "Expenses", matchTab: "expenses" },
+    ],
+  },
+  {
     id: "operations",
     label: "Operations",
     description: "Calendar and partners",
@@ -65,6 +75,16 @@ const navSections: NavSection[] = [
       { href: "/admin/gallery", label: "Gallery" },
       { href: "/admin/testimonials", label: "Testimonials" },
       { href: "/admin/social", label: "Social Links" },
+    ],
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    description: "Access, roles, workspace",
+    children: [
+      { href: "/admin/settings", label: "Access & Roles" },
+      { href: "/admin/settings?tab=workspace", label: "Workspace", matchTab: "workspace" },
+      { href: "/admin/settings?tab=modules", label: "Modules", matchTab: "modules" },
     ],
   },
 ];
@@ -119,8 +139,10 @@ export default function AdminSidebar({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     overview: true,
     sales: false,
+    finance: false,
     operations: false,
     content: false,
+    settings: false,
   });
 
   useEffect(() => {
