@@ -10,6 +10,7 @@ type Props = {
 
 const moduleLabels: Record<(typeof ADMIN_MODULES)[number], string> = {
   overview: "Overview",
+  crm: "CRM & Analytics",
   sales: "Sales",
   finance: "Finance",
   operations: "Operations",

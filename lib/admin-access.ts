@@ -11,6 +11,7 @@ export type AdminRole = (typeof ADMIN_ROLES)[number];
 
 export const ADMIN_MODULES = [
   "overview",
+  "crm",
   "sales",
   "finance",
   "operations",
@@ -22,11 +23,11 @@ export type AdminModule = (typeof ADMIN_MODULES)[number];
 
 export const DEFAULT_MODULE_ACCESS: Record<AdminRole, AdminModule[]> = {
   admin: [...ADMIN_MODULES],
-  staff: ["overview", "sales", "operations", "content"],
-  finance: ["overview", "finance", "sales"],
-  contracts: ["overview", "sales"],
+  staff: ["overview", "crm", "sales", "operations", "content"],
+  finance: ["overview", "crm", "finance", "sales"],
+  contracts: ["overview", "crm", "sales"],
   content: ["overview", "content"],
-  operations: ["overview", "operations"],
+  operations: ["overview", "crm", "operations"],
 };
 
 export function isAdminWorkspaceRole(role: string | null | undefined): role is AdminRole {

@@ -38,6 +38,19 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    id: "crm",
+    label: "CRM & Analytics",
+    description: "Relationships and performance",
+    module: "crm",
+    children: [
+      { href: "/admin/crm-analytics", label: "Overview" },
+      { href: "/admin/crm-analytics?tab=leads", label: "Leads" },
+      { href: "/admin/crm-analytics?tab=customers", label: "Customers" },
+      { href: "/admin/crm-analytics?tab=revenue", label: "Revenue" },
+      { href: "/admin/crm-analytics?tab=tasks", label: "Tasks" },
+    ],
+  },
+  {
     id: "sales",
     label: "Sales",
     description: "Quotes, contracts, pricing",

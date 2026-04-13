@@ -6918,6 +6918,170 @@ th { background: var(--surface-soft); }
   width: 16px;
   height: 16px;
 }
+.crm-kpi-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.crm-stage-list,
+.crm-source-list,
+.crm-task-list {
+  display: grid;
+  gap: 12px;
+}
+.crm-stage-row,
+.crm-source-row,
+.crm-task-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
+  color: inherit;
+  text-decoration: none;
+}
+.crm-stage-row strong,
+.crm-source-row strong,
+.crm-task-row strong {
+  display: block;
+}
+.crm-stage-row span,
+.crm-source-row span,
+.crm-task-row span {
+  color: var(--muted);
+}
+.crm-stage-row > span,
+.crm-source-row > small,
+.crm-task-row > small {
+  color: var(--accent-dark);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.crm-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+.crm-filter-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+.crm-filter-grid label span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.crm-filter-grid input,
+.crm-filter-grid select {
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(73, 49, 31, 0.12);
+  background: rgba(255,255,255,0.94);
+  padding: 0 0.95rem;
+  font: inherit;
+}
+.crm-records-table th:last-child,
+.crm-records-table td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+.crm-pipeline-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.crm-pipeline-column {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
+}
+.crm-pipeline-column-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.crm-pipeline-column-head span {
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+.crm-pipeline-column-list {
+  display: grid;
+  gap: 10px;
+}
+.crm-pipeline-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: rgba(255,255,255,0.92);
+  color: inherit;
+  text-decoration: none;
+}
+.crm-pipeline-card span,
+.crm-pipeline-card small,
+.crm-pipeline-empty,
+.crm-interaction-item span {
+  color: var(--muted);
+}
+.crm-interactions-list {
+  gap: 0;
+}
+.crm-interaction-item {
+  text-decoration: none;
+  color: inherit;
+}
+.crm-chart {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  align-items: end;
+  min-height: 240px;
+}
+.crm-chart-bar {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.crm-chart-bar div {
+  width: 100%;
+  border-radius: 18px 18px 10px 10px;
+  background: linear-gradient(180deg, rgba(232,122,45,0.98), rgba(179,89,29,0.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+}
+.crm-chart-bar strong {
+  font-size: 0.9rem;
+}
+.crm-chart-bar span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.crm-customer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.crm-customer-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
+  color: inherit;
+  text-decoration: none;
+}
+.crm-customer-card span,
+.crm-customer-card small {
+  color: var(--muted);
+}
 .admin-schedule-board {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
@@ -12866,6 +13030,13 @@ th { background: var(--surface-soft); }
 }
 
 @media (max-width: 1100px) {
+  .crm-kpi-grid,
+  .crm-chart,
+  .crm-customer-grid,
+  .crm-pipeline-board,
+  .crm-filter-grid {
+    grid-template-columns: 1fr;
+  }
   .admin-dashboard-form-grid {
     grid-template-columns: 1fr;
   }
