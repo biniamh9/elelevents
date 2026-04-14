@@ -6200,19 +6200,21 @@ th { background: var(--surface-soft); }
   gap: 22px;
   padding-bottom: 28px;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
 }
 .admin-main > main {
   width: 100%;
   max-width: none;
-  padding: 30px;
+  min-width: 0;
+  padding: 28px;
   border-radius: 32px;
   border: 1px solid rgba(73, 49, 31, 0.08);
   background:
     linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,243,236,0.9)),
     radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.1), transparent 28%);
   box-shadow: 0 24px 52px rgba(61, 40, 27, 0.08);
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 .admin-main > main .card,
 .admin-main > main .admin-panel,
@@ -6503,9 +6505,11 @@ th { background: var(--surface-soft); }
   white-space: nowrap;
 }
 .admin-page--workspace {
-  max-width: 1440px;
+  width: 100%;
+  max-width: min(1280px, 100%);
   margin-inline: auto;
   min-width: 0;
+  overflow-x: visible;
 }
 .admin-page--workspace > * {
   min-width: 0;
@@ -6675,10 +6679,16 @@ th { background: var(--surface-soft); }
 .admin-dashboard-row--crm-leads {
   grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.72fr);
 }
+.admin-dashboard-row--crm-reports-primary {
+  grid-template-columns: minmax(0, 1fr);
+}
 .admin-stack {
   display: grid;
   gap: 16px;
   margin-bottom: 18px;
+}
+.admin-stack--crm-reports-secondary > * {
+  min-width: 0;
 }
 .admin-dashboard-row--overview-activity {
   grid-template-columns: minmax(0, 1.42fr) minmax(280px, 0.62fr);
@@ -7056,6 +7066,7 @@ th { background: var(--surface-soft); }
 .crm-task-list {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 .crm-stage-row,
 .crm-source-row,
@@ -7070,6 +7081,7 @@ th { background: var(--surface-soft); }
   background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,241,234,0.96));
   color: inherit;
   text-decoration: none;
+  min-width: 0;
 }
 .crm-stage-row strong,
 .crm-source-row strong,
@@ -7080,6 +7092,7 @@ th { background: var(--surface-soft); }
 .crm-source-row span,
 .crm-task-row span {
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 .crm-stage-row > span,
 .crm-source-row > small,
@@ -7131,6 +7144,16 @@ th { background: var(--surface-soft); }
 .admin-record-table-shell .admin-records-table,
 .admin-record-table-shell .crm-records-table {
   min-width: 1180px;
+}
+.admin-section-card,
+.admin-panel,
+.admin-table-card,
+.admin-records-table-card,
+.crm-chart,
+.crm-customer-grid,
+.crm-forecast-grid,
+.crm-forecast-shell {
+  min-width: 0;
 }
 .crm-pipeline-board {
   display: grid;
@@ -7237,10 +7260,11 @@ th { background: var(--surface-soft); }
 .crm-customer-card small {
   color: var(--muted);
 }
-@media (max-width: 1380px) {
+@media (max-width: 1540px) {
   .admin-dashboard-row,
   .admin-dashboard-row--overview-clean,
   .admin-dashboard-row--crm-leads,
+  .admin-dashboard-row--crm-reports-primary,
   .admin-dashboard-row--overview-activity,
   .admin-dashboard-row--activity {
     grid-template-columns: 1fr;
@@ -13200,6 +13224,9 @@ th { background: var(--surface-soft); }
 }
 
 @media (max-width: 1100px) {
+  .admin-page--workspace {
+    max-width: 100%;
+  }
   .crm-kpi-grid,
   .crm-forecast-grid,
   .crm-chart,

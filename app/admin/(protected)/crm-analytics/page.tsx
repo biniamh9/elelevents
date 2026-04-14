@@ -223,7 +223,7 @@ export default async function AdminCrmAnalyticsPage({
             <CrmFunnelCard items={funnelItems} />
           </div>
 
-          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+          <div className="admin-dashboard-row admin-dashboard-row--crm-reports-primary">
             <section className="card admin-section-card admin-panel admin-panel--wide">
               <div className="admin-panel-head">
                 <div>
@@ -263,7 +263,7 @@ export default async function AdminCrmAnalyticsPage({
             </section>
           </div>
 
-          <div className="admin-stack">
+          <div className="admin-stack admin-stack--crm-reports-secondary">
             <CrmTeamPerformanceTable items={crmTeamPerformance} />
             <section className="card admin-section-card admin-panel admin-panel--wide">
               <div className="admin-panel-head">
