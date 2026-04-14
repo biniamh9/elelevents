@@ -93,7 +93,7 @@ export default function DocumentsList({
       </div>
 
       <div className="card admin-table-card admin-records-table-card">
-        <div className="table-wrap admin-records-table-wrap">
+        <div className="admin-record-table-shell">
           <table className="admin-records-table">
             <thead>
               <tr>

@@ -902,7 +902,7 @@ export default async function AdminInquiriesPage({
 
             {error ? <p className="error">Failed to load inquiries: {error.message}</p> : null}
 
-            <div className="table-wrap admin-records-table-wrap">
+            <div className="admin-record-table-shell">
               <table className="admin-records-table">
                 <thead>
                   <tr>

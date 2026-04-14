@@ -483,7 +483,7 @@ export default function PricingCatalogManagement({
           </div>
         </div>
 
-        <div className="table-wrap admin-records-table-wrap">
+        <div className="admin-record-table-shell">
           <table className="admin-records-table">
             <thead>
               <tr>

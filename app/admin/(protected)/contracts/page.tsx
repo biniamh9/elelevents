@@ -181,7 +181,7 @@ export default async function ContractsPage() {
 
       {error ? <p className="error">Failed to load contracts: {error.message}</p> : null}
 
-      <div className="card admin-table-card">
+      <div className="card admin-table-card admin-records-table-card">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Contract Table</p>
@@ -189,8 +189,8 @@ export default async function ContractsPage() {
           </div>
         </div>
 
-      <div className="table-wrap">
-        <table>
+      <div className="admin-record-table-shell">
+        <table className="admin-records-table">
           <thead>
             <tr>
               <th>Created</th>
