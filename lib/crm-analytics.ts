@@ -43,6 +43,10 @@ export type CrmLead = {
   quoteSummary: string;
   paymentSummary: string;
   notes: string[];
+  contractStatus?: "unsigned" | "sent" | "signed";
+  paymentStatus?: "unpaid" | "deposit_due" | "deposit_paid" | "paid";
+  decorStatus?: "pending" | "in_progress" | "approved" | "ready";
+  lostReason?: "Price too high" | "Chose competitor" | "No response" | "Date unavailable" | "Not ready" | "Other";
 };
 
 export type CrmInteraction = {
@@ -75,6 +79,30 @@ export type CrmSourceMetric = {
   rate: number;
 };
 
+export type LeadTemperature = "hot" | "warm" | "cold";
+
+export type TeamPerformanceMetric = {
+  name: string;
+  leadsAssigned: number;
+  quotesSent: number;
+  bookings: number;
+  revenueClosed: number;
+  averageResponseHours: number;
+};
+
+export type DashboardAlert = {
+  id: string;
+  title: string;
+  detail: string;
+  severity: "high" | "medium" | "low";
+  count: number;
+};
+
+export type LostReasonMetric = {
+  reason: NonNullable<CrmLead["lostReason"]>;
+  count: number;
+};
+
 export const CRM_STAGE_LABELS: Record<CrmStage, string> = {
   new_inquiry: "New Inquiry",
   contacted: "Contacted",
@@ -105,6 +133,9 @@ export const crmLeads: CrmLead[] = [
     quoteSummary: "Signature floral and ceremony styling proposal sent.",
     paymentSummary: "Deposit not yet paid.",
     notes: ["Requested romantic white florals.", "Needs final venue access window confirmed."],
+    contractStatus: "sent",
+    paymentStatus: "deposit_due",
+    decorStatus: "approved",
   },
   {
     id: "lead-ysakor",
@@ -124,6 +155,9 @@ export const crmLeads: CrmLead[] = [
     quoteSummary: "Consultation not yet scheduled.",
     paymentSummary: "No payment activity.",
     notes: ["Interested in soft glam tablescape.", "Asked for portfolio examples."],
+    contractStatus: "unsigned",
+    paymentStatus: "unpaid",
+    decorStatus: "pending",
   },
   {
     id: "lead-biniam",
@@ -143,6 +177,9 @@ export const crmLeads: CrmLead[] = [
     quoteSummary: "Quote accepted, contract out for signature.",
     paymentSummary: "Deposit invoice open.",
     notes: ["Client asked to split floral and candle package."],
+    contractStatus: "sent",
+    paymentStatus: "deposit_due",
+    decorStatus: "in_progress",
   },
   {
     id: "lead-abeba",
@@ -162,6 +199,9 @@ export const crmLeads: CrmLead[] = [
     quoteSummary: "Consultation booked for Friday.",
     paymentSummary: "No payment activity.",
     notes: ["Traditional entrance and sweetheart styling prioritized."],
+    contractStatus: "unsigned",
+    paymentStatus: "unpaid",
+    decorStatus: "pending",
   },
   {
     id: "lead-hana",
@@ -181,6 +221,54 @@ export const crmLeads: CrmLead[] = [
     quoteSummary: "Booked premium reception environment.",
     paymentSummary: "Deposit received.",
     notes: ["Branded stage and hospitality lounge approved."],
+    contractStatus: "signed",
+    paymentStatus: "deposit_paid",
+    decorStatus: "ready",
+  },
+  {
+    id: "lead-selam",
+    clientName: "Selam Desta",
+    email: "selam@gmail.com",
+    phone: "77733344",
+    eventType: "Engagement",
+    eventDate: "2026-08-14",
+    venue: "Ventanas",
+    stage: "consultation_completed",
+    estimatedValue: 6200,
+    lastContact: "2026-04-10T10:00:00Z",
+    nextFollowUp: "2026-04-15",
+    owner: "Biniam",
+    source: "Referral",
+    budgetRange: "$6k – $8k",
+    quoteSummary: "Consultation completed, quote draft in progress.",
+    paymentSummary: "No payment activity.",
+    notes: ["Wants a clean monochrome floral look."],
+    contractStatus: "unsigned",
+    paymentStatus: "unpaid",
+    decorStatus: "pending",
+  },
+  {
+    id: "lead-liya",
+    clientName: "Liya Meles",
+    email: "liya@gmail.com",
+    phone: "77755566",
+    eventType: "Wedding",
+    eventDate: "2026-10-09",
+    venue: "The Estate",
+    stage: "lost",
+    estimatedValue: 9200,
+    lastContact: "2026-04-01T09:30:00Z",
+    nextFollowUp: "2026-04-02",
+    owner: "Contracts Desk",
+    source: "Website",
+    budgetRange: "$8k – $10k",
+    quoteSummary: "Quote declined after competitive comparison.",
+    paymentSummary: "No payment activity.",
+    notes: ["Loved the floral concept but paused budget."],
+    contractStatus: "unsigned",
+    paymentStatus: "unpaid",
+    decorStatus: "pending",
+    lostReason: "Price too high",
   },
 ];
 
@@ -257,6 +345,30 @@ export const crmSourceMetrics: CrmSourceMetric[] = [
   { source: "Vendor Partner", leads: 6, booked: 2, rate: 33 },
 ];
 
+export const crmTeamPerformance: TeamPerformanceMetric[] = [
+  { name: "Biniam", leadsAssigned: 4, quotesSent: 2, bookings: 1, revenueClosed: 14000, averageResponseHours: 5.2 },
+  { name: "Contracts Desk", leadsAssigned: 2, quotesSent: 2, bookings: 0, revenueClosed: 0, averageResponseHours: 8.6 },
+  { name: "Operations", leadsAssigned: 1, quotesSent: 0, bookings: 1, revenueClosed: 14000, averageResponseHours: 12.4 },
+];
+
+export const crmDashboardAlerts: DashboardAlert[] = [
+  { id: "alert-1", title: "Leads not contacted", detail: "New inquiries waiting beyond 24 hours.", severity: "high", count: 2 },
+  { id: "alert-2", title: "Overdue follow-ups", detail: "Leads that need immediate follow-up.", severity: "high", count: 1 },
+  { id: "alert-3", title: "Quotes awaiting response", detail: "Clients still pending decision on sent quotes.", severity: "medium", count: 1 },
+  { id: "alert-4", title: "Unsigned contracts", detail: "Accepted scope without signature completion.", severity: "medium", count: 2 },
+  { id: "alert-5", title: "Deposits overdue", detail: "Open deposit obligations blocking full booking progress.", severity: "high", count: 2 },
+  { id: "alert-6", title: "Upcoming consultations", detail: "Scheduled consultations in the next seven days.", severity: "low", count: 1 },
+];
+
+export const crmLostReasonMetrics: LostReasonMetric[] = [
+  { reason: "Price too high", count: 2 },
+  { reason: "Chose competitor", count: 1 },
+  { reason: "No response", count: 1 },
+  { reason: "Date unavailable", count: 0 },
+  { reason: "Not ready", count: 1 },
+  { reason: "Other", count: 0 },
+];
+
 export function getCrmLeadById(id: string) {
   return crmLeads.find((lead) => lead.id === id) ?? null;
 }
@@ -269,4 +381,75 @@ export function getLeadInteractions(leadId: string) {
 
 export function getLeadTasks(leadId: string) {
   return crmTasks.filter((task) => task.leadId === leadId);
+}
+
+export function getLeadTemperature(lead: CrmLead): LeadTemperature {
+  if (lead.stage === "booked" || lead.stage === "awaiting_deposit" || lead.stage === "quote_sent") return "hot";
+  if (lead.stage === "consultation_scheduled" || lead.stage === "consultation_completed" || lead.stage === "contacted") {
+    return "warm";
+  }
+  return "cold";
+}
+
+export function getLeadProbability(lead: CrmLead) {
+  const temperature = getLeadTemperature(lead);
+  if (temperature === "hot") return 0.8;
+  if (temperature === "warm") return 0.5;
+  return 0.2;
+}
+
+export function getPipelineValue(leads: CrmLead[]) {
+  return leads
+    .filter((lead) => lead.stage !== "lost")
+    .reduce((sum, lead) => sum + lead.estimatedValue, 0);
+}
+
+export function getBookedRevenue(leads: CrmLead[]) {
+  return leads
+    .filter((lead) => lead.stage === "booked")
+    .reduce((sum, lead) => sum + lead.estimatedValue, 0);
+}
+
+export function getForecastedRevenue(leads: CrmLead[]) {
+  // TODO: replace weighted mock forecast with live CRM scoring inputs from budget, responsiveness, consultation status, and quote status.
+  return Math.round(
+    leads
+      .filter((lead) => lead.stage !== "lost")
+      .reduce((sum, lead) => sum + lead.estimatedValue * getLeadProbability(lead), 0)
+  );
+}
+
+export function getLikelyRevenue(leads: CrmLead[]) {
+  return Math.round(
+    leads
+      .filter((lead) => getLeadTemperature(lead) === "hot")
+      .reduce((sum, lead) => sum + lead.estimatedValue * 0.8, 0)
+  );
+}
+
+export function getPipelineStageCounts(leads: CrmLead[]) {
+  return Object.entries(CRM_STAGE_LABELS).map(([stage, label]) => ({
+    stage: stage as CrmStage,
+    label,
+    count: leads.filter((lead) => lead.stage === stage).length,
+  }));
+}
+
+export function getConversionRate(leads: CrmLead[]) {
+  if (!leads.length) return 0;
+  return Math.round((leads.filter((lead) => lead.stage === "booked").length / leads.length) * 100);
+}
+
+export function getAverageEventValue(leads: CrmLead[]) {
+  const active = leads.filter((lead) => lead.stage !== "lost");
+  if (!active.length) return 0;
+  return Math.round(active.reduce((sum, lead) => sum + lead.estimatedValue, 0) / active.length);
+}
+
+export function getOutstandingBalances(leads: CrmLead[]) {
+  return Math.round(
+    leads
+      .filter((lead) => lead.paymentStatus === "deposit_due" || lead.stage === "quote_sent" || lead.stage === "awaiting_deposit")
+      .reduce((sum, lead) => sum + lead.estimatedValue * 0.3, 0)
+  );
 }

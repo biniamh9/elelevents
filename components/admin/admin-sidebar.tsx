@@ -43,7 +43,8 @@ const navSections: NavSection[] = [
     description: "Relationships and performance",
     module: "crm",
     children: [
-      { href: "/admin/crm-analytics", label: "Overview" },
+      { href: "/admin/crm-analytics", label: "Dashboard" },
+      { href: "/admin/crm-analytics?tab=reports", label: "Reports" },
       { href: "/admin/crm-analytics?tab=leads", label: "Leads" },
       { href: "/admin/crm-analytics?tab=customers", label: "Customers" },
       { href: "/admin/crm-analytics?tab=revenue", label: "Revenue signals" },

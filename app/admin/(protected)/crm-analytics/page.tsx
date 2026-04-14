@@ -1,21 +1,37 @@
 import Link from "next/link";
+import CrmAlertsPanel from "@/components/admin/crm-alerts-panel";
+import CrmForecastCard from "@/components/admin/crm-forecast-card";
+import CrmFunnelCard from "@/components/admin/crm-funnel-card";
 import CrmKpiGrid from "@/components/admin/crm-kpi-grid";
-import CrmPipelineBoard from "@/components/admin/crm-pipeline-board";
 import CrmInteractionsFeed from "@/components/admin/crm-interactions-feed";
 import CrmLeadsTable from "@/components/admin/crm-leads-table";
+import CrmReportFilters from "@/components/admin/crm-report-filters";
+import CrmTeamPerformanceTable from "@/components/admin/crm-team-performance-table";
+import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel";
 import {
   CRM_STAGE_LABELS,
+  crmDashboardAlerts,
   crmInteractions,
   crmLeads,
+  crmLostReasonMetrics,
   crmRevenueTrend,
   crmSourceMetrics,
+  crmTeamPerformance,
   crmTasks,
+  getAverageEventValue,
+  getBookedRevenue,
+  getConversionRate,
+  getForecastedRevenue,
+  getLikelyRevenue,
+  getOutstandingBalances,
+  getPipelineStageCounts,
+  getPipelineValue,
   type CrmLead,
 } from "@/lib/crm-analytics";
 
 export const dynamic = "force-dynamic";
 
-type Tab = "overview" | "leads" | "customers" | "revenue" | "tasks";
+type Tab = "dashboard" | "reports" | "leads" | "customers" | "revenue" | "tasks";
 
 function formatMoney(value: number) {
   return `$${value.toLocaleString()}`;
@@ -72,38 +88,45 @@ export default async function AdminCrmAnalyticsPage({
   }>;
 }) {
   const params = await searchParams;
-  const activeTab: Tab = ["overview", "leads", "customers", "revenue", "tasks"].includes(params.tab ?? "")
+  const activeTab: Tab = ["dashboard", "reports", "leads", "customers", "revenue", "tasks"].includes(params.tab ?? "")
     ? (params.tab as Tab)
-    : "overview";
+    : "dashboard";
 
   const filteredLeads = filterLeads(crmLeads, params);
   const leadsById = new Map(crmLeads.map((lead) => [lead.id, lead]));
-  const totalBookedRevenue = crmLeads
-    .filter((lead) => lead.stage === "booked")
-    .reduce((sum, lead) => sum + lead.estimatedValue, 0);
-  const totalOutstanding = crmLeads
-    .filter((lead) => lead.stage === "awaiting_deposit" || lead.stage === "quote_sent")
-    .reduce((sum, lead) => sum + lead.estimatedValue * 0.3, 0);
+  const totalBookedRevenue = getBookedRevenue(crmLeads);
+  const totalPipelineValue = getPipelineValue(crmLeads);
+  const forecastedRevenue = getForecastedRevenue(crmLeads);
+  const likelyRevenue = getLikelyRevenue(crmLeads);
+  const totalOutstanding = getOutstandingBalances(crmLeads);
   const hotLeads = crmLeads.filter((lead) =>
     ["consultation_scheduled", "consultation_completed", "quote_sent", "awaiting_deposit"].includes(lead.stage)
   ).length;
   const quotesSent = crmLeads.filter((lead) => lead.stage === "quote_sent").length;
-  const conversionRate = Math.round(
-    (crmLeads.filter((lead) => lead.stage === "booked").length / crmLeads.length) * 100
-  );
+  const conversionRate = getConversionRate(crmLeads);
+  const averageEventValue = getAverageEventValue(crmLeads);
+  const activeOpportunities = crmLeads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
 
   const kpis = [
     { label: "Active Leads", value: String(crmLeads.length), detail: "Open relationships across inquiry to booking", tone: "neutral" as const },
     { label: "Hot Leads", value: String(hotLeads), detail: "Needs timely follow-up this week", tone: "amber" as const },
     { label: "Quotes Sent", value: String(quotesSent), detail: "Currently under client review", tone: "violet" as const },
     { label: "Conversion Rate", value: `${conversionRate}%`, detail: "Inquiry to booked this cycle", tone: "blue" as const },
-    { label: "Booked Pipeline Value", value: formatMoney(totalBookedRevenue), detail: "Confirmed event value associated with booked leads", tone: "green" as const },
-    { label: "Deposits Pending", value: formatMoney(Math.round(totalOutstanding)), detail: "Open deposit follow-up still tied to pipeline movement", tone: "red" as const },
+    { label: "Pipeline Value", value: formatMoney(totalPipelineValue), detail: "Open opportunity value across active stages", tone: "neutral" as const },
+    { label: "Forecasted Revenue", value: formatMoney(forecastedRevenue), detail: "Weighted projection based on lead temperature", tone: "amber" as const },
+    { label: "Booked Revenue", value: formatMoney(totalBookedRevenue), detail: "Confirmed event value associated with booked leads", tone: "green" as const },
+    { label: "Outstanding Payments", value: formatMoney(Math.round(totalOutstanding)), detail: "Deposits or balances still open", tone: "red" as const },
+    { label: "Average Event Value", value: formatMoney(averageEventValue), detail: "Average value of active opportunities", tone: "blue" as const },
+    { label: "Active Opportunities", value: String(activeOpportunities), detail: "Leads still moving through the pipeline", tone: "violet" as const },
   ];
 
-  const stageCounts = Object.entries(CRM_STAGE_LABELS).map(([stage, label]) => ({
-    label,
-    count: crmLeads.filter((lead) => lead.stage === stage).length,
+  const stageCounts = getPipelineStageCounts(crmLeads);
+  const funnelItems = stageCounts.map((stage, index, all) => ({
+    label: stage.label,
+    count: stage.count,
+    dropoff: index === 0 || all[index - 1].count === 0
+      ? "Entry volume"
+      : `${Math.max(0, all[index - 1].count - stage.count)} dropped from prior stage`,
   }));
 
   const followupCounts = {
@@ -121,7 +144,7 @@ export default async function AdminCrmAnalyticsPage({
           <p className="eyebrow">CRM &amp; Analytics</p>
           <h1>CRM &amp; Analytics</h1>
           <p className="lead">
-            Track customer relationships, pipeline movement, follow-up health, and booking momentum.
+            Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum.
           </p>
         </div>
         <div className="admin-page-head-aside">
@@ -138,7 +161,8 @@ export default async function AdminCrmAnalyticsPage({
       </div>
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline">
-        <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "overview" ? " is-active" : ""}`}>Overview</Link>
+        <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "dashboard" ? " is-active" : ""}`}>Dashboard</Link>
+        <Link href="/admin/crm-analytics?tab=reports" className={`admin-workspace-tab${activeTab === "reports" ? " is-active" : ""}`}>Reports</Link>
         <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads</Link>
         <Link href="/admin/crm-analytics?tab=customers" className={`admin-workspace-tab${activeTab === "customers" ? " is-active" : ""}`}>Customers</Link>
         <Link href="/admin/crm-analytics?tab=revenue" className={`admin-workspace-tab${activeTab === "revenue" ? " is-active" : ""}`}>Revenue Signals</Link>
@@ -147,26 +171,20 @@ export default async function AdminCrmAnalyticsPage({
 
       <CrmKpiGrid items={kpis} />
 
-      {activeTab === "overview" ? (
+      {activeTab === "dashboard" ? (
         <>
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-            <section className="card admin-section-card admin-panel admin-panel--wide">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Pipeline funnel</p>
-                  <h3>Stage distribution</h3>
-                </div>
-              </div>
-              <div className="crm-stage-list">
-                {stageCounts.map((stage) => (
-                  <div key={stage.label} className="crm-stage-row">
-                    <strong>{stage.label}</strong>
-                    <span>{stage.count}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <CrmForecastCard
+              confirmed={formatMoney(totalBookedRevenue)}
+              likely={formatMoney(likelyRevenue)}
+              pipeline={formatMoney(totalPipelineValue)}
+              forecast={formatMoney(forecastedRevenue)}
+            />
+            <CrmAlertsPanel items={crmDashboardAlerts} />
+          </div>
 
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <CrmFunnelCard items={funnelItems} />
             <section className="card admin-section-card admin-panel">
               <div className="admin-panel-head">
                 <div>
@@ -184,7 +202,89 @@ export default async function AdminCrmAnalyticsPage({
             </section>
           </div>
 
-          <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
+            <CrmUpcomingEventsPanel items={crmLeads.filter((lead) => lead.stage === "booked")} />
+          </div>
+        </>
+      ) : null}
+
+      {activeTab === "reports" ? (
+        <>
+          <CrmReportFilters filters={params} />
+
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <CrmForecastCard
+              confirmed={formatMoney(totalBookedRevenue)}
+              likely={formatMoney(likelyRevenue)}
+              pipeline={formatMoney(totalPipelineValue)}
+              forecast={formatMoney(forecastedRevenue)}
+            />
+            <CrmFunnelCard items={funnelItems} />
+          </div>
+
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <section className="card admin-section-card admin-panel admin-panel--wide">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Revenue by month</p>
+                  <h3>Monthly booked revenue</h3>
+                </div>
+              </div>
+              <div className="crm-chart">
+                {crmRevenueTrend.map((point) => (
+                  <div key={point.month} className="crm-chart-bar">
+                    <div style={{ height: `${Math.max(18, (point.value / 31400) * 180)}px` }} />
+                    <strong>{point.month}</strong>
+                    <span>{formatMoney(point.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="card admin-section-card admin-panel">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Lead source report</p>
+                  <h3>Conversion by source</h3>
+                </div>
+              </div>
+              <div className="crm-source-list">
+                {crmSourceMetrics.map((item) => (
+                  <div key={item.source} className="crm-source-row">
+                    <div>
+                      <strong>{item.source}</strong>
+                      <span>{item.leads} leads · {item.booked} booked</span>
+                    </div>
+                    <small>{item.rate}%</small>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <CrmTeamPerformanceTable items={crmTeamPerformance} />
+            <section className="card admin-section-card admin-panel">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Lost lead reasons</p>
+                  <h3>Why opportunities were lost</h3>
+                </div>
+              </div>
+              <div className="crm-source-list">
+                {crmLostReasonMetrics.map((item) => (
+                  <div key={item.reason} className="crm-source-row">
+                    <div>
+                      <strong>{item.reason}</strong>
+                      <span>Lost opportunity report</span>
+                    </div>
+                    <small>{item.count}</small>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         </>
       ) : null}
 
