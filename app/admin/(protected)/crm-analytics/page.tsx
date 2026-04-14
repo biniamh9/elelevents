@@ -263,9 +263,9 @@ export default async function AdminCrmAnalyticsPage({
             </section>
           </div>
 
-          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+          <div className="admin-stack">
             <CrmTeamPerformanceTable items={crmTeamPerformance} />
-            <section className="card admin-section-card admin-panel">
+            <section className="card admin-section-card admin-panel admin-panel--wide">
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Lost lead reasons</p>

@@ -6200,6 +6200,7 @@ th { background: var(--surface-soft); }
   gap: 22px;
   padding-bottom: 28px;
   width: 100%;
+  overflow-x: auto;
 }
 .admin-main > main {
   width: 100%;
@@ -6211,7 +6212,7 @@ th { background: var(--surface-soft); }
     linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,243,236,0.9)),
     radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.1), transparent 28%);
   box-shadow: 0 24px 52px rgba(61, 40, 27, 0.08);
-  overflow: hidden;
+  overflow: visible;
 }
 .admin-main > main .card,
 .admin-main > main .admin-panel,
@@ -6504,6 +6505,10 @@ th { background: var(--surface-soft); }
 .admin-page--workspace {
   max-width: 1440px;
   margin-inline: auto;
+  min-width: 0;
+}
+.admin-page--workspace > * {
+  min-width: 0;
 }
 .admin-workspace-header {
   position: sticky;
@@ -6684,6 +6689,7 @@ th { background: var(--surface-soft); }
 .admin-section-card {
   padding: 20px;
   gap: 16px;
+  min-width: 0;
 }
 .admin-panel-head .muted {
   margin: 8px 0 0;
@@ -7084,9 +7090,12 @@ th { background: var(--surface-soft); }
 }
 .crm-filter-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   align-items: end;
+}
+.crm-filter-grid > .btn {
+  justify-self: start;
 }
 .crm-filter-grid label {
   display: grid;
@@ -7110,6 +7119,18 @@ th { background: var(--surface-soft); }
 .crm-records-table td:last-child {
   width: 1%;
   white-space: nowrap;
+}
+.admin-record-table-shell {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 4px;
+  scrollbar-gutter: stable both-edges;
+}
+.admin-record-table-shell .admin-records-table,
+.admin-record-table-shell .crm-records-table {
+  min-width: 1180px;
 }
 .crm-pipeline-board {
   display: grid;
@@ -7215,6 +7236,15 @@ th { background: var(--surface-soft); }
 .crm-customer-card span,
 .crm-customer-card small {
   color: var(--muted);
+}
+@media (max-width: 1380px) {
+  .admin-dashboard-row,
+  .admin-dashboard-row--overview-clean,
+  .admin-dashboard-row--crm-leads,
+  .admin-dashboard-row--overview-activity,
+  .admin-dashboard-row--activity {
+    grid-template-columns: 1fr;
+  }
 }
 .admin-schedule-board {
   display: grid;
