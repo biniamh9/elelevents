@@ -389,7 +389,7 @@ export default async function AdminInquiriesPage({
       tone: "green",
     },
     {
-      label: "Revenue / Deposits",
+      label: "Booked Revenue",
       value: `$${formatMoney(bookedRevenueThisMonth)}`,
       note: `Outstanding balances: ${outstandingFinalPayments ?? 0}`,
       tone: "red",
@@ -696,7 +696,7 @@ export default async function AdminInquiriesPage({
               </div>
 
               <div className="admin-quick-actions-list">
-                {quickActions.slice(0, 4).map((action) => (
+                {quickActions.slice(0, 3).map((action) => (
                   <Link key={action.title} href={action.href} className="admin-quick-action-row">
                     <strong>{action.title}</strong>
                     <span>{action.detail}</span>
