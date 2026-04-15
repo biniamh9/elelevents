@@ -18,14 +18,17 @@ import {
   crmSourceMetrics,
   crmTeamPerformance,
   crmTasks,
+  filterCrmLeads,
   getAverageEventValue,
   getBookedRevenue,
   getConversionRate,
   getForecastedRevenue,
   getLikelyRevenue,
+  getLostReasonMetrics,
   getOutstandingBalances,
   getPipelineStageCounts,
   getPipelineValue,
+  getSourceMetrics,
   type CrmLead,
 } from "@/lib/crm-analytics";
 
@@ -41,36 +44,6 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-  });
-}
-
-function filterLeads(
-  leads: CrmLead[],
-  filters: {
-    q?: string;
-    stage?: string;
-    eventType?: string;
-    source?: string;
-    owner?: string;
-    dateRange?: string;
-  }
-) {
-  return leads.filter((lead) => {
-    if (filters.q) {
-      const query = filters.q.toLowerCase();
-      const haystack = `${lead.clientName} ${lead.email} ${lead.venue}`.toLowerCase();
-      if (!haystack.includes(query)) return false;
-    }
-    if (filters.stage && lead.stage !== filters.stage) return false;
-    if (filters.eventType && lead.eventType !== filters.eventType) return false;
-    if (filters.source && lead.source !== filters.source) return false;
-    if (filters.owner && lead.owner !== filters.owner) return false;
-    if (filters.dateRange) {
-      const days = Number(filters.dateRange);
-      const diff = (new Date(lead.eventDate).getTime() - Date.now()) / 86400000;
-      if (Number.isFinite(days) && diff > days) return false;
-    }
-    return true;
   });
 }
 
@@ -92,7 +65,7 @@ export default async function AdminCrmAnalyticsPage({
     ? (params.tab as Tab)
     : "dashboard";
 
-  const filteredLeads = filterLeads(crmLeads, params);
+  const filteredLeads = filterCrmLeads(crmLeads, params);
   const leadsById = new Map(crmLeads.map((lead) => [lead.id, lead]));
   const totalBookedRevenue = getBookedRevenue(crmLeads);
   const totalPipelineValue = getPipelineValue(crmLeads);
@@ -106,6 +79,18 @@ export default async function AdminCrmAnalyticsPage({
   const conversionRate = getConversionRate(crmLeads);
   const averageEventValue = getAverageEventValue(crmLeads);
   const activeOpportunities = crmLeads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
+  const filteredSourceMetrics = getSourceMetrics(filteredLeads);
+  const filteredLostReasonMetrics = getLostReasonMetrics(filteredLeads);
+
+  const exportParams = new URLSearchParams();
+  exportParams.set("tab", activeTab);
+  if (params.q) exportParams.set("q", params.q);
+  if (params.stage) exportParams.set("stage", params.stage);
+  if (params.eventType) exportParams.set("eventType", params.eventType);
+  if (params.source) exportParams.set("source", params.source);
+  if (params.owner) exportParams.set("owner", params.owner);
+  if (params.dateRange) exportParams.set("dateRange", params.dateRange);
+  const exportHref = `/api/admin/crm-analytics/export?${exportParams.toString()}`;
 
   const kpis = [
     { label: "Active Leads", value: String(crmLeads.length), detail: "Open relationships across inquiry to booking", tone: "neutral" as const },
@@ -148,9 +133,9 @@ export default async function AdminCrmAnalyticsPage({
           </p>
         </div>
         <div className="admin-page-head-aside">
-          <Link href="/admin/documents" className="admin-topbar-pill">
+          <a href={exportHref} className="admin-topbar-pill">
             Export report
-          </Link>
+          </a>
           <Link href="/admin/crm-analytics?tab=leads" className="admin-topbar-pill">
             Add interaction
           </Link>
@@ -250,7 +235,7 @@ export default async function AdminCrmAnalyticsPage({
                 </div>
               </div>
               <div className="crm-source-list">
-                {crmSourceMetrics.map((item) => (
+                {filteredSourceMetrics.map((item) => (
                   <div key={item.source} className="crm-source-row">
                     <div>
                       <strong>{item.source}</strong>
@@ -273,7 +258,7 @@ export default async function AdminCrmAnalyticsPage({
                 </div>
               </div>
               <div className="crm-source-list">
-                {crmLostReasonMetrics.map((item) => (
+                {filteredLostReasonMetrics.map((item) => (
                   <div key={item.reason} className="crm-source-row">
                     <div>
                       <strong>{item.reason}</strong>
@@ -356,7 +341,7 @@ export default async function AdminCrmAnalyticsPage({
               </div>
             </div>
             <div className="crm-source-list">
-              {crmSourceMetrics.map((item) => (
+              {filteredSourceMetrics.map((item) => (
                 <div key={item.source} className="crm-source-row">
                   <div>
                     <strong>{item.source}</strong>

@@ -103,6 +103,15 @@ export type LostReasonMetric = {
   count: number;
 };
 
+export type CrmLeadFilters = {
+  q?: string;
+  stage?: string;
+  eventType?: string;
+  source?: string;
+  owner?: string;
+  dateRange?: string;
+};
+
 export const CRM_STAGE_LABELS: Record<CrmStage, string> = {
   new_inquiry: "New Inquiry",
   contacted: "Contacted",
@@ -373,6 +382,26 @@ export function getCrmLeadById(id: string) {
   return crmLeads.find((lead) => lead.id === id) ?? null;
 }
 
+export function filterCrmLeads(leads: CrmLead[], filters: CrmLeadFilters) {
+  return leads.filter((lead) => {
+    if (filters.q) {
+      const query = filters.q.toLowerCase();
+      const haystack = `${lead.clientName} ${lead.email} ${lead.venue}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    if (filters.stage && lead.stage !== filters.stage) return false;
+    if (filters.eventType && lead.eventType !== filters.eventType) return false;
+    if (filters.source && lead.source !== filters.source) return false;
+    if (filters.owner && lead.owner !== filters.owner) return false;
+    if (filters.dateRange) {
+      const days = Number(filters.dateRange);
+      const diff = (new Date(lead.eventDate).getTime() - Date.now()) / 86400000;
+      if (Number.isFinite(days) && diff > days) return false;
+    }
+    return true;
+  });
+}
+
 export function getLeadInteractions(leadId: string) {
   return crmInteractions
     .filter((item) => item.leadId === leadId)
@@ -432,6 +461,44 @@ export function getPipelineStageCounts(leads: CrmLead[]) {
     stage: stage as CrmStage,
     label,
     count: leads.filter((lead) => lead.stage === stage).length,
+  }));
+}
+
+export function getSourceMetrics(leads: CrmLead[]): CrmSourceMetric[] {
+  const sources: LeadSource[] = [
+    "Website",
+    "Instagram",
+    "Referral",
+    "Vendor Partner",
+    "Returning Client",
+  ];
+
+  return sources.map((source) => {
+    const sourceLeads = leads.filter((lead) => lead.source === source);
+    const booked = sourceLeads.filter((lead) => lead.stage === "booked").length;
+    const leadsCount = sourceLeads.length;
+    return {
+      source,
+      leads: leadsCount,
+      booked,
+      rate: leadsCount ? Math.round((booked / leadsCount) * 100) : 0,
+    };
+  });
+}
+
+export function getLostReasonMetrics(leads: CrmLead[]): LostReasonMetric[] {
+  const reasons: LostReasonMetric["reason"][] = [
+    "Price too high",
+    "Chose competitor",
+    "No response",
+    "Date unavailable",
+    "Not ready",
+    "Other",
+  ];
+
+  return reasons.map((reason) => ({
+    reason,
+    count: leads.filter((lead) => lead.stage === "lost" && lead.lostReason === reason).length,
   }));
 }
 
