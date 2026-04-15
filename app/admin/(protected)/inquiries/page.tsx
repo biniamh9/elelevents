@@ -431,39 +431,6 @@ export default async function AdminInquiriesPage({
     },
   ].filter((item) => item.count > 0);
 
-  const quickActions = [
-    {
-      title: "Review Inquiries",
-      detail: "Triage new requests and move them into consultation.",
-      href: "/admin/inquiries?tab=inquiries&status=new",
-    },
-    {
-      title: "Create Quote",
-      detail: "Prepare pricing or a proposal draft from a live request.",
-      href: "/admin/documents/new?type=quote",
-    },
-    {
-      title: "Create Invoice",
-      detail: "Prepare deposit or final billing for a confirmed event.",
-      href: "/admin/documents/new?type=invoice",
-    },
-    {
-      title: "Add Gallery Images",
-      detail: "Upload new portfolio images for future leads and previews.",
-      href: "/admin/gallery",
-    },
-    {
-      title: "Update Pricing",
-      detail: "Adjust catalog line items and proposal pricing rules.",
-      href: "/admin/pricing",
-    },
-    {
-      title: "View Calendar",
-      detail: "Check consultation load, reserved dates, and conflicts.",
-      href: "/admin/calendar",
-    },
-  ];
-
   const pipelineSnapshot = [
     {
       label: "New",
@@ -656,53 +623,33 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
-          <section className="admin-dashboard-row admin-dashboard-row--overview-activity">
-            <div className="card admin-panel admin-panel--wide admin-section-card">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Recent activity</p>
-                  <h3>What changed most recently</h3>
-                  <p className="muted">
-                    {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
-                  </p>
-                </div>
-              </div>
-
-              <div className="admin-activity-panel">
-                {recentActivity?.length ? (
-                  <div className="admin-activity-list">
-                    {recentActivity.map((entry) => (
-                      <div key={entry.id} className="admin-activity-item">
-                        <div>
-                          <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
-                          <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
-                        </div>
-                        <span>{formatRelativeTimestamp(entry.created_at)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="muted">No recent activity has been logged yet.</p>
-                )}
+          <section className="card admin-panel admin-panel--wide admin-section-card">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Recent activity</p>
+                <h3>What changed most recently</h3>
+                <p className="muted">
+                  {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
+                </p>
               </div>
             </div>
 
-            <div className="card admin-panel admin-section-card admin-panel--quick-actions">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Quick actions</p>
-                  <h3>Common next moves</h3>
+            <div className="admin-activity-panel">
+              {recentActivity?.length ? (
+                <div className="admin-activity-list">
+                  {recentActivity.map((entry) => (
+                    <div key={entry.id} className="admin-activity-item">
+                      <div>
+                        <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                        <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
+                      </div>
+                      <span>{formatRelativeTimestamp(entry.created_at)}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              <div className="admin-quick-actions-list">
-                {quickActions.slice(0, 3).map((action) => (
-                  <Link key={action.title} href={action.href} className="admin-quick-action-row">
-                    <strong>{action.title}</strong>
-                    <span>{action.detail}</span>
-                  </Link>
-                ))}
-              </div>
+              ) : (
+                <p className="muted">No recent activity has been logged yet.</p>
+              )}
             </div>
           </section>
         </>

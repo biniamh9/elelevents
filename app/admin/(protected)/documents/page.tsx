@@ -44,53 +44,27 @@ export default async function DocumentsPage() {
       </div>
 
       <section className="admin-mini-report">
-        <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-          <div className="admin-kpi-grid admin-kpi-grid--compact">
-            <div className="card metric-card">
-              <p className="muted">Total documents</p>
-              <strong>{totalCount ?? 0}</strong>
-              <span>All quotes, invoices, and receipts</span>
-            </div>
-            <div className="card metric-card metric-card--violet">
-              <p className="muted">Quotes</p>
-              <strong>{quoteCount ?? 0}</strong>
-              <span>Proposal-stage client documents</span>
-            </div>
-            <div className="card metric-card metric-card--amber">
-              <p className="muted">Invoices</p>
-              <strong>{invoiceCount ?? 0}</strong>
-              <span>Payment requests in progress</span>
-            </div>
-            <div className="card metric-card metric-card--green">
-              <p className="muted">Receipts</p>
-              <strong>{receiptCount ?? 0}</strong>
-              <span>Confirmed client payments</span>
-            </div>
+        <div className="admin-kpi-grid admin-kpi-grid--compact">
+          <div className="card metric-card">
+            <p className="muted">Total documents</p>
+            <strong>{totalCount ?? 0}</strong>
+            <span>All quotes, invoices, and receipts</span>
           </div>
-
-          <aside className="card admin-section-card">
-            <div className="admin-section-title">
-              <h3>Document system</h3>
-              <p className="muted">
-                Quotes move into invoices, and invoices into receipts. This page keeps the whole
-                client document path in one place.
-              </p>
-            </div>
-            <div className="admin-mini-metrics admin-mini-metrics--plain">
-              <div>
-                <strong>{quoteCount ?? 0}</strong>
-                <span>Quotes ready for client review</span>
-              </div>
-              <div>
-                <strong>{invoiceCount ?? 0}</strong>
-                <span>Invoices waiting on payment action</span>
-              </div>
-              <div>
-                <strong>{receiptCount ?? 0}</strong>
-                <span>Receipts already recorded</span>
-              </div>
-            </div>
-          </aside>
+          <div className="card metric-card metric-card--violet">
+            <p className="muted">Quotes</p>
+            <strong>{quoteCount ?? 0}</strong>
+            <span>Proposal-stage client documents</span>
+          </div>
+          <div className="card metric-card metric-card--amber">
+            <p className="muted">Invoices</p>
+            <strong>{invoiceCount ?? 0}</strong>
+            <span>Payment requests in progress</span>
+          </div>
+          <div className="card metric-card metric-card--green">
+            <p className="muted">Receipts</p>
+            <strong>{receiptCount ?? 0}</strong>
+            <span>Confirmed client payments</span>
+          </div>
         </div>
       </section>
 
