@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
+import { renderBrandedEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -66,15 +67,28 @@ export async function POST(
       from: process.env.NOTIFICATION_FROM_EMAIL,
       to: inquiry.email,
       subject: `Your Event Quote - ${inquiry.event_type} with Elel Events`,
-      html: `
-        <h2>Hello ${inquiry.first_name},</h2>
-        <p>${quoteMessage}</p>
-        <p><strong>Quoted amount:</strong> $${quoteAmount.toLocaleString()}</p>
-        <p><strong>Event:</strong> ${inquiry.event_type}</p>
-        <p><strong>Date:</strong> ${inquiry.event_date || "To be confirmed"}</p>
-        <p>Please reply to this email if you would like to move forward. Once you confirm, we will send your contract for signature.</p>
-        <p>Thank you,<br/>Elel Events</p>
-      `,
+      html: renderBrandedEmail({
+        eyebrow: "Quote / Proposal",
+        heading: `Your ${inquiry.event_type} quote is ready.`,
+        intro: `Hello ${inquiry.first_name}, we prepared a proposal aligned with the event direction discussed together.`,
+        body: `
+          <p>${quoteMessage}</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">
+            <tr><td>
+              <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
+                <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Proposal summary</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Event</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${inquiry.event_type}</td></tr>
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Date</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${inquiry.event_date || "To be confirmed"}</td></tr>
+                  <tr><td style="padding:0;color:#6a5a49;">Quoted amount</td><td style="padding:0;text-align:right;font-size:22px;font-weight:700;color:#8c5327;">$${quoteAmount.toLocaleString()}</td></tr>
+                </table>
+              </div>
+            </td></tr>
+          </table>
+          <p>Please reply to this email if you would like to move forward or want any refinements. Once you confirm, we will prepare the agreement and next booking steps.</p>
+        `,
+        footerNote: "Your event date is held once the proposal is approved, the agreement is signed, and the deposit is received.",
+      }),
     });
 
     if (sendError) {

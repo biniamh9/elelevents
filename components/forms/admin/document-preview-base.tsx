@@ -14,23 +14,32 @@ function PreviewTable({
 }) {
   return (
     <table className="document-preview-table">
+      <colgroup>
+        <col className="document-preview-table-col-item" />
+        <col className="document-preview-table-col-details" />
+        <col className="document-preview-table-col-qty" />
+        <col className="document-preview-table-col-unit" />
+        <col className="document-preview-table-col-total" />
+      </colgroup>
       <thead>
         <tr>
           <th>Item</th>
           <th>Details</th>
-          <th>Qty</th>
-          <th>Unit</th>
-          <th>Total</th>
+          <th className="document-preview-table-number">Qty</th>
+          <th className="document-preview-table-number">Unit</th>
+          <th className="document-preview-table-number">Total</th>
         </tr>
       </thead>
       <tbody>
         {lineItems.map((item) => (
           <tr key={item.id}>
-            <td>{item.title}</td>
+            <td>
+              <strong>{item.title}</strong>
+            </td>
             <td>{item.description || "—"}</td>
-            <td>{item.quantity}</td>
-            <td>${formatMoney(item.unit_price)}</td>
-            <td>${formatMoney(item.total_price)}</td>
+            <td className="document-preview-table-number">{item.quantity}</td>
+            <td className="document-preview-table-number">${formatMoney(item.unit_price)}</td>
+            <td className="document-preview-table-number">${formatMoney(item.total_price)}</td>
           </tr>
         ))}
       </tbody>
@@ -77,11 +86,17 @@ export default function DocumentPreviewBase({
         <div className="document-preview-meta-card">
           <DocumentStatusBadge status={document.status} />
           <p className="document-preview-meta-eyebrow">{emphasisLabel}</p>
-          <p>#{document.document_number}</p>
-          <p>Issued {formatDocumentDate(document.issue_date)}</p>
-          {document.due_date ? <p>Due {formatDocumentDate(document.due_date)}</p> : null}
+          <div className="document-preview-meta-list">
+            <div><span>Reference</span><strong>#{document.document_number}</strong></div>
+            <div><span>Issued</span><strong>{formatDocumentDate(document.issue_date)}</strong></div>
+            {document.due_date ? (
+              <div><span>Due</span><strong>{formatDocumentDate(document.due_date)}</strong></div>
+            ) : null}
+          </div>
           {document.expiration_date ? (
-            <p>Expires {formatDocumentDate(document.expiration_date)}</p>
+            <div className="document-preview-meta-list">
+              <div><span>Expires</span><strong>{formatDocumentDate(document.expiration_date)}</strong></div>
+            </div>
           ) : null}
         </div>
       </header>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { renderBrandedEmail } from "@/lib/email-template-renderer";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -54,17 +55,34 @@ export async function POST(request: Request) {
       from: "Elel Events <info@elelevents.com>",
       to: ["info@elelevents.com"],
       subject: "New Event Request",
-      html: `
-        <div style="font-family: Inter, Arial, sans-serif; color: #231f1b; line-height: 1.6;">
-          <h1 style="font-size: 24px; margin-bottom: 16px;">New Event Request</h1>
-          <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-          <p><strong>Event Date:</strong> ${escapeHtml(eventDate || "N/A")}</p>
-          <p><strong>Guest Count:</strong> ${escapeHtml(guestCount)}</p>
-          <p><strong>Notes:</strong><br />${escapeHtml(notes || "N/A").replace(/\n/g, "<br />")}</p>
-        </div>
-      `,
+      html: renderBrandedEmail({
+        eyebrow: "New Event Request",
+        heading: "A new event request has been submitted.",
+        intro: "A new lead came in through the Elel Events request form and is ready for review.",
+        body: `
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr><td style="padding:0 0 18px;">
+              <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
+                <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Lead details</div>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Name</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(name)}</td></tr>
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Email</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(email)}</td></tr>
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Phone</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(phone)}</td></tr>
+                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Event date</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(eventDate || "N/A")}</td></tr>
+                  <tr><td style="padding:0;color:#6a5a49;">Guest count</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(guestCount)}</td></tr>
+                </table>
+              </div>
+            </td></tr>
+            <tr><td>
+              <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
+                <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:12px;">Notes</div>
+                <div style="color:#342c25;line-height:1.8;">${escapeHtml(notes || "No notes submitted.").replace(/\n/g, "<br />")}</div>
+              </div>
+            </td></tr>
+          </table>
+        `,
+        footerNote: "Review this lead in the admin workspace to continue follow-up and consultation scheduling.",
+      }),
     });
 
     if (error) {

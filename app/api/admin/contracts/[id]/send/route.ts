@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { createDocusignEnvelope, getDocuSignSetupError, isDocuSignConfigured } from "@/lib/docusign";
 import { logActivity } from "@/lib/crm";
+import { renderBrandedEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -125,18 +126,21 @@ export async function POST(
       from: process.env.NOTIFICATION_FROM_EMAIL,
       to: email,
       subject: "Your Event Contract – Elel Events",
-      html: `
-        <h2>Hello ${name},</h2>
-        <p>Thank you for choosing Elel Events for your upcoming event.</p>
-        <p>Please review and sign your contract using the link below:</p>
-        <p>
-          <a href="${docusign}" style="padding:12px 20px;background:#a74471;color:white;text-decoration:none;border-radius:6px;">
-            Review & Sign Contract
-          </a>
-        </p>
-        <p>Once signed, we will confirm your booking and send deposit instructions.</p>
-        <p>Thank you,<br/>Elel Events</p>
-      `,
+      html: renderBrandedEmail({
+        eyebrow: "Contract Ready",
+        heading: "Your event agreement is ready for review.",
+        intro: `Hello ${name}, thank you for choosing Elel Events for your celebration.`,
+        body: `
+          <p>Please review and sign your contract using the secure link below.</p>
+          <div style="margin:26px 0;">
+            <a href="${docusign}" style="display:inline-block;padding:14px 24px;background:#8c5327;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;">
+              Review & Sign Contract
+            </a>
+          </div>
+          <p>Once signed, we will confirm your booking status and share the next payment and production steps.</p>
+        `,
+        footerNote: "If you need any clarification before signing, reply directly to this message and our team will assist you.",
+      }),
     });
 
     if (sendError) {
