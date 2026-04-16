@@ -13027,16 +13027,19 @@ th { background: var(--surface-soft); }
 .document-preview-page--quote {
   background:
     linear-gradient(180deg, rgba(255, 248, 241, 0.98) 0%, rgba(252, 245, 236, 0.98) 100%);
+  border-color: rgba(188, 109, 51, 0.2);
 }
 
 .document-preview-page--invoice {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 245, 241, 0.98) 100%);
+  border-color: rgba(58, 76, 105, 0.16);
 }
 
 .document-preview-page--receipt {
   background:
     linear-gradient(180deg, rgba(252, 249, 244, 0.98) 0%, rgba(246, 241, 232, 0.98) 100%);
+  border-color: rgba(77, 123, 84, 0.16);
 }
 
 .document-preview-header {
@@ -13067,6 +13070,21 @@ th { background: var(--surface-soft); }
   text-transform: uppercase;
 }
 
+.document-preview-page--quote .document-preview-label {
+  background: rgba(223, 141, 81, 0.14);
+  color: #b9672d;
+}
+
+.document-preview-page--invoice .document-preview-label {
+  background: rgba(58, 76, 105, 0.1);
+  color: #3d526f;
+}
+
+.document-preview-page--receipt .document-preview-label {
+  background: rgba(77, 123, 84, 0.11);
+  color: #3c7a4a;
+}
+
 .document-preview-header h2 {
   margin: 0;
   font-family: var(--font-serif), Georgia, serif;
@@ -13082,6 +13100,21 @@ th { background: var(--surface-soft); }
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(121, 94, 61, 0.12);
+}
+
+.document-preview-page--quote .document-preview-meta-card {
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94) 0%, rgba(255, 246, 236, 0.94) 100%);
+  border-color: rgba(188, 109, 51, 0.16);
+}
+
+.document-preview-page--invoice .document-preview-meta-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 251, 0.96) 100%);
+  border-color: rgba(58, 76, 105, 0.14);
+}
+
+.document-preview-page--receipt .document-preview-meta-card {
+  background: linear-gradient(180deg, rgba(252, 255, 252, 0.95) 0%, rgba(245, 250, 245, 0.95) 100%);
+  border-color: rgba(77, 123, 84, 0.14);
 }
 
 .document-preview-meta-card p {
@@ -13149,6 +13182,18 @@ th { background: var(--surface-soft); }
   overflow: hidden;
 }
 
+.document-preview-page--quote .document-preview-sheet {
+  box-shadow: 0 20px 46px rgba(92, 60, 26, 0.1);
+}
+
+.document-preview-page--invoice .document-preview-sheet {
+  box-shadow: 0 20px 46px rgba(44, 54, 68, 0.08);
+}
+
+.document-preview-page--receipt .document-preview-sheet {
+  box-shadow: 0 20px 46px rgba(49, 74, 50, 0.08);
+}
+
 .document-preview-table {
   width: 100%;
   border-collapse: collapse;
@@ -13168,6 +13213,18 @@ th { background: var(--surface-soft); }
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #735f4a;
+}
+
+.document-preview-page--quote .document-preview-table th {
+  color: #8a623f;
+}
+
+.document-preview-page--invoice .document-preview-table th {
+  color: #56677e;
+}
+
+.document-preview-page--receipt .document-preview-table th {
+  color: #54715c;
 }
 
 .document-preview-table-col-item {
@@ -13208,6 +13265,21 @@ th { background: var(--surface-soft); }
   border: 1px solid rgba(121, 94, 61, 0.1);
 }
 
+.document-preview-page--quote .document-preview-totals {
+  background: linear-gradient(180deg, #fff8f0 0%, #fcf1e4 100%);
+  border-color: rgba(188, 109, 51, 0.14);
+}
+
+.document-preview-page--invoice .document-preview-totals {
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f5fa 100%);
+  border-color: rgba(58, 76, 105, 0.14);
+}
+
+.document-preview-page--receipt .document-preview-totals {
+  background: linear-gradient(180deg, #f7fcf7 0%, #eef7ef 100%);
+  border-color: rgba(77, 123, 84, 0.14);
+}
+
 .document-preview-totals div {
   display: flex;
   justify-content: space-between;
@@ -13233,6 +13305,18 @@ th { background: var(--surface-soft); }
   color: #8c5327;
 }
 
+.document-preview-page--quote .document-preview-total-row strong {
+  color: #a15d2a;
+}
+
+.document-preview-page--invoice .document-preview-total-row strong {
+  color: #2f4765;
+}
+
+.document-preview-page--receipt .document-preview-total-row strong {
+  color: #2e6e3b;
+}
+
 .document-preview-notes {
   display: grid;
   gap: 18px;
@@ -13253,6 +13337,21 @@ th { background: var(--surface-soft); }
   border: 1px solid rgba(121, 94, 61, 0.08);
 }
 
+.document-preview-page--quote .document-preview-notes > div {
+  background: #fffaf4;
+  border-color: rgba(188, 109, 51, 0.1);
+}
+
+.document-preview-page--invoice .document-preview-notes > div {
+  background: #fbfcfe;
+  border-color: rgba(58, 76, 105, 0.1);
+}
+
+.document-preview-page--receipt .document-preview-notes > div {
+  background: #f8fcf8;
+  border-color: rgba(77, 123, 84, 0.1);
+}
+
 .document-preview-payments {
   display: grid;
   gap: 10px;
@@ -13267,17 +13366,55 @@ th { background: var(--surface-soft); }
   border: 1px solid rgba(121, 94, 61, 0.1);
 }
 
+.document-preview-page--receipt .document-preview-payments div {
+  background: #f0f7f0;
+  border-color: rgba(77, 123, 84, 0.12);
+}
+
 .document-preview-footer-callout {
   display: flex;
   justify-content: flex-start;
   gap: 10px;
   flex-wrap: wrap;
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(121, 94, 61, 0.1);
+  background: #fffdfa;
 }
 
 .document-preview-cta-group {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.document-preview-page--quote .document-preview-footer-callout {
+  background: linear-gradient(180deg, #fff8f1 0%, #fff4e8 100%);
+  border-color: rgba(188, 109, 51, 0.14);
+}
+
+.document-preview-page--invoice .document-preview-footer-callout {
+  background: linear-gradient(180deg, #f9fbfd 0%, #f2f6fa 100%);
+  border-color: rgba(58, 76, 105, 0.14);
+}
+
+.document-preview-page--receipt .document-preview-footer-callout {
+  background: linear-gradient(180deg, #f8fcf8 0%, #eff7ef 100%);
+  border-color: rgba(77, 123, 84, 0.14);
+}
+
+.document-preview-page--quote .document-preview-cta-group .summary-chip {
+  background: rgba(188, 109, 51, 0.12);
+  color: #9b5727;
+  border-color: rgba(188, 109, 51, 0.18);
+}
+
+.document-preview-page--invoice .document-preview-footer {
+  color: #51647a;
+}
+
+.document-preview-page--receipt .document-preview-footer {
+  color: #4e6854;
 }
 
 .document-preview-footer {
