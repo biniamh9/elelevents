@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { estimateEventPrice } from "@/lib/pricing";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
 import { canSendConsultationEmail, sendInquiryConfirmationEmail } from "@/lib/consultation-email";
-import { renderBrandedEmail } from "@/lib/email-template-renderer";
+import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY
@@ -98,14 +98,11 @@ export async function POST(request: Request) {
         },
     });
 
-    if (
-      resend &&
-      process.env.NOTIFICATION_TO_EMAIL &&
-      process.env.NOTIFICATION_FROM_EMAIL
-    ) {
+    if (resend && process.env.NOTIFICATION_TO_EMAIL) {
       try {
+        const fromEmail = getNotificationFromEmail();
         const { error: sendError } = await resend.emails.send({
-          from: process.env.NOTIFICATION_FROM_EMAIL,
+          from: fromEmail,
           to: process.env.NOTIFICATION_TO_EMAIL,
           subject: `New Event Inquiry: ${data.eventType} - ${data.firstName} ${data.lastName}`,
           html: renderBrandedEmail({

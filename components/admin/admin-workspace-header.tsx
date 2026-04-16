@@ -1,7 +1,8 @@
 import Link from "next/link";
+import AdminNotificationBell from "@/components/admin/admin-notification-bell";
 
 export default function AdminWorkspaceHeader({
-  adminId: _adminId,
+  adminId,
 }: {
   adminId: string;
 }) {
@@ -9,6 +10,7 @@ export default function AdminWorkspaceHeader({
     <div className="admin-topbar">
       <div className="admin-topbar-main" />
       <div className="admin-topbar-actions">
+        <AdminNotificationBell adminId={adminId} />
         <Link href="/" className="admin-topbar-primary">
           View Website
         </Link>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
-import { renderBrandedEmail } from "@/lib/email-template-renderer";
+import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -39,12 +39,7 @@ export async function POST(
       );
     }
 
-    if (!process.env.NOTIFICATION_FROM_EMAIL) {
-      return NextResponse.json(
-        { error: "NOTIFICATION_FROM_EMAIL is not configured" },
-        { status: 500 }
-      );
-    }
+    const fromEmail = getNotificationFromEmail();
 
     const quoteAmount =
       typeof body.quoteAmount === "number"
@@ -64,7 +59,7 @@ export async function POST(
         : "Thank you for meeting with us. Based on the event scope we discussed, here is your quote.";
 
     const { error: sendError } = await resend.emails.send({
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: fromEmail,
       to: inquiry.email,
       subject: `Your Event Quote - ${inquiry.event_type} with Elel Events`,
       html: renderBrandedEmail({

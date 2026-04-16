@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { renderEmailTemplate } from "@/lib/email-template-renderer";
+import { getNotificationFromEmail, renderEmailTemplate } from "@/lib/email-template-renderer";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -61,7 +61,7 @@ function humanizeMeetingType(type: string) {
 }
 
 export function canSendConsultationEmail() {
-  return Boolean(resend && process.env.NOTIFICATION_FROM_EMAIL);
+  return Boolean(resend);
 }
 
 async function sendRenderedEmail(to: string, subject: string, html: string, text: string) {
@@ -69,12 +69,10 @@ async function sendRenderedEmail(to: string, subject: string, html: string, text
     throw new Error("RESEND_API_KEY is not configured");
   }
 
-  if (!process.env.NOTIFICATION_FROM_EMAIL) {
-    throw new Error("NOTIFICATION_FROM_EMAIL is not configured");
-  }
+  const fromEmail = getNotificationFromEmail();
 
   const { error } = await resend.emails.send({
-    from: process.env.NOTIFICATION_FROM_EMAIL,
+    from: fromEmail,
     to,
     subject,
     html,
@@ -175,4 +173,3 @@ export async function sendVideoLinkReminderEmail(payload: VideoReminderPayload) 
     rendered.text
   );
 }
-

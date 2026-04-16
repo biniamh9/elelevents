@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { createDocusignEnvelope, getDocuSignSetupError, isDocuSignConfigured } from "@/lib/docusign";
 import { logActivity } from "@/lib/crm";
-import { renderBrandedEmail } from "@/lib/email-template-renderer";
+import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -115,15 +115,10 @@ export async function POST(
       );
     }
 
-    if (!process.env.NOTIFICATION_FROM_EMAIL) {
-      return NextResponse.json(
-        { error: "NOTIFICATION_FROM_EMAIL is not configured" },
-        { status: 500 }
-      );
-    }
+    const fromEmail = getNotificationFromEmail();
 
     const { error: sendError } = await resend.emails.send({
-      from: process.env.NOTIFICATION_FROM_EMAIL,
+      from: fromEmail,
       to: email,
       subject: "Your Event Contract – Elel Events",
       html: renderBrandedEmail({

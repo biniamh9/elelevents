@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { renderEmailTemplate } from "@/lib/email-template-renderer";
+import { getNotificationFromEmail, renderEmailTemplate } from "@/lib/email-template-renderer";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -34,7 +34,7 @@ function firstNameFrom(fullName: string) {
 }
 
 export function canSendBookingEmail() {
-  return Boolean(resend && process.env.NOTIFICATION_FROM_EMAIL);
+  return Boolean(resend);
 }
 
 export async function sendBookingLifecycleEmail(
@@ -45,9 +45,7 @@ export async function sendBookingLifecycleEmail(
     throw new Error("RESEND_API_KEY is not configured");
   }
 
-  if (!process.env.NOTIFICATION_FROM_EMAIL) {
-    throw new Error("NOTIFICATION_FROM_EMAIL is not configured");
-  }
+  const fromEmail = getNotificationFromEmail();
 
   if (!contract.client_email || !contract.client_name) {
     throw new Error("Client email and name are required");
@@ -70,7 +68,7 @@ export async function sendBookingLifecycleEmail(
   });
 
   const { error } = await resend.emails.send({
-    from: process.env.NOTIFICATION_FROM_EMAIL,
+    from: fromEmail,
     to: contract.client_email,
     subject: rendered.subject,
     html: rendered.html,
