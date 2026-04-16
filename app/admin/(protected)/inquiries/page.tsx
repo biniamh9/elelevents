@@ -530,12 +530,10 @@ export default async function AdminInquiriesPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className={`admin-page-head${activeTab === "overview" ? " admin-page-head--compact" : ""}`}>
+      <div className="admin-page-header">
         <div>
           <h1>{tabHeadingMap[activeTab].title}</h1>
-          <p className="lead">
-            {tabHeadingMap[activeTab].description}
-          </p>
+          <p>{tabHeadingMap[activeTab].description}</p>
         </div>
         {activeTab !== "overview" ? (
           <div className="admin-page-head-aside">

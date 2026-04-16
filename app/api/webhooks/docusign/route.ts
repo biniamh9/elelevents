@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { logActivity } from "@/lib/crm";
+import { getNotificationFromEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -177,12 +178,11 @@ export async function POST(request: Request) {
     if (
       isSignedEvent(envelope.status, envelope.event) &&
       resend &&
-      process.env.NOTIFICATION_TO_EMAIL &&
-      process.env.NOTIFICATION_FROM_EMAIL
+      process.env.NOTIFICATION_TO_EMAIL
     ) {
       const eventDate = updated.event_date || "TBD";
       await resend.emails.send({
-        from: process.env.NOTIFICATION_FROM_EMAIL,
+        from: getNotificationFromEmail(),
         to: process.env.NOTIFICATION_TO_EMAIL,
         subject: `Contract signed: ${updated.client_name}`,
         html: `

@@ -136,7 +136,7 @@ export default function AdminSidebar({
       <div className="admin-sidebar admin-sidebar-panel">
         <div className="admin-sidebar-brand admin-sidebar-brand--simple">
           <h3>Elel Events</h3>
-          <p>Business operations</p>
+          <p>Admin workspace</p>
         </div>
 
         <div className="admin-sidebar-section">
@@ -186,13 +186,7 @@ export default function AdminSidebar({
           </nav>
         </div>
 
-        <div className="admin-sidebar-section">
-          <p className="admin-sidebar-label">Simple path</p>
-          <div className="admin-sidebar-note admin-sidebar-note--plain">
-            <p className="muted">
-              Latest consultation, quote, contract, payment and secondary follow-up should stay easy to scan.
-            </p>
-          </div>
+        <div className="admin-sidebar-section admin-sidebar-section--compact">
           <Link href="/request" className="admin-create-link">
             <span>+</span>
             <strong>New request</strong>

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import {
+  calculateQuoteTotals,
+  DEFAULT_ITEMIZED_DISCLAIMER,
+} from "@/lib/admin-pricing";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
 import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
@@ -8,6 +12,181 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatDisplayDate(value: string | null) {
+  if (!value) {
+    return "To be confirmed";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function renderItemizedQuoteEmail({
+  firstName,
+  eventType,
+  eventDate,
+  venueName,
+  quoteMessage,
+  lineItems,
+  totals,
+  disclaimer,
+}: {
+  firstName: string;
+  eventType: string;
+  eventDate: string | null;
+  venueName: string | null;
+  quoteMessage: string;
+  lineItems: Array<{
+    item_name: string;
+    variant: string | null;
+    quantity: number;
+    unit_label: string | null;
+    unit_price: number;
+    line_total: number;
+    notes: string | null;
+  }>;
+  totals: ReturnType<typeof calculateQuoteTotals>;
+  disclaimer: string;
+}) {
+  const lineItemsHtml = lineItems.length
+    ? `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;border:1px solid rgba(121,94,61,0.12);border-radius:22px;overflow:hidden;">
+        <thead>
+          <tr style="background:#faf4ec;">
+            <th align="left" style="padding:14px 16px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6d5f52;">Item</th>
+            <th align="center" style="padding:14px 12px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6d5f52;">Qty</th>
+            <th align="right" style="padding:14px 16px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6d5f52;">Unit</th>
+            <th align="right" style="padding:14px 16px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#6d5f52;">Line total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lineItems
+            .map(
+              (item) => `
+                <tr>
+                  <td style="padding:16px;border-top:1px solid rgba(121,94,61,0.08);vertical-align:top;">
+                    <div style="font-weight:700;color:#241d18;">${escapeHtml(item.item_name)}</div>
+                    ${
+                      item.variant
+                        ? `<div style="font-size:14px;color:#6d5f52;margin-top:4px;">${escapeHtml(item.variant)}</div>`
+                        : ""
+                    }
+                    ${
+                      item.notes
+                        ? `<div style="font-size:13px;color:#8a7b6c;margin-top:6px;">${escapeHtml(item.notes)}</div>`
+                        : ""
+                    }
+                  </td>
+                  <td align="center" style="padding:16px;border-top:1px solid rgba(121,94,61,0.08);color:#241d18;">${item.quantity}</td>
+                  <td align="right" style="padding:16px;border-top:1px solid rgba(121,94,61,0.08);color:#241d18;">${escapeHtml(
+                    `${formatCurrency(item.unit_price)}${item.unit_label ? ` / ${item.unit_label}` : ""}`
+                  )}</td>
+                  <td align="right" style="padding:16px;border-top:1px solid rgba(121,94,61,0.08);font-weight:700;color:#241d18;">${escapeHtml(
+                    formatCurrency(item.line_total)
+                  )}</td>
+                </tr>
+              `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    `
+    : `
+      <p style="margin:22px 0;color:#6d5f52;">This proposal currently includes planning totals only. We can revise the scope together if you need a more detailed breakdown.</p>
+    `;
+
+  const totalsRows = [
+    ["Base design fee", totals.baseFee],
+    ["Decor line items", totals.lineItemsTotal],
+    totals.deliveryFee > 0 ? ["Delivery / setup", totals.deliveryFee] : null,
+    totals.laborAdjustment !== 0 ? ["Labor adjustment", totals.laborAdjustment] : null,
+    totals.discountAmount > 0 ? ["Discount", -totals.discountAmount] : null,
+    totals.taxAmount > 0 ? ["Tax", totals.taxAmount] : null,
+  ]
+    .filter(Boolean)
+    .map(
+      (entry) => `
+        <tr>
+          <td style="padding:0 0 10px;color:#6a5a49;">${escapeHtml(String(entry![0]))}</td>
+          <td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(
+            formatCurrency(Number(entry![1]))
+          )}</td>
+        </tr>
+      `
+    )
+    .join("");
+
+  return renderBrandedEmail({
+    eyebrow: "Quote / Proposal",
+    heading: `Your ${eventType} quote is ready.`,
+    intro: `Hello ${firstName}, we prepared an itemized proposal aligned with the event direction discussed together.`,
+    body: `
+      <p>${escapeHtml(quoteMessage)}</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">
+        <tr><td>
+          <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
+            <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Proposal summary</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              <tr><td style="padding:0 0 10px;color:#6a5a49;">Event</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(eventType)}</td></tr>
+              <tr><td style="padding:0 0 10px;color:#6a5a49;">Date</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(formatDisplayDate(eventDate))}</td></tr>
+              ${
+                venueName
+                  ? `<tr><td style="padding:0;color:#6a5a49;">Venue</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">${escapeHtml(
+                      venueName
+                    )}</td></tr>`
+                  : ""
+              }
+            </table>
+          </div>
+        </td></tr>
+      </table>
+      ${lineItemsHtml}
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">
+        <tr><td>
+          <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
+            <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Pricing totals</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              ${totalsRows}
+              <tr><td style="padding:8px 0 0;border-top:1px solid rgba(121,94,61,0.12);font-size:16px;font-weight:700;color:#241d18;">Total proposal</td><td style="padding:8px 0 0;border-top:1px solid rgba(121,94,61,0.12);text-align:right;font-size:24px;font-weight:700;color:#8c5327;">${escapeHtml(
+                formatCurrency(totals.grandTotal)
+              )}</td></tr>
+            </table>
+          </div>
+        </td></tr>
+      </table>
+      <p style="margin-bottom:10px;">Reply to this email if you would like any refinements, removals, or substitutions. Once you confirm the direction, we will prepare the agreement and booking steps.</p>
+      <p style="font-size:14px;color:#8a7b6c;">${escapeHtml(disclaimer)}</p>
+    `,
+    footerNote:
+      "Your event date is secured once the proposal is approved, the agreement is signed, and the deposit is received.",
+  });
+}
 
 export async function POST(
   request: Request,
@@ -41,10 +220,36 @@ export async function POST(
 
     const fromEmail = getNotificationFromEmail();
 
+    const [{ data: pricing }, { data: lineItems }] = await Promise.all([
+      supabaseAdmin
+        .from("inquiry_quote_pricing")
+        .select("*")
+        .eq("inquiry_id", id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("inquiry_quote_line_items")
+        .select("*")
+        .eq("inquiry_id", id)
+        .order("sort_order", { ascending: true }),
+    ]);
+
+    const normalizedLineItems = (lineItems ?? []).map((item) => ({
+      item_name: item.item_name,
+      variant: item.variant,
+      quantity: Number(item.quantity ?? 0),
+      unit_label: item.unit_label,
+      unit_price: Number(item.unit_price ?? 0),
+      line_total: Number(item.line_total ?? 0),
+      notes: item.notes,
+    }));
+
+    const totals = calculateQuoteTotals(pricing, normalizedLineItems);
     const quoteAmount =
-      typeof body.quoteAmount === "number"
-        ? body.quoteAmount
-        : Number(inquiry.estimated_price ?? 0);
+      normalizedLineItems.length > 0 || pricing
+        ? totals.grandTotal
+        : typeof body.quoteAmount === "number"
+          ? body.quoteAmount
+          : Number(inquiry.estimated_price ?? 0);
 
     if (!inquiry.email || !quoteAmount || quoteAmount <= 0) {
       return NextResponse.json(
@@ -62,27 +267,16 @@ export async function POST(
       from: fromEmail,
       to: inquiry.email,
       subject: `Your Event Quote - ${inquiry.event_type} with Elel Events`,
-      html: renderBrandedEmail({
-        eyebrow: "Quote / Proposal",
-        heading: `Your ${inquiry.event_type} quote is ready.`,
-        intro: `Hello ${inquiry.first_name}, we prepared a proposal aligned with the event direction discussed together.`,
-        body: `
-          <p>${quoteMessage}</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">
-            <tr><td>
-              <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Proposal summary</div>
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Event</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${inquiry.event_type}</td></tr>
-                  <tr><td style="padding:0 0 10px;color:#6a5a49;">Date</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${inquiry.event_date || "To be confirmed"}</td></tr>
-                  <tr><td style="padding:0;color:#6a5a49;">Quoted amount</td><td style="padding:0;text-align:right;font-size:22px;font-weight:700;color:#8c5327;">$${quoteAmount.toLocaleString()}</td></tr>
-                </table>
-              </div>
-            </td></tr>
-          </table>
-          <p>Please reply to this email if you would like to move forward or want any refinements. Once you confirm, we will prepare the agreement and next booking steps.</p>
-        `,
-        footerNote: "Your event date is held once the proposal is approved, the agreement is signed, and the deposit is received.",
+      html: renderItemizedQuoteEmail({
+        firstName: inquiry.first_name,
+        eventType: inquiry.event_type,
+        eventDate: inquiry.event_date,
+        venueName: inquiry.venue_name,
+        quoteMessage,
+        lineItems: normalizedLineItems,
+        totals,
+        disclaimer:
+          pricing?.client_disclaimer?.trim() || DEFAULT_ITEMIZED_DISCLAIMER,
       }),
     });
 
@@ -118,6 +312,7 @@ export async function POST(
       summary: "Quote email sent to client",
       metadata: {
         quote_amount: quoteAmount,
+        line_item_count: normalizedLineItems.length,
         client_email: inquiry.email,
       },
     });

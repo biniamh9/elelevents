@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const adminNotificationActions = [
   "inquiry.created",
+  "inquiry.reply_received",
   "vendor.applied",
   "vendor.signed_in",
   "vendor_referral.accepted",
