@@ -26,20 +26,14 @@ export default async function DocumentsPage() {
     .eq("document_type", "receipt");
 
   return (
-    <main className="section admin-page">
-      <div className="admin-page-head">
+    <main className="section admin-page admin-page--workspace">
+      <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Documents</p>
           <h1>Client documents</h1>
-          <p className="lead">
+          <p>
             Keep quotes, invoices, and receipts in one polished workflow so client-facing
             financial communication stays clear and consistent.
           </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Documents: {totalCount ?? 0}</span>
-          <span className="admin-head-pill">Quotes: {quoteCount ?? 0}</span>
-          <span className="admin-head-pill">Invoices: {invoiceCount ?? 0}</span>
         </div>
       </div>
 

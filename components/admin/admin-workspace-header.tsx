@@ -8,9 +8,7 @@ export default function AdminWorkspaceHeader({
 }) {
   return (
     <div className="admin-topbar">
-      <div className="admin-topbar-main">
-        <span className="admin-topbar-label">Business health and recent activity</span>
-      </div>
+      <div className="admin-topbar-main" />
       <div className="admin-topbar-actions">
         <AdminNotificationBell adminId={adminId} />
         <Link href="/" className="admin-topbar-primary">

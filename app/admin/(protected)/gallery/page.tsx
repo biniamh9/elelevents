@@ -18,19 +18,13 @@ export default async function AdminGalleryPage() {
   ).size;
 
   return (
-    <main className="admin-page section">
-      <div className="admin-page-head">
+    <main className="admin-page section admin-page--workspace">
+      <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Gallery</p>
-          <h1>Manage gallery images</h1>
-          <p className="lead">
+          <h1>Gallery</h1>
+          <p>
             Upload images, control public visibility, and keep the portfolio clean.
           </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Total images: {totalImages}</span>
-          <span className="admin-head-pill">Visible: {visibleImages}</span>
-          <span className="admin-head-pill">Categories: {categoryCount}</span>
         </div>
       </div>
 

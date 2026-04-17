@@ -10,19 +10,14 @@ export default async function AdminFinancePage({
   const { tab = "overview" } = await searchParams;
 
   return (
-    <main className="admin-page section">
-      <div className="admin-page-head">
+    <main className="admin-page section admin-page--workspace">
+      <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Finance</p>
-          <h1>Income and expense tracking</h1>
-          <p className="lead">
+          <h1>Finance</h1>
+          <p>
             Review actual cash movement, collected deposits, receipts, outstanding balances,
             and expense tracking in one accounting-focused workspace.
           </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Cash + payments</span>
-          <span className="admin-head-pill">Expenses ready next</span>
         </div>
       </div>
 

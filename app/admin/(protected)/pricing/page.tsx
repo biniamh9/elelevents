@@ -19,20 +19,14 @@ export default async function AdminPricingPage() {
   ).size;
 
   return (
-    <main className="admin-page section">
-      <div className="admin-page-head">
+    <main className="admin-page section admin-page--workspace">
+      <div className="admin-page-header">
         <div>
-          <p className="eyebrow">Pricing</p>
-          <h1>Manage the quote pricing catalog</h1>
-          <p className="lead">
+          <h1>Pricing catalog</h1>
+          <p>
             Keep the reusable decor pricing clean so every inquiry can move into
             an itemized quote without rebuilding prices from scratch.
           </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Total items: {totalItems}</span>
-          <span className="admin-head-pill">Active: {activeItems}</span>
-          <span className="admin-head-pill">Categories: {categoryCount}</span>
         </div>
       </div>
 

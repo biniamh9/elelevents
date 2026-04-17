@@ -3311,6 +3311,203 @@ th { background: var(--surface-soft); }
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* Cleaner admin shell pass */
+.admin-shell {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.admin-sidebar {
+  gap: 8px;
+  padding: 18px 0 14px;
+  border-radius: 0;
+  background: #181818;
+  box-shadow: none;
+}
+
+.admin-sidebar-brand--simple {
+  padding: 10px 22px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-sidebar-brand--simple h3 {
+  font-size: 0.95rem;
+}
+
+.admin-sidebar-brand--simple p {
+  font-size: 0.84rem;
+  color: rgba(255, 245, 233, 0.48);
+}
+
+.admin-nav--stacked {
+  gap: 6px;
+}
+
+.admin-nav-group-card,
+.admin-nav-card-link {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: none;
+}
+
+.admin-nav-group-card:hover,
+.admin-nav-card-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-nav-group-head strong,
+.admin-nav-card-link strong {
+  font-size: 0.9rem;
+}
+
+.admin-nav-group-head span,
+.admin-nav-card-link span {
+  font-size: 0.82rem;
+  color: rgba(255, 245, 233, 0.56);
+}
+
+.admin-nav-subnav--stacked {
+  padding: 0 10px 12px 14px;
+}
+
+.admin-nav-subnav-link {
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.admin-nav-subnav-link:hover {
+  background: rgba(255, 255, 255, 0.045);
+  transform: none;
+}
+
+.admin-nav-subnav-link[aria-current="page"] {
+  box-shadow: none;
+}
+
+.admin-create-link {
+  border-radius: 14px;
+}
+
+.admin-sidebar-footer {
+  padding: 8px 18px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.admin-main {
+  padding: 0 20px 24px;
+}
+
+.admin-main > main {
+  padding: 8px 4px 24px;
+}
+
+.admin-topbar {
+  padding: 4px 4px 10px;
+}
+
+.admin-topbar-primary {
+  background: #111827;
+  border-color: #111827;
+  box-shadow: none;
+}
+
+.admin-page-head,
+.admin-page-header {
+  padding: 2px 4px 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(73, 49, 31, 0.08);
+}
+
+.admin-page-head h1,
+.admin-page-header h1 {
+  font-size: clamp(1.95rem, 3vw, 2.55rem);
+}
+
+.admin-page-head .lead,
+.admin-page-header p {
+  margin-top: 6px;
+  font-size: 0.98rem;
+}
+
+.admin-workspace-tab {
+  min-height: 38px;
+  padding: 0.66rem 1rem;
+}
+
+.admin-section-card,
+.admin-table-card,
+.admin-management-card,
+.admin-selection-summary,
+.admin-placeholder-list > div,
+.admin-mini-metrics--plain div,
+.admin-quick-action-card,
+.admin-package-list-item,
+.admin-package-editor,
+.admin-package-create,
+.admin-package-list,
+.admin-package-empty,
+.admin-user-card {
+  border-radius: 16px;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.admin-section-card,
+.admin-table-card {
+  padding: 18px;
+}
+
+.admin-section-card {
+  gap: 14px;
+}
+
+.admin-panel-head {
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.admin-panel-head h3 {
+  font-size: 1.45rem;
+}
+
+.admin-management-card {
+  gap: 14px;
+}
+
+.admin-record-section {
+  gap: 14px;
+}
+
+.admin-kpi-grid {
+  gap: 14px;
+}
+
+.metric-card strong {
+  font-size: 1.85rem;
+}
+
+.admin-records-table thead th {
+  background: #f7f1ea;
+}
+
+.admin-records-table tbody tr:hover {
+  background: rgba(107, 52, 24, 0.03);
+}
+
+.admin-package-workspace {
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.admin-package-editor,
+.admin-package-create,
+.admin-package-list,
+.admin-package-empty {
+  padding: 18px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+}
 .booking-panel { display: grid; gap: 20px; }
 .booking-preview-intro {
   margin: 14px 0 0;
