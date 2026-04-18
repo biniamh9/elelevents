@@ -6414,7 +6414,7 @@ th { background: var(--surface-soft); }
   border: 0;
   background: transparent;
   box-shadow: none;
-  overflow-x: auto;
+  overflow-x: visible;
   overflow-y: visible;
 }
 .admin-main > main .card,
@@ -6724,6 +6724,7 @@ th { background: var(--surface-soft); }
 }
 .admin-page--workspace > * {
   min-width: 0;
+  max-width: 100%;
 }
 .admin-workspace-header {
   position: sticky;
@@ -7335,6 +7336,7 @@ th { background: var(--surface-soft); }
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   align-items: end;
+  min-width: 0;
 }
 .crm-filter-grid > .btn {
   justify-self: start;
@@ -7363,16 +7365,24 @@ th { background: var(--surface-soft); }
   white-space: nowrap;
 }
 .admin-record-table-shell {
+  display: block;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   overflow-y: visible;
   padding-bottom: 4px;
   scrollbar-gutter: stable both-edges;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .admin-record-table-shell .admin-records-table,
 .admin-record-table-shell .crm-records-table {
-  min-width: 1180px;
+  width: max-content;
+  min-width: max(100%, 1180px);
+}
+.admin-record-table-shell .crm-records-table.crm-records-table--compact {
+  min-width: max(100%, 920px);
 }
 .admin-section-card,
 .admin-panel,
@@ -7383,6 +7393,7 @@ th { background: var(--surface-soft); }
 .crm-forecast-grid,
 .crm-forecast-shell {
   min-width: 0;
+  max-width: 100%;
 }
 .crm-pipeline-board {
   display: grid;
@@ -14176,6 +14187,12 @@ th { background: var(--surface-soft); }
   gap: 16px;
 }
 
+.admin-dashboard-row > *,
+.admin-stack > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .admin-panel,
 .admin-table-card,
 .admin-section-card {
@@ -14255,6 +14272,22 @@ th { background: var(--surface-soft); }
 
   .admin-main {
     padding-inline: 24px;
+  }
+}
+
+@media (max-width: 1480px) {
+  .admin-dashboard-row,
+  .admin-dashboard-row--overview-clean,
+  .admin-dashboard-row--overview-focus,
+  .admin-dashboard-row--overview-activity,
+  .admin-dashboard-row--activity,
+  .admin-dashboard-row--crm-leads {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dashboard-row--crm-reports-primary,
+  .admin-stack--crm-reports-secondary {
+    grid-template-columns: 1fr;
   }
 }
 
