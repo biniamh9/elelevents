@@ -55,7 +55,7 @@ export default function DocumentLineItemsTable({
           <p className="eyebrow">Line Items</p>
           <h3>Scope & pricing breakdown</h3>
         </div>
-        <button type="button" className="btn secondary" onClick={addItem}>
+        <button type="button" className="btn tertiary" onClick={addItem}>
           Add Line Item
         </button>
       </div>

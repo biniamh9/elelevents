@@ -124,15 +124,16 @@ export default async function AdminCrmAnalyticsPage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-head">
+      <div className="admin-page-header">
         <div>
-          <p className="eyebrow">CRM &amp; Analytics</p>
           <h1>CRM &amp; Analytics</h1>
-          <p className="lead">
+          <p>
             Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum.
           </p>
         </div>
-        <div className="admin-page-head-aside">
+      </div>
+
+      <div className="admin-workspace-actions admin-workspace-actions--page">
           <a href={exportHref} className="admin-topbar-pill">
             Export report
           </a>
@@ -142,7 +143,6 @@ export default async function AdminCrmAnalyticsPage({
           <Link href="/admin/crm-analytics?tab=tasks" className="btn">
             Create task
           </Link>
-        </div>
       </div>
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline">

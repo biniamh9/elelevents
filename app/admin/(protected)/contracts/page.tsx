@@ -72,41 +72,23 @@ export default async function ContractsPage() {
   ];
 
   return (
-    <main className="section admin-page">
-      <div className="admin-dashboard-hero">
-        <div className="card admin-hero-card">
-          <p className="eyebrow">Contracts Dashboard</p>
+    <main className="section admin-page admin-page--workspace">
+      <div className="admin-page-header">
+        <div>
           <h1>Contracts</h1>
-          <p className="lead">
+          <p>
             Track draft agreements, sent envelopes, signed contracts, and deposit progress.
           </p>
-          <div className="summary-pills">
-            <span className="summary-chip">Total contracts: {totalContracts ?? 0}</span>
-            <span className="summary-chip">Signed: {signedCount ?? 0}</span>
-            <span className="summary-chip">Deposit paid: {depositPaidCount ?? 0}</span>
-          </div>
         </div>
-
-        <div className="card admin-focus-card">
-          <p className="eyebrow">Current Focus</p>
-          <div className="admin-mini-metrics">
-            <div>
-              <strong>{draftCount ?? 0}</strong>
-              <span>Drafts to finish</span>
-            </div>
-            <div>
-              <strong>{sentCount ?? 0}</strong>
-              <span>Waiting for signature</span>
-            </div>
-            <div>
-              <strong>{sentDocusignCount ?? 0}</strong>
-              <span>DocuSign envelopes sent</span>
-            </div>
-          </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Total: {totalContracts ?? 0}</span>
+          <span className="admin-head-pill">Signed: {signedCount ?? 0}</span>
+          <span className="admin-head-pill">Deposits paid: {depositPaidCount ?? 0}</span>
         </div>
       </div>
 
-      <div className="admin-kpi-grid">
+      <section className="admin-mini-report admin-mini-report--compact">
+      <div className="admin-kpi-grid admin-kpi-grid--compact">
         <div className="card metric-card">
           <p className="muted">Total Contracts</p>
           <strong>{totalContracts ?? 0}</strong>
@@ -132,6 +114,7 @@ export default async function ContractsPage() {
           <strong>{depositPaidCount ?? 0}</strong>
         </div>
       </div>
+      </section>
 
       <section className="admin-board-shell">
         <div className="admin-section-title">

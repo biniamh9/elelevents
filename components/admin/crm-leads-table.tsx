@@ -36,7 +36,7 @@ export default function CrmLeadsTable({
   const sources = [...new Set(leads.map((lead) => lead.source))] as LeadSource[];
 
   return (
-    <section className="card admin-section-card admin-panel admin-panel--wide">
+    <section className="card admin-section-card admin-panel admin-panel--wide crm-leads-section">
       <div className="admin-panel-head">
         <div>
           <p className="eyebrow">Leads</p>
@@ -44,7 +44,7 @@ export default function CrmLeadsTable({
         </div>
       </div>
 
-      <form className="admin-record-filters crm-filter-grid" action="/admin/crm-analytics">
+      <form className="admin-record-filters admin-filters admin-filters--records crm-filter-grid crm-filter-grid--leads" action="/admin/crm-analytics">
         <input type="hidden" name="tab" value="leads" />
         <label>
           <span>Search</span>
@@ -103,7 +103,7 @@ export default function CrmLeadsTable({
             <option value="90">Next 90 days</option>
           </select>
         </label>
-        <button type="submit" className="btn">
+        <button type="submit" className="btn secondary">
           Apply
         </button>
       </form>

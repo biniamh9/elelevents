@@ -25,18 +25,19 @@ export default async function NewDocumentPage({
   });
 
   return (
-    <main className="section admin-page">
-      <div style={{ marginBottom: "20px" }}>
-        <Link href="/admin/documents" className="btn secondary">
-          ← Back to Documents
-        </Link>
+    <main className="section admin-page admin-page--workspace">
+      <div className="admin-page-header">
+        <div>
+          <h1>Build a client-ready {type}</h1>
+          <p>
+            Refine the scope, totals, and notes before sharing anything with the client.
+          </p>
+        </div>
       </div>
-      <div className="section-heading">
-        <p className="eyebrow">Create document</p>
-        <h1>Build a client-ready {type}</h1>
-        <p className="lead">
-          Refine the scope, totals, and notes before sharing anything with the client.
-        </p>
+      <div className="admin-workspace-actions admin-workspace-actions--page">
+        <Link href="/admin/documents" className="admin-topbar-pill">
+          Back to Documents
+        </Link>
       </div>
 
       <DocumentEditor initialDocument={seeded} mode="create" />

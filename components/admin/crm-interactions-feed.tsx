@@ -19,7 +19,7 @@ export default function CrmInteractionsFeed({
   leadsById: Map<string, CrmLead>;
 }) {
   return (
-    <section className="card admin-section-card admin-panel">
+    <section className="card admin-section-card admin-panel crm-interactions-panel">
       <div className="admin-panel-head">
         <div>
           <p className="eyebrow">Recent interactions</p>

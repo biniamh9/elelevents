@@ -11,7 +11,7 @@ export default function CrmReportFilters({
   };
 }) {
   return (
-    <form className="admin-record-filters crm-filter-grid" action="/admin/crm-analytics">
+    <form className="admin-record-filters admin-filters admin-filters--records crm-filter-grid crm-filter-grid--reports" action="/admin/crm-analytics">
       <input type="hidden" name="tab" value="reports" />
       <label>
         <span>Search</span>
