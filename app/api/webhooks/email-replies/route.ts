@@ -4,16 +4,75 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 type InboundReplyPayload = {
   from?: string;
+  fromEmail?: string;
   to?: string;
+  toEmail?: string;
   subject?: string;
   text?: string;
+  textBody?: string;
+  plainText?: string;
   html?: string;
+  htmlBody?: string;
   threadId?: string;
+  thread_id?: string;
+  gmailThreadId?: string;
   messageId?: string;
+  message_id?: string;
+  gmailMessageId?: string;
+  inReplyTo?: string;
+  in_reply_to?: string;
+  references?: string[] | string;
   provider?: string;
   receivedAt?: string;
+  received_at?: string;
   metadata?: Record<string, unknown>;
+  envelope?: {
+    from?: string;
+    to?: string;
+  };
 };
+
+function extractEmailAddress(value: string | undefined | null) {
+  if (!value) return "";
+  const match = value.match(/<([^>]+)>/);
+  return (match?.[1] ?? value).trim().toLowerCase();
+}
+
+function normalizeInboundReplyPayload(body: InboundReplyPayload) {
+  const fromEmail = extractEmailAddress(
+    body.fromEmail ?? body.from ?? body.envelope?.from ?? null
+  );
+  const toEmail = extractEmailAddress(
+    body.toEmail ?? body.to ?? body.envelope?.to ?? null
+  );
+  const bodyText =
+    body.text?.trim() ||
+    body.textBody?.trim() ||
+    body.plainText?.trim() ||
+    "";
+
+  return {
+    fromEmail,
+    toEmail: toEmail || null,
+    subject: body.subject ?? null,
+    bodyText,
+    bodyHtml: body.html ?? body.htmlBody ?? null,
+    threadId: body.threadId ?? body.thread_id ?? body.gmailThreadId ?? null,
+    messageId: body.messageId ?? body.message_id ?? body.gmailMessageId ?? null,
+    inReplyTo: body.inReplyTo ?? body.in_reply_to ?? null,
+    references: Array.isArray(body.references)
+      ? body.references
+      : typeof body.references === "string"
+        ? body.references
+            .split(/[,\s]+/)
+            .map((value) => value.trim())
+            .filter(Boolean)
+        : [],
+    provider: body.provider ?? "inbound-webhook",
+    receivedAt: body.receivedAt ?? body.received_at ?? null,
+    metadata: body.metadata ?? {},
+  };
+}
 
 function getSecretFromRequest(request: Request) {
   return (
@@ -33,30 +92,18 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as InboundReplyPayload;
-    const fromEmail = body.from?.trim();
-    const bodyText = body.text?.trim();
+    const normalized = normalizeInboundReplyPayload(body);
 
-    if (!fromEmail || !bodyText) {
+    if (!normalized.fromEmail || !normalized.bodyText) {
       return NextResponse.json(
         { error: "from and text are required to record an inbound reply" },
         { status: 400 }
       );
     }
 
-    // TODO: Replace this generic payload with provider-specific normalization
-    // once Gmail / Microsoft 365 / Resend inbound parsing is selected.
-    const result = await recordInboundEmailReply(supabaseAdmin, {
-      fromEmail,
-      toEmail: body.to ?? null,
-      subject: body.subject ?? null,
-      bodyText,
-      bodyHtml: body.html ?? null,
-      threadId: body.threadId ?? null,
-      messageId: body.messageId ?? null,
-      provider: body.provider ?? "inbound-webhook",
-      receivedAt: body.receivedAt ?? null,
-      metadata: body.metadata ?? {},
-    });
+    // TODO: Extend this normalizer for the exact inbound provider payload
+    // selected in production (Gmail Apps Script, Google Workspace, Resend, etc).
+    const result = await recordInboundEmailReply(supabaseAdmin, normalized);
 
     return NextResponse.json({ success: true, ...result });
   } catch (error) {

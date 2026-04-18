@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 export const adminNotificationActions = [
   "inquiry.created",
   "inquiry.reply_received",
+  "inquiry.quote_accepted",
+  "inquiry.quote_changes_requested",
   "vendor.applied",
   "vendor.signed_in",
   "vendor_referral.accepted",

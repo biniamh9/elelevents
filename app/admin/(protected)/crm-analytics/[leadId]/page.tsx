@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -34,6 +35,31 @@ export default async function AdminCrmLeadDetailPage({
 
   const interactions = getLeadInteractions(leadId);
   const tasks = getLeadTasks(leadId);
+  const { data: persistedInteractions } = await supabaseAdmin
+    .from("customer_interactions")
+    .select("id, subject, body_text, created_at, channel, direction, provider")
+    .or(`sender_email.eq.${lead.email},recipient_email.eq.${lead.email}`)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const combinedInteractions = [
+    ...interactions.map((item) => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      createdAt: item.createdAt,
+    })),
+    ...(persistedInteractions ?? []).map((item) => ({
+      id: item.id,
+      title:
+        item.subject?.trim() ||
+        (item.direction === "inbound" ? "Email reply received" : "Customer interaction"),
+      summary: item.body_text,
+      createdAt: item.created_at,
+    })),
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 24);
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -104,7 +130,7 @@ export default async function AdminCrmLeadDetailPage({
           </div>
         </div>
         <div className="admin-list crm-interactions-list">
-          {interactions.map((item) => (
+          {combinedInteractions.map((item) => (
             <div key={item.id} className="admin-list-item crm-interaction-item">
               <div>
                 <strong>{item.title}</strong>

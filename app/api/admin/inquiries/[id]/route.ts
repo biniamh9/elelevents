@@ -28,6 +28,7 @@ const allowedQuoteResponseStatuses = [
   "not_sent",
   "awaiting_response",
   "accepted",
+  "changes_requested",
   "declined",
 ];
 

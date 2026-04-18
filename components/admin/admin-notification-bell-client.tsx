@@ -55,6 +55,12 @@ function humanizeSummary(item: AdminNotificationItem) {
   if (item.action === "inquiry.reply_received") {
     return "Lead replied by email";
   }
+  if (item.action === "inquiry.quote_accepted") {
+    return "Quote approved by client";
+  }
+  if (item.action === "inquiry.quote_changes_requested") {
+    return "Quote changes requested";
+  }
   if (item.action === "vendor.applied") {
     return "New vendor application";
   }

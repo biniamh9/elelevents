@@ -6,7 +6,13 @@ import {
 } from "@/lib/admin-pricing";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
-import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
+import {
+  getBusinessTemplateVariables,
+  getNotificationFromEmail,
+  renderBrandedEmail,
+} from "@/lib/email-template-renderer";
+import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
+import { createQuoteActionToken } from "@/lib/quote-client-actions";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
@@ -56,6 +62,8 @@ function renderItemizedQuoteEmail({
   lineItems,
   totals,
   disclaimer,
+  approveUrl,
+  changesUrl,
 }: {
   firstName: string;
   eventType: string;
@@ -73,6 +81,8 @@ function renderItemizedQuoteEmail({
   }>;
   totals: ReturnType<typeof calculateQuoteTotals>;
   disclaimer: string;
+  approveUrl: string;
+  changesUrl: string;
 }) {
   const lineItemsHtml = lineItems.length
     ? `
@@ -180,6 +190,20 @@ function renderItemizedQuoteEmail({
           </div>
         </td></tr>
       </table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border-collapse:collapse;">
+        <tr>
+          <td style="padding-right:10px;">
+            <a href="${escapeHtml(
+              approveUrl
+            )}" style="display:block;padding:16px 18px;border-radius:16px;background:#e9792a;color:#ffffff;text-decoration:none;text-align:center;font-weight:700;">Approve Quote</a>
+          </td>
+          <td style="padding-left:10px;">
+            <a href="${escapeHtml(
+              changesUrl
+            )}" style="display:block;padding:16px 18px;border-radius:16px;border:1px solid rgba(121,94,61,0.18);background:#fffdfa;color:#39261a;text-decoration:none;text-align:center;font-weight:700;">Request Changes</a>
+          </td>
+        </tr>
+      </table>
       <p style="margin-bottom:10px;">Reply to this email if you would like any refinements, removals, or substitutions. Once you confirm the direction, we will prepare the agreement and booking steps.</p>
       <p style="font-size:14px;color:#8a7b6c;">${escapeHtml(disclaimer)}</p>
     `,
@@ -263,21 +287,47 @@ export async function POST(
         ? body.quoteMessage.trim()
         : "Thank you for meeting with us. Based on the event scope we discussed, here is your quote.";
 
-    const { error: sendError } = await resend.emails.send({
+    const quotedAt = inquiry.quoted_at || new Date().toISOString();
+
+    const siteUrl =
+      getBusinessTemplateVariables().website_url ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000";
+    const quoteActionToken = createQuoteActionToken({
+      inquiryId: inquiry.id,
+      email: inquiry.email,
+      quotedAt,
+    });
+    const approveUrl = `${siteUrl}/quote/respond?inquiry=${encodeURIComponent(
+      inquiry.id
+    )}&action=approve&token=${encodeURIComponent(quoteActionToken)}`;
+    const changesUrl = `${siteUrl}/quote/respond?inquiry=${encodeURIComponent(
+      inquiry.id
+    )}&action=request_changes&token=${encodeURIComponent(quoteActionToken)}`;
+
+    const subject = `Your Event Quote - ${inquiry.event_type} with Elel Events`;
+    const emailHtml = renderItemizedQuoteEmail({
+      firstName: inquiry.first_name,
+      eventType: inquiry.event_type,
+      eventDate: inquiry.event_date,
+      venueName: inquiry.venue_name,
+      quoteMessage,
+      lineItems: normalizedLineItems,
+      totals,
+      disclaimer:
+        pricing?.client_disclaimer?.trim() || DEFAULT_ITEMIZED_DISCLAIMER,
+      approveUrl,
+      changesUrl,
+    });
+
+    const { data: sentEmail, error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: inquiry.email,
-      subject: `Your Event Quote - ${inquiry.event_type} with Elel Events`,
-      html: renderItemizedQuoteEmail({
-        firstName: inquiry.first_name,
-        eventType: inquiry.event_type,
-        eventDate: inquiry.event_date,
-        venueName: inquiry.venue_name,
-        quoteMessage,
-        lineItems: normalizedLineItems,
-        totals,
-        disclaimer:
-          pricing?.client_disclaimer?.trim() || DEFAULT_ITEMIZED_DISCLAIMER,
-      }),
+      subject,
+      replyTo: fromEmail.includes("<")
+        ? fromEmail.match(/<([^>]+)>/)?.[1] ?? fromEmail
+        : fromEmail,
+      html: emailHtml,
     });
 
     if (sendError) {
@@ -287,9 +337,6 @@ export async function POST(
         { status: 500 }
       );
     }
-
-    const quotedAt = inquiry.quoted_at || new Date().toISOString();
-
     const { error: updateError } = await supabaseAdmin
       .from("event_inquiries")
       .update({
@@ -304,6 +351,27 @@ export async function POST(
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    await recordOutboundEmailInteraction(supabaseAdmin, {
+      inquiryId: id,
+      clientId: inquiry.client_id ?? null,
+      subject,
+      bodyText: quoteMessage,
+      senderEmail: fromEmail.includes("<")
+        ? fromEmail.match(/<([^>]+)>/)?.[1] ?? fromEmail
+        : fromEmail,
+      recipientEmail: inquiry.email,
+      threadId: sentEmail?.id ?? null,
+      messageId: sentEmail?.id ?? null,
+      provider: "resend",
+      metadata: {
+        type: "quote_email",
+        quote_amount: quoteAmount,
+        approve_url: approveUrl,
+        changes_url: changesUrl,
+      },
+      createdAt: quotedAt,
+    });
 
     await logActivity(supabaseAdmin, {
       entityType: "inquiry",
