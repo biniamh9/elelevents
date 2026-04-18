@@ -53,6 +53,14 @@ function formatDisplayDate(value: string | null) {
   }).format(date);
 }
 
+function normalizeQuotedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 function renderItemizedQuoteEmail({
   firstName,
   eventType,
@@ -287,8 +295,31 @@ export async function POST(
         ? body.quoteMessage.trim()
         : "Thank you for meeting with us. Based on the event scope we discussed, here is your quote.";
 
-    const quotedAt = inquiry.quoted_at || new Date().toISOString();
+    const quotedAtInput = normalizeQuotedAt(
+      inquiry.quoted_at || new Date().toISOString()
+    );
 
+    const { data: updatedInquiry, error: updateError } = await supabaseAdmin
+      .from("event_inquiries")
+      .update({
+        estimated_price: quoteAmount,
+        status: "quoted",
+        booking_stage: "quote_sent",
+        quoted_at: quotedAtInput,
+        quote_response_status: "awaiting_response",
+      })
+      .eq("id", id)
+      .select("id, email, quoted_at, client_id")
+      .single();
+
+    if (updateError || !updatedInquiry?.quoted_at) {
+      return NextResponse.json(
+        { error: updateError?.message || "Failed to prepare quote response link" },
+        { status: 500 }
+      );
+    }
+
+    const quotedAt = normalizeQuotedAt(updatedInquiry.quoted_at);
     const siteUrl =
       getBusinessTemplateVariables().website_url ||
       process.env.NEXT_PUBLIC_SITE_URL ||
@@ -337,24 +368,9 @@ export async function POST(
         { status: 500 }
       );
     }
-    const { error: updateError } = await supabaseAdmin
-      .from("event_inquiries")
-      .update({
-        estimated_price: quoteAmount,
-        status: "quoted",
-        booking_stage: "quote_sent",
-        quoted_at: quotedAt,
-        quote_response_status: "awaiting_response",
-      })
-      .eq("id", id);
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-
     await recordOutboundEmailInteraction(supabaseAdmin, {
       inquiryId: id,
-      clientId: inquiry.client_id ?? null,
+      clientId: updatedInquiry.client_id ?? inquiry.client_id ?? null,
       subject,
       bodyText: quoteMessage,
       senderEmail: fromEmail.includes("<")

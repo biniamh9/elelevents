@@ -17,12 +17,20 @@ function decode(value: string) {
   return Buffer.from(value, "base64url").toString("utf8");
 }
 
+function normalizeQuotedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 export function createQuoteActionToken(input: {
   inquiryId: string;
   email: string;
   quotedAt: string;
 }) {
-  const payload = `${input.inquiryId}|${input.email.trim().toLowerCase()}|${input.quotedAt}`;
+  const payload = `${input.inquiryId}|${input.email.trim().toLowerCase()}|${normalizeQuotedAt(input.quotedAt)}`;
   const signature = crypto
     .createHmac("sha256", getQuoteActionSecret())
     .update(payload)
@@ -46,7 +54,7 @@ export function verifyQuoteActionToken(
 
   const expectedPayload = `${expected.inquiryId}|${expected.email
     .trim()
-    .toLowerCase()}|${expected.quotedAt}`;
+    .toLowerCase()}|${normalizeQuotedAt(expected.quotedAt)}`;
   const expectedSignature = crypto
     .createHmac("sha256", getQuoteActionSecret())
     .update(expectedPayload)
@@ -63,4 +71,3 @@ export function verifyQuoteActionToken(
 
   return decode(encodedPayload) === expectedPayload;
 }
-
