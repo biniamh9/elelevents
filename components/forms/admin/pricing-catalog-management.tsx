@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingCatalogItem } from "@/lib/admin-pricing";
 import { formatCatalogLabel } from "@/lib/admin-pricing";
+import AdminActionRow from "@/components/admin/admin-action-row";
+import AdminEmptyState from "@/components/admin/admin-empty-state";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 function PricingRecordActions({
   item,
@@ -206,17 +209,17 @@ function PricingCatalogEditor({
 
   return (
     <div className="card admin-package-editor">
-      <div className="admin-panel-head">
-        <div>
-          <p className="eyebrow">Editing Pricing Item</p>
-          <h3>{formatCatalogLabel(item)}</h3>
-        </div>
-        <div className="admin-package-status">
-          <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
-            {isActive ? "Active" : "Inactive"}
-          </span>
-        </div>
-      </div>
+      <AdminSectionHeader
+        eyebrow="Editing Pricing Item"
+        title={formatCatalogLabel(item)}
+        actions={
+          <div className="admin-package-status">
+            <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
+              {isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
+        }
+      />
 
       <div className="form-grid">
         <div className="field">
@@ -255,14 +258,18 @@ function PricingCatalogEditor({
         <span>Available in the quote builder</span>
       </label>
 
-      <div className="admin-package-actions">
-        <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
-          {saving ? "Saving..." : "Save Item"}
-        </button>
-        <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
-          {deleting ? "Deleting..." : "Delete Item"}
-        </button>
-      </div>
+      <AdminActionRow
+        secondary={
+          <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
+            {saving ? "Saving..." : "Save Item"}
+          </button>
+        }
+        destructive={
+          <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
+            {deleting ? "Deleting..." : "Delete Item"}
+          </button>
+        }
+      />
 
       {message ? <p className={message.includes("updated") ? "success" : "error"}>{message}</p> : null}
     </div>
@@ -413,10 +420,10 @@ export default function PricingCatalogManagement({
         </div>
 
         <aside className="card admin-section-card admin-management-sidecard">
-          <div className="admin-section-title">
-            <h3>Current selection</h3>
-            <p className="muted">Review the active pricing item before editing its details.</p>
-          </div>
+          <AdminSectionHeader
+            title="Current selection"
+            description="Review the active pricing item before editing its details."
+          />
           {selectedItem ? (
             <div className="admin-selection-summary">
               <strong>{formatCatalogLabel(selectedItem)}</strong>
@@ -432,13 +439,11 @@ export default function PricingCatalogManagement({
       </div>
 
       <div className="card admin-table-card admin-records-table-card">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Pricing Records</p>
-            <h3>Reusable pricing items</h3>
-            <p className="muted">Search and filter the catalog, then open any row to edit it below.</p>
-          </div>
-        </div>
+        <AdminSectionHeader
+          eyebrow="Pricing Records"
+          title="Reusable pricing items"
+          description="Search and filter the catalog, then open any row to edit it below."
+        />
 
         <div className="admin-filters admin-filters--records">
           <div className="field">
@@ -584,13 +589,11 @@ export default function PricingCatalogManagement({
       <div className="admin-package-workspace">
         <div className="admin-package-list-wrap">
           <div className="card admin-package-create">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Create Pricing Item</p>
-                <h3>Add a reusable decor price</h3>
-                <p className="muted">New items become available to the quote builder after creation.</p>
-              </div>
-            </div>
+            <AdminSectionHeader
+              eyebrow="Create Pricing Item"
+              title="Add a reusable decor price"
+              description="New items become available to the quote builder after creation."
+            />
 
             <form onSubmit={createItem}>
               <div className="form-grid">
@@ -625,9 +628,13 @@ export default function PricingCatalogManagement({
                 <textarea className="textarea" value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
 
-              <button type="submit" className="btn secondary" disabled={creating}>
-                {creating ? "Creating..." : "Create Item"}
-              </button>
+              <AdminActionRow
+                primary={
+                  <button type="submit" className="btn secondary" disabled={creating}>
+                    {creating ? "Creating..." : "Create Item"}
+                  </button>
+                }
+              />
             </form>
 
             {message ? <p className={message.includes("created") ? "success" : "error"}>{message}</p> : null}
@@ -642,10 +649,10 @@ export default function PricingCatalogManagement({
               onDeleted={handleDeleted}
             />
           ) : (
-            <div className="card admin-package-empty">
-              <h3>No pricing item selected</h3>
-              <p className="muted">Choose a row from the table or create your first pricing item below.</p>
-            </div>
+            <AdminEmptyState
+              title="No pricing item selected"
+              description="Choose a row from the table or create your first pricing item below."
+            />
           )}
         </div>
       </div>

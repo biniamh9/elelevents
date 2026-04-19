@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 
 export const dynamic = "force-dynamic";
 
@@ -73,48 +75,27 @@ export default async function ContractsPage() {
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>Contracts</h1>
-          <p>
-            Track draft agreements, sent envelopes, signed contracts, and deposit progress.
-          </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Total: {totalContracts ?? 0}</span>
-          <span className="admin-head-pill">Signed: {signedCount ?? 0}</span>
-          <span className="admin-head-pill">Deposits paid: {depositPaidCount ?? 0}</span>
-        </div>
-      </div>
+      <AdminPageIntro
+        title="Contracts"
+        description="Track draft agreements, sent envelopes, signed contracts, and deposit progress."
+        aside={
+          <>
+            <span className="admin-head-pill">Total: {totalContracts ?? 0}</span>
+            <span className="admin-head-pill">Signed: {signedCount ?? 0}</span>
+            <span className="admin-head-pill">Deposits paid: {depositPaidCount ?? 0}</span>
+          </>
+        }
+      />
 
-      <section className="admin-mini-report admin-mini-report--compact">
-      <div className="admin-kpi-grid admin-kpi-grid--compact">
-        <div className="card metric-card">
-          <p className="muted">Total Contracts</p>
-          <strong>{totalContracts ?? 0}</strong>
-        </div>
-
-        <div className="card metric-card">
-          <p className="muted">Draft</p>
-          <strong>{draftCount ?? 0}</strong>
-        </div>
-
-        <div className="card metric-card metric-card--blue">
-          <p className="muted">Sent</p>
-          <strong>{sentCount ?? 0}</strong>
-        </div>
-
-        <div className="card metric-card metric-card--violet">
-          <p className="muted">Signed</p>
-          <strong>{signedCount ?? 0}</strong>
-        </div>
-
-        <div className="card metric-card metric-card--green">
-          <p className="muted">Deposit Paid</p>
-          <strong>{depositPaidCount ?? 0}</strong>
-        </div>
-      </div>
-      </section>
+      <AdminMetricStrip
+        items={[
+          { label: "Total contracts", value: totalContracts ?? 0 },
+          { label: "Draft", value: draftCount ?? 0 },
+          { label: "Sent", value: sentCount ?? 0, tone: "blue" },
+          { label: "Signed", value: signedCount ?? 0, tone: "violet" },
+          { label: "Deposit paid", value: depositPaidCount ?? 0, tone: "green" },
+        ]}
+      />
 
       <section className="admin-board-shell">
         <div className="admin-section-title">

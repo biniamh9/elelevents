@@ -1,4 +1,7 @@
 import Link from "next/link";
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 export const dynamic = "force-dynamic";
 
@@ -11,15 +14,10 @@ export default async function AdminFinancePage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>Finance</h1>
-          <p>
-            Review actual cash movement, collected deposits, receipts, outstanding balances,
-            and expense tracking in one accounting-focused workspace.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title="Finance"
+        description="Review actual cash movement, collected deposits, receipts, outstanding balances, and expense tracking in one accounting-focused workspace."
+      />
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline">
         <Link href="/admin/finance" className={`admin-workspace-tab${tab === "overview" ? " is-active" : ""}`}>
@@ -33,41 +31,25 @@ export default async function AdminFinancePage({
         </Link>
       </div>
 
-      <section className="admin-mini-report">
-        <div className="admin-kpi-grid admin-kpi-grid--compact">
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Recorded income</p>
-            <strong>$0</strong>
-              <span>Recognized cash from invoices and receipts</span>
-          </div>
-          <div className="card metric-card metric-card--amber">
-            <p className="muted">Outstanding deposits</p>
-            <strong>0</strong>
-              <span>Payment obligations still open in finance</span>
-          </div>
-          <div className="card metric-card metric-card--green">
-            <p className="muted">Paid receipts</p>
-            <strong>0</strong>
-              <span>Confirmed receipts recognized in cash tracking</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Tracked expenses</p>
-            <strong>0</strong>
-              <span>Vendor and production costs can be tracked next</span>
-          </div>
-        </div>
-      </section>
+      <AdminMetricStrip
+        items={[
+          { label: "Recorded income", value: "$0", note: "Recognized cash from invoices and receipts" },
+          { label: "Outstanding deposits", value: 0, note: "Payment obligations still open in finance", tone: "amber" },
+          { label: "Paid receipts", value: 0, note: "Confirmed receipts recognized in cash tracking", tone: "green" },
+          { label: "Tracked expenses", value: 0, note: "Vendor and production costs can be tracked next" },
+        ]}
+      />
 
       <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
         <section className="card admin-section-card">
-          <div className="admin-section-title">
-            <h3>{tab === "expenses" ? "Expense tracking roadmap" : "Finance overview"}</h3>
-            <p className="muted">
-              {tab === "expenses"
+          <AdminSectionHeader
+            title={tab === "expenses" ? "Expense tracking roadmap" : "Finance overview"}
+            description={
+              tab === "expenses"
                 ? "This section is ready for expense entries, vendor payouts, and cost reporting."
-                : "Use this workspace to consolidate actual payments, receipts, deposits, and future expenses."}
-            </p>
-          </div>
+                : "Use this workspace to consolidate actual payments, receipts, deposits, and future expenses."
+            }
+          />
           <div className="admin-placeholder-list">
             <div>
               <strong>Income ledger</strong>
@@ -85,10 +67,10 @@ export default async function AdminFinancePage({
         </section>
 
         <aside className="card admin-section-card">
-          <div className="admin-section-title">
-            <h3>Next setup</h3>
-            <p className="muted">These controls keep finance ready without removing your current workflow.</p>
-          </div>
+          <AdminSectionHeader
+            title="Next setup"
+            description="These controls keep finance ready without removing your current workflow."
+          />
           <div className="admin-mini-metrics admin-mini-metrics--plain">
             <div>
               <strong>Invoices</strong>

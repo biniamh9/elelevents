@@ -1,5 +1,7 @@
 import GalleryManagement from "@/components/forms/admin/gallery-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 
 export const dynamic = "force-dynamic";
 
@@ -19,43 +21,19 @@ export default async function AdminGalleryPage() {
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>Gallery</h1>
-          <p>
-            Upload images, control public visibility, and keep the portfolio clean.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title="Gallery"
+        description="Upload images, control public visibility, and keep the portfolio clean."
+      />
 
-      <section className="admin-mini-report">
-        <div className="admin-section-title">
-          <h3>Summary</h3>
-          <p className="muted">Quick counts only. Manage the actual gallery records in the table below.</p>
-        </div>
-        <div className="admin-kpi-grid admin-kpi-grid--compact">
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Total images</p>
-            <strong>{totalImages}</strong>
-            <span>All gallery assets</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Visible images</p>
-            <strong>{visibleImages}</strong>
-            <span>Shown publicly</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Hidden images</p>
-            <strong>{hiddenImages}</strong>
-            <span>Not shown publicly</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Categories</p>
-            <strong>{categoryCount}</strong>
-            <span>Distinct gallery groups</span>
-          </div>
-        </div>
-      </section>
+      <AdminMetricStrip
+        items={[
+          { label: "Total images", value: totalImages, note: "All gallery assets" },
+          { label: "Visible images", value: visibleImages, note: "Shown publicly" },
+          { label: "Hidden images", value: hiddenImages, note: "Not shown publicly" },
+          { label: "Categories", value: categoryCount, note: "Distinct gallery groups" },
+        ]}
+      />
 
       {error ? <p className="error">Failed to load gallery items: {error.message}</p> : null}
       <GalleryManagement items={data ?? []} />

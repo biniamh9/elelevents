@@ -7055,6 +7055,24 @@ th { background: var(--surface-soft); }
   margin-bottom: 6px;
 }
 .admin-panel-head h3 { margin: 0; }
+.admin-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-action-row {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.admin-empty-state {
+  display: grid;
+  gap: 10px;
+}
+.admin-empty-state h3,
+.admin-empty-state p {
+  margin: 0;
+}
 .admin-inline-actions {
   display: flex;
   flex-wrap: wrap;

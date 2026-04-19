@@ -1,5 +1,7 @@
 import PricingCatalogManagement from "@/components/forms/admin/pricing-catalog-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 
 export const dynamic = "force-dynamic";
 
@@ -20,44 +22,19 @@ export default async function AdminPricingPage() {
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>Pricing catalog</h1>
-          <p>
-            Keep the reusable decor pricing clean so every inquiry can move into
-            an itemized quote without rebuilding prices from scratch.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title="Pricing catalog"
+        description="Keep the reusable decor pricing clean so every inquiry can move into an itemized quote without rebuilding prices from scratch."
+      />
 
-      <section className="admin-mini-report">
-        <div className="admin-section-title">
-          <h3>Summary</h3>
-          <p className="muted">Quick metrics only. Manage the actual pricing records in the table below.</p>
-        </div>
-        <div className="admin-kpi-grid admin-kpi-grid--compact">
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Total items</p>
-            <strong>{totalItems}</strong>
-            <span>All pricing records</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Active items</p>
-            <strong>{activeItems}</strong>
-            <span>Visible in the quote builder</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Inactive items</p>
-            <strong>{inactiveItems}</strong>
-            <span>Hidden from the quote builder</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Categories</p>
-            <strong>{categoryCount}</strong>
-            <span>Distinct pricing groups</span>
-          </div>
-        </div>
-      </section>
+      <AdminMetricStrip
+        items={[
+          { label: "Total items", value: totalItems, note: "All pricing records" },
+          { label: "Active items", value: activeItems, note: "Visible in the quote builder" },
+          { label: "Inactive items", value: inactiveItems, note: "Hidden from the quote builder" },
+          { label: "Categories", value: categoryCount, note: "Distinct pricing groups" },
+        ]}
+      />
       {error ? <p className="error">Failed to load pricing catalog: {error.message}</p> : null}
       <PricingCatalogManagement items={data ?? []} />
     </main>

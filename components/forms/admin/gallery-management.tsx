@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminActionRow from "@/components/admin/admin-action-row";
+import AdminEmptyState from "@/components/admin/admin-empty-state";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 type GalleryItem = {
   id: string;
@@ -206,17 +209,17 @@ function GalleryEditor({
 
   return (
     <div className="card admin-package-editor">
-      <div className="admin-panel-head">
-        <div>
-          <p className="eyebrow">Editing Gallery Item</p>
-          <h3>{item.title}</h3>
-        </div>
-        <div className="admin-package-status">
-          <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
-            {isActive ? "Visible" : "Hidden"}
-          </span>
-        </div>
-      </div>
+      <AdminSectionHeader
+        eyebrow="Editing Gallery Item"
+        title={item.title}
+        actions={
+          <div className="admin-package-status">
+            <span className={`admin-status-pill${isActive ? " is-live" : ""}`}>
+              {isActive ? "Visible" : "Hidden"}
+            </span>
+          </div>
+        }
+      />
 
       <img
         src={item.image_url}
@@ -246,14 +249,18 @@ function GalleryEditor({
         <span>Visible on public gallery</span>
       </label>
 
-      <div className="admin-package-actions">
-        <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
-          {saving ? "Saving..." : "Save Image"}
-        </button>
-        <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
-          {deleting ? "Deleting..." : "Delete Image"}
-        </button>
-      </div>
+      <AdminActionRow
+        secondary={
+          <button type="button" className="btn secondary" onClick={saveItem} disabled={saving}>
+            {saving ? "Saving..." : "Save Image"}
+          </button>
+        }
+        destructive={
+          <button type="button" className="btn" onClick={deleteItem} disabled={deleting}>
+            {deleting ? "Deleting..." : "Delete Image"}
+          </button>
+        }
+      />
 
       {message ? <p className={message.includes("updated") ? "success" : "error"}>{message}</p> : null}
     </div>
@@ -386,10 +393,10 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
         </div>
 
         <aside className="card admin-section-card admin-management-sidecard">
-          <div className="admin-section-title">
-            <h3>Current selection</h3>
-            <p className="muted">Review the active image before editing its details.</p>
-          </div>
+          <AdminSectionHeader
+            title="Current selection"
+            description="Review the active image before editing its details."
+          />
           {selectedItem ? (
             <div className="admin-media-spotlight">
               <img src={selectedItem.image_url} alt={selectedItem.title} className="admin-gallery-preview-image" />
@@ -408,13 +415,11 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
       <div className="admin-package-workspace">
         <div className="admin-package-list-wrap">
           <div className="card admin-package-create">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Upload images</p>
-                <h3>Send new images into the gallery</h3>
-                <p className="muted">Add assets once, then organize them from the records below.</p>
-              </div>
-            </div>
+            <AdminSectionHeader
+              eyebrow="Upload images"
+              title="Send new images into the gallery"
+              description="Add assets once, then organize them from the records below."
+            />
 
             <form onSubmit={uploadImage}>
               <div className="form-grid">
@@ -449,9 +454,13 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
                 </div>
               </div>
 
-              <button className="btn" type="submit" disabled={uploading}>
-                {uploading ? "Uploading..." : "Upload Images"}
-              </button>
+              <AdminActionRow
+                primary={
+                  <button className="btn" type="submit" disabled={uploading}>
+                    {uploading ? "Uploading..." : "Upload Images"}
+                  </button>
+                }
+              />
             </form>
 
             {message ? <p className={message.includes("Uploaded") ? "success" : "error"}>{message}</p> : null}
@@ -466,22 +475,20 @@ export default function GalleryManagement({ items }: { items: GalleryItem[] }) {
               onDeleted={handleDeleted}
             />
           ) : (
-            <div className="card admin-package-empty">
-              <h3>No gallery image selected</h3>
-              <p className="muted">Choose a row from the table below to edit an existing image.</p>
-            </div>
+            <AdminEmptyState
+              title="No gallery image selected"
+              description="Choose a row from the table below to edit an existing image."
+            />
           )}
         </div>
       </div>
 
       <div className="card admin-table-card admin-records-table-card">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Gallery Records</p>
-            <h3>Manage existing images</h3>
-            <p className="muted">Search and filter the full library, then open any row to edit it above.</p>
-          </div>
-        </div>
+        <AdminSectionHeader
+          eyebrow="Gallery Records"
+          title="Manage existing images"
+          description="Search and filter the full library, then open any row to edit it above."
+        />
 
         <div className="admin-filters admin-filters--records">
           <div className="field">

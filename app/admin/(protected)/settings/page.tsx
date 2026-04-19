@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getAdminWorkspaceUsers } from "@/lib/admin-users";
 import AdminUserManagement from "@/components/forms/admin/admin-user-management";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 export const dynamic = "force-dynamic";
 
@@ -13,21 +15,17 @@ export default async function AdminSettingsPage({
   const users = tab === "users" ? await getAdminWorkspaceUsers() : [];
 
   return (
-    <main className="admin-page section">
-      <div className="admin-page-head">
-        <div>
-          <p className="eyebrow">Settings</p>
-          <h1>Access and workspace controls</h1>
-          <p className="lead">
-            Prepare role-based access so finance, contracts, content, and inquiry workflows can
-            be delegated without exposing every admin tool to everyone.
-          </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Role access roadmap</span>
-          <span className="admin-head-pill">Settings workspace</span>
-        </div>
-      </div>
+    <main className="admin-page section admin-page--workspace">
+      <AdminPageIntro
+        title="Access and workspace controls"
+        description="Prepare role-based access so finance, contracts, content, and inquiry workflows can be delegated without exposing every admin tool to everyone."
+        aside={
+          <>
+            <span className="admin-head-pill">Role access roadmap</span>
+            <span className="admin-head-pill">Settings workspace</span>
+          </>
+        }
+      />
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline">
         <Link href="/admin/settings?tab=users" className={`admin-workspace-tab${tab === "users" ? " is-active" : ""}`}>
@@ -49,16 +47,16 @@ export default async function AdminSettingsPage({
       ) : (
         <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
           <section className="card admin-section-card">
-            <div className="admin-section-title">
-              <h3>{tab === "workspace" ? "Workspace defaults" : tab === "modules" ? "Module controls" : "Role access planning"}</h3>
-              <p className="muted">
-                {tab === "workspace"
+            <AdminSectionHeader
+              title={tab === "workspace" ? "Workspace defaults" : tab === "modules" ? "Module controls" : "Role access planning"}
+              description={
+                tab === "workspace"
                   ? "Define shared admin behaviors and default workspace preferences."
                   : tab === "modules"
                   ? "Control which sections appear for finance, contracts, content, and operations roles."
-                  : "Set up role-level access for finance, contracts, gallery, vendors, and general admin oversight."}
-              </p>
-            </div>
+                  : "Set up role-level access for finance, contracts, gallery, vendors, and general admin oversight."
+              }
+            />
             <div className="admin-placeholder-list">
               <div>
                 <strong>Finance role</strong>
@@ -76,10 +74,10 @@ export default async function AdminSettingsPage({
           </section>
 
           <aside className="card admin-section-card">
-            <div className="admin-section-title">
-              <h3>Recommended controls</h3>
-              <p className="muted">Start with a small, clear permission model before expanding access.</p>
-            </div>
+            <AdminSectionHeader
+              title="Recommended controls"
+              description="Start with a small, clear permission model before expanding access."
+            />
             <div className="admin-mini-metrics admin-mini-metrics--plain">
               <div>
                 <strong>Read-only roles</strong>
