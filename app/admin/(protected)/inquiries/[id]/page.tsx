@@ -20,6 +20,138 @@ function humanizeLabel(value: string | null | undefined) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+type WorkflowStepKey =
+  | "intake"
+  | "consultation"
+  | "quote"
+  | "contract"
+  | "handoff";
+
+function getWorkflowState(input: {
+  status: string | null;
+  consultationStatus: string | null;
+  quoteResponseStatus: string | null;
+  quotedAt: string | null;
+  contractStatus: string | null | undefined;
+  depositPaid: boolean | null | undefined;
+}) {
+  const consultationStatus = input.consultationStatus ?? "not_scheduled";
+  const quoteResponseStatus = input.quoteResponseStatus ?? "not_sent";
+  const contractStatus = input.contractStatus ?? null;
+
+  let currentStep: WorkflowStepKey = "intake";
+  let nextActionTitle = "Review and qualify the new request";
+  let nextActionDetail =
+    "Confirm the lead status, capture admin notes, and make sure the request is ready for consultation planning.";
+
+  if (contractStatus === "signed" || input.depositPaid) {
+    currentStep = "handoff";
+    nextActionTitle = "Move into booked-event handoff";
+    nextActionDetail =
+      "Track readiness, floor plans, walkthroughs, vendor coordination, and production milestones for the booked event.";
+  } else if (
+    contractStatus ||
+    quoteResponseStatus === "accepted" ||
+    quoteResponseStatus === "changes_requested"
+  ) {
+    currentStep = "contract";
+    nextActionTitle =
+      quoteResponseStatus === "changes_requested"
+        ? "Revise the quote before contract"
+        : "Create the contract and secure deposit";
+    nextActionDetail =
+      quoteResponseStatus === "changes_requested"
+        ? "Update pricing or scope from the client feedback, then resend or move forward to contract."
+        : "Turn the approved quote into a contract, send it for signature, and follow up on the deposit.";
+  } else if (
+    input.quotedAt ||
+    input.status === "quoted" ||
+    quoteResponseStatus === "awaiting_response"
+  ) {
+    currentStep = "quote";
+    nextActionTitle = "Send and manage the itemized quote";
+    nextActionDetail =
+      "Finalize the pricing draft, send the quote, and track whether the client approves or requests changes.";
+  } else if (
+    [
+      "requested",
+      "under_review",
+      "approved",
+      "scheduled",
+      "completed",
+      "reschedule_needed",
+      "no_show",
+    ].includes(consultationStatus)
+  ) {
+    currentStep = "consultation";
+    nextActionTitle =
+      consultationStatus === "completed"
+        ? "Turn consultation notes into a quote"
+        : "Schedule and complete the consultation";
+    nextActionDetail =
+      consultationStatus === "completed"
+        ? "Use the client direction and meeting notes to prepare the itemized proposal."
+        : "Set the meeting type, confirm date and time, and keep the follow-up timeline visible.";
+  }
+
+  const stepOrder: WorkflowStepKey[] = [
+    "intake",
+    "consultation",
+    "quote",
+    "contract",
+    "handoff",
+  ];
+  const currentIndex = stepOrder.indexOf(currentStep);
+
+  const steps = [
+    {
+      key: "intake" as const,
+      label: "Intake",
+      title: "Lead review",
+      description: "Confirm request quality, sales notes, and event basics.",
+    },
+    {
+      key: "consultation" as const,
+      label: "Consultation",
+      title: "Meeting setup",
+      description: "Schedule, complete, and follow up on the consultation.",
+    },
+    {
+      key: "quote" as const,
+      label: "Quote",
+      title: "Proposal stage",
+      description: "Build, send, and track the itemized quote.",
+    },
+    {
+      key: "contract" as const,
+      label: "Contract",
+      title: "Approval + deposit",
+      description: "Create the agreement, collect signature, and secure payment.",
+    },
+    {
+      key: "handoff" as const,
+      label: "Handoff",
+      title: "Booked event operations",
+      description: "Manage readiness, logistics, and production handoff.",
+    },
+  ].map((step, index) => ({
+    ...step,
+    state:
+      index < currentIndex
+        ? "complete"
+        : index === currentIndex
+          ? "current"
+          : "upcoming",
+  }));
+
+  return {
+    currentStep,
+    nextActionTitle,
+    nextActionDetail,
+    steps,
+  };
+}
+
 export default async function InquiryDetailPage({
   params,
 }: {
@@ -127,6 +259,14 @@ export default async function InquiryDetailPage({
     completedAt: inquiry.completed_at,
   });
   const overbookingLabel = getBookingWarningLabel(otherEventsOnDate);
+  const workflow = getWorkflowState({
+    status: inquiry.status,
+    consultationStatus: inquiry.consultation_status,
+    quoteResponseStatus: inquiry.quote_response_status,
+    quotedAt: inquiry.quoted_at,
+    contractStatus: linkedContract?.contract_status,
+    depositPaid: linkedContract?.deposit_paid,
+  });
 
   const timeline = [
     {
@@ -213,6 +353,54 @@ export default async function InquiryDetailPage({
           <span>{inquiry.consultation_schedule_email_sent_at ? "Meeting email sent" : "Meeting email not sent yet"}</span>
         </div>
       </div>
+
+      <section className="admin-record-section">
+        <div className="admin-section-title">
+          <h3>Workflow control</h3>
+          <p className="muted">
+            Use this as the single operating path from new inquiry to booked-event handoff.
+          </p>
+        </div>
+
+        <div className="admin-workflow-shell">
+          <div className="card admin-workflow-summary">
+            <p className="eyebrow">Current step</p>
+            <h3>{workflow.nextActionTitle}</h3>
+            <p className="muted">{workflow.nextActionDetail}</p>
+            <div className="summary-pills">
+              <span className="summary-chip">
+                Lead status: {humanizeLabel(inquiry.status ?? "new")}
+              </span>
+              <span className="summary-chip">
+                Consultation: {humanizeLabel(inquiry.consultation_status ?? "not_scheduled")}
+              </span>
+              <span className="summary-chip">
+                Quote: {humanizeLabel(inquiry.quote_response_status ?? "not_sent")}
+              </span>
+              <span className="summary-chip">
+                Contract: {linkedContract?.contract_status ? humanizeLabel(linkedContract.contract_status) : "Not created"}
+              </span>
+            </div>
+          </div>
+
+          <div className="card admin-workflow-track">
+            {workflow.steps.map((step, index) => (
+              <div
+                key={step.key}
+                className={`admin-workflow-step admin-workflow-step--${step.state}`}
+              >
+                <div className="admin-workflow-step-index">
+                  {index + 1}
+                </div>
+                <div>
+                  <strong>{step.title}</strong>
+                  <span>{step.description}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className="card admin-visual-review-board">
         <div className="admin-visual-review-head">
@@ -460,61 +648,111 @@ export default async function InquiryDetailPage({
         </div>
       </section>
 
-      <div id="next-action" style={{ marginTop: "24px" }} className="card">
-        <h3>Next Action</h3>
-        <p className="muted">
-          Move the lead through the pipeline, add context for the consultation,
-          and create a contract once scope is clear.
-        </p>
+      <section id="next-action" className="admin-record-section">
+        <div className="admin-section-title">
+          <h3>Next-step actions</h3>
+          <p className="muted">
+            Work the request in order. Each block owns one stage of the client journey.
+          </p>
+        </div>
 
-        <InquiryStatusForm
-          inquiryId={inquiry.id}
-          currentStatus={inquiry.status ?? "new"}
-          currentNotes={inquiry.admin_notes ?? ""}
-        />
-        <div id="booking-stage">
-        <BookingLifecycleForm
-          inquiryId={inquiry.id}
-          initialBookingStage={bookingStage}
-          initialFloorPlanReceived={Boolean(inquiry.floor_plan_received)}
-          initialWalkthroughCompleted={Boolean(inquiry.walkthrough_completed)}
-          eventDate={inquiry.event_date ?? null}
-          otherEventsOnDate={otherEventsOnDate}
-        />
+        <div className="admin-workflow-actions">
+          <div id="intake-stage" className={`card admin-workflow-action-card${workflow.currentStep === "intake" ? " is-current" : ""}`}>
+            <div className="admin-workflow-action-head">
+              <div>
+                <p className="eyebrow">Step 1</p>
+                <h3>Review and qualify the request</h3>
+                <p className="muted">Set the lead status and capture internal notes before moving deeper into planning.</p>
+              </div>
+            </div>
+            <InquiryStatusForm
+              inquiryId={inquiry.id}
+              currentStatus={inquiry.status ?? "new"}
+              currentNotes={inquiry.admin_notes ?? ""}
+            />
+          </div>
+
+          <div id="consultation-stage" className={`card admin-workflow-action-card${workflow.currentStep === "consultation" ? " is-current" : ""}`}>
+            <div className="admin-workflow-action-head">
+              <div>
+                <p className="eyebrow">Step 2</p>
+                <h3>Consultation planning</h3>
+                <p className="muted">Schedule the meeting, keep follow-up timing visible, and record consultation outcomes here.</p>
+              </div>
+            </div>
+            <ConsultationManagementForm
+              inquiryId={inquiry.id}
+              initialConsultationStatus={inquiry.consultation_status ?? "not_scheduled"}
+              initialConsultationType={inquiry.consultation_type ?? null}
+              initialConsultationAt={inquiry.consultation_at ?? null}
+              initialConsultationLocation={inquiry.consultation_location ?? null}
+              initialConsultationVideoLink={inquiry.consultation_video_link ?? null}
+              initialConsultationAdminNotes={inquiry.consultation_admin_notes ?? null}
+              initialFollowUpAt={inquiry.follow_up_at ?? null}
+              initialQuoteResponseStatus={inquiry.quote_response_status ?? "not_sent"}
+            />
+          </div>
+
+          <div id="quote-stage" className={`card admin-workflow-action-card${workflow.currentStep === "quote" ? " is-current" : ""}`}>
+            <div className="admin-workflow-action-head">
+              <div>
+                <p className="eyebrow">Step 3</p>
+                <h3>Quote and proposal</h3>
+                <p className="muted">Build the itemized proposal, save internal drafts, and send the client-facing quote from one place.</p>
+              </div>
+            </div>
+            <QuoteManagementForm
+              inquiryId={inquiry.id}
+              currentAmount={inquiry.estimated_price ?? null}
+              clientEmail={inquiry.email ?? null}
+              clientName={`${inquiry.first_name} ${inquiry.last_name}`}
+              eventType={inquiry.event_type ?? null}
+              eventDate={inquiry.event_date ?? null}
+              catalogItems={pricingCatalogItems ?? []}
+              initialPricing={inquiryQuotePricing ?? null}
+              initialLineItems={inquiryQuoteLineItems ?? []}
+            />
+          </div>
+
+          <div id="contract-stage" className={`card admin-workflow-action-card${workflow.currentStep === "contract" ? " is-current" : ""}`}>
+            <div className="admin-workflow-action-head">
+              <div>
+                <p className="eyebrow">Step 4</p>
+                <h3>Contract and booking confirmation</h3>
+                <p className="muted">Once scope is approved, create the contract and move the client toward deposit and reservation.</p>
+              </div>
+            </div>
+            <CreateContractButton inquiryId={inquiry.id} />
+          </div>
+
+          <div id="handoff-stage" className={`card admin-workflow-action-card${workflow.currentStep === "handoff" ? " is-current" : ""}`}>
+            <div className="admin-workflow-action-head">
+              <div>
+                <p className="eyebrow">Step 5</p>
+                <h3>Booked-event handoff</h3>
+                <p className="muted">Track floor plans, walkthroughs, vendor support, and post-booking production readiness.</p>
+              </div>
+            </div>
+            <div id="booking-stage">
+              <BookingLifecycleForm
+                inquiryId={inquiry.id}
+                initialBookingStage={bookingStage}
+                initialFloorPlanReceived={Boolean(inquiry.floor_plan_received)}
+                initialWalkthroughCompleted={Boolean(inquiry.walkthrough_completed)}
+                eventDate={inquiry.event_date ?? null}
+                otherEventsOnDate={otherEventsOnDate}
+              />
+            </div>
+            <VendorReferralForm
+              inquiryId={inquiry.id}
+              initialRequestedCategories={inquiry.requested_vendor_categories ?? []}
+              initialVendorRequestNotes={inquiry.vendor_request_notes ?? null}
+              vendors={vendors ?? []}
+              existingReferrals={vendorReferrals ?? []}
+            />
+          </div>
         </div>
-        <ConsultationManagementForm
-          inquiryId={inquiry.id}
-          initialConsultationStatus={inquiry.consultation_status ?? "not_scheduled"}
-          initialConsultationType={inquiry.consultation_type ?? null}
-          initialConsultationAt={inquiry.consultation_at ?? null}
-          initialConsultationLocation={inquiry.consultation_location ?? null}
-          initialConsultationVideoLink={inquiry.consultation_video_link ?? null}
-          initialConsultationAdminNotes={inquiry.consultation_admin_notes ?? null}
-          initialFollowUpAt={inquiry.follow_up_at ?? null}
-          initialQuoteResponseStatus={inquiry.quote_response_status ?? "not_sent"}
-        />
-        <div id="quote-stage">
-        <QuoteManagementForm
-          inquiryId={inquiry.id}
-          currentAmount={inquiry.estimated_price ?? null}
-          clientEmail={inquiry.email ?? null}
-          clientName={`${inquiry.first_name} ${inquiry.last_name}`}
-          eventType={inquiry.event_type ?? null}
-          eventDate={inquiry.event_date ?? null}
-          catalogItems={pricingCatalogItems ?? []}
-          initialPricing={inquiryQuotePricing ?? null}
-          initialLineItems={inquiryQuoteLineItems ?? []}
-        />
-        </div>
-        <VendorReferralForm
-          inquiryId={inquiry.id}
-          initialRequestedCategories={inquiry.requested_vendor_categories ?? []}
-          initialVendorRequestNotes={inquiry.vendor_request_notes ?? null}
-          vendors={vendors ?? []}
-          existingReferrals={vendorReferrals ?? []}
-        />
-        <CreateContractButton inquiryId={inquiry.id} />
-      </div>
+      </section>
     </main>
   );
 }

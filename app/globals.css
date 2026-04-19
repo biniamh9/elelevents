@@ -8039,6 +8039,24 @@ th { background: var(--surface-soft); }
   background: linear-gradient(180deg, #fff, #fbf4ed);
   box-shadow: 0 18px 36px rgba(48, 24, 11, 0.12);
 }
+.admin-row-action-group {
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+}
+.admin-row-action-group + .admin-row-action-group {
+  margin-top: 8px;
+  border-top: 1px solid rgba(73, 49, 31, 0.08);
+}
+.admin-row-action-group-label {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(73, 62, 50, 0.56);
+}
 .admin-row-action-item {
   display: flex;
   align-items: center;
@@ -14483,4 +14501,201 @@ th { background: var(--surface-soft); }
 .admin-page--workspace .btn,
 .admin-page--workspace .admin-topbar-pill {
   box-shadow: none;
+}
+
+.admin-workflow-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 16px;
+}
+
+.admin-workflow-summary,
+.admin-workflow-track,
+.admin-workflow-action-card {
+  border-radius: 20px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: #fffdfa;
+  box-shadow: none;
+}
+
+.admin-workflow-summary,
+.admin-workflow-track,
+.admin-workflow-action-card {
+  padding: 20px;
+}
+
+.admin-workflow-track {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.admin-workflow-step {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: #fff;
+}
+
+.admin-workflow-step-index {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: rgba(73, 49, 31, 0.08);
+  color: #3f2d1d;
+}
+
+.admin-workflow-step strong,
+.admin-workflow-step span {
+  display: block;
+}
+
+.admin-workflow-step span {
+  margin-top: 4px;
+  color: rgba(73, 62, 50, 0.72);
+}
+
+.admin-workflow-step--current {
+  border-color: rgba(208, 113, 42, 0.28);
+  background: rgba(255, 248, 242, 0.95);
+}
+
+.admin-workflow-step--current .admin-workflow-step-index {
+  background: #d0712a;
+  color: #fff;
+}
+
+.admin-workflow-step--complete .admin-workflow-step-index {
+  background: rgba(34, 133, 78, 0.16);
+  color: #1d7c47;
+}
+
+.admin-workflow-step--upcoming {
+  opacity: 0.85;
+}
+
+.admin-workflow-actions {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-workflow-action-card.is-current {
+  border-color: rgba(208, 113, 42, 0.28);
+  background: rgba(255, 251, 247, 0.98);
+}
+
+.admin-workflow-action-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-workflow-action-head h3 {
+  margin-bottom: 6px;
+}
+
+.admin-workflow-action-card .booking-lifecycle-panel {
+  margin-top: 0;
+}
+
+@media (max-width: 1280px) {
+  .admin-workflow-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-workflow-lane {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-workflow-lane-column {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: #fff;
+  min-width: 0;
+}
+
+.admin-workflow-lane-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.admin-workflow-lane-head p {
+  margin-top: 6px;
+  color: rgba(73, 62, 50, 0.72);
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.admin-workflow-lane-head strong {
+  font-size: 1.75rem;
+  line-height: 1;
+  color: #3f2d1d;
+}
+
+.admin-workflow-lane-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-workflow-lane-item {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(73, 49, 31, 0.08);
+  background: #fffdfa;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.admin-workflow-lane-item strong,
+.admin-workflow-lane-item span {
+  display: block;
+}
+
+.admin-workflow-lane-item span {
+  margin-top: 4px;
+  color: rgba(73, 62, 50, 0.72);
+  font-size: 0.94rem;
+}
+
+.admin-workflow-lane-item:hover {
+  border-color: rgba(208, 113, 42, 0.24);
+  transform: translateY(-1px);
+}
+
+.admin-workflow-lane-item--empty {
+  cursor: default;
+}
+
+.admin-workflow-lane-item--empty:hover {
+  border-color: rgba(73, 49, 31, 0.08);
+  transform: none;
+}
+
+@media (max-width: 1480px) {
+  .admin-workflow-lane {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-workflow-lane {
+    grid-template-columns: 1fr;
+  }
 }

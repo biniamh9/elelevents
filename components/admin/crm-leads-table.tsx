@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
 function formatDate(value: string) {
@@ -150,13 +151,20 @@ export default function CrmLeadsTable({
                       </svg>
                     </summary>
                     <div className="admin-row-action-dropdown">
-                      <Link href={`/admin/crm-analytics/${lead.id}`} className="admin-row-action-item">View lead</Link>
-                      <Link href={`/admin/crm-analytics/${lead.id}#notes`} className="admin-row-action-item">Add note</Link>
-                      <Link href={`/admin/crm-analytics/${lead.id}#tasks`} className="admin-row-action-item">Schedule follow-up</Link>
-                      <Link href={`/admin/crm-analytics/${lead.id}#stage`} className="admin-row-action-item">Move stage</Link>
-                      <Link href="/admin/documents/new?type=quote" className="admin-row-action-item">Create quote</Link>
-                      <Link href={`/admin/crm-analytics/${lead.id}#booking`} className="admin-row-action-item">Mark booked</Link>
-                      <Link href={`/admin/crm-analytics/${lead.id}#lost`} className="admin-row-action-item">Mark lost</Link>
+                      {getCrmLeadWorkflowActionGroups(lead).map((group) => (
+                        <div key={`${lead.id}-${group.title}`} className="admin-row-action-group">
+                          <p className="admin-row-action-group-label">{group.title}</p>
+                          {group.actions.map((action) => (
+                            <Link
+                              key={`${lead.id}-${group.title}-${action.label}`}
+                              href={action.href}
+                              className="admin-row-action-item"
+                            >
+                              {action.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ))}
                     </div>
                   </details>
                 </td>

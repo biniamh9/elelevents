@@ -1,5 +1,6 @@
 import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
+import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
@@ -351,6 +352,33 @@ export default async function AdminInquiriesPage({
     .order("created_at", { ascending: false })
     .limit(60);
 
+  const pipelineInquiryIds = (pipelineBoardRows ?? []).map((row) => row.id);
+  const { data: pipelineContracts } = pipelineInquiryIds.length
+    ? await supabaseAdmin
+        .from("contracts")
+        .select("inquiry_id, contract_status, deposit_paid")
+        .in("inquiry_id", pipelineInquiryIds)
+    : {
+        data: [] as Array<{
+          inquiry_id: string;
+          contract_status: string | null;
+          deposit_paid: boolean | null;
+        }>,
+      };
+
+  const pipelineContractMap = new Map(
+    (pipelineContracts ?? []).map((item) => [item.inquiry_id, item])
+  );
+  const workflowColumns = buildWorkflowColumnsFromInquiries(
+    (pipelineBoardRows ?? []).map((row) => ({
+      ...row,
+      quote_response_status: null,
+      completed_at: null,
+      contract_status: pipelineContractMap.get(row.id)?.contract_status ?? null,
+      deposit_paid: pipelineContractMap.get(row.id)?.deposit_paid ?? null,
+    }))
+  );
+
   const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
   const eventTypes = [
     "Wedding",
@@ -546,6 +574,50 @@ export default async function AdminInquiriesPage({
 
       {activeTab === "overview" ? (
         <>
+          <section className="card admin-panel admin-panel--wide admin-section-card">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Operating lane</p>
+                <h3>Work requests through one shared sequence</h3>
+                <p className="muted">New requests move from Intake to Consultation, Quote, Contract, and then Handoff.</p>
+              </div>
+            </div>
+
+            <div className="admin-workflow-lane">
+              {workflowColumns.map((column) => (
+                <div key={column.key} className="admin-workflow-lane-column">
+                  <div className="admin-workflow-lane-head">
+                    <div>
+                      <span className="eyebrow">{column.label}</span>
+                      <p>{column.description}</p>
+                    </div>
+                    <strong>{column.count}</strong>
+                  </div>
+
+                  <div className="admin-workflow-lane-list">
+                    {column.items.length ? (
+                      column.items.map((item) => (
+                        <Link key={item.id} href={item.href} className="admin-workflow-lane-item">
+                          <strong>{item.title}</strong>
+                          <span>{item.subtitle}</span>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="admin-workflow-lane-item admin-workflow-lane-item--empty">
+                        <strong>No items here</strong>
+                        <span>This stage is currently clear.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Link href={column.href} className="admin-topbar-pill">
+                    Open {column.label}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="admin-mini-report admin-mini-report--compact">
             <div className="admin-kpi-grid">
               {reportCards.map((card) => (
@@ -907,6 +979,12 @@ export default async function AdminInquiriesPage({
                             <InquiryRecordActions
                               inquiryId={row.id}
                               contractId={contract?.id ?? null}
+                              status={row.status ?? "new"}
+                              consultationStatus={row.consultation_status ?? "not_scheduled"}
+                              bookingStage={row.booking_stage ?? null}
+                              quoteResponseStatus={row.quote_response_status ?? "not_sent"}
+                              contractStatus={contract?.contract_status ?? null}
+                              depositPaid={contract?.deposit_paid ?? null}
                             />
                           </td>
                         </tr>
@@ -967,6 +1045,12 @@ export default async function AdminInquiriesPage({
                     <InquiryRecordActions
                       inquiryId={row.id}
                       contractId={contract?.id ?? null}
+                      status={row.status ?? "new"}
+                      consultationStatus={row.consultation_status ?? "not_scheduled"}
+                      bookingStage={row.booking_stage ?? null}
+                      quoteResponseStatus={row.quote_response_status ?? "not_sent"}
+                      contractStatus={contract?.contract_status ?? null}
+                      depositPaid={contract?.deposit_paid ?? null}
                     />
                   </div>
                 );

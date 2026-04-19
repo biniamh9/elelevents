@@ -8,6 +8,7 @@ import CrmLeadsTable from "@/components/admin/crm-leads-table";
 import CrmReportFilters from "@/components/admin/crm-report-filters";
 import CrmTeamPerformanceTable from "@/components/admin/crm-team-performance-table";
 import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel";
+import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
 import {
   CRM_STAGE_LABELS,
   crmDashboardAlerts,
@@ -85,6 +86,7 @@ export default async function AdminCrmAnalyticsPage({
   const activeOpportunities = crmLeads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
   const filteredSourceMetrics = getSourceMetrics(filteredLeads);
   const filteredLostReasonMetrics = getLostReasonMetrics(filteredLeads);
+  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeads);
 
   const exportParams = new URLSearchParams();
   exportParams.set("tab", activeTab);
@@ -162,6 +164,50 @@ export default async function AdminCrmAnalyticsPage({
 
       {activeTab === "dashboard" ? (
         <>
+          <section className="card admin-section-card admin-panel admin-panel--wide">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Operating lane</p>
+                <h3>Shared workflow from request to booked event</h3>
+                <p className="muted">Use the same five-stage lane across intake, consultation, quote, contract, and handoff.</p>
+              </div>
+            </div>
+
+            <div className="admin-workflow-lane">
+              {workflowColumns.map((column) => (
+                <div key={column.key} className="admin-workflow-lane-column">
+                  <div className="admin-workflow-lane-head">
+                    <div>
+                      <span className="eyebrow">{column.label}</span>
+                      <p>{column.description}</p>
+                    </div>
+                    <strong>{column.count}</strong>
+                  </div>
+
+                  <div className="admin-workflow-lane-list">
+                    {column.items.length ? (
+                      column.items.map((item) => (
+                        <Link key={item.id} href={item.href} className="admin-workflow-lane-item">
+                          <strong>{item.title}</strong>
+                          <span>{item.subtitle}</span>
+                        </Link>
+                      ))
+                    ) : (
+                      <div className="admin-workflow-lane-item admin-workflow-lane-item--empty">
+                        <strong>No active records</strong>
+                        <span>This stage is currently clear.</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <Link href={column.href} className="admin-topbar-pill">
+                    Open {column.label}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
             <CrmForecastCard
               confirmed={formatMoney(totalBookedRevenue)}

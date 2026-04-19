@@ -3,18 +3,41 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getInquiryWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 
 export default function InquiryRecordActions({
   inquiryId,
   contractId,
+  status,
+  consultationStatus,
+  bookingStage,
+  quoteResponseStatus,
+  contractStatus,
+  depositPaid,
 }: {
   inquiryId: string;
   contractId?: string | null;
+  status: string | null;
+  consultationStatus: string | null;
+  bookingStage: string | null;
+  quoteResponseStatus: string | null;
+  contractStatus?: string | null;
+  depositPaid?: boolean | null;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
   const [open, setOpen] = useState(false);
+  const actionGroups = getInquiryWorkflowActionGroups({
+    inquiryId,
+    contractId,
+    status,
+    consultation_status: consultationStatus,
+    booking_stage: bookingStage,
+    quote_response_status: quoteResponseStatus,
+    contract_status: contractStatus,
+    deposit_paid: depositPaid,
+  });
 
   async function handleDelete() {
     const confirmed = window.confirm(
@@ -67,44 +90,29 @@ export default function InquiryRecordActions({
         </summary>
 
         <div className="admin-row-action-dropdown">
-          <Link
-            href={`/admin/inquiries/${inquiryId}`}
-            className="admin-row-action-item"
-          >
-            View
-          </Link>
-          <Link
-            href={`/admin/inquiries/${inquiryId}#next-action`}
-            className="admin-row-action-item"
-          >
-            Edit
-          </Link>
-          <Link
-            href={`/admin/inquiries/${inquiryId}#quote-stage`}
-            className="admin-row-action-item"
-          >
-            Pricing
-          </Link>
-          <Link
-            href={`/admin/inquiries/${inquiryId}/itemized-draft`}
-            className="admin-row-action-item"
-          >
-            Itemized Draft
-          </Link>
-          {contractId ? (
+          {actionGroups.map((group) => (
+            <div key={group.title} className="admin-row-action-group">
+              <p className="admin-row-action-group-label">{group.title}</p>
+              {group.actions.map((action) => (
+                <Link
+                  key={`${group.title}-${action.label}`}
+                  href={action.href}
+                  className="admin-row-action-item"
+                >
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+          <div className="admin-row-action-group">
+            <p className="admin-row-action-group-label">Extras</p>
             <Link
-              href={`/admin/contracts/${contractId}`}
+              href={`/admin/inquiries/${inquiryId}/itemized-draft`}
               className="admin-row-action-item"
             >
-              Contract
+              Itemized Draft
             </Link>
-          ) : null}
-          <Link
-            href={`/admin/inquiries/${inquiryId}#booking-stage`}
-            className="admin-row-action-item"
-          >
-            Mark Reserved
-          </Link>
+          </div>
           <button
             type="button"
             className="admin-row-action-item admin-row-action-item--danger"
