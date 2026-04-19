@@ -938,9 +938,14 @@ export default async function AdminInquiriesPage({
                   {data?.length ? (
                     data.map((row) => {
                       const contract = contractMap.get(row.id) ?? null;
+                      const needsQuoteRevision =
+                        row.quote_response_status === "changes_requested";
 
                       return (
-                        <tr key={row.id}>
+                        <tr
+                          key={row.id}
+                          className={needsQuoteRevision ? "admin-record-row--attention" : undefined}
+                        >
                           <td>
                             <div className="admin-record-main">
                               <strong>
@@ -948,6 +953,11 @@ export default async function AdminInquiriesPage({
                               </strong>
                               <span>{row.email}</span>
                               <span>{row.phone}</span>
+                              {needsQuoteRevision ? (
+                                <span className="admin-inline-attention-chip">
+                                  Client requested quote changes
+                                </span>
+                              ) : null}
                             </div>
                           </td>
                           <td>{row.event_type}</td>
@@ -957,7 +967,9 @@ export default async function AdminInquiriesPage({
                             <div className="admin-record-status-stack">
                               <StatusBadge status={row.status ?? "new"} />
                               <span className="admin-record-substatus">
-                                {humanizeBookingStage(row.booking_stage)} • {humanizeLabel(row.consultation_status ?? "not_scheduled")}
+                                {needsQuoteRevision
+                                  ? "Quote revision needed"
+                                  : `${humanizeBookingStage(row.booking_stage)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
                               </span>
                             </div>
                           </td>
@@ -965,6 +977,11 @@ export default async function AdminInquiriesPage({
                             <div className="admin-record-main">
                               <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
                               <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
+                              {needsQuoteRevision ? (
+                                <span className="admin-record-alert-copy">
+                                  Open the inquiry and revise the itemized quote.
+                                </span>
+                              ) : null}
                               <span>{row.venue_name ?? "Venue not added"}</span>
                             </div>
                           </td>
@@ -1004,13 +1021,23 @@ export default async function AdminInquiriesPage({
             <div className="admin-mobile-records">
               {data?.map((row) => {
                 const contract = contractMap.get(row.id) ?? null;
+                const needsQuoteRevision =
+                  row.quote_response_status === "changes_requested";
 
                 return (
-                  <div key={row.id} className="admin-mobile-record">
+                  <div
+                    key={row.id}
+                    className={`admin-mobile-record${needsQuoteRevision ? " admin-mobile-record--attention" : ""}`}
+                  >
                     <div className="admin-mobile-record-head">
                       <div>
                         <strong>{row.first_name} {row.last_name}</strong>
                         <span>{row.event_type}</span>
+                        {needsQuoteRevision ? (
+                          <span className="admin-inline-attention-chip">
+                            Client requested quote changes
+                          </span>
+                        ) : null}
                       </div>
                       <StatusBadge status={row.status ?? "new"} />
                     </div>
@@ -1031,6 +1058,7 @@ export default async function AdminInquiriesPage({
                       <p>
                         <span>Quote</span>
                         ${formatMoney(Number(row.estimated_price ?? 0))}
+                        {needsQuoteRevision ? " · revision needed" : ""}
                       </p>
                       <p>
                         <span>Payment</span>

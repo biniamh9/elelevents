@@ -13,6 +13,7 @@ export type WorkflowLaneItem = {
   title: string;
   subtitle: string;
   href: string;
+  attention?: string | null;
 };
 
 export type WorkflowLaneColumn = {
@@ -146,8 +147,15 @@ export function buildWorkflowColumnsFromInquiries(
     grouped.get(lane)?.push({
       id: inquiry.id,
       title: `${inquiry.first_name ?? ""} ${inquiry.last_name ?? ""}`.trim() || "Unnamed inquiry",
-      subtitle: [inquiry.event_type, inquiry.event_date].filter(Boolean).join(" • ") || "Event details pending",
+      subtitle:
+        inquiry.quote_response_status === "changes_requested"
+          ? "Client requested quote changes"
+          : [inquiry.event_type, inquiry.event_date].filter(Boolean).join(" • ") || "Event details pending",
       href: `/admin/inquiries/${inquiry.id}`,
+      attention:
+        inquiry.quote_response_status === "changes_requested"
+          ? "Revision needed"
+          : null,
     });
   }
 
@@ -164,7 +172,9 @@ export function buildWorkflowColumnsFromInquiries(
             : lane.key === "contract"
               ? "/admin/contracts"
               : "/admin/inquiries?tab=schedule",
-    items: (grouped.get(lane.key) ?? []).slice(0, 4),
+    items: (grouped.get(lane.key) ?? [])
+      .sort((a, b) => Number(Boolean(b.attention)) - Number(Boolean(a.attention)))
+      .slice(0, 4),
   }));
 }
 
@@ -337,7 +347,10 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
   ];
 }
 
-export function buildWorkflowColumnsFromCrmLeads(leads: CrmLead[]): WorkflowLaneColumn[] {
+export function buildWorkflowColumnsFromCrmLeads(
+  leads: CrmLead[],
+  options?: { revisionLeadIds?: Set<string> }
+): WorkflowLaneColumn[] {
   const grouped = new Map<WorkflowLaneKey, WorkflowLaneItem[]>();
 
   for (const lane of WORKFLOW_LANE_META) {
@@ -347,12 +360,16 @@ export function buildWorkflowColumnsFromCrmLeads(leads: CrmLead[]): WorkflowLane
   for (const lead of leads) {
     const lane = getLaneFromCrmLead(lead);
     if (!lane) continue;
+    const needsRevision = options?.revisionLeadIds?.has(lead.id) ?? false;
 
     grouped.get(lane)?.push({
       id: lead.id,
       title: lead.clientName,
-      subtitle: `${lead.eventType} • ${lead.eventDate}`,
+      subtitle: needsRevision
+        ? "Client requested quote changes"
+        : `${lead.eventType} • ${lead.eventDate}`,
       href: `/admin/crm-analytics/${lead.id}`,
+      attention: needsRevision ? "Revision needed" : null,
     });
   }
 
@@ -369,6 +386,8 @@ export function buildWorkflowColumnsFromCrmLeads(leads: CrmLead[]): WorkflowLane
             : lane.key === "contract"
               ? "/admin/crm-analytics?tab=leads&stage=awaiting_deposit"
               : "/admin/crm-analytics?tab=leads&stage=booked",
-    items: (grouped.get(lane.key) ?? []).slice(0, 4),
+    items: (grouped.get(lane.key) ?? [])
+      .sort((a, b) => Number(Boolean(b.attention)) - Number(Boolean(a.attention)))
+      .slice(0, 4),
   }));
 }

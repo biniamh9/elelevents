@@ -22,6 +22,16 @@ function formatRelative(value: string) {
   return `${Math.round(diffHours / 24)}d ago`;
 }
 
+function getTaskPriority(task: { status: string; title: string }) {
+  if (task.title.toLowerCase().includes("revise quote")) return 0;
+  if (task.status === "overdue") return 1;
+  if (task.status === "today") return 2;
+  if (task.status === "contract") return 3;
+  if (task.status === "deposit") return 4;
+  if (task.status === "awaiting_reply") return 5;
+  return 6;
+}
+
 export default async function AdminCrmLeadDetailPage({
   params,
 }: {
@@ -66,9 +76,11 @@ export default async function AdminCrmLeadDetailPage({
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 24);
 
-  const combinedTasks = [...persistedTasks, ...tasks].sort((a, b) =>
-    a.title.localeCompare(b.title)
-  );
+  const combinedTasks = [...persistedTasks, ...tasks].sort((a, b) => {
+    const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
+    if (priorityDiff !== 0) return priorityDiff;
+    return a.title.localeCompare(b.title);
+  });
 
   return (
     <main className="admin-page section admin-page--workspace">

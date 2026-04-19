@@ -21,6 +21,7 @@ function stageTone(stage: CrmLead["stage"]) {
 export default function CrmLeadsTable({
   leads,
   filters,
+  revisionLeadIds,
 }: {
   leads: CrmLead[];
   filters: {
@@ -31,6 +32,7 @@ export default function CrmLeadsTable({
     dateRange?: string;
     q?: string;
   };
+  revisionLeadIds?: Set<string>;
 }) {
   const eventTypes = [...new Set(leads.map((lead) => lead.eventType))];
   const owners = [...new Set(leads.map((lead) => lead.owner))];
@@ -125,18 +127,36 @@ export default function CrmLeadsTable({
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
-              <tr key={lead.id}>
+            {leads.map((lead) => {
+              const needsRevision = revisionLeadIds?.has(lead.id) ?? false;
+
+              return (
+              <tr
+                key={lead.id}
+                className={needsRevision ? "admin-record-row--attention" : undefined}
+              >
                 <td>
-                  <strong>{lead.clientName}</strong>
-                  <small>{lead.email}</small>
+                  <div className="admin-record-main">
+                    <strong>{lead.clientName}</strong>
+                    <small>{lead.email}</small>
+                    {needsRevision ? (
+                      <span className="admin-inline-attention-chip">
+                        Client requested quote changes
+                      </span>
+                    ) : null}
+                  </div>
                 </td>
                 <td>{lead.eventType}</td>
                 <td>{formatDate(lead.eventDate)}</td>
                 <td>
-                  <span className={`admin-status-badge admin-status-badge--${stageTone(lead.stage)}`}>
-                    {CRM_STAGE_LABELS[lead.stage]}
-                  </span>
+                  <div className="admin-record-status-stack">
+                    <span className={`admin-status-badge admin-status-badge--${stageTone(lead.stage)}`}>
+                      {CRM_STAGE_LABELS[lead.stage]}
+                    </span>
+                    {needsRevision ? (
+                      <span className="admin-record-substatus">Quote revision needed</span>
+                    ) : null}
+                  </div>
                 </td>
                 <td>${lead.estimatedValue.toLocaleString()}</td>
                 <td>{formatDate(lead.lastContact)}</td>
@@ -169,7 +189,7 @@ export default function CrmLeadsTable({
                   </details>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

@@ -37,6 +37,21 @@ function buildResponsePageUrl(
   return url;
 }
 
+function redirectToResponsePage(
+  request: Request,
+  params: {
+    inquiryId: string;
+    action: QuoteResponseAction;
+    token: string;
+    result: "success" | "error";
+    message?: string;
+  }
+) {
+  return NextResponse.redirect(buildResponsePageUrl(request, params), {
+    status: 303,
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const body = isFormRequest(request)
@@ -52,15 +67,13 @@ export async function POST(request: Request) {
 
     if (!inquiryId || !token || !action) {
       if (isFormRequest(request)) {
-        return NextResponse.redirect(
-          buildResponsePageUrl(request, {
-            inquiryId,
-            token,
-            action: action ?? "approve",
-            result: "error",
-            message: "Missing required quote response fields.",
-          })
-        );
+        return redirectToResponsePage(request, {
+          inquiryId,
+          token,
+          action: action ?? "approve",
+          result: "error",
+          message: "Missing required quote response fields.",
+        });
       }
       return NextResponse.json({ error: "inquiryId, token, and action are required" }, { status: 400 });
     }
@@ -73,30 +86,26 @@ export async function POST(request: Request) {
 
     if (inquiryError || !inquiry) {
       if (isFormRequest(request)) {
-        return NextResponse.redirect(
-          buildResponsePageUrl(request, {
-            inquiryId,
-            token,
-            action,
-            result: "error",
-            message: "Quote record not found.",
-          })
-        );
+        return redirectToResponsePage(request, {
+          inquiryId,
+          token,
+          action,
+          result: "error",
+          message: "Quote record not found.",
+        });
       }
       return NextResponse.json({ error: "Quote record not found" }, { status: 404 });
     }
 
     if (!inquiry.email || !inquiry.quoted_at) {
       if (isFormRequest(request)) {
-        return NextResponse.redirect(
-          buildResponsePageUrl(request, {
-            inquiryId,
-            token,
-            action,
-            result: "error",
-            message: "Quote email actions are not available for this inquiry yet.",
-          })
-        );
+        return redirectToResponsePage(request, {
+          inquiryId,
+          token,
+          action,
+          result: "error",
+          message: "Quote email actions are not available for this inquiry yet.",
+        });
       }
       return NextResponse.json({ error: "Quote email actions are not available for this inquiry yet" }, { status: 400 });
     }
@@ -109,15 +118,13 @@ export async function POST(request: Request) {
 
     if (!isValidToken) {
       if (isFormRequest(request)) {
-        return NextResponse.redirect(
-          buildResponsePageUrl(request, {
-            inquiryId,
-            token,
-            action,
-            result: "error",
-            message: "This quote link is invalid or expired.",
-          })
-        );
+        return redirectToResponsePage(request, {
+          inquiryId,
+          token,
+          action,
+          result: "error",
+          message: "This quote link is invalid or expired.",
+        });
       }
       return NextResponse.json({ error: "This quote link is invalid or expired." }, { status: 401 });
     }
@@ -138,15 +145,13 @@ export async function POST(request: Request) {
 
     if (updateError) {
       if (isFormRequest(request)) {
-        return NextResponse.redirect(
-          buildResponsePageUrl(request, {
-            inquiryId,
-            token,
-            action,
-            result: "error",
-            message: updateError.message,
-          })
-        );
+        return redirectToResponsePage(request, {
+          inquiryId,
+          token,
+          action,
+          result: "error",
+          message: updateError.message,
+        });
       }
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
@@ -225,15 +230,13 @@ export async function POST(request: Request) {
         : "Change request submitted successfully.";
 
     if (isFormRequest(request)) {
-      return NextResponse.redirect(
-        buildResponsePageUrl(request, {
-          inquiryId,
-          token,
-          action,
-          result: "success",
-          message: successMessage,
-        })
-      );
+      return redirectToResponsePage(request, {
+        inquiryId,
+        token,
+        action,
+        result: "success",
+        message: successMessage,
+      });
     }
 
     return NextResponse.json({ success: true, message: successMessage });
@@ -243,7 +246,7 @@ export async function POST(request: Request) {
       const url = new URL("/quote/respond", request.url);
       url.searchParams.set("result", "error");
       url.searchParams.set("message", "Failed to process quote response");
-      return NextResponse.redirect(url);
+      return NextResponse.redirect(url, { status: 303 });
     }
     return NextResponse.json(
       { error: "Failed to process quote response" },

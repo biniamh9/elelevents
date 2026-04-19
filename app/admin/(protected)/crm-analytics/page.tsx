@@ -50,6 +50,16 @@ function formatDate(value: string) {
   });
 }
 
+function getTaskPriority(task: { status: string; title: string }) {
+  if (task.title.toLowerCase().includes("revise quote")) return 0;
+  if (task.status === "overdue") return 1;
+  if (task.status === "today") return 2;
+  if (task.status === "contract") return 3;
+  if (task.status === "deposit") return 4;
+  if (task.status === "awaiting_reply") return 5;
+  return 6;
+}
+
 export default async function AdminCrmAnalyticsPage({
   searchParams,
 }: {
@@ -70,7 +80,16 @@ export default async function AdminCrmAnalyticsPage({
 
   const filteredLeads = filterCrmLeads(crmLeads, params);
   const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, { status: "open" });
-  const combinedTasks = [...persistedTasks, ...crmTasks].sort((a, b) => a.title.localeCompare(b.title));
+  const combinedTasks = [...persistedTasks, ...crmTasks].sort((a, b) => {
+    const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
+    if (priorityDiff !== 0) return priorityDiff;
+    return a.title.localeCompare(b.title);
+  });
+  const revisionLeadIds = new Set(
+    combinedTasks
+      .filter((task) => task.title.toLowerCase().includes("revise quote"))
+      .map((task) => task.leadId)
+  );
   const leadsById = new Map(crmLeads.map((lead) => [lead.id, lead]));
   const totalBookedRevenue = getBookedRevenue(crmLeads);
   const totalPipelineValue = getPipelineValue(crmLeads);
@@ -86,7 +105,9 @@ export default async function AdminCrmAnalyticsPage({
   const activeOpportunities = crmLeads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
   const filteredSourceMetrics = getSourceMetrics(filteredLeads);
   const filteredLostReasonMetrics = getLostReasonMetrics(filteredLeads);
-  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeads);
+  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeads, {
+    revisionLeadIds,
+  });
 
   const exportParams = new URLSearchParams();
   exportParams.set("tab", activeTab);
@@ -187,9 +208,14 @@ export default async function AdminCrmAnalyticsPage({
                   <div className="admin-workflow-lane-list">
                     {column.items.length ? (
                       column.items.map((item) => (
-                        <Link key={item.id} href={item.href} className="admin-workflow-lane-item">
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          className={`admin-workflow-lane-item${item.attention ? " admin-workflow-lane-item--attention" : ""}`}
+                        >
                           <strong>{item.title}</strong>
                           <span>{item.subtitle}</span>
+                          {item.attention ? <small>{item.attention}</small> : null}
                         </Link>
                       ))
                     ) : (
@@ -335,6 +361,7 @@ export default async function AdminCrmAnalyticsPage({
               owner: params.owner,
               dateRange: params.dateRange,
             }}
+            revisionLeadIds={revisionLeadIds}
           />
           <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
         </div>

@@ -218,6 +218,20 @@ export default async function InquiryDetailPage({
     .order("created_at", { ascending: false })
     .limit(8);
 
+  const { data: customerInteractions } = await supabaseAdmin
+    .from("customer_interactions")
+    .select("id, subject, body_text, created_at, direction, metadata")
+    .eq("inquiry_id", id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const { data: followUpTasks } = await supabaseAdmin
+    .from("crm_follow_up_tasks")
+    .select("id, title, detail, task_kind, status, due_at, created_at")
+    .eq("inquiry_id", id)
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+
   const { count: sameDayCount } = inquiry.event_date
     ? await supabaseAdmin
         .from("event_inquiries")
@@ -267,6 +281,40 @@ export default async function InquiryDetailPage({
     contractStatus: linkedContract?.contract_status,
     depositPaid: linkedContract?.deposit_paid,
   });
+  const latestQuoteClientResponse =
+    customerInteractions?.find((entry) => {
+      const metadata =
+        entry.metadata && typeof entry.metadata === "object"
+          ? (entry.metadata as { source?: string; action?: string })
+          : null;
+
+      return (
+        entry.direction === "inbound" &&
+        metadata?.source === "quote_email_action" &&
+        (metadata.action === "approve" || metadata.action === "request_changes")
+      );
+    }) ?? null;
+  const latestQuoteFollowUpTask =
+    followUpTasks?.find((task) =>
+      task.task_kind === "quote_changes" || task.task_kind === "quote_approval"
+    ) ?? null;
+  const showQuoteResponsePanel =
+    inquiry.quote_response_status === "changes_requested" ||
+    inquiry.quote_response_status === "accepted" ||
+    Boolean(latestQuoteClientResponse);
+  const quoteResponseTone =
+    inquiry.quote_response_status === "changes_requested" ? "warning" : "success";
+  const quoteResponseTitle =
+    inquiry.quote_response_status === "changes_requested"
+      ? "Client requested quote changes"
+      : inquiry.quote_response_status === "accepted"
+        ? "Client approved the quote"
+        : "Recent client quote response";
+  const quoteResponseDetail =
+    latestQuoteClientResponse?.body_text ??
+    (inquiry.quote_response_status === "changes_requested"
+      ? "The client responded from the quote email and requested changes to the current pricing or scope."
+      : "The client responded from the quote email and approved the current proposal.");
 
   const timeline = [
     {
@@ -401,6 +449,72 @@ export default async function InquiryDetailPage({
           </div>
         </div>
       </section>
+
+      {showQuoteResponsePanel ? (
+        <section className="admin-record-section">
+          <div className="admin-section-title">
+            <h3>Client quote response</h3>
+            <p className="muted">
+              Keep the client reply visible here so the owner knows exactly what needs to happen next.
+            </p>
+          </div>
+
+          <div className={`card admin-customer-response-card admin-customer-response-card--${quoteResponseTone}`}>
+            <div className="admin-customer-response-head">
+              <div>
+                <p className="eyebrow">Customer action</p>
+                <h3>{quoteResponseTitle}</h3>
+              </div>
+              <span className="summary-chip">
+                {humanizeLabel(inquiry.quote_response_status ?? "not_sent")}
+              </span>
+            </div>
+
+            <div className="admin-customer-response-grid">
+              <div className="admin-customer-response-message">
+                <strong>Customer message</strong>
+                <p>{quoteResponseDetail}</p>
+                <span>
+                  {latestQuoteClientResponse?.created_at
+                    ? `Received ${new Date(latestQuoteClientResponse.created_at).toLocaleString()}`
+                    : "Awaiting customer message details"}
+                </span>
+              </div>
+
+              <div className="admin-customer-response-message">
+                <strong>Internal next step</strong>
+                <p>
+                  {latestQuoteFollowUpTask?.title ??
+                    (inquiry.quote_response_status === "changes_requested"
+                      ? "Revise the quote and send an updated itemized proposal."
+                      : "Prepare the contract, deposit request, and booking follow-up.") }
+                </p>
+                <span>
+                  {latestQuoteFollowUpTask?.detail ??
+                    (inquiry.quote_response_status === "changes_requested"
+                      ? "This request stays in the quote stage until the revised quote is sent."
+                      : "This request can now move into contract and deposit handling.") }
+                </span>
+              </div>
+            </div>
+
+            <div className="summary-pills">
+              <a href="#quote-stage" className="summary-chip">
+                {inquiry.quote_response_status === "changes_requested" ? "Open quote revision" : "Open quote stage"}
+              </a>
+              <a
+                href={inquiry.quote_response_status === "accepted" ? "#contract-stage" : "#next-action"}
+                className="summary-chip"
+              >
+                {inquiry.quote_response_status === "accepted" ? "Move to contract" : "Review next actions"}
+              </a>
+              <Link href={`/admin/crm-analytics/${inquiry.id}`} className="summary-chip">
+                Open CRM record
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <div className="card admin-visual-review-board">
         <div className="admin-visual-review-head">
