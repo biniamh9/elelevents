@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { upsertFollowUpTask } from "@/lib/crm-follow-up-tasks";
 import { recordCustomerInteraction } from "@/lib/customer-interactions";
 import { verifyQuoteActionToken } from "@/lib/quote-client-actions";
 import { logActivity } from "@/lib/crm";
@@ -191,6 +192,31 @@ export async function POST(request: Request) {
         client_email: inquiry.email,
         comment,
       },
+    });
+
+    await upsertFollowUpTask(supabaseAdmin, {
+      inquiryId,
+      clientId: inquiry.client_id ?? null,
+      title:
+        action === "approve"
+          ? "Prepare contract and booking steps"
+          : "Revise quote per client request",
+      detail:
+        action === "approve"
+          ? comment
+            ? `Client approved the quote and added a note: ${comment}`
+            : "Client approved the quote. Prepare the agreement, deposit steps, and booking follow-up."
+          : comment
+            ? `Client requested quote changes: ${comment}`
+            : "Client requested changes to the quoted scope and pricing.",
+      taskKind: action === "approve" ? "quote_approval" : "quote_changes",
+      dueAt: new Date(
+        Date.now() + (action === "approve" ? 24 : 4) * 60 * 60 * 1000
+      ).toISOString(),
+      sourceAction:
+        action === "approve"
+          ? "inquiry.quote_accepted"
+          : "inquiry.quote_changes_requested",
     });
 
     const successMessage =

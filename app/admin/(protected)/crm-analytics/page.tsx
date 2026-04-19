@@ -31,6 +31,8 @@ import {
   getSourceMetrics,
   type CrmLead,
 } from "@/lib/crm-analytics";
+import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +68,8 @@ export default async function AdminCrmAnalyticsPage({
     : "dashboard";
 
   const filteredLeads = filterCrmLeads(crmLeads, params);
+  const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, { status: "open" });
+  const combinedTasks = [...persistedTasks, ...crmTasks].sort((a, b) => a.title.localeCompare(b.title));
   const leadsById = new Map(crmLeads.map((lead) => [lead.id, lead]));
   const totalBookedRevenue = getBookedRevenue(crmLeads);
   const totalPipelineValue = getPipelineValue(crmLeads);
@@ -115,11 +119,11 @@ export default async function AdminCrmAnalyticsPage({
   }));
 
   const followupCounts = {
-    overdue: crmTasks.filter((task) => task.status === "overdue").length,
-    today: crmTasks.filter((task) => task.status === "today").length,
-    awaitingReply: crmTasks.filter((task) => task.status === "awaiting_reply").length,
-    deposits: crmTasks.filter((task) => task.status === "deposit").length,
-    contracts: crmTasks.filter((task) => task.status === "contract").length,
+    overdue: combinedTasks.filter((task) => task.status === "overdue").length,
+    today: combinedTasks.filter((task) => task.status === "today").length,
+    awaitingReply: combinedTasks.filter((task) => task.status === "awaiting_reply").length,
+    deposits: combinedTasks.filter((task) => task.status === "deposit").length,
+    contracts: combinedTasks.filter((task) => task.status === "contract").length,
   };
 
   return (
@@ -365,13 +369,13 @@ export default async function AdminCrmAnalyticsPage({
               </div>
             </div>
             <div className="crm-task-list">
-              {crmTasks.map((task) => {
+              {combinedTasks.map((task) => {
                 const lead = leadsById.get(task.leadId);
                 return (
                   <Link key={task.id} href={`/admin/crm-analytics/${task.leadId}`} className="crm-task-row">
                     <div>
                       <strong>{task.title}</strong>
-                      <span>{lead ? `${lead.clientName} · ${lead.eventType}` : "Lead"}</span>
+                      <span>{task.detail || (lead ? `${lead.clientName} · ${lead.eventType}` : "Lead")}</span>
                     </div>
                     <small>{task.dueLabel}</small>
                   </Link>

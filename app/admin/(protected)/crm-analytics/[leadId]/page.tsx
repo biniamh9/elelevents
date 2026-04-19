@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
+import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 function formatDate(value: string) {
@@ -35,6 +36,10 @@ export default async function AdminCrmLeadDetailPage({
 
   const interactions = getLeadInteractions(leadId);
   const tasks = getLeadTasks(leadId);
+  const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, {
+    inquiryId: leadId,
+    status: "open",
+  });
   const { data: persistedInteractions } = await supabaseAdmin
     .from("customer_interactions")
     .select("id, subject, body_text, created_at, channel, direction, provider")
@@ -60,6 +65,10 @@ export default async function AdminCrmLeadDetailPage({
   ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 24);
+
+  const combinedTasks = [...persistedTasks, ...tasks].sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -110,12 +119,13 @@ export default async function AdminCrmLeadDetailPage({
             </div>
           </div>
           <div id="tasks" className="crm-task-list">
-            {tasks.map((task) => (
+            {combinedTasks.map((task) => (
               <div key={task.id} className="crm-task-row">
                 <div>
                   <strong>{task.title}</strong>
-                  <span>{task.dueLabel}</span>
+                  <span>{task.detail || task.dueLabel}</span>
                 </div>
+                <small>{task.dueLabel}</small>
               </div>
             ))}
           </div>

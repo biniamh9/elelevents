@@ -65,6 +65,7 @@ export type CrmTask = {
   title: string;
   status: CrmTaskStatus;
   dueLabel: string;
+  detail?: string;
 };
 
 export type CrmRevenuePoint = {
