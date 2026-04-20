@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buildSeedDocument } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import type { ClientDocumentType } from "@/lib/client-documents";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +27,10 @@ export default async function NewDocumentPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>Build a client-ready {type}</h1>
-          <p>
-            Refine the scope, totals, and notes before sharing anything with the client.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title={`Build a client-ready ${type}`}
+        description="Refine the scope, totals, and notes before sharing anything with the client."
+      />
       <div className="admin-workspace-actions admin-workspace-actions--page">
         <Link href="/admin/documents" className="admin-topbar-pill">
           Back to Documents

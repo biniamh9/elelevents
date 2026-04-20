@@ -8,6 +8,8 @@ import CrmLeadsTable from "@/components/admin/crm-leads-table";
 import CrmReportFilters from "@/components/admin/crm-report-filters";
 import CrmTeamPerformanceTable from "@/components/admin/crm-team-performance-table";
 import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
 import {
   CRM_STAGE_LABELS,
@@ -151,14 +153,10 @@ export default async function AdminCrmAnalyticsPage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>CRM &amp; Analytics</h1>
-          <p>
-            Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title="CRM & Analytics"
+        description="Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum."
+      />
 
       <div className="admin-workspace-actions admin-workspace-actions--page">
           <a href={exportHref} className="admin-topbar-pill">
@@ -186,13 +184,11 @@ export default async function AdminCrmAnalyticsPage({
       {activeTab === "dashboard" ? (
         <>
           <section className="card admin-section-card admin-panel admin-panel--wide">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Operating lane</p>
-                <h3>Shared workflow from request to booked event</h3>
-                <p className="muted">Use the same five-stage lane across intake, consultation, quote, contract, and handoff.</p>
-              </div>
-            </div>
+            <AdminSectionHeader
+              eyebrow="Operating lane"
+              title="Shared workflow from request to booked event"
+              description="Use the same five-stage lane across intake, consultation, quote, contract, and handoff."
+            />
 
             <div className="admin-workflow-lane">
               {workflowColumns.map((column) => (
@@ -247,12 +243,7 @@ export default async function AdminCrmAnalyticsPage({
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
             <CrmFunnelCard items={funnelItems} />
             <section className="card admin-section-card admin-panel">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Follow-up queue</p>
-                  <h3>Needs action</h3>
-                </div>
-              </div>
+              <AdminSectionHeader eyebrow="Follow-up queue" title="Needs action" />
               <div className="admin-mini-metrics admin-mini-metrics--plain">
                 <div><strong>{followupCounts.overdue}</strong><span>Overdue follow-ups</span></div>
                 <div><strong>{followupCounts.today}</strong><span>Due today</span></div>
@@ -286,12 +277,7 @@ export default async function AdminCrmAnalyticsPage({
 
           <div className="admin-dashboard-row admin-dashboard-row--crm-reports-primary">
             <section className="card admin-section-card admin-panel admin-panel--wide">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Revenue by month</p>
-                  <h3>Monthly booked revenue</h3>
-                </div>
-              </div>
+              <AdminSectionHeader eyebrow="Revenue by month" title="Monthly booked revenue" />
               <div className="crm-chart">
                 {crmRevenueTrend.map((point) => (
                   <div key={point.month} className="crm-chart-bar">
@@ -304,12 +290,7 @@ export default async function AdminCrmAnalyticsPage({
             </section>
 
             <section className="card admin-section-card admin-panel">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Lead source report</p>
-                  <h3>Conversion by source</h3>
-                </div>
-              </div>
+              <AdminSectionHeader eyebrow="Lead source report" title="Conversion by source" />
               <div className="crm-source-list">
                 {filteredSourceMetrics.map((item) => (
                   <div key={item.source} className="crm-source-row">
@@ -327,12 +308,7 @@ export default async function AdminCrmAnalyticsPage({
           <div className="admin-stack admin-stack--crm-reports-secondary">
             <CrmTeamPerformanceTable items={crmTeamPerformance} />
             <section className="card admin-section-card admin-panel admin-panel--wide">
-              <div className="admin-panel-head">
-                <div>
-                  <p className="eyebrow">Lost lead reasons</p>
-                  <h3>Why opportunities were lost</h3>
-                </div>
-              </div>
+              <AdminSectionHeader eyebrow="Lost lead reasons" title="Why opportunities were lost" />
               <div className="crm-source-list">
                 {filteredLostReasonMetrics.map((item) => (
                   <div key={item.reason} className="crm-source-row">
@@ -369,12 +345,7 @@ export default async function AdminCrmAnalyticsPage({
 
       {activeTab === "customers" ? (
         <section className="card admin-section-card admin-panel admin-panel--wide">
-          <div className="admin-panel-head">
-            <div>
-              <p className="eyebrow">Customers</p>
-              <h3>Relationship roster</h3>
-            </div>
-          </div>
+          <AdminSectionHeader eyebrow="Customers" title="Relationship roster" />
           <div className="crm-customer-grid">
             {crmLeads.map((lead) => (
               <Link key={lead.id} href={`/admin/crm-analytics/${lead.id}`} className="crm-customer-card">
@@ -390,12 +361,7 @@ export default async function AdminCrmAnalyticsPage({
       {activeTab === "revenue" ? (
         <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
           <section className="card admin-section-card admin-panel admin-panel--wide">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Revenue signals</p>
-                <h3>Booked pipeline trend</h3>
-              </div>
-            </div>
+            <AdminSectionHeader eyebrow="Revenue signals" title="Booked pipeline trend" />
             <p className="muted">
               CRM shows forecast and booking momentum. Finance remains the source of truth for actual cash, receipts,
               collected deposits, and expenses.
@@ -411,12 +377,7 @@ export default async function AdminCrmAnalyticsPage({
             </div>
           </section>
           <section className="card admin-section-card admin-panel">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Source performance</p>
-                <h3>Lead source contribution</h3>
-              </div>
-            </div>
+            <AdminSectionHeader eyebrow="Source performance" title="Lead source contribution" />
             <div className="crm-source-list">
               {filteredSourceMetrics.map((item) => (
                 <div key={item.source} className="crm-source-row">
@@ -435,12 +396,7 @@ export default async function AdminCrmAnalyticsPage({
       {activeTab === "tasks" ? (
         <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
           <section className="card admin-section-card admin-panel admin-panel--wide">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Tasks</p>
-                <h3>Follow-up queue</h3>
-              </div>
-            </div>
+            <AdminSectionHeader eyebrow="Tasks" title="Follow-up queue" />
             <div className="crm-task-list">
               {combinedTasks.map((task) => {
                 const lead = leadsById.get(task.leadId);

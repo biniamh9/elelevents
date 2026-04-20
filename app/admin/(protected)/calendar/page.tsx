@@ -5,6 +5,8 @@ import {
   humanizeBookingStage,
 } from "@/lib/booking-lifecycle";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 export const dynamic = "force-dynamic";
 
@@ -139,74 +141,73 @@ export default async function AdminCalendarPage({
   });
 
   return (
-    <main className="section admin-page">
-      <div className="admin-page-head">
-        <div>
-          <p className="eyebrow">Booking calendar</p>
-          <h1>Calendar</h1>
-          <p className="lead">See event dates on a real monthly calendar and spot reserved days immediately.</p>
-        </div>
-        <div className="admin-page-head-aside">
-          <Link
-            href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=calendar`}
-            className={`admin-topbar-pill${view === "calendar" ? " is-active" : ""}`}
-          >
-            Calendar View
-          </Link>
-          <Link
-            href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=list`}
-            className={`admin-topbar-pill${view === "list" ? " is-active" : ""}`}
-          >
-            List View
-          </Link>
-          <Link
-            href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`}
-            className="admin-topbar-pill"
-          >
-            Previous Month
-          </Link>
-          <span className="admin-head-pill">
-            {monthAnchor.toLocaleString(undefined, { month: "long", year: "numeric" })}
-          </span>
-          <Link
-            href={`/admin/calendar?month=${formatMonthParam(nextMonth)}`}
-            className="admin-topbar-pill"
-          >
-            Next Month
-          </Link>
-          <Link
-            href={`/admin/calendar?month=${formatMonthParam(todayMonth)}`}
-            className="admin-topbar-pill"
-          >
-            This Month
-          </Link>
-        </div>
-      </div>
+    <main className="section admin-page admin-page--workspace">
+      <AdminPageIntro
+        title="Calendar"
+        description="See event dates on a real monthly calendar and spot reserved days immediately."
+        aside={
+          <>
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=calendar`}
+              className={`admin-topbar-pill${view === "calendar" ? " is-active" : ""}`}
+            >
+              Calendar View
+            </Link>
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=list`}
+              className={`admin-topbar-pill${view === "list" ? " is-active" : ""}`}
+            >
+              List View
+            </Link>
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`}
+              className="admin-topbar-pill"
+            >
+              Previous Month
+            </Link>
+            <span className="admin-head-pill">
+              {monthAnchor.toLocaleString(undefined, { month: "long", year: "numeric" })}
+            </span>
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(nextMonth)}`}
+              className="admin-topbar-pill"
+            >
+              Next Month
+            </Link>
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(todayMonth)}`}
+              className="admin-topbar-pill"
+            >
+              This Month
+            </Link>
+          </>
+        }
+      />
 
       <div className="card admin-table-card admin-calendar-card">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Monthly view</p>
-            <h3>Reserved dates and event load</h3>
-          </div>
-          <form method="GET" className="admin-calendar-jump">
-            <label className="label" htmlFor="calendar-month">
-              Jump to month
-            </label>
-            <div className="admin-calendar-jump-controls">
-              <input
-                id="calendar-month"
-                name="month"
-                type="month"
-                defaultValue={formatMonthParam(monthAnchor)}
-                className="input"
-              />
-              <button type="submit" className="btn secondary">
-                Go
-              </button>
-            </div>
-          </form>
-        </div>
+        <AdminSectionHeader
+          eyebrow="Monthly view"
+          title="Reserved dates and event load"
+          actions={
+            <form method="GET" className="admin-calendar-jump">
+              <label className="label" htmlFor="calendar-month">
+                Jump to month
+              </label>
+              <div className="admin-calendar-jump-controls">
+                <input
+                  id="calendar-month"
+                  name="month"
+                  type="month"
+                  defaultValue={formatMonthParam(monthAnchor)}
+                  className="input"
+                />
+                <button type="submit" className="btn secondary">
+                  Go
+                </button>
+              </div>
+            </form>
+          }
+        />
 
         <div className="admin-calendar-quick-strip">
           {quickMonths.map((date) => {

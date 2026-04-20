@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDocumentById } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +20,10 @@ export default async function DocumentDetailPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className="admin-page-header">
-        <div>
-          <h1>{document.document_number}</h1>
-          <p>
-            Keep the client-facing document, totals, and preview aligned in one editor.
-          </p>
-        </div>
-      </div>
+      <AdminPageIntro
+        title={document.document_number}
+        description="Keep the client-facing document, totals, and preview aligned in one editor."
+      />
       <div className="admin-workspace-actions admin-workspace-actions--page">
         <Link href="/admin/documents" className="admin-topbar-pill">
           Back to Documents

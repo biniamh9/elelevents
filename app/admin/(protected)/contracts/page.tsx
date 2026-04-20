@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import AdminSectionHeader from "@/components/admin/admin-section-header";
 
 export const dynamic = "force-dynamic";
 
@@ -98,10 +99,10 @@ export default async function ContractsPage() {
       />
 
       <section className="admin-board-shell">
-        <div className="admin-section-title">
-          <h3>Contract Board</h3>
-          <p className="muted">See which agreements are still moving and which are already secured.</p>
-        </div>
+        <AdminSectionHeader
+          title="Contract Board"
+          description="See which agreements are still moving and which are already secured."
+        />
         <div className="admin-kanban-grid">
           {boardStages.map((stage) => (
             <div key={stage.key} className="card admin-kanban-column">
@@ -146,12 +147,7 @@ export default async function ContractsPage() {
       {error ? <p className="error">Failed to load contracts: {error.message}</p> : null}
 
       <div className="card admin-table-card admin-records-table-card">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Contract Table</p>
-            <h3>All contracts</h3>
-          </div>
-        </div>
+        <AdminSectionHeader eyebrow="Contract Table" title="All contracts" />
 
       <div className="admin-record-table-shell">
         <table className="admin-records-table">
