@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import {
   calculateLineTotal,
   calculateQuoteTotals,
@@ -711,22 +712,20 @@ export default function QuoteManagementForm({
             <div className="admin-quote-action-group">
               <p className="admin-quote-action-label">Quote actions</p>
               <div className="admin-quote-primary-actions">
-                <button
-                  type="button"
-                  className="btn secondary"
+                <AdminWorkflowAction
+                  tone="internal"
+                  label={saving ? "Saving..." : "Save Quote Builder"}
+                  description="Stores pricing, line items, and draft content without changing the client-facing stage."
                   onClick={() => saveQuoteBuilder(false)}
                   disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Quote Builder"}
-                </button>
-                <button
-                  type="button"
-                  className="btn"
+                />
+                <AdminWorkflowAction
+                  tone="internal"
+                  label={saving ? "Saving..." : "Save Quote + Set Quoted Status"}
+                  description="Saves the quote and updates the inquiry to quoted. It does not email the client."
                   onClick={() => saveQuoteBuilder(true)}
                   disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save + Mark Quoted"}
-                </button>
+                />
               </div>
             </div>
 
@@ -734,29 +733,29 @@ export default function QuoteManagementForm({
               <p className="admin-quote-action-label">Draft / preview</p>
               <div className="admin-quote-menu-row">
                 <QuoteActionMenu label="Draft Actions">
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="internal"
+                    label={saving ? "Saving..." : "Save Itemized Draft"}
+                    description="Stores an internal itemized draft for review. Nothing is sent to the client."
                     onClick={() => saveQuoteBuilder(false, { generateDraft: true })}
                     disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Generate Itemized Draft"}
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  />
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="internal"
+                    label="Open Itemized Draft Preview"
+                    description="Opens the saved itemized draft preview in the admin workspace."
                     onClick={() => router.push(`/admin/inquiries/${inquiryId}/itemized-draft`)}
-                  >
-                    Preview Itemized Price
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  />
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="internal"
+                    label={copying ? "Copying..." : "Copy Draft Content"}
+                    description="Copies the draft text for manual reuse outside the system."
                     onClick={copyDraftSummary}
                     disabled={copying}
-                  >
-                    {copying ? "Copying..." : "Copy Draft Content"}
-                  </button>
+                  />
                 </QuoteActionMenu>
                 <p className="admin-quote-inline-note">
                   Use these when a client asks for a detailed planning draft.
@@ -768,39 +767,39 @@ export default function QuoteManagementForm({
               <p className="admin-quote-action-label">Customer sharing</p>
               <div className="admin-quote-menu-row">
                 <QuoteActionMenu label="Share Actions">
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="internal"
+                    label={saving ? "Saving..." : "Set Ready to Send"}
+                    description="Marks the quote as internally ready for client delivery. No email is sent."
                     onClick={() =>
                       saveQuoteBuilder(false, { draftStatus: "ready_to_send" })
                     }
                     disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Mark Ready to Send"}
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  />
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="internal"
+                    label={saving ? "Saving..." : "Set Shared Status"}
+                    description="Updates the internal quote state to shared. It does not send or resend email."
                     onClick={() =>
                       saveQuoteBuilder(false, {
                         draftStatus: "shared_with_customer",
                       })
                     }
                     disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Mark Shared"}
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-row-action-item"
+                  />
+                  <AdminWorkflowAction
+                    className="admin-workflow-action--menu"
+                    tone="email"
+                    label={sending ? "Sending..." : "Email Quote to Client"}
+                    description="Sends the quote email with approval and change-request links."
                     onClick={sendQuote}
                     disabled={sending}
-                  >
-                    {sending ? "Sending..." : "Send Quote Email"}
-                  </button>
+                  />
                 </QuoteActionMenu>
                 <p className="admin-quote-inline-note">
-                  Keep customer-facing actions together so sharing is deliberate.
+                  These actions update the quote status or deliver the quote email; client approval still happens separately.
                 </p>
               </div>
             </div>

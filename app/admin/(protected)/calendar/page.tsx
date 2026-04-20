@@ -4,6 +4,7 @@ import {
   getBookingWarningLabel,
   humanizeBookingStage,
 } from "@/lib/booking-lifecycle";
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
@@ -138,6 +139,12 @@ export default async function AdminCalendarPage({
   const previousMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() - 1, 1);
   const nextMonth = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
   const todayMonth = new Date();
+  const totalEvents = (inquiries ?? []).length;
+  const reservedEvents = Array.from(grouped.values()).flat().filter((item) =>
+    ["reserved", "signed_deposit_paid", "completed"].includes(item.lifecycle)
+  ).length;
+  const highLoadDays = days.filter((day) => day.loadTone === "high").length;
+  const activeDays = days.filter((day) => day.items.length > 0).length;
   const quickMonths = Array.from({ length: 5 }, (_, index) => {
     const offset = index - 2;
     return new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + offset, 1);
@@ -185,6 +192,15 @@ export default async function AdminCalendarPage({
             </Link>
           </>
         }
+      />
+
+      <AdminMetricStrip
+        items={[
+          { label: "Scheduled events", value: totalEvents, note: "Event records in this month" },
+          { label: "Reserved events", value: reservedEvents, note: "Already reserved or completed", tone: "green" },
+          { label: "Active event days", value: activeDays, note: "Days carrying at least one event", tone: "blue" },
+          { label: "High-load days", value: highLoadDays, note: "Days with 3 or more events", tone: "amber" },
+        ]}
       />
 
       <div className="card admin-table-card admin-calendar-card">

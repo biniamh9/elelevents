@@ -222,12 +222,24 @@ export default function DocumentEditor({
     <div className="admin-document-builder">
       <DocumentActionBar
         onSaveDraft={() => saveDocument(false)}
-        onSend={document.document_type !== "receipt" ? () => saveDocument(true) : undefined}
+        onPublish={document.document_type !== "receipt" ? () => saveDocument(true) : undefined}
         onConvert={document.document_type !== "receipt" ? convertDocument : undefined}
         onRecordPayment={
           document.document_type === "invoice"
             ? () => setShowPaymentForm((current) => !current)
             : undefined
+        }
+        saveLabel={
+          document.document_type === "quote"
+            ? "Save Quote Draft"
+            : document.document_type === "invoice"
+              ? "Save Invoice Draft"
+              : "Save Receipt Draft"
+        }
+        publishLabel={
+          document.document_type === "quote"
+            ? "Mark Quote Ready to Share"
+            : "Mark Invoice Ready to Share"
         }
         convertLabel={
           document.document_type === "quote"
@@ -293,7 +305,7 @@ export default function DocumentEditor({
                 <p className="eyebrow">Preview</p>
                 <h3>{documentTypeLabels[document.document_type]}</h3>
                 <p className="muted">
-                  Review the client-facing version before sending or converting this document.
+                  Review the client-facing version before sharing it through the related inquiry or contract workflow.
                 </p>
               </div>
             </div>
@@ -324,6 +336,17 @@ export default function DocumentEditor({
               ${formatMoney(totals.totalAmount)}
             </strong>
             <span>Balance due ${formatMoney(totals.balanceDue)}</span>
+          </div>
+
+          <div className="card admin-document-summary">
+            <p className="eyebrow">Workflow note</p>
+            <span>
+              {document.document_type === "quote"
+                ? "Quote sharing is handled from the inquiry workflow so client approvals and revisions stay connected."
+                : document.document_type === "invoice"
+                  ? "Invoice sharing is handled through the contract/payment workflow so receipts and balances stay aligned."
+                  : "Receipts are generated from payment records and kept as finance proof of payment."}
+            </span>
           </div>
         </div>
       </div>

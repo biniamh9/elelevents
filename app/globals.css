@@ -5939,6 +5939,9 @@ th { background: var(--surface-soft); }
   gap: 12px;
   flex-wrap: wrap;
 }
+.contract-inline-note {
+  margin-top: 10px;
+}
 .contract-inline-message {
   margin: 0;
   color: var(--accent-dark);
@@ -8185,6 +8188,75 @@ th { background: var(--surface-soft); }
 }
 .admin-row-action-item--danger {
   color: #b42318;
+}
+.admin-workflow-action {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.1);
+  background: #fff;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.admin-workflow-action:hover:not(:disabled) {
+  border-color: rgba(140, 83, 39, 0.24);
+  background: #fffdfa;
+  box-shadow: 0 14px 28px rgba(73, 49, 31, 0.08);
+}
+.admin-workflow-action:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.admin-workflow-action strong {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+.admin-workflow-action-description {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+.admin-workflow-action-tone {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.admin-workflow-action--internal .admin-workflow-action-tone {
+  background: rgba(79, 94, 122, 0.1);
+  color: #46546f;
+}
+.admin-workflow-action--email .admin-workflow-action-tone {
+  background: rgba(140, 83, 39, 0.12);
+  color: #8c5327;
+}
+.admin-workflow-action--sync .admin-workflow-action-tone {
+  background: rgba(57, 106, 125, 0.12);
+  color: #325e71;
+}
+.admin-workflow-action--record .admin-workflow-action-tone {
+  background: rgba(37, 136, 77, 0.12);
+  color: #257748;
+}
+.admin-workflow-action--menu {
+  border: 0;
+  box-shadow: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: transparent;
+}
+.admin-workflow-action--menu:hover:not(:disabled) {
+  box-shadow: none;
+  background: rgba(107, 52, 24, 0.08);
 }
 .admin-records-empty {
   color: var(--muted);

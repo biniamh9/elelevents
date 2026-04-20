@@ -1,3 +1,5 @@
+import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import AdminPageIntro from "@/components/admin/admin-page-intro";
 import VendorManagement from "@/components/forms/admin/vendor-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -18,52 +20,26 @@ export default async function AdminVendorsPage() {
     data?.filter((item) => item.approval_status === "pending").length ?? 0;
   const approvedVendors =
     data?.filter((item) => item.approval_status === "approved").length ?? 0;
+  const { count: openReferrals = 0 } = await supabaseAdmin
+    .from("vendor_referrals")
+    .select("*", { count: "exact", head: true })
+    .in("status", ["sent", "accepted"]);
 
   return (
-    <main className="admin-page section">
-      <div className="admin-page-head">
-        <div>
-          <p className="eyebrow">Vendor partners</p>
-          <h1>Approve and manage referral vendors</h1>
-          <p className="lead">
-          Keep the partner network curated. Bad vendors damage your brand faster than almost anything else.
-          </p>
-        </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Total vendors: {totalVendors}</span>
-          <span className="admin-head-pill">Pending: {pendingVendors}</span>
-          <span className="admin-head-pill">Approved: {approvedVendors}</span>
-        </div>
-      </div>
+    <main className="admin-page section admin-page--workspace">
+      <AdminPageIntro
+        title="Vendors"
+        description="Approve and manage referral vendors, keep the network curated, and monitor referral-ready partners."
+      />
 
-      <section className="admin-mini-report">
-        <div className="admin-section-title">
-          <h3>Summary</h3>
-          <p className="muted">Use this view to keep the partner network active, approved, and brand-safe.</p>
-        </div>
-        <div className="admin-kpi-grid admin-kpi-grid--compact">
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Total vendors</p>
-            <strong>{totalVendors}</strong>
-            <span>Partner records</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Active vendors</p>
-            <strong>{activeVendors}</strong>
-            <span>Currently usable</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Pending review</p>
-            <strong>{pendingVendors}</strong>
-            <span>Waiting for approval</span>
-          </div>
-          <div className="card metric-card metric-card--neutral">
-            <p className="muted">Approved</p>
-            <strong>{approvedVendors}</strong>
-            <span>Ready for referrals</span>
-          </div>
-        </div>
-      </section>
+      <AdminMetricStrip
+        items={[
+          { label: "Total vendors", value: totalVendors, note: "Partner records in the workspace" },
+          { label: "Active vendors", value: activeVendors, note: "Currently eligible for referral", tone: "green" },
+          { label: "Pending review", value: pendingVendors, note: "Applications waiting for approval", tone: "amber" },
+          { label: "Open referrals", value: openReferrals, note: "Referral requests still in progress", tone: "blue" },
+        ]}
+      />
 
       {error ? <p className="error">Failed to load vendors: {error.message}</p> : null}
       <VendorManagement items={data ?? []} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import {
   type ContractDetails,
   normalizeContractDetails,
@@ -134,8 +135,8 @@ export default function ContractManagementForm({
 
       setMessage(
         data.mode === "docusign"
-          ? "Contract sent through DocuSign."
-          : "Contract sent using the manual signing link."
+          ? "Signature request sent through DocuSign."
+          : "Contract email sent using the manual signing link."
       );
       setStatus("sent");
     } catch {
@@ -181,32 +182,29 @@ export default function ContractManagementForm({
     <div style={{ marginTop: "16px" }}>
       <div className="contract-action-bar">
         <div className="contract-action-group">
-          <button
-            type="button"
-            className="btn"
+          <AdminWorkflowAction
+            tone="internal"
+            label={loading ? "Saving..." : "Save Contract"}
+            description="Updates the internal contract record, pricing, and clause details only."
             onClick={handleSave}
             disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Contract"}
-          </button>
+          />
 
-          <button
-            type="button"
-            className="btn secondary"
+          <AdminWorkflowAction
+            tone="email"
+            label={sending ? "Sending..." : "Send Signature Request"}
+            description="Sends the contract to the client by DocuSign or manual signing email."
             onClick={sendContract}
             disabled={sending}
-          >
-            {sending ? "Sending..." : "Send Contract"}
-          </button>
+          />
 
-          <button
-            type="button"
-            className="btn secondary"
+          <AdminWorkflowAction
+            tone="sync"
+            label={syncing ? "Syncing..." : "Check DocuSign Status"}
+            description="Reads the current DocuSign envelope state and updates the internal status."
             onClick={syncDocusignStatus}
             disabled={syncing}
-          >
-            {syncing ? "Syncing..." : "Sync DocuSign"}
-          </button>
+          />
         </div>
 
         {message ? <p className="contract-inline-message">{message}</p> : null}
@@ -801,8 +799,11 @@ export default function ContractManagementForm({
                 checked={depositPaid}
                 onChange={(e) => setDepositPaid(e.target.checked)}
               />
-              <span>Deposit has been paid</span>
+              <span>Record deposit as paid</span>
             </label>
+            <p className="muted contract-inline-note">
+              This updates the internal payment record and booking workflow. It does not charge the client automatically.
+            </p>
           </div>
         </div>
         ) : null}

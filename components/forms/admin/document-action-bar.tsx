@@ -2,22 +2,22 @@
 
 export default function DocumentActionBar({
   onSaveDraft,
-  onSend,
+  onPublish,
   onConvert,
   onRecordPayment,
   saveLabel = "Save Draft",
-  sendLabel = "Send Document",
+  publishLabel = "Mark Ready to Share",
   convertLabel,
   paymentLabel,
   busy = false,
   message,
 }: {
   onSaveDraft: () => void;
-  onSend?: () => void;
+  onPublish?: () => void;
   onConvert?: () => void;
   onRecordPayment?: () => void;
   saveLabel?: string;
-  sendLabel?: string;
+  publishLabel?: string;
   convertLabel?: string;
   paymentLabel?: string;
   busy?: boolean;
@@ -29,9 +29,9 @@ export default function DocumentActionBar({
         <button type="button" className="btn secondary" onClick={onSaveDraft} disabled={busy}>
           {busy ? "Saving..." : saveLabel}
         </button>
-        {onSend ? (
-          <button type="button" className="btn" onClick={onSend} disabled={busy}>
-            {sendLabel}
+        {onPublish ? (
+          <button type="button" className="btn" onClick={onPublish} disabled={busy}>
+            {publishLabel}
           </button>
         ) : null}
         {onConvert && convertLabel ? (

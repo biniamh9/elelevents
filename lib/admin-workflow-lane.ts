@@ -175,7 +175,7 @@ export function getInquiryWorkflowActionGroups(input: {
         title: "Current step",
         actions: [
           { label: "Review request", href: `${base}#intake-stage` },
-          { label: "Schedule consultation", href: `${base}#consultation-stage` },
+          { label: "Open consultation scheduling", href: `${base}#consultation-stage` },
         ],
       },
     ],
@@ -184,7 +184,7 @@ export function getInquiryWorkflowActionGroups(input: {
         title: "Current step",
         actions: [
           { label: "Open consultation plan", href: `${base}#consultation-stage` },
-          { label: "Prepare quote", href: `${base}#quote-stage` },
+          { label: "Open quote preparation", href: `${base}#quote-stage` },
         ],
       },
     ],
@@ -192,8 +192,8 @@ export function getInquiryWorkflowActionGroups(input: {
       {
         title: "Current step",
         actions: [
-          { label: "Create quote", href: `${base}#quote-stage` },
-          { label: "Share proposal", href: `${base}#quote-stage` },
+          { label: "Open quote builder", href: `${base}#quote-stage` },
+          { label: "Open quote sharing", href: `${base}#quote-stage` },
         ],
       },
     ],
@@ -205,7 +205,7 @@ export function getInquiryWorkflowActionGroups(input: {
             label: input.contractId ? "Open contract" : "Create contract",
             href: input.contractId ? `/admin/contracts/${input.contractId}` : `${base}#contract-stage`,
           },
-          { label: "Track deposit", href: `${base}#contract-stage` },
+          { label: "Open deposit tracking", href: `${base}#contract-stage` },
         ],
       },
     ],
@@ -214,7 +214,7 @@ export function getInquiryWorkflowActionGroups(input: {
         title: "Current step",
         actions: [
           { label: "Open handoff", href: `${base}#handoff-stage` },
-          { label: "Booking readiness", href: `${base}#booking-stage` },
+          { label: "Open booking readiness", href: `${base}#booking-stage` },
         ],
       },
     ],
@@ -263,7 +263,7 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
         title: "Current step",
         actions: [
           { label: "Review lead", href: base },
-          { label: "Schedule consultation", href: `${base}#tasks` },
+          { label: "Open consultation follow-up", href: `${base}#tasks` },
         ],
       },
     ],
@@ -280,7 +280,7 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
       {
         title: "Current step",
         actions: [
-          { label: "Create quote", href: "/admin/documents/new?type=quote" },
+          { label: "Open quote draft", href: "/admin/documents/new?type=quote" },
           { label: "Add quote note", href: `${base}#notes` },
         ],
       },
@@ -290,7 +290,7 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
         title: "Current step",
         actions: [
           { label: "Schedule deposit follow-up", href: `${base}#tasks` },
-          { label: "Mark booked", href: `${base}#booking` },
+          { label: "Open booking confirmation", href: `${base}#booking` },
         ],
       },
     ],
