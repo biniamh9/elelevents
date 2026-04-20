@@ -3,6 +3,7 @@ import { getAdminWorkspaceUsers } from "@/lib/admin-users";
 import AdminUserManagement from "@/components/forms/admin/admin-user-management";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
+  await requireAdminPage("settings");
+
   const { tab = "access" } = await searchParams;
   const users = tab === "users" ? await getAdminWorkspaceUsers() : [];
 

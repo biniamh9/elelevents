@@ -4,6 +4,7 @@ import { sendBookingLifecycleEmail } from "@/lib/booking-email";
 import { normalizeContractDetails } from "@/lib/contracts";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 const allowedStatuses = ["draft", "sent", "signed", "deposit_paid", "closed"];
 
@@ -12,7 +13,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("sales");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
@@ -264,6 +265,20 @@ export async function PATCH(
         balance_paid: balancePaid,
       },
     });
+
+    if (updated.inquiry_id) {
+      await syncInquiryWorkflowStage(supabaseAdmin, {
+        inquiryId: updated.inquiry_id,
+        actorId: auth.user.id,
+        sourceAction: "contract.updated",
+        note: "Contract status or payment state changed from admin workspace.",
+        metadata: {
+          contract_status: updated.contract_status,
+          deposit_paid: updated.deposit_paid,
+          balance_paid: balancePaid,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, contract: updated });
   } catch (err) {

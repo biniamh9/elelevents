@@ -7,7 +7,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { errorResponse } = await requireAdminApi();
+  const { errorResponse } = await requireAdminApi("settings");
   if (errorResponse) return errorResponse;
 
   const { id } = await params;

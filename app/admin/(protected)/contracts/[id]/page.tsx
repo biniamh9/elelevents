@@ -6,6 +6,7 @@ import BookingOperationsPanel from "@/components/forms/admin/booking-operations-
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
 import { getPaymentSummary, humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { normalizeContractDetails } from "@/lib/contracts";
+import { requireAdminPage } from "@/lib/auth/admin";
 export const dynamic = "force-dynamic";
 
 function humanizeLabel(value: string | null | undefined) {
@@ -23,6 +24,8 @@ export default async function ContractDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdminPage("sales");
+
   const { id } = await params;
 
   const { data: contract, error } = await supabaseAdmin

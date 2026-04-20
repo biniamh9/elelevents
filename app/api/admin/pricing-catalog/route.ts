@@ -3,7 +3,7 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export async function POST(request: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("sales");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }

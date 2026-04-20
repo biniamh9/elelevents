@@ -7,7 +7,10 @@ import ConsultationManagementForm from "@/components/forms/admin/consultation-ma
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
 import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
+import CustomerTimeline from "@/components/admin/customer-timeline";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
+import { buildCustomerTimeline } from "@/lib/customer-timeline";
+import { requireAdminPage } from "@/lib/auth/admin";
 export const dynamic = "force-dynamic";
 
 function humanizeLabel(value: string | null | undefined) {
@@ -157,6 +160,8 @@ export default async function InquiryDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdminPage("overview");
+
   const { id } = await params;
 
   const { data: inquiry, error } = await supabaseAdmin
@@ -231,6 +236,13 @@ export default async function InquiryDetailPage({
     .eq("inquiry_id", id)
     .eq("status", "open")
     .order("created_at", { ascending: false });
+
+  const { data: workflowTransitions } = await supabaseAdmin
+    .from("workflow_transitions")
+    .select("id, from_stage, to_stage, source_action, note, created_at")
+    .eq("inquiry_id", id)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const { count: sameDayCount } = inquiry.event_date
     ? await supabaseAdmin
@@ -316,28 +328,12 @@ export default async function InquiryDetailPage({
       ? "The client responded from the quote email and requested changes to the current pricing or scope."
       : "The client responded from the quote email and approved the current proposal.");
 
-  const timeline = [
-    {
-      label: "Inquiry Received",
-      value: inquiry.created_at ? new Date(inquiry.created_at).toLocaleString() : "—",
-      tone: "neutral",
-    },
-    {
-      label: "Quoted",
-      value: inquiry.quoted_at ? new Date(inquiry.quoted_at).toLocaleString() : "Not yet",
-      tone: inquiry.quoted_at ? "active" : "muted",
-    },
-    {
-      label: "Booked",
-      value: inquiry.booked_at ? new Date(inquiry.booked_at).toLocaleString() : "Not yet",
-      tone: inquiry.booked_at ? "success" : "muted",
-    },
-    {
-      label: "Reserved",
-      value: inquiry.reserved_at ? new Date(inquiry.reserved_at).toLocaleString() : "Not yet",
-      tone: inquiry.reserved_at ? "success" : "muted",
-    },
-  ];
+  const unifiedTimeline = buildCustomerTimeline({
+    workflowTransitions,
+    activityLog,
+    customerInteractions,
+    followUpTasks,
+  }).slice(0, 24);
 
   return (
     <main className="container section">
@@ -369,13 +365,23 @@ export default async function InquiryDetailPage({
         </div>
 
         <div className="crm-timeline card">
-          <p className="eyebrow">Pipeline timeline</p>
-          {timeline.map((item) => (
-            <div key={item.label} className={`timeline-row ${item.tone}`}>
-              <strong>{item.label}</strong>
-              <span>{item.value}</span>
-            </div>
-          ))}
+          <p className="eyebrow">Current workflow</p>
+          <div className="timeline-row neutral">
+            <strong>Workflow stage</strong>
+            <span>{humanizeLabel(inquiry.workflow_stage ?? workflow.currentStep)}</span>
+          </div>
+          <div className="timeline-row active">
+            <strong>Booking stage</strong>
+            <span>{humanizeBookingStage(bookingStage)}</span>
+          </div>
+          <div className="timeline-row neutral">
+            <strong>Quote response</strong>
+            <span>{humanizeLabel(inquiry.quote_response_status ?? "not_sent")}</span>
+          </div>
+          <div className="timeline-row neutral">
+            <strong>Contract</strong>
+            <span>{linkedContract?.contract_status ? humanizeLabel(linkedContract.contract_status) : "Not created"}</span>
+          </div>
         </div>
       </div>
 
@@ -737,30 +743,13 @@ export default async function InquiryDetailPage({
       </div>
       </section>
 
-      <section className="admin-record-section">
-        <div className="admin-section-title">
-          <h3>Operations Timeline</h3>
-          <p className="muted">Recent activity and workflow history for the request.</p>
-        </div>
-
-        <div className="card admin-activity-panel">
-          <div className="admin-activity-list">
-            {activityLog?.length ? (
-              activityLog.map((entry) => (
-                <div key={entry.id} className="admin-activity-item">
-                  <div>
-                    <strong>{entry.summary}</strong>
-                    <p>{humanizeLabel(entry.action)}</p>
-                  </div>
-                  <span>{new Date(entry.created_at).toLocaleString()}</span>
-                </div>
-              ))
-            ) : (
-              <p className="muted">No activity log entries yet.</p>
-            )}
-          </div>
-        </div>
-      </section>
+      <CustomerTimeline
+        eyebrow="Client timeline"
+        title="Workflow, replies, and admin activity"
+        description="One shared history for workflow movement, client replies, admin actions, and follow-up tasks."
+        items={unifiedTimeline}
+        emptyMessage="No workflow or client activity has been recorded yet."
+      />
 
       <section id="next-action" className="admin-record-section">
         <div className="admin-section-title">

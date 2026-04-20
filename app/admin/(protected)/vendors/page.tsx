@@ -1,9 +1,12 @@
 import VendorManagement from "@/components/forms/admin/vendor-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminVendorsPage() {
+  await requireAdminPage("operations");
+
   const { data, error } = await supabaseAdmin
     .from("vendor_accounts")
     .select("id, business_name, contact_name, email, phone, service_categories, approval_status, membership_status, default_referral_fee, city, state, service_area, is_active, admin_notes")

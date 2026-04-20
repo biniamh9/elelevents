@@ -1,9 +1,12 @@
 import HomeProcessManagement from "@/components/forms/admin/home-process-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminFlowPage() {
+  await requireAdminPage("content");
+
   const { data, error } = await supabaseAdmin
     .from("homepage_process_steps")
     .select("id, title, text, image_url, sort_order, is_active")

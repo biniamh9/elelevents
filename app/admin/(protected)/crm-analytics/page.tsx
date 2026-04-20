@@ -11,6 +11,7 @@ import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
+import { requireAdminPage } from "@/lib/auth/admin";
 import {
   CRM_STAGE_LABELS,
   crmDashboardAlerts,
@@ -75,6 +76,8 @@ export default async function AdminCrmAnalyticsPage({
     dateRange?: string;
   }>;
 }) {
+  await requireAdminPage("crm");
+
   const params = await searchParams;
   const activeTab: Tab = ["dashboard", "reports", "leads", "customers", "revenue", "tasks"].includes(params.tab ?? "")
     ? (params.tab as Tab)

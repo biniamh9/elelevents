@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CustomerTimeline from "@/components/admin/customer-timeline";
 import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
+import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -37,6 +40,8 @@ export default async function AdminCrmLeadDetailPage({
 }: {
   params: Promise<{ leadId: string }>;
 }) {
+  await requireAdminPage("crm");
+
   const { leadId } = await params;
   const lead = getCrmLeadById(leadId);
 
@@ -56,31 +61,49 @@ export default async function AdminCrmLeadDetailPage({
     .or(`sender_email.eq.${lead.email},recipient_email.eq.${lead.email}`)
     .order("created_at", { ascending: false })
     .limit(20);
-
-  const combinedInteractions = [
-    ...interactions.map((item) => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      createdAt: item.createdAt,
-    })),
-    ...(persistedInteractions ?? []).map((item) => ({
-      id: item.id,
-      title:
-        item.subject?.trim() ||
-        (item.direction === "inbound" ? "Email reply received" : "Customer interaction"),
-      summary: item.body_text,
-      createdAt: item.created_at,
-    })),
-  ]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 24);
+  const { data: activityLog } = await supabaseAdmin
+    .from("activity_log")
+    .select("id, action, summary, created_at")
+    .eq("entity_type", "inquiry")
+    .eq("entity_id", leadId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const { data: workflowTransitions } = await supabaseAdmin
+    .from("workflow_transitions")
+    .select("id, from_stage, to_stage, source_action, note, created_at")
+    .eq("inquiry_id", leadId)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const combinedTasks = [...persistedTasks, ...tasks].sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return a.title.localeCompare(b.title);
   });
+
+  const unifiedTimeline = buildCustomerTimeline({
+    workflowTransitions,
+    activityLog,
+    customerInteractions: [
+      ...interactions.map((item) => ({
+        id: item.id,
+        subject: item.title,
+        body_text: item.summary,
+        created_at: item.createdAt,
+        direction: "internal",
+        channel: "other",
+      })),
+      ...(persistedInteractions ?? []).map((item) => ({
+        id: item.id,
+        subject: item.subject,
+        body_text: item.body_text,
+        created_at: item.created_at,
+        direction: item.direction,
+        channel: item.channel,
+      })),
+    ],
+    followUpTasks: combinedTasks,
+  }).slice(0, 24);
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -144,25 +167,13 @@ export default async function AdminCrmLeadDetailPage({
         </aside>
       </div>
 
-      <section className="card admin-section-card admin-panel admin-panel--wide">
-        <div className="admin-panel-head">
-          <div>
-            <p className="eyebrow">Interaction timeline</p>
-            <h3>Recent activity</h3>
-          </div>
-        </div>
-        <div className="admin-list crm-interactions-list">
-          {combinedInteractions.map((item) => (
-            <div key={item.id} className="admin-list-item crm-interaction-item">
-              <div>
-                <strong>{item.title}</strong>
-                <span>{item.summary}</span>
-              </div>
-              <small>{formatRelative(item.createdAt)}</small>
-            </div>
-          ))}
-        </div>
-      </section>
+      <CustomerTimeline
+        eyebrow="Client timeline"
+        title="Workflow, replies, and internal actions"
+        description="This combines workflow transitions, client replies, admin activity, and open follow-up work."
+        items={unifiedTimeline}
+        emptyMessage="No CRM timeline entries yet."
+      />
     </main>
   );
 }

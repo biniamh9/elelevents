@@ -7,6 +7,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ export default async function AdminCalendarPage({
 }: {
   searchParams: Promise<{ month?: string; view?: string }>;
 }) {
+  await requireAdminPage("operations");
+
   const params = await searchParams;
   const monthAnchor = getMonthAnchor(params.month);
   const view = params.view === "list" ? "list" : "calendar";

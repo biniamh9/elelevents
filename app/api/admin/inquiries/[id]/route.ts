@@ -4,6 +4,7 @@ import { BOOKING_STAGES } from "@/lib/booking-lifecycle";
 import { canSendConsultationEmail, sendConsultationScheduledEmails } from "@/lib/consultation-email";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 const allowedStatuses = [
   "new",
@@ -37,7 +38,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("overview");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
@@ -220,6 +221,16 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    await syncInquiryWorkflowStage(supabaseAdmin, {
+      inquiryId: id,
+      actorId: auth.user.id,
+      sourceAction: "inquiry.updated",
+      note: "Inquiry record updated from admin workspace.",
+      metadata: {
+        updated_fields: Object.keys(updates),
+      },
+    });
+
     const effectiveConsultationStatus = data.consultation_status;
     const effectiveConsultationType = data.consultation_type;
     const effectiveConsultationAt = data.consultation_at;
@@ -318,7 +329,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("overview");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }

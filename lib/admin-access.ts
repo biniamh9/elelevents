@@ -21,6 +21,16 @@ export const ADMIN_MODULES = [
 
 export type AdminModule = (typeof ADMIN_MODULES)[number];
 
+export const DEFAULT_ADMIN_MODULE_PATHS: Record<AdminModule, string> = {
+  overview: "/admin/inquiries",
+  crm: "/admin/crm-analytics",
+  sales: "/admin/documents",
+  finance: "/admin/finance",
+  operations: "/admin/calendar",
+  content: "/admin/flow",
+  settings: "/admin/settings",
+};
+
 export const DEFAULT_MODULE_ACCESS: Record<AdminRole, AdminModule[]> = {
   admin: [...ADMIN_MODULES],
   staff: ["overview", "crm", "sales", "operations", "content"],
@@ -61,4 +71,17 @@ export function canAccessModule(
   }
 
   return normalizeModuleAccess(role, allowedModules).includes(module);
+}
+
+export function getFirstAccessibleAdminPath(
+  role: string | null | undefined,
+  allowedModules: string[] | null | undefined
+) {
+  const modules = normalizeModuleAccess(role, allowedModules);
+
+  for (const module of modules) {
+    return DEFAULT_ADMIN_MODULE_PATHS[module];
+  }
+
+  return "/admin/login";
 }

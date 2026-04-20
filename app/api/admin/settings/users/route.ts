@@ -5,7 +5,7 @@ import { ADMIN_ROLES, normalizeModuleAccess, type AdminRole } from "@/lib/admin-
 import { getAdminWorkspaceUsers } from "@/lib/admin-users";
 
 export async function GET() {
-  const { errorResponse } = await requireAdminApi();
+  const { errorResponse } = await requireAdminApi("settings");
   if (errorResponse) return errorResponse;
 
   const users = await getAdminWorkspaceUsers();
@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { errorResponse } = await requireAdminApi();
+  const { errorResponse } = await requireAdminApi("settings");
   if (errorResponse) return errorResponse;
 
   const body = await request.json();

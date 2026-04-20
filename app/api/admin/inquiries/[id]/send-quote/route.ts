@@ -14,6 +14,7 @@ import {
 import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
 import { createQuoteActionToken } from "@/lib/quote-client-actions";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -225,7 +226,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("overview");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
@@ -399,6 +400,18 @@ export async function POST(
         line_item_count: normalizedLineItems.length,
         client_email: inquiry.email,
       },
+    });
+
+    await syncInquiryWorkflowStage(supabaseAdmin, {
+      inquiryId: id,
+      actorId: auth.user.id,
+      sourceAction: "inquiry.quote_sent",
+      note: "Quote was sent to the client.",
+      metadata: {
+        quote_amount: quoteAmount,
+        line_item_count: normalizedLineItems.length,
+      },
+      updatedAt: quotedAt,
     });
 
     return NextResponse.json({ success: true });

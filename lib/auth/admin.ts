@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import { isAdminWorkspaceRole } from "@/lib/admin-access";
+import {
+  canAccessModule,
+  getFirstAccessibleAdminPath,
+  isAdminWorkspaceRole,
+  type AdminModule,
+} from "@/lib/admin-access";
 
 async function getAdminProfile(userId: string) {
   const { data: profile } = await supabaseAdmin
@@ -14,7 +19,7 @@ async function getAdminProfile(userId: string) {
   return profile;
 }
 
-export async function requireAdminPage() {
+export async function requireAdminPage(module?: AdminModule) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -30,10 +35,14 @@ export async function requireAdminPage() {
     redirect("/admin/login");
   }
 
+  if (module && !canAccessModule(profile.role, profile.allowed_modules ?? [], module)) {
+    redirect(getFirstAccessibleAdminPath(profile.role, profile.allowed_modules ?? []));
+  }
+
   return { user, profile };
 }
 
-export async function requireAdminApi() {
+export async function requireAdminApi(module?: AdminModule) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -54,6 +63,14 @@ export async function requireAdminApi() {
       errorResponse: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
       user,
       profile: null,
+    };
+  }
+
+  if (module && !canAccessModule(profile.role, profile.allowed_modules ?? [], module)) {
+    return {
+      errorResponse: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      user,
+      profile,
     };
   }
 

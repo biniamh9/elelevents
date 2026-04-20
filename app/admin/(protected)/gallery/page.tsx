@@ -2,10 +2,13 @@ import GalleryManagement from "@/components/forms/admin/gallery-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminGalleryPage() {
+  await requireAdminPage("content");
+
   const { data, error } = await supabaseAdmin
     .from("gallery_items")
     .select("id, title, category, image_url, sort_order, is_active, created_at")

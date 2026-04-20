@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ export default async function AdminFinancePage({
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
+  await requireAdminPage("finance");
+
   const { tab = "overview" } = await searchParams;
 
   return (

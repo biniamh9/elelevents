@@ -1,9 +1,12 @@
 import TestimonialManagement from "@/components/forms/admin/testimonial-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminTestimonialsPage() {
+  await requireAdminPage("content");
+
   const { data, error } = await supabaseAdmin
     .from("testimonials")
     .select(

@@ -1,9 +1,12 @@
 import PackageManagement from "@/components/forms/admin/package-management";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPackagesPage() {
+  await requireAdminPage("sales");
+
   const { data, error } = await supabaseAdmin
     .from("packages")
     .select("id, name, best_for, summary, features, featured, sort_order, is_active")

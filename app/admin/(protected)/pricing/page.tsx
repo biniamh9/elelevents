@@ -2,10 +2,13 @@ import PricingCatalogManagement from "@/components/forms/admin/pricing-catalog-m
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminPricingPage() {
+  await requireAdminPage("sales");
+
   const { data, error } = await supabaseAdmin
     .from("pricing_catalog_items")
     .select("id, name, category, variant, unit_label, unit_price, is_active, notes, sort_order")

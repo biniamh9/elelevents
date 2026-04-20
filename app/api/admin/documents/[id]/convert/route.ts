@@ -9,7 +9,7 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("sales");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }

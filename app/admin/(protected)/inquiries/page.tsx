@@ -4,6 +4,7 @@ import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +110,8 @@ export default async function AdminInquiriesPage({
     page?: string;
   }>;
 }) {
+  await requireAdminPage("overview");
+
   const params = await searchParams;
   const activeTab: WorkspaceTab = ["overview", "pipeline", "schedule", "inquiries"].includes(
     params.tab ?? ""

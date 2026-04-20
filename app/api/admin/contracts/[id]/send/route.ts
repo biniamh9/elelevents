@@ -5,6 +5,7 @@ import { createDocusignEnvelope, getDocuSignSetupError, isDocuSignConfigured } f
 import { logActivity } from "@/lib/crm";
 import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -15,7 +16,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("sales");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
@@ -89,6 +90,16 @@ export async function POST(
           .from("event_inquiries")
           .update({ booking_stage: "contract_sent" })
           .eq("id", updated.inquiry_id);
+
+        await syncInquiryWorkflowStage(supabaseAdmin, {
+          inquiryId: updated.inquiry_id,
+          actorId: auth.user.id,
+          sourceAction: "contract.sent",
+          note: "Contract sent to client through DocuSign.",
+          metadata: {
+            delivery_mode: "docusign",
+          },
+        });
       }
 
       return NextResponse.json({
@@ -180,6 +191,16 @@ export async function POST(
         .from("event_inquiries")
         .update({ booking_stage: "contract_sent" })
         .eq("id", updated.inquiry_id);
+
+      await syncInquiryWorkflowStage(supabaseAdmin, {
+        inquiryId: updated.inquiry_id,
+        actorId: auth.user.id,
+        sourceAction: "contract.sent",
+        note: "Contract email sent to client using manual signing link.",
+        metadata: {
+          delivery_mode: "manual",
+        },
+      });
     }
 
     return NextResponse.json({ success: true, mode: "manual", contract: updated });

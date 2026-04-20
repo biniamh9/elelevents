@@ -4,6 +4,7 @@ import ContractStatusBadge from "@/components/forms/admin/contract-status-badge"
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ function humanizeLabel(value: string | null | undefined) {
 }
 
 export default async function ContractsPage() {
+  await requireAdminPage("sales");
+
   const { data, error } = await supabaseAdmin
     .from("contracts")
     .select("id, client_name, event_type, event_date, contract_total, contract_status, deposit_paid, created_at, docusign_envelope_status")

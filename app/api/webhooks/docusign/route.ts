@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { logActivity } from "@/lib/crm";
 import { getNotificationFromEmail } from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -161,6 +162,17 @@ export async function POST(request: Request) {
             : "contract_sent",
         })
         .eq("id", updated.inquiry_id);
+
+      await syncInquiryWorkflowStage(supabaseAdmin, {
+        inquiryId: updated.inquiry_id,
+        actorId: null,
+        sourceAction: "contract.docusign_webhook",
+        note: "DocuSign webhook updated the linked contract state.",
+        metadata: {
+          envelope_status: updates.docusign_envelope_status,
+          event: envelope.event,
+        },
+      });
     }
 
     await logActivity(supabaseAdmin, {

@@ -6,7 +6,7 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("sales");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }
@@ -80,7 +80,7 @@ export async function DELETE(
   _request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("sales");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }

@@ -3,6 +3,7 @@ import { buildSeedDocument } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import type { ClientDocumentType } from "@/lib/client-documents";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export default async function NewDocumentPage({
     sourceDocumentId?: string;
   }>;
 }) {
+  await requireAdminPage("sales");
+
   const params = await searchParams;
   const type = (params.type as ClientDocumentType) || "quote";
   const seeded = await buildSeedDocument({

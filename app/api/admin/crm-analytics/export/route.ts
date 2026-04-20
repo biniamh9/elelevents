@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminApi } from "@/lib/auth/admin";
 import {
   CRM_STAGE_LABELS,
   crmInteractions,
@@ -48,6 +49,11 @@ function normalizeTab(value: string | null): ExportTab {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireAdminApi("crm");
+  if (auth.errorResponse) {
+    return auth.errorResponse;
+  }
+
   const { searchParams } = new URL(request.url);
   const tab = normalizeTab(searchParams.get("tab"));
   const filters = {

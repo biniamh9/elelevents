@@ -4,6 +4,7 @@ import { recordCustomerInteraction } from "@/lib/customer-interactions";
 import { verifyQuoteActionToken } from "@/lib/quote-client-actions";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 type QuoteResponseAction = "approve" | "request_changes";
 
@@ -222,6 +223,19 @@ export async function POST(request: Request) {
         action === "approve"
           ? "inquiry.quote_accepted"
           : "inquiry.quote_changes_requested",
+    });
+
+    await syncInquiryWorkflowStage(supabaseAdmin, {
+      inquiryId,
+      actorId: null,
+      sourceAction:
+        action === "approve"
+          ? "inquiry.quote_accepted"
+          : "inquiry.quote_changes_requested",
+      note: interactionBody,
+      metadata: {
+        quote_response_status: nextQuoteStatus,
+      },
     });
 
     const successMessage =

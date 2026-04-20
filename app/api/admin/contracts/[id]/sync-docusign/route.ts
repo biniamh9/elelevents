@@ -3,6 +3,7 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import { getDocusignEnvelopeStatus, getDocuSignSetupError } from "@/lib/docusign";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
 function mapEnvelopeStatusToContractStatus(status: string) {
   if (status === "completed") {
@@ -21,7 +22,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("sales");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
@@ -92,6 +93,18 @@ export async function POST(
         envelope_status: envelope.status,
       },
     });
+
+    if (updated.inquiry_id) {
+      await syncInquiryWorkflowStage(supabaseAdmin, {
+        inquiryId: updated.inquiry_id,
+        actorId: auth.user.id,
+        sourceAction: "contract.docusign_synced",
+        note: "DocuSign envelope status synced from admin workspace.",
+        metadata: {
+          envelope_status: envelope.status,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

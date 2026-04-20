@@ -5846,6 +5846,20 @@ th { background: var(--surface-soft); }
   color: var(--muted);
   font-size: 0.9rem;
 }
+.admin-activity-item--success {
+  border-color: rgba(31, 128, 84, 0.16);
+  background: linear-gradient(180deg, rgba(248, 255, 251, 0.98), rgba(239, 251, 245, 0.98));
+}
+.admin-activity-item--warning {
+  border-color: rgba(225, 124, 35, 0.16);
+  background: linear-gradient(180deg, rgba(255, 250, 245, 0.98), rgba(255, 244, 235, 0.98));
+}
+.admin-activity-item--muted {
+  background: linear-gradient(180deg, rgba(252, 249, 245, 0.98), rgba(247, 241, 235, 0.98));
+}
+.admin-activity-list--timeline .admin-activity-item p {
+  max-width: 72ch;
+}
 .timeline-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
 .timeline-row:last-child { border-bottom: 0; }
 .timeline-row.neutral { color: var(--text); }

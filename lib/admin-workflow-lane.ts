@@ -1,12 +1,11 @@
-import { deriveBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 import type { CrmLead } from "@/lib/crm-analytics";
+import {
+  deriveWorkflowStage,
+  getWorkflowStageFromBookingStage,
+  type WorkflowStage,
+} from "@/lib/workflow-stage";
 
-export type WorkflowLaneKey =
-  | "intake"
-  | "consultation"
-  | "quote"
-  | "contract"
-  | "handoff";
+export type WorkflowLaneKey = WorkflowStage;
 
 export type WorkflowLaneItem = {
   id: string;
@@ -67,25 +66,7 @@ const WORKFLOW_LANE_META: Array<{
   },
 ];
 
-export function getLaneFromBookingStage(stage: BookingStage): WorkflowLaneKey {
-  if (stage === "consultation_scheduled") {
-    return "consultation";
-  }
-
-  if (stage === "quote_sent") {
-    return "quote";
-  }
-
-  if (stage === "contract_sent" || stage === "signed_deposit_paid") {
-    return "contract";
-  }
-
-  if (stage === "reserved" || stage === "completed") {
-    return "handoff";
-  }
-
-  return "intake";
-}
+export const getLaneFromBookingStage = getWorkflowStageFromBookingStage;
 
 export function getInquiryWorkflowLane(input: {
   status: string | null;
@@ -96,7 +77,7 @@ export function getInquiryWorkflowLane(input: {
   deposit_paid?: boolean | null;
   completed_at?: string | null;
 }) {
-  const bookingStage = deriveBookingStage({
+  return deriveWorkflowStage({
     bookingStage: input.booking_stage,
     inquiryStatus: input.status,
     consultationStatus: input.consultation_status,
@@ -105,8 +86,6 @@ export function getInquiryWorkflowLane(input: {
     depositPaid: input.deposit_paid,
     completedAt: input.completed_at,
   });
-
-  return getLaneFromBookingStage(bookingStage);
 }
 
 export function buildWorkflowColumnsFromInquiries(
@@ -133,7 +112,7 @@ export function buildWorkflowColumnsFromInquiries(
   }
 
   for (const inquiry of inquiries) {
-    const bookingStage = deriveBookingStage({
+    const lane = deriveWorkflowStage({
       bookingStage: inquiry.booking_stage,
       inquiryStatus: inquiry.status,
       consultationStatus: inquiry.consultation_status,
@@ -142,8 +121,6 @@ export function buildWorkflowColumnsFromInquiries(
       depositPaid: inquiry.deposit_paid,
       completedAt: inquiry.completed_at ?? null,
     });
-
-    const lane = getLaneFromBookingStage(bookingStage);
     grouped.get(lane)?.push({
       id: inquiry.id,
       title: `${inquiry.first_name ?? ""} ${inquiry.last_name ?? ""}`.trim() || "Unnamed inquiry",

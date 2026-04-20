@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getDocumentById } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,8 @@ export default async function DocumentDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdminPage("sales");
+
   const { id } = await params;
   const document = await getDocumentById(id);
 

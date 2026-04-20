@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ItemizedPricePreview from "@/components/forms/admin/itemized-price-preview";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ export default async function InquiryItemizedDraftPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdminPage("overview");
+
   const { id } = await params;
 
   const { data: inquiry, error: inquiryError } = await supabaseAdmin

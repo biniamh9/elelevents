@@ -13,7 +13,7 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("overview");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }

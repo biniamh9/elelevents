@@ -2,10 +2,13 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import DocumentsList from "@/components/forms/admin/documents-list";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function DocumentsPage() {
+  await requireAdminPage("sales");
+
   const { data: documents, error } = await supabaseAdmin
     .from("client_documents")
     .select("*")

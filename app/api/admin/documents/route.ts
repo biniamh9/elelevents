@@ -38,7 +38,7 @@ function normalizeLineItems(items: unknown): ClientDocumentLineItem[] {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdminApi();
+  const auth = await requireAdminApi("sales");
   if (auth.errorResponse) {
     return auth.errorResponse;
   }

@@ -29,7 +29,7 @@ function getContentType(file: File, extension: string) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("content");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }

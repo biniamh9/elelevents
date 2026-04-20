@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAdminApi();
+    const auth = await requireAdminApi("content");
     if (auth.errorResponse) {
       return auth.errorResponse;
     }
