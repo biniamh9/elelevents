@@ -7,6 +7,8 @@ export type FinanceOverview = {
   trackedExpenses: number;
   outstandingBalances: number;
   depositCollectionRate: number;
+  expenseTrackingAvailable: boolean;
+  expenseTrackingMessage: string | null;
   payments: Array<{
     id: string;
     client_name: string;
@@ -31,6 +33,10 @@ export type FinanceOverview = {
   }>;
 };
 
+function isMissingRelationError(error: { code?: string | null; message?: string | null } | null) {
+  return error?.code === "42P01" || error?.message?.toLowerCase().includes("relation") && error.message.toLowerCase().includes("does not exist");
+}
+
 export async function getFinanceOverview(): Promise<FinanceOverview> {
   const [{ data: payments, error: paymentsError }, { data: expenses, error: expensesError }, { data: contracts, error: contractsError }] =
     await Promise.all([
@@ -50,7 +56,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
   if (paymentsError) {
     throw new Error(paymentsError.message);
   }
-  if (expensesError) {
+  if (expensesError && !isMissingRelationError(expensesError)) {
     throw new Error(expensesError.message);
   }
   if (contractsError) {
@@ -98,6 +104,10 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     depositContracts.length > 0
       ? Math.round((depositPaidContracts.length / depositContracts.length) * 100)
       : 0;
+  const expenseTrackingAvailable = !isMissingRelationError(expensesError);
+  const expenseTrackingMessage = expenseTrackingAvailable
+    ? null
+    : "Expense tracking is not configured yet. Run the finance expenses SQL migration to enable this tab.";
 
   return {
     recordedIncome,
@@ -106,6 +116,8 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     trackedExpenses,
     outstandingBalances,
     depositCollectionRate,
+    expenseTrackingAvailable,
+    expenseTrackingMessage,
     payments: normalizedPayments,
     expenses: normalizedExpenses,
   };

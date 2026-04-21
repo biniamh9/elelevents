@@ -205,7 +205,11 @@ export default async function AdminFinancePage({
 
       {tab === "expenses" ? (
         <section className="admin-section-card">
-          <ExpenseManagement initialExpenses={finance.expenses} />
+          <ExpenseManagement
+            initialExpenses={finance.expenses}
+            expenseTrackingAvailable={finance.expenseTrackingAvailable}
+            expenseTrackingMessage={finance.expenseTrackingMessage}
+          />
         </section>
       ) : null}
     </main>

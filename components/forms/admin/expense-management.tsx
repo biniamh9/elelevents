@@ -17,8 +17,12 @@ type ExpenseRecord = {
 
 export default function ExpenseManagement({
   initialExpenses,
+  expenseTrackingAvailable,
+  expenseTrackingMessage,
 }: {
   initialExpenses: ExpenseRecord[];
+  expenseTrackingAvailable: boolean;
+  expenseTrackingMessage: string | null;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [form, setForm] = useState({
@@ -35,6 +39,10 @@ export default function ExpenseManagement({
   const [message, setMessage] = useState<string | null>(null);
 
   async function refreshExpenses() {
+    if (!expenseTrackingAvailable) {
+      return;
+    }
+
     const response = await fetch("/api/admin/finance/expenses", { cache: "no-store" });
     const payload = await response.json();
     if (response.ok) {
@@ -44,6 +52,12 @@ export default function ExpenseManagement({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!expenseTrackingAvailable) {
+      setMessage(expenseTrackingMessage || "Expense tracking is not configured yet.");
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
 
@@ -78,6 +92,11 @@ export default function ExpenseManagement({
   }
 
   async function deleteExpense(id: string) {
+    if (!expenseTrackingAvailable) {
+      setMessage(expenseTrackingMessage || "Expense tracking is not configured yet.");
+      return;
+    }
+
     const response = await fetch(`/api/admin/finance/expenses/${id}`, { method: "DELETE" });
     if (response.ok) {
       await refreshExpenses();
@@ -91,6 +110,9 @@ export default function ExpenseManagement({
           <h3>Add expense</h3>
           <p className="muted">Track vendor payouts, rentals, and production costs against the events business.</p>
         </div>
+        {!expenseTrackingAvailable ? (
+          <p className="muted">{expenseTrackingMessage}</p>
+        ) : null}
         <form className="admin-settings-form" onSubmit={handleSubmit}>
           <div className="admin-dashboard-form-grid">
             <label>
@@ -132,7 +154,7 @@ export default function ExpenseManagement({
           </div>
           <AdminActionRow
             primary={
-              <button type="submit" className="btn" disabled={saving}>
+              <button type="submit" className="btn" disabled={saving || !expenseTrackingAvailable}>
                 {saving ? "Saving..." : "Record expense"}
               </button>
             }
@@ -169,7 +191,12 @@ export default function ExpenseManagement({
                   <td>${expense.amount.toLocaleString()}</td>
                   <td>{expense.status}</td>
                   <td>
-                    <button type="button" className="btn secondary" onClick={() => deleteExpense(expense.id)}>
+                    <button
+                      type="button"
+                      className="btn secondary"
+                      onClick={() => deleteExpense(expense.id)}
+                      disabled={!expenseTrackingAvailable}
+                    >
                       Delete
                     </button>
                   </td>
