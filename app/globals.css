@@ -14653,6 +14653,469 @@ th { background: var(--surface-soft); }
   box-shadow: none;
 }
 
+/* Homepage luxury refactor */
+.luxury-homepage {
+  background:
+    linear-gradient(180deg, #f6f2ec 0%, #f3ede5 34%, #fbf8f3 100%);
+}
+
+.luxury-home-hero {
+  min-height: 100vh;
+  display: grid;
+  align-items: center;
+  background: #0d0b09;
+}
+
+.luxury-home-hero-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.luxury-home-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+  animation: luxuryHeroZoom 14s ease-in-out infinite alternate;
+}
+
+.luxury-home-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6, 6, 6, 0.48), rgba(6, 6, 6, 0.68)),
+    radial-gradient(circle at 50% 38%, rgba(166, 125, 64, 0.18), transparent 34%);
+}
+
+.luxury-home-hero-content {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100vh - var(--site-header-height));
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 20px;
+  max-width: 900px;
+}
+
+.luxury-home-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 191, 137, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7d3ae;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.luxury-home-hero-content h1 {
+  margin: 0;
+  max-width: 11ch;
+  color: #fff9f2;
+  font-size: clamp(3.6rem, 9vw, 6.8rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  text-shadow: 0 20px 46px rgba(0, 0, 0, 0.28);
+}
+
+.luxury-home-hero-content p {
+  max-width: 670px;
+  margin: 0;
+  color: rgba(255, 247, 237, 0.9);
+  font-size: 1.12rem;
+  line-height: 1.75;
+}
+
+.luxury-home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.luxury-home-primary-button {
+  box-shadow: 0 22px 44px rgba(209, 133, 44, 0.34);
+}
+
+.luxury-home-primary-button:hover {
+  box-shadow: 0 26px 54px rgba(209, 133, 44, 0.42);
+}
+
+.luxury-home-secondary-button {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(240, 216, 177, 0.34);
+  color: #fff9f2;
+}
+
+.luxury-home-secondary-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fffdf9;
+}
+
+.luxury-trust-bar {
+  position: relative;
+  margin-top: -74px;
+  z-index: 2;
+}
+
+.luxury-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.luxury-trust-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 22px 24px;
+  border-radius: 28px;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid rgba(84, 62, 38, 0.1);
+  box-shadow: 0 28px 60px rgba(70, 45, 24, 0.08);
+}
+
+.luxury-trust-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(245, 229, 198, 0.98), rgba(214, 178, 109, 0.98));
+  color: #48311d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.luxury-trust-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.luxury-trust-card strong,
+.luxury-trust-card span,
+.luxury-trust-card small {
+  display: block;
+}
+
+.luxury-trust-card strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #131110;
+}
+
+.luxury-trust-card span {
+  margin-top: 3px;
+  font-weight: 700;
+  color: #453528;
+}
+
+.luxury-trust-card small {
+  margin-top: 6px;
+  color: rgba(73, 62, 50, 0.72);
+  line-height: 1.55;
+}
+
+.luxury-home-section {
+  padding: 110px 0;
+}
+
+.luxury-home-section--white {
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.luxury-home-shell {
+  display: grid;
+  gap: 34px;
+}
+
+.luxury-home-section-head {
+  max-width: 760px;
+  display: grid;
+  gap: 14px;
+}
+
+.luxury-home-section-head--centered {
+  margin: 0 auto;
+  text-align: center;
+}
+
+.luxury-home-section-head > span {
+  color: #8d6d42;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.luxury-home-section-head h2 {
+  margin: 0;
+  color: #141210;
+  font-size: clamp(2.2rem, 4.4vw, 3.7rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.luxury-home-section-head p {
+  margin: 0;
+  color: rgba(73, 62, 50, 0.76);
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+
+.luxury-process-grid,
+.luxury-service-grid,
+.luxury-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.luxury-process-card,
+.luxury-service-card,
+.luxury-testimonial-card {
+  padding: 30px;
+  border-radius: 30px;
+  background: rgba(255, 252, 248, 0.92);
+  border: 1px solid rgba(84, 62, 38, 0.08);
+  box-shadow: 0 24px 50px rgba(70, 45, 24, 0.06);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.luxury-process-card:hover,
+.luxury-service-card:hover,
+.luxury-testimonial-card:hover,
+.luxury-portfolio-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 58px rgba(70, 45, 24, 0.1);
+  border-color: rgba(166, 125, 64, 0.18);
+}
+
+.luxury-process-index {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: #8d6d42;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.luxury-process-card h3,
+.luxury-service-card h3,
+.luxury-portfolio-copy h3 {
+  margin: 0 0 10px;
+  color: #161310;
+  font-size: 1.45rem;
+}
+
+.luxury-process-card p,
+.luxury-service-card p,
+.luxury-portfolio-copy p,
+.luxury-testimonial-card p {
+  margin: 0;
+  color: rgba(73, 62, 50, 0.76);
+  line-height: 1.72;
+}
+
+.luxury-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.luxury-portfolio-card {
+  display: grid;
+  overflow: hidden;
+  border-radius: 30px;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid rgba(84, 62, 38, 0.08);
+  box-shadow: 0 24px 50px rgba(70, 45, 24, 0.06);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.luxury-portfolio-image-wrap {
+  overflow: hidden;
+  min-height: 320px;
+}
+
+.luxury-portfolio-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+
+.luxury-portfolio-card:hover .luxury-portfolio-image-wrap img {
+  transform: scale(1.06);
+}
+
+.luxury-portfolio-copy {
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+}
+
+.luxury-portfolio-copy > span,
+.luxury-service-card > span {
+  color: #8d6d42;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.luxury-testimonial-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.luxury-testimonial-stars {
+  margin-bottom: 18px;
+  color: #b48749;
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+}
+
+.luxury-testimonial-meta {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.luxury-testimonial-meta strong {
+  color: #171411;
+}
+
+.luxury-testimonial-meta span {
+  color: rgba(73, 62, 50, 0.72);
+}
+
+.luxury-home-cta {
+  padding: 0 0 110px;
+}
+
+.luxury-home-cta-shell {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 18px;
+  padding: 54px 32px;
+  border-radius: 34px;
+  background:
+    linear-gradient(180deg, rgba(17, 14, 12, 0.96), rgba(24, 18, 14, 0.92)),
+    radial-gradient(circle at top, rgba(173, 132, 70, 0.16), transparent 36%);
+  box-shadow: 0 32px 70px rgba(31, 20, 12, 0.18);
+}
+
+.luxury-home-cta-shell > span {
+  color: #d7b98a;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.luxury-home-cta-shell h2 {
+  margin: 0;
+  color: #fff8f1;
+  font-size: clamp(2.4rem, 4.8vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.luxury-home-cta-shell p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(255, 245, 233, 0.84);
+  line-height: 1.7;
+}
+
+@keyframes luxuryHeroZoom {
+  from { transform: scale(1.04); }
+  to { transform: scale(1.12); }
+}
+
+@media (max-width: 1100px) {
+  .luxury-trust-grid,
+  .luxury-process-grid,
+  .luxury-service-grid,
+  .luxury-testimonial-grid,
+  .luxury-portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .luxury-home-hero-content {
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 780px) {
+  .luxury-home-hero {
+    padding-bottom: 46px;
+  }
+
+  .luxury-home-hero-content {
+    min-height: auto;
+    padding-top: 40px;
+    padding-inline: 24px;
+  }
+
+  .luxury-home-hero-content h1 {
+    max-width: 100%;
+    font-size: clamp(2.9rem, 14vw, 4.3rem);
+  }
+
+  .luxury-home-hero-content p {
+    font-size: 1rem;
+  }
+
+  .luxury-home-hero-actions {
+    width: 100%;
+    display: grid;
+  }
+
+  .luxury-home-hero-actions .btn {
+    width: 100%;
+  }
+
+  .luxury-trust-bar {
+    margin-top: -42px;
+  }
+
+  .luxury-trust-grid,
+  .luxury-process-grid,
+  .luxury-service-grid,
+  .luxury-testimonial-grid,
+  .luxury-portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .luxury-home-section {
+    padding: 84px 0;
+  }
+
+  .luxury-process-card,
+  .luxury-service-card,
+  .luxury-testimonial-card,
+  .luxury-portfolio-copy {
+    padding: 24px;
+  }
+}
+
 .admin-page--workspace .admin-gallery-preview-image {
   border-radius: 18px;
 }
