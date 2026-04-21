@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { getInquiryWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 
 export default function InquiryRecordActions({
@@ -94,24 +94,32 @@ export default function InquiryRecordActions({
             <div key={group.title} className="admin-row-action-group">
               <p className="admin-row-action-group-label">{group.title}</p>
               {group.actions.map((action) => (
-                <Link
+                <AdminWorkflowAction
                   key={`${group.title}-${action.label}`}
                   href={action.href}
-                  className="admin-row-action-item"
-                >
-                  {action.label}
-                </Link>
+                  className="admin-workflow-action--menu"
+                  tone={group.title === "Current step" ? "internal" : "record"}
+                  label={action.label}
+                  description={
+                    group.title === "Current step"
+                      ? "Open the next working area for this inquiry."
+                      : group.title === "Record"
+                        ? "Open the inquiry record or operating workflow."
+                        : "Open the next linked admin area for this inquiry."
+                  }
+                />
               ))}
             </div>
           ))}
           <div className="admin-row-action-group">
             <p className="admin-row-action-group-label">Extras</p>
-            <Link
+            <AdminWorkflowAction
               href={`/admin/inquiries/${inquiryId}/itemized-draft`}
-              className="admin-row-action-item"
-            >
-              Itemized Draft
-            </Link>
+              className="admin-workflow-action--menu"
+              tone="internal"
+              label="Itemized Draft"
+              description="Open the internal itemized quote preview for revision work."
+            />
           </div>
           <button
             type="button"

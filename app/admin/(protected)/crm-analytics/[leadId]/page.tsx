@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { notFound } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
@@ -33,6 +34,20 @@ function getTaskPriority(task: { status: string; title: string }) {
   if (task.status === "deposit") return 4;
   if (task.status === "awaiting_reply") return 5;
   return 6;
+}
+
+function getTaskActionTone(task: { status: string; title: string }) {
+  const title = task.title.toLowerCase();
+
+  if (title.includes("reply") || task.status === "awaiting_reply") {
+    return "email" as const;
+  }
+
+  if (title.includes("deposit") || task.status === "deposit" || task.status === "contract") {
+    return "record" as const;
+  }
+
+  return "internal" as const;
 }
 
 export default async function AdminCrmLeadDetailPage({
@@ -103,6 +118,8 @@ export default async function AdminCrmLeadDetailPage({
       })),
     ],
     followUpTasks: combinedTasks,
+    recordHref: `/admin/crm-analytics/${leadId}`,
+    workflowHref: `/admin/inquiries/${leadId}`,
   }).slice(0, 24);
 
   return (
@@ -155,13 +172,14 @@ export default async function AdminCrmLeadDetailPage({
           </div>
           <div id="tasks" className="crm-task-list">
             {combinedTasks.map((task) => (
-              <div key={task.id} className="crm-task-row">
-                <div>
-                  <strong>{task.title}</strong>
-                  <span>{task.detail || task.dueLabel}</span>
-                </div>
-                <small>{task.dueLabel}</small>
-              </div>
+              <AdminWorkflowAction
+                key={task.id}
+                href={`/admin/crm-analytics/${leadId}`}
+                className="crm-task-row admin-workflow-action--menu"
+                tone={getTaskActionTone(task)}
+                label={task.title}
+                description={`${task.detail || "Open follow-up task"} · ${task.dueLabel}`}
+              />
             ))}
           </div>
         </aside>

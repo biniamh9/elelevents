@@ -1,5 +1,7 @@
 "use client";
 
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+
 export default function DocumentActionBar({
   onSaveDraft,
   onPublish,
@@ -26,23 +28,39 @@ export default function DocumentActionBar({
   return (
     <div className="document-action-bar">
       <div className="document-action-group">
-        <button type="button" className="btn secondary" onClick={onSaveDraft} disabled={busy}>
-          {busy ? "Saving..." : saveLabel}
-        </button>
+        <AdminWorkflowAction
+          tone="internal"
+          label={busy ? "Saving..." : saveLabel}
+          description="Updates the internal document draft, totals, and preview only."
+          onClick={onSaveDraft}
+          disabled={busy}
+        />
         {onPublish ? (
-          <button type="button" className="btn" onClick={onPublish} disabled={busy}>
-            {publishLabel}
-          </button>
+          <AdminWorkflowAction
+            tone="internal"
+            label={publishLabel}
+            description="Marks the document ready for the related workflow to share with the client."
+            onClick={onPublish}
+            disabled={busy}
+          />
         ) : null}
         {onConvert && convertLabel ? (
-          <button type="button" className="btn tertiary" onClick={onConvert} disabled={busy}>
-            {convertLabel}
-          </button>
+          <AdminWorkflowAction
+            tone="record"
+            label={convertLabel}
+            description="Creates the next downstream document record from the current document."
+            onClick={onConvert}
+            disabled={busy}
+          />
         ) : null}
         {onRecordPayment && paymentLabel ? (
-          <button type="button" className="btn tertiary" onClick={onRecordPayment} disabled={busy}>
-            {paymentLabel}
-          </button>
+          <AdminWorkflowAction
+            tone="record"
+            label={paymentLabel}
+            description="Opens payment entry so the invoice can create a receipt and update balances."
+            onClick={onRecordPayment}
+            disabled={busy}
+          />
         ) : null}
       </div>
       {message ? <p className="muted">{message}</p> : null}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CrmAlertsPanel from "@/components/admin/crm-alerts-panel";
 import CrmForecastCard from "@/components/admin/crm-forecast-card";
 import CrmFunnelCard from "@/components/admin/crm-funnel-card";
@@ -61,6 +62,20 @@ function getTaskPriority(task: { status: string; title: string }) {
   if (task.status === "deposit") return 4;
   if (task.status === "awaiting_reply") return 5;
   return 6;
+}
+
+function getTaskActionTone(task: { status: string; title: string }) {
+  const title = task.title.toLowerCase();
+
+  if (title.includes("reply") || task.status === "awaiting_reply") {
+    return "email" as const;
+  }
+
+  if (title.includes("deposit") || task.status === "deposit" || task.status === "contract") {
+    return "record" as const;
+  }
+
+  return "internal" as const;
 }
 
 export default async function AdminCrmAnalyticsPage({
@@ -404,13 +419,14 @@ export default async function AdminCrmAnalyticsPage({
               {combinedTasks.map((task) => {
                 const lead = leadsById.get(task.leadId);
                 return (
-                  <Link key={task.id} href={`/admin/crm-analytics/${task.leadId}`} className="crm-task-row">
-                    <div>
-                      <strong>{task.title}</strong>
-                      <span>{task.detail || (lead ? `${lead.clientName} · ${lead.eventType}` : "Lead")}</span>
-                    </div>
-                    <small>{task.dueLabel}</small>
-                  </Link>
+                  <AdminWorkflowAction
+                    key={task.id}
+                    href={`/admin/crm-analytics/${task.leadId}`}
+                    className="crm-task-row admin-workflow-action--menu"
+                    tone={getTaskActionTone(task)}
+                    label={task.title}
+                    description={`${task.detail || (lead ? `${lead.clientName} · ${lead.eventType}` : "Lead")} · ${task.dueLabel}`}
+                  />
                 );
               })}
             </div>

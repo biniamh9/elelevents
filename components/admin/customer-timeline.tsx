@@ -1,9 +1,13 @@
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+
 type CustomerTimelineEntry = {
   id: string;
   title: string;
   summary: string;
   createdAt: string;
   tone?: "default" | "success" | "warning" | "muted";
+  actionTone: "internal" | "email" | "sync" | "record";
+  href: string;
 };
 
 function formatTimelineDate(value: string) {
@@ -40,13 +44,14 @@ export default function CustomerTimeline({
       <div className="admin-activity-list admin-activity-list--timeline">
         {items.length ? (
           items.map((item) => (
-            <div key={item.id} className={`admin-activity-item admin-activity-item--${item.tone ?? "default"}`}>
-              <div>
-                <strong>{item.title}</strong>
-                <p>{item.summary}</p>
-              </div>
-              <span>{formatTimelineDate(item.createdAt)}</span>
-            </div>
+            <AdminWorkflowAction
+              key={item.id}
+              href={item.href}
+              className={`admin-workflow-action--menu admin-timeline-action admin-timeline-action--${item.tone ?? "default"}`}
+              tone={item.actionTone}
+              label={item.title}
+              description={`${item.summary} · ${formatTimelineDate(item.createdAt)}`}
+            />
           ))
         ) : (
           <p className="muted">{emptyMessage}</p>

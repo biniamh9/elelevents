@@ -1,4 +1,4 @@
-import Link from "next/link";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
@@ -175,13 +175,20 @@ export default function CrmLeadsTable({
                         <div key={`${lead.id}-${group.title}`} className="admin-row-action-group">
                           <p className="admin-row-action-group-label">{group.title}</p>
                           {group.actions.map((action) => (
-                            <Link
+                            <AdminWorkflowAction
                               key={`${lead.id}-${group.title}-${action.label}`}
                               href={action.href}
-                              className="admin-row-action-item"
-                            >
-                              {action.label}
-                            </Link>
+                              className="admin-workflow-action--menu"
+                              tone={group.title === "Current step" ? "internal" : "record"}
+                              label={action.label}
+                              description={
+                                group.title === "Current step"
+                                  ? "Open the next working step for this lead."
+                                  : group.title === "Lead record"
+                                    ? "Open the lead record or add internal context."
+                                    : "Open the next related workflow area for this lead."
+                              }
+                            />
                           ))}
                         </div>
                       ))}

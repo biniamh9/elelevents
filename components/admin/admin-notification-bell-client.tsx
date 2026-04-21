@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import type { AdminNotificationItem } from "@/lib/admin-notifications";
 
 function timeAgo(value: string) {
@@ -46,6 +46,29 @@ function buildNotificationLink(item: AdminNotificationItem) {
   }
 
   return "/admin/inquiries";
+}
+
+function notificationTone(item: AdminNotificationItem) {
+  if (item.action === "contract.docusign_webhook") {
+    return "sync" as const;
+  }
+
+  if (
+    item.action === "inquiry.reply_received" ||
+    item.action === "inquiry.quote_accepted" ||
+    item.action === "inquiry.quote_changes_requested"
+  ) {
+    return "email" as const;
+  }
+
+  if (
+    item.action.startsWith("vendor_referral.") ||
+    item.action.startsWith("vendor.")
+  ) {
+    return "record" as const;
+  }
+
+  return "internal" as const;
 }
 
 function humanizeSummary(item: AdminNotificationItem) {
@@ -158,11 +181,17 @@ export default function AdminNotificationBellClient({
           <div className="admin-notifications-list">
             {items.map((item) => {
               const summary = humanizeSummary(item);
+              const detail =
+                item.summary && item.summary !== summary ? item.summary : "Open details";
+
               return (
-                <Link
+                <AdminWorkflowAction
                   key={item.id}
                   href={buildNotificationLink(item)}
-                  className={`admin-notification-item${item.is_read ? "" : " is-unread"}`}
+                  className={`admin-workflow-action--menu admin-notification-item${item.is_read ? "" : " is-unread"}`}
+                  tone={notificationTone(item)}
+                  label={summary}
+                  description={`${detail} · ${timeAgo(item.created_at)}`}
                   onClick={() => {
                     if (detailsRef.current) {
                       detailsRef.current.open = false;
@@ -171,15 +200,7 @@ export default function AdminNotificationBellClient({
                       void markRead([item.id]);
                     }
                   }}
-                >
-                  <div>
-                    <strong>{summary}</strong>
-                    <span>
-                      {item.summary && item.summary !== summary ? item.summary : "Open details"}
-                    </span>
-                  </div>
-                  <small>{timeAgo(item.created_at)}</small>
-                </Link>
+                />
               );
             })}
           </div>

@@ -333,6 +333,9 @@ export default async function InquiryDetailPage({
     activityLog,
     customerInteractions,
     followUpTasks,
+    recordHref: `/admin/inquiries/${inquiry.id}`,
+    workflowHref: `/admin/inquiries/${inquiry.id}`,
+    contractHref: linkedContract?.id ? `/admin/contracts/${linkedContract.id}` : null,
   }).slice(0, 24);
 
   return (

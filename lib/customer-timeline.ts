@@ -1,5 +1,11 @@
 import type { CrmTask } from "@/lib/crm-analytics";
 
+export type CustomerTimelineActionTone =
+  | "internal"
+  | "email"
+  | "sync"
+  | "record";
+
 export type CustomerTimelineItem = {
   id: string;
   type: "workflow" | "activity" | "interaction" | "task";
@@ -7,11 +13,98 @@ export type CustomerTimelineItem = {
   summary: string;
   createdAt: string;
   tone?: "default" | "success" | "warning" | "muted";
+  actionTone: CustomerTimelineActionTone;
+  href: string;
 };
 
 function humanizeLabel(value: string | null | undefined) {
   if (!value) return "Not set";
   return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function buildStageHref(
+  stage: string | null | undefined,
+  workflowHref: string
+) {
+  switch (stage) {
+    case "intake":
+      return `${workflowHref}#intake-stage`;
+    case "consultation":
+      return `${workflowHref}#consultation-stage`;
+    case "quote":
+      return `${workflowHref}#quote-stage`;
+    case "contract":
+      return `${workflowHref}#contract-stage`;
+    case "handoff":
+      return `${workflowHref}#booking-stage`;
+    default:
+      return `${workflowHref}#next-action`;
+  }
+}
+
+function buildActionHref(input: {
+  action?: string | null;
+  title?: string | null;
+  summary?: string | null;
+  workflowHref: string;
+  recordHref: string;
+  contractHref?: string | null;
+}) {
+  const haystack = `${input.action ?? ""} ${input.title ?? ""} ${input.summary ?? ""}`.toLowerCase();
+
+  if (
+    haystack.includes("quote_changes_requested") ||
+    haystack.includes("revise quote") ||
+    haystack.includes("quote change") ||
+    haystack.includes("itemized")
+  ) {
+    return `${input.workflowHref}#quote-stage`;
+  }
+
+  if (
+    haystack.includes("quote_accepted") ||
+    haystack.includes("quote sent") ||
+    haystack.includes("proposal")
+  ) {
+    return `${input.workflowHref}#quote-stage`;
+  }
+
+  if (haystack.includes("consultation")) {
+    return `${input.workflowHref}#consultation-stage`;
+  }
+
+  if (
+    haystack.includes("deposit") ||
+    haystack.includes("payment") ||
+    haystack.includes("invoice") ||
+    haystack.includes("receipt")
+  ) {
+    return input.contractHref ?? `${input.workflowHref}#contract-stage`;
+  }
+
+  if (
+    haystack.includes("contract") ||
+    haystack.includes("docusign") ||
+    haystack.includes("signature")
+  ) {
+    return input.contractHref ?? `${input.workflowHref}#contract-stage`;
+  }
+
+  if (
+    haystack.includes("booked") ||
+    haystack.includes("handoff") ||
+    haystack.includes("vendor") ||
+    haystack.includes("walkthrough") ||
+    haystack.includes("floor plan")
+  ) {
+    return `${input.workflowHref}#booking-stage`;
+  }
+
+  if (haystack.includes("new inquiry") || haystack.includes("intake")) {
+    return `${input.workflowHref}#intake-stage`;
+  }
+
+  return `${input.recordHref}#next-action`;
 }
 
 export function buildCustomerTimeline(input: {
@@ -48,7 +141,11 @@ export function buildCustomerTimeline(input: {
       }
     | CrmTask
   > | null;
+  recordHref: string;
+  workflowHref?: string;
+  contractHref?: string | null;
 }) {
+  const workflowHref = input.workflowHref ?? input.recordHref;
   const workflowItems: CustomerTimelineItem[] = (input.workflowTransitions ?? []).map((entry) => ({
     id: `workflow-${entry.id}`,
     type: "workflow",
@@ -60,6 +157,8 @@ export function buildCustomerTimeline(input: {
         : `Workflow initialized via ${humanizeLabel(entry.source_action)}.`),
     createdAt: entry.created_at,
     tone: entry.to_stage === "handoff" ? "success" : "default",
+    actionTone: "internal",
+    href: buildStageHref(entry.to_stage, workflowHref),
   }));
 
   const activityItems: CustomerTimelineItem[] = (input.activityLog ?? []).map((entry) => ({
@@ -74,6 +173,27 @@ export function buildCustomerTimeline(input: {
         : entry.action.includes("changes_requested") || entry.action.includes("declined")
           ? "warning"
           : "default",
+    actionTone:
+      entry.action.includes("reply")
+      || entry.action.includes("quote_accepted")
+      || entry.action.includes("quote_changes_requested")
+        ? "email"
+        : entry.action.includes("docusign")
+          ? "sync"
+          : entry.action.includes("contract")
+              || entry.action.includes("deposit")
+              || entry.action.includes("payment")
+              || entry.action.includes("booked")
+            ? "record"
+            : "internal",
+    href: buildActionHref({
+      action: entry.action,
+      title: entry.summary,
+      summary: humanizeLabel(entry.action),
+      workflowHref,
+      recordHref: input.recordHref,
+      contractHref: input.contractHref,
+    }),
   }));
 
   const interactionItems: CustomerTimelineItem[] = (input.customerInteractions ?? []).map(
@@ -86,6 +206,18 @@ export function buildCustomerTimeline(input: {
       summary: entry.body_text,
       createdAt: entry.created_at,
       tone: entry.direction === "inbound" ? "default" : "muted",
+      actionTone:
+        entry.channel === "email" || entry.direction === "inbound"
+          ? "email"
+          : "internal",
+      href: buildActionHref({
+        action: entry.channel,
+        title: entry.subject,
+        summary: entry.body_text,
+        workflowHref,
+        recordHref: input.recordHref,
+        contractHref: input.contractHref,
+      }),
     })
   );
 
@@ -111,6 +243,21 @@ export function buildCustomerTimeline(input: {
         summary.toLowerCase().includes("changes")
           ? "warning"
           : "muted",
+      actionTone:
+        summary.toLowerCase().includes("reply") ||
+        summary.toLowerCase().includes("email")
+          ? "email"
+          : summary.toLowerCase().includes("deposit") ||
+              summary.toLowerCase().includes("contract")
+            ? "record"
+            : "internal",
+      href: buildActionHref({
+        title: entry.title,
+        summary,
+        workflowHref,
+        recordHref: input.recordHref,
+        contractHref: input.contractHref,
+      }),
     } satisfies CustomerTimelineItem;
   });
 

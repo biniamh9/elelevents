@@ -6627,10 +6627,6 @@ th { background: var(--surface-soft); }
   gap: 10px;
 }
 .admin-notification-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: start;
   padding: 14px;
   border-radius: 18px;
   border: 1px solid rgba(73, 49, 31, 0.08);
@@ -6639,23 +6635,6 @@ th { background: var(--surface-soft); }
 .admin-notification-item.is-unread {
   border-color: rgba(var(--accent-rgb), 0.24);
   background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,236,226,0.92));
-}
-.admin-notification-item strong,
-.admin-notification-item span,
-.admin-notification-item small {
-  display: block;
-}
-.admin-notification-item span,
-.admin-notification-item small {
-  color: var(--muted);
-}
-.admin-notification-item span {
-  margin-top: 4px;
-  line-height: 1.5;
-}
-.admin-notification-item small {
-  white-space: nowrap;
-  text-align: right;
 }
 .admin-topbar-pill {
   padding: 12px 16px;
@@ -8199,6 +8178,7 @@ th { background: var(--surface-soft); }
   border: 1px solid rgba(73, 49, 31, 0.1);
   background: #fff;
   color: var(--text-primary);
+  text-decoration: none;
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
@@ -8257,6 +8237,20 @@ th { background: var(--surface-soft); }
 .admin-workflow-action--menu:hover:not(:disabled) {
   box-shadow: none;
   background: rgba(107, 52, 24, 0.08);
+}
+.admin-timeline-action {
+  border-radius: 18px;
+}
+.admin-timeline-action--success {
+  border-color: rgba(22, 163, 74, 0.14);
+  background: linear-gradient(180deg, rgba(244, 251, 246, 0.98), rgba(237, 248, 240, 0.95));
+}
+.admin-timeline-action--warning {
+  border-color: rgba(234, 88, 12, 0.14);
+  background: linear-gradient(180deg, rgba(255, 249, 242, 0.98), rgba(255, 241, 232, 0.95));
+}
+.admin-timeline-action--muted {
+  background: linear-gradient(180deg, rgba(251, 248, 244, 0.98), rgba(247, 241, 234, 0.95));
 }
 .admin-records-empty {
   color: var(--muted);
@@ -13313,9 +13307,9 @@ th { background: var(--surface-soft); }
 }
 
 .document-action-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .admin-document-grid-layout {
