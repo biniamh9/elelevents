@@ -90,7 +90,7 @@ const steps: Array<{
     key: "summary",
     eyebrow: "Final step",
     title: "Review your request",
-    blurb: "Confirm the vision before you move into consultation.",
+    blurb: "Confirm the details clearly before you submit your request.",
   },
 ];
 
@@ -556,7 +556,7 @@ export default function EventRequestForm({
                 >
                   <img src={getImage(index, option.imageFallback)} alt={option.label} />
                   <div>
-                    <strong>{option.label}</strong>
+                <strong>{option.label}</strong>
                     <span>{option.label === "Cultural" ? "Traditional ceremonies and cultural celebrations" : `${option.label} design planning`}</span>
                   </div>
                 </button>
@@ -757,9 +757,9 @@ export default function EventRequestForm({
             <div className="luxury-request-summary">
               <div className="luxury-request-summary-copy">
                 <p className="eyebrow">Summary preview</p>
-                <h3>Your vision is clear enough for a strong first consultation.</h3>
+                <h3>Your event is shaping into something beautiful.</h3>
                 <p className="muted">
-                  We will use these selections to prepare a more aligned conversation around styling scope, room impact, and the design direction that fits your event.
+                  These selections give us a strong foundation for a refined response around decor scope, event atmosphere, and the next planning steps.
                 </p>
               </div>
               <div className="luxury-request-summary-list">
@@ -786,7 +786,7 @@ export default function EventRequestForm({
         </Button>
         {currentStep.key === "summary" ? (
           <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? "Sending..." : "Schedule Your Consultation"}
+            {submitting ? "Sending..." : "Submit Request"}
           </Button>
         ) : (
           <Button onClick={goNext}>Continue</Button>
