@@ -8,7 +8,7 @@ import {
   formatRentalPrice,
   type RentalDepositType,
   type RentalPriceType,
-} from "@/lib/rentals";
+} from "@/lib/rental-shared";
 
 export default function RentalQuotePreview({
   baseRentalPrice,

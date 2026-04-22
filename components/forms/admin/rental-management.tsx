@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import AdminEmptyState from "@/components/admin/admin-empty-state";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
-import { formatMoney, formatRentalPrice, type RentalItem } from "@/lib/rentals";
+import { formatMoney, formatRentalPrice, type RentalItem } from "@/lib/rental-shared";
 
 export default function RentalManagement({
   items,

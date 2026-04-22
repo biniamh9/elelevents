@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
-import { formatMoney, formatRentalPrice, type RentalItem } from "@/lib/rentals";
+import { formatMoney, formatRentalPrice, type RentalItem } from "@/lib/rental-shared";
 
 export default function RentalsGrid({
   items,

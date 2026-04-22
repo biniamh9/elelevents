@@ -11,7 +11,7 @@ import {
   type RentalDepositStatus,
   type RentalInspectionStatus,
   type RentalRefundStatus,
-} from "@/lib/rentals";
+} from "@/lib/rental-shared";
 
 function sortRecords(records: RentalDepositRecord[]) {
   return [...records].sort((a, b) => {

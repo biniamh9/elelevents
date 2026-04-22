@@ -10,7 +10,7 @@ import {
   type RentalItemImage,
   type RentalPriceType,
   type RentalRefundStatus,
-} from "@/lib/rentals";
+} from "@/lib/rental-shared";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const RENTAL_BUCKET = "rentals";

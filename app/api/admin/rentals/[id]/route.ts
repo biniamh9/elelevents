@@ -13,7 +13,7 @@ import {
   removeStoragePaths,
   replaceFeaturedImage,
 } from "@/lib/rental-admin";
-import { slugifyRentalName } from "@/lib/rentals";
+import { slugifyRentalName } from "@/lib/rental-shared";
 
 export async function PATCH(
   request: Request,

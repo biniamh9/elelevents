@@ -14,7 +14,7 @@ import {
   type RentalItem,
   type RentalItemImage,
   type RentalPriceType,
-} from "@/lib/rentals";
+} from "@/lib/rental-shared";
 
 function FilePreview({
   src,
