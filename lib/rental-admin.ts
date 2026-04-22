@@ -1,7 +1,16 @@
 import { randomUUID } from "crypto";
 
 import { rentalItemInputSchema, type RentalItemInput } from "@/lib/validations/rentals";
-import { slugifyRentalName, type RentalItemImage, type RentalPriceType } from "@/lib/rentals";
+import {
+  calculateDepositRefundAmount,
+  slugifyRentalName,
+  type RentalDepositStatus,
+  type RentalDepositType,
+  type RentalInspectionStatus,
+  type RentalItemImage,
+  type RentalPriceType,
+  type RentalRefundStatus,
+} from "@/lib/rentals";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const RENTAL_BUCKET = "rentals";
@@ -114,10 +123,45 @@ export function parseRentalItemFormData(formData: FormData): RentalItemInput {
     default_delivery_fee: parseNumber(formData.get("default_delivery_fee"), 0),
     default_setup_fee: parseNumber(formData.get("default_setup_fee"), 0),
     default_breakdown_fee: parseNumber(formData.get("default_breakdown_fee"), 0),
+    deposit_required: parseBoolean(formData.get("deposit_required"), false),
+    deposit_type: (parseText(formData.get("deposit_type")) as RentalDepositType | null) ?? "flat",
+    deposit_amount: parseNumber(formData.get("deposit_amount"), 0),
+    replacement_cost: parseNumber(formData.get("replacement_cost"), 0),
+    deposit_terms: parseText(formData.get("deposit_terms")),
+    damage_notes: parseText(formData.get("damage_notes")),
     featured: parseBoolean(formData.get("featured"), false),
     active: parseBoolean(formData.get("active"), false),
     sort_order: parseInteger(formData.get("sort_order"), 0),
   });
+}
+
+export function parseRentalDepositRecordFormData(formData: FormData) {
+  const depositCollectedAmount = Math.max(parseNumber(formData.get("deposit_collected_amount"), 0), 0);
+  const damageDeductionAmount = Math.max(parseNumber(formData.get("damage_deduction_amount"), 0), 0);
+  const refundAmount = parseNumber(
+    formData.get("refund_amount"),
+    calculateDepositRefundAmount(depositCollectedAmount, damageDeductionAmount)
+  );
+  const refundDate = parseText(formData.get("refund_date"));
+  const normalizedRefundDate =
+    refundDate && !Number.isNaN(new Date(refundDate).getTime())
+      ? new Date(refundDate).toISOString()
+      : null;
+
+  return {
+    reference_label: parseText(formData.get("reference_label")),
+    deposit_collected_amount: depositCollectedAmount,
+    deposit_status:
+      (parseText(formData.get("deposit_status")) as RentalDepositStatus | null) ?? "pending",
+    inspection_status:
+      (parseText(formData.get("inspection_status")) as RentalInspectionStatus | null) ?? "pending",
+    damage_deduction_amount: damageDeductionAmount,
+    refund_amount: Math.max(refundAmount, 0),
+    refund_status:
+      (parseText(formData.get("refund_status")) as RentalRefundStatus | null) ?? "not_started",
+    refund_date: normalizedRefundDate,
+    damage_notes: parseText(formData.get("damage_notes")),
+  };
 }
 
 export function getFeaturedImageFile(formData: FormData) {

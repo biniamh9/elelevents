@@ -4,7 +4,12 @@ import type { Metadata } from "next";
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
 import PageCTA from "@/components/site/page-cta";
-import { formatMoney, formatRentalPrice, getRentalItemBySlug } from "@/lib/rentals";
+import {
+  calculateRentalSecurityDeposit,
+  formatMoney,
+  formatRentalPrice,
+  getRentalItemBySlug,
+} from "@/lib/rentals";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -40,6 +45,15 @@ export default async function RentalDetailPage({ params }: PageProps) {
   }
 
   const galleryImages = item.images ?? [];
+  const securityDeposit = calculateRentalSecurityDeposit({
+    quantity: item.minimum_order_quantity,
+    subtotal: item.price_type === "flat_rate"
+      ? item.base_rental_price
+      : item.base_rental_price * item.minimum_order_quantity,
+    depositRequired: item.deposit_required,
+    depositType: item.deposit_type,
+    depositAmount: item.deposit_amount,
+  });
 
   return (
     <main className="container section public-page-shell rental-detail-page">
@@ -82,6 +96,10 @@ export default async function RentalDetailPage({ params }: PageProps) {
               <span>Minimum order</span>
               <strong>{item.minimum_order_quantity}</strong>
             </div>
+            <div>
+              <span>Refundable deposit</span>
+              <strong>{item.deposit_required ? formatMoney(securityDeposit) : "Not required"}</strong>
+            </div>
           </div>
 
           <div className="rental-detail-fees">
@@ -115,6 +133,15 @@ export default async function RentalDetailPage({ params }: PageProps) {
               {item.delivery_available || item.setup_available || item.breakdown_available
                 ? "Optional logistics fees can be added based on delivery needs, setup complexity, and pickup timing."
                 : "This item is currently listed without delivery, setup, or breakdown support."}
+            </p>
+          </Card>
+          <Card className="public-callout-card">
+            <p className="eyebrow">Security deposit</p>
+            <h3>Refundable damage coverage</h3>
+            <p>
+              {item.deposit_required
+                ? item.deposit_terms || "This rental uses a refundable security deposit that stays separate from rental and logistics charges."
+                : "This rental is currently listed without a default refundable security deposit requirement."}
             </p>
           </Card>
           <Card className="public-callout-card">

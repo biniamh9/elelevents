@@ -1,7 +1,21 @@
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import { RENTAL_PRICE_TYPES, type RentalItemInput } from "@/lib/validations/rentals";
+import {
+  RENTAL_DEPOSIT_TYPES,
+  RENTAL_PRICE_TYPES,
+  type RentalItemInput,
+} from "@/lib/validations/rentals";
 
 export type RentalPriceType = (typeof RENTAL_PRICE_TYPES)[number];
+export type RentalDepositType = (typeof RENTAL_DEPOSIT_TYPES)[number];
+export type RentalDepositStatus =
+  | "not_required"
+  | "pending"
+  | "collected"
+  | "partially_refunded"
+  | "refunded"
+  | "forfeited";
+export type RentalInspectionStatus = "pending" | "returned" | "inspected";
+export type RentalRefundStatus = "not_started" | "pending" | "processed";
 
 export type RentalItemImage = {
   id: string;
@@ -31,6 +45,12 @@ export type RentalItem = {
   default_delivery_fee: number;
   default_setup_fee: number;
   default_breakdown_fee: number;
+  deposit_required: boolean;
+  deposit_type: RentalDepositType;
+  deposit_amount: number;
+  replacement_cost: number;
+  deposit_terms: string | null;
+  damage_notes: string | null;
   featured: boolean;
   active: boolean;
   sort_order: number;
@@ -40,6 +60,22 @@ export type RentalItem = {
 };
 
 type RentalItemRow = Omit<RentalItem, "images">;
+
+export type RentalDepositRecord = {
+  id: string;
+  rental_item_id: string;
+  reference_label: string | null;
+  deposit_collected_amount: number;
+  deposit_status: RentalDepositStatus;
+  inspection_status: RentalInspectionStatus;
+  damage_deduction_amount: number;
+  refund_amount: number;
+  refund_status: RentalRefundStatus;
+  refund_date: string | null;
+  damage_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 function toNumber(value: unknown, fallback = 0) {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -87,6 +123,9 @@ export type RentalQuoteInput = {
   quantity: number;
   baseRentalPrice: number;
   priceType: RentalPriceType;
+  depositRequired?: boolean;
+  depositType?: RentalDepositType;
+  depositAmount?: number;
   deliveryFee?: number;
   setupFee?: number;
   breakdownFee?: number;
@@ -115,15 +154,70 @@ export function calculateRentalQuoteTotals(input: RentalQuoteInput) {
   const deliveryFee = input.includeDelivery ? Math.max(toNumber(input.deliveryFee, 0), 0) : 0;
   const setupFee = input.includeSetup ? Math.max(toNumber(input.setupFee, 0), 0) : 0;
   const breakdownFee = input.includeBreakdown ? Math.max(toNumber(input.breakdownFee, 0), 0) : 0;
-  const total = Number((subtotal + deliveryFee + setupFee + breakdownFee).toFixed(2));
+  const securityDeposit = calculateRentalSecurityDeposit({
+    quantity: input.quantity,
+    subtotal,
+    depositRequired: input.depositRequired,
+    depositType: input.depositType,
+    depositAmount: input.depositAmount,
+  });
+  const serviceTotal = Number((subtotal + deliveryFee + setupFee + breakdownFee).toFixed(2));
+  const total = Number((serviceTotal + securityDeposit).toFixed(2));
 
   return {
     subtotal,
     deliveryFee,
     setupFee,
     breakdownFee,
+    securityDeposit,
+    serviceTotal,
     total,
   };
+}
+
+export function calculateRentalSecurityDeposit({
+  quantity,
+  subtotal,
+  depositRequired,
+  depositType,
+  depositAmount,
+}: {
+  quantity: number;
+  subtotal: number;
+  depositRequired?: boolean;
+  depositType?: RentalDepositType;
+  depositAmount?: number;
+}) {
+  if (!depositRequired) {
+    return 0;
+  }
+
+  const normalizedAmount = Math.max(toNumber(depositAmount, 0), 0);
+  if (normalizedAmount <= 0) {
+    return 0;
+  }
+
+  if (depositType === "percent") {
+    return Number(((Math.max(subtotal, 0) * normalizedAmount) / 100).toFixed(2));
+  }
+
+  if (depositType === "per_item") {
+    return Number((Math.max(toNumber(quantity, 1), 1) * normalizedAmount).toFixed(2));
+  }
+
+  return Number(normalizedAmount.toFixed(2));
+}
+
+export function calculateDepositRefundAmount(
+  depositCollectedAmount: number,
+  damageDeductionAmount: number
+) {
+  return Number(
+    Math.max(
+      Math.max(toNumber(depositCollectedAmount, 0), 0) - Math.max(toNumber(damageDeductionAmount, 0), 0),
+      0
+    ).toFixed(2)
+  );
 }
 
 function mapRentalItemRow(row: Record<string, unknown>): RentalItemRow {
@@ -146,6 +240,12 @@ function mapRentalItemRow(row: Record<string, unknown>): RentalItemRow {
     default_delivery_fee: toNumber(row.default_delivery_fee, 0),
     default_setup_fee: toNumber(row.default_setup_fee, 0),
     default_breakdown_fee: toNumber(row.default_breakdown_fee, 0),
+    deposit_required: Boolean(row.deposit_required),
+    deposit_type: (row.deposit_type as RentalDepositType) || "flat",
+    deposit_amount: toNumber(row.deposit_amount, 0),
+    replacement_cost: toNumber(row.replacement_cost, 0),
+    deposit_terms: row.deposit_terms ? String(row.deposit_terms) : null,
+    damage_notes: row.damage_notes ? String(row.damage_notes) : null,
     featured: Boolean(row.featured),
     active: Boolean(row.active),
     sort_order: Math.trunc(toNumber(row.sort_order, 0)),
@@ -255,6 +355,38 @@ export function getRentalCategories(items: RentalItem[]) {
   return Array.from(new Set(items.map((item) => item.category).filter(Boolean) as string[])).sort();
 }
 
+function mapRentalDepositRecord(row: Record<string, unknown>): RentalDepositRecord {
+  return {
+    id: String(row.id),
+    rental_item_id: String(row.rental_item_id),
+    reference_label: row.reference_label ? String(row.reference_label) : null,
+    deposit_collected_amount: toNumber(row.deposit_collected_amount, 0),
+    deposit_status: (row.deposit_status as RentalDepositStatus) || "pending",
+    inspection_status: (row.inspection_status as RentalInspectionStatus) || "pending",
+    damage_deduction_amount: toNumber(row.damage_deduction_amount, 0),
+    refund_amount: toNumber(row.refund_amount, 0),
+    refund_status: (row.refund_status as RentalRefundStatus) || "not_started",
+    refund_date: row.refund_date ? String(row.refund_date) : null,
+    damage_notes: row.damage_notes ? String(row.damage_notes) : null,
+    created_at: String(row.created_at ?? new Date().toISOString()),
+    updated_at: String(row.updated_at ?? new Date().toISOString()),
+  };
+}
+
+export async function getRentalDepositRecords(rentalItemId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("rental_deposit_records")
+    .select("*")
+    .eq("rental_item_id", rentalItemId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    return [] as RentalDepositRecord[];
+  }
+
+  return data.map((row) => mapRentalDepositRecord(row as Record<string, unknown>));
+}
+
 export function toRentalItemInput(raw: Record<string, unknown>): RentalItemInput {
   return {
     name: String(raw.name ?? "").trim(),
@@ -272,6 +404,12 @@ export function toRentalItemInput(raw: Record<string, unknown>): RentalItemInput
     default_delivery_fee: Math.max(toNumber(raw.default_delivery_fee, 0), 0),
     default_setup_fee: Math.max(toNumber(raw.default_setup_fee, 0), 0),
     default_breakdown_fee: Math.max(toNumber(raw.default_breakdown_fee, 0), 0),
+    deposit_required: Boolean(raw.deposit_required),
+    deposit_type: (raw.deposit_type as RentalDepositType) || "flat",
+    deposit_amount: Math.max(toNumber(raw.deposit_amount, 0), 0),
+    replacement_cost: Math.max(toNumber(raw.replacement_cost, 0), 0),
+    deposit_terms: raw.deposit_terms ? String(raw.deposit_terms).trim() || null : null,
+    damage_notes: raw.damage_notes ? String(raw.damage_notes).trim() || null : null,
     featured: Boolean(raw.featured),
     active: Boolean(raw.active),
     sort_order: Math.max(Math.trunc(toNumber(raw.sort_order, 0)), 0),

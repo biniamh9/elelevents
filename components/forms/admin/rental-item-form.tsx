@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 
 import AdminActionRow from "@/components/admin/admin-action-row";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import RentalDepositTracking from "@/components/forms/admin/rental-deposit-tracking";
 import RentalQuotePreview from "@/components/forms/admin/rental-quote-preview";
-import { slugifyRentalName, type RentalItem, type RentalItemImage, type RentalPriceType } from "@/lib/rentals";
+import {
+  slugifyRentalName,
+  type RentalDepositRecord,
+  type RentalDepositType,
+  type RentalItem,
+  type RentalItemImage,
+  type RentalPriceType,
+} from "@/lib/rentals";
 
 function FilePreview({
   src,
@@ -31,8 +39,10 @@ function FilePreview({
 
 export default function RentalItemForm({
   item,
+  depositRecords = [],
 }: {
   item?: RentalItem | null;
+  depositRecords?: RentalDepositRecord[];
 }) {
   const router = useRouter();
   const [name, setName] = useState(item?.name ?? "");
@@ -51,6 +61,12 @@ export default function RentalItemForm({
   const [defaultDeliveryFee, setDefaultDeliveryFee] = useState(String(item?.default_delivery_fee ?? 0));
   const [defaultSetupFee, setDefaultSetupFee] = useState(String(item?.default_setup_fee ?? 0));
   const [defaultBreakdownFee, setDefaultBreakdownFee] = useState(String(item?.default_breakdown_fee ?? 0));
+  const [depositRequired, setDepositRequired] = useState(item?.deposit_required ?? false);
+  const [depositType, setDepositType] = useState<RentalDepositType>(item?.deposit_type ?? "flat");
+  const [depositAmount, setDepositAmount] = useState(String(item?.deposit_amount ?? 0));
+  const [replacementCost, setReplacementCost] = useState(String(item?.replacement_cost ?? 0));
+  const [depositTerms, setDepositTerms] = useState(item?.deposit_terms ?? "");
+  const [itemDamageNotes, setItemDamageNotes] = useState(item?.damage_notes ?? "");
   const [featured, setFeatured] = useState(item?.featured ?? false);
   const [active, setActive] = useState(item?.active ?? true);
   const [sortOrder, setSortOrder] = useState(String(item?.sort_order ?? 0));
@@ -107,6 +123,12 @@ export default function RentalItemForm({
     formData.set("default_delivery_fee", defaultDeliveryFee);
     formData.set("default_setup_fee", defaultSetupFee);
     formData.set("default_breakdown_fee", defaultBreakdownFee);
+    formData.set("deposit_required", String(depositRequired));
+    formData.set("deposit_type", depositType);
+    formData.set("deposit_amount", depositAmount);
+    formData.set("replacement_cost", replacementCost);
+    formData.set("deposit_terms", depositTerms);
+    formData.set("damage_notes", itemDamageNotes);
     formData.set("featured", String(featured));
     formData.set("active", String(active));
     formData.set("sort_order", sortOrder);
@@ -356,6 +378,81 @@ export default function RentalItemForm({
         </div>
 
         <div className="card admin-table-card rental-editor-card">
+          <AdminSectionHeader
+            eyebrow="Security Deposit"
+            title="Refundable deposit defaults"
+            description="Set whether this rental usually requires a refundable security deposit and how that deposit should be quoted."
+          />
+          <div className="rental-check-grid">
+            <label className="checkline">
+              <input type="checkbox" checked={depositRequired} onChange={(event) => setDepositRequired(event.target.checked)} />
+              <span>Require a refundable security deposit</span>
+            </label>
+          </div>
+
+          <div className="form-grid">
+            <div className="field">
+              <label className="label">Deposit type</label>
+              <select
+                className="input"
+                value={depositType}
+                onChange={(event) => setDepositType(event.target.value as RentalDepositType)}
+                disabled={!depositRequired}
+              >
+                <option value="flat">Flat amount</option>
+                <option value="per_item">Per item</option>
+                <option value="percent">Percent of rental subtotal</option>
+              </select>
+            </div>
+            <div className="field">
+              <label className="label">{depositType === "percent" ? "Deposit percent" : "Deposit amount"}</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={depositAmount}
+                disabled={!depositRequired}
+                onChange={(event) => setDepositAmount(event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label className="label">Replacement cost</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={replacementCost}
+                onChange={(event) => setReplacementCost(event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="field">
+            <label className="label">Deposit terms</label>
+            <textarea
+              className="textarea"
+              rows={4}
+              value={depositTerms}
+              onChange={(event) => setDepositTerms(event.target.value)}
+              placeholder="Explain when the deposit is collected, when inspection happens, and how refunds are handled."
+            />
+          </div>
+
+          <div className="field">
+            <label className="label">Damage / handling notes</label>
+            <textarea
+              className="textarea"
+              rows={4}
+              value={itemDamageNotes}
+              onChange={(event) => setItemDamageNotes(event.target.value)}
+              placeholder="Capture common damage risks, handling expectations, or cleaning notes for this rental item."
+            />
+          </div>
+        </div>
+
+        <div className="card admin-table-card rental-editor-card">
           <AdminSectionHeader eyebrow="Visibility" title="Public status and merchandising" />
           <div className="rental-check-grid">
             <label className="checkline">
@@ -368,6 +465,10 @@ export default function RentalItemForm({
             </label>
           </div>
         </div>
+
+        {item ? (
+          <RentalDepositTracking rentalItemId={item.id} initialRecords={depositRecords} />
+        ) : null}
 
         <div className="card admin-table-card rental-editor-card">
           <AdminActionRow
@@ -404,6 +505,9 @@ export default function RentalItemForm({
           defaultDeliveryFee={Number(defaultDeliveryFee || 0)}
           defaultSetupFee={Number(defaultSetupFee || 0)}
           defaultBreakdownFee={Number(defaultBreakdownFee || 0)}
+          depositRequired={depositRequired}
+          depositType={depositType}
+          depositAmount={Number(depositAmount || 0)}
         />
       </aside>
     </form>

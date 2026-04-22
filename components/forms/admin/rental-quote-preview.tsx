@@ -6,6 +6,7 @@ import {
   calculateRentalQuoteTotals,
   formatMoney,
   formatRentalPrice,
+  type RentalDepositType,
   type RentalPriceType,
 } from "@/lib/rentals";
 
@@ -19,6 +20,9 @@ export default function RentalQuotePreview({
   defaultDeliveryFee,
   defaultSetupFee,
   defaultBreakdownFee,
+  depositRequired,
+  depositType,
+  depositAmount,
 }: {
   baseRentalPrice: number;
   priceType: RentalPriceType;
@@ -29,6 +33,9 @@ export default function RentalQuotePreview({
   defaultDeliveryFee: number;
   defaultSetupFee: number;
   defaultBreakdownFee: number;
+  depositRequired: boolean;
+  depositType: RentalDepositType;
+  depositAmount: number;
 }) {
   const [quantity, setQuantity] = useState(minimumOrderQuantity || 1);
   const [includeDelivery, setIncludeDelivery] = useState(deliveryAvailable);
@@ -47,6 +54,9 @@ export default function RentalQuotePreview({
         deliveryFee: defaultDeliveryFee,
         setupFee: defaultSetupFee,
         breakdownFee: defaultBreakdownFee,
+        depositRequired,
+        depositType,
+        depositAmount,
       }),
     [
       quantity,
@@ -58,6 +68,9 @@ export default function RentalQuotePreview({
       defaultDeliveryFee,
       defaultSetupFee,
       defaultBreakdownFee,
+      depositRequired,
+      depositType,
+      depositAmount,
     ]
   );
 
@@ -68,7 +81,7 @@ export default function RentalQuotePreview({
           <p className="eyebrow">Preview</p>
           <h3>Rental quote helper</h3>
           <p className="muted">
-            Reusable calculation for item subtotal, delivery, setup, and breakdown.
+            Reusable calculation for item subtotal, logistics fees, and refundable security deposit.
           </p>
         </div>
       </div>
@@ -88,6 +101,19 @@ export default function RentalQuotePreview({
         <span>Base pricing</span>
         <strong>{formatRentalPrice(baseRentalPrice, priceType)}</strong>
       </div>
+
+      {depositRequired ? (
+        <div className="rental-quote-preview-price">
+          <span>Refundable deposit</span>
+          <strong>
+            {depositType === "percent"
+              ? `${depositAmount}% of rental subtotal`
+              : depositType === "per_item"
+                ? `${formatMoney(depositAmount)} per item`
+                : formatMoney(depositAmount)}
+          </strong>
+        </div>
+      ) : null}
 
       <div className="rental-quote-preview-options">
         {deliveryAvailable ? (
@@ -129,7 +155,9 @@ export default function RentalQuotePreview({
         <div><span>Delivery</span><strong>{formatMoney(totals.deliveryFee)}</strong></div>
         <div><span>Setup</span><strong>{formatMoney(totals.setupFee)}</strong></div>
         <div><span>Breakdown</span><strong>{formatMoney(totals.breakdownFee)}</strong></div>
-        <div className="is-total"><span>Grand total</span><strong>{formatMoney(totals.total)}</strong></div>
+        <div><span>Refundable security deposit</span><strong>{formatMoney(totals.securityDeposit)}</strong></div>
+        <div><span>Rental + service charges</span><strong>{formatMoney(totals.serviceTotal)}</strong></div>
+        <div className="is-total"><span>Total due with deposit</span><strong>{formatMoney(totals.total)}</strong></div>
       </div>
     </div>
   );
