@@ -104,6 +104,8 @@ export default function SiteFooter() {
           ) : null}
 
           <div className="site-footer-links" aria-label="Footer links">
+            <Link href="/rentals">Rentals</Link>
+            <Link href="/services">Services</Link>
             <Link href="/contact">Contact</Link>
             <Link href="/vendors">Vendor Support</Link>
             <Link href="/admin/login" className="site-footer-admin-link">

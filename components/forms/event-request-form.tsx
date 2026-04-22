@@ -504,7 +504,8 @@ function getGuidedPreviewOptions(
 function deriveRequestedServices(
   selectedCategories: string[],
   hasUploadsOrNotes: boolean,
-  needsDeliverySetup: boolean
+  needsDeliverySetup: boolean,
+  manualServices: string[] = []
 ) {
   const labels = selectedCategories.map((key) => guidedPreviewCategories[key]?.title).filter(Boolean);
 
@@ -516,7 +517,7 @@ function deriveRequestedServices(
     labels.push("Delivery and setup");
   }
 
-  return Array.from(new Set(labels));
+  return Array.from(new Set([...labels, ...manualServices.filter(Boolean)]));
 }
 
 function getEstimatedGuestCount(guestCount: string, guestCountRange: string) {
@@ -641,10 +642,14 @@ export default function EventRequestForm({
   vendors,
   portfolioItems,
   socialLinks,
+  initialInquiryNote,
+  initialServices,
 }: {
   vendors: PublicVendorRecommendation[];
   portfolioItems: GalleryItem[];
   socialLinks: SiteSocialLinks;
+  initialInquiryNote?: string;
+  initialServices?: string[];
 }) {
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
@@ -832,10 +837,28 @@ export default function EventRequestForm({
       deriveRequestedServices(
         selectedCategoryKeys,
         hasCategoryNotesOrUploads,
-        form.needsDeliverySetup
+        form.needsDeliverySetup,
+        form.services
       ),
-    [selectedCategoryKeys, hasCategoryNotesOrUploads, form.needsDeliverySetup]
+    [selectedCategoryKeys, hasCategoryNotesOrUploads, form.needsDeliverySetup, form.services]
   );
+
+  useEffect(() => {
+    if (!initialInquiryNote && !(initialServices?.length)) {
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      additionalInfo: prev.additionalInfo
+        ? prev.additionalInfo
+        : initialInquiryNote || "",
+      services:
+        prev.services.length || !(initialServices?.length)
+          ? prev.services
+          : initialServices,
+    }));
+  }, [initialInquiryNote, initialServices]);
 
   useEffect(() => {
     setSelectedDecorCategories([]);

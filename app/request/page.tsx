@@ -5,8 +5,14 @@ import PageCTA from "@/components/site/page-cta";
 import { getGalleryItems } from "@/lib/gallery";
 import { getSiteSocialLinks } from "@/lib/social-links";
 import Card from "@/components/ui/card";
+import { getRentalItemBySlug } from "@/lib/rentals";
 
-export default async function RequestPage() {
+export default async function RequestPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string; item?: string }>;
+}) {
+  const params = await searchParams;
   const { data: vendors } = await supabaseAdmin
     .from("vendor_accounts")
     .select("id, business_name, service_categories, city, state, service_area, instagram_handle, website_url, bio, pricing_tier")
@@ -15,6 +21,18 @@ export default async function RequestPage() {
     .order("business_name", { ascending: true });
   const images = await getGalleryItems(12);
   const socialLinks = await getSiteSocialLinks();
+  const requestedService = params.service?.trim().toLowerCase() || "";
+  const rentalSlug = params.item?.trim() || "";
+  const rentalItem =
+    requestedService === "rentals" && rentalSlug ? await getRentalItemBySlug(rentalSlug) : null;
+  const initialServices =
+    requestedService === "rentals" ? ["Rental inquiry"] : [];
+  const initialInquiryNote =
+    requestedService === "rentals"
+      ? rentalItem
+        ? `Rental inquiry requested for: ${rentalItem.name}. Please confirm availability, quantity, delivery/setup options, and refundable security deposit details.`
+        : "Rental inquiry requested. Please confirm availability, quantity, delivery/setup options, and refundable security deposit details."
+      : undefined;
 
   return (
     <main className="container section public-page-shell public-page-shell--request">
@@ -52,7 +70,13 @@ export default async function RequestPage() {
         }
       />
 
-      <EventRequestForm vendors={vendors ?? []} portfolioItems={images} socialLinks={socialLinks} />
+      <EventRequestForm
+        vendors={vendors ?? []}
+        portfolioItems={images}
+        socialLinks={socialLinks}
+        initialInquiryNote={initialInquiryNote}
+        initialServices={initialServices}
+      />
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
         <Card>

@@ -47,6 +47,21 @@ const inclusionHighlights = [
   },
 ];
 
+const rentalHighlights = [
+  {
+    title: "Chair and seating rentals",
+    text: "Quote-ready rental inventory for celebrations that need elegant seating, practical quantity tracking, and clear logistics.",
+  },
+  {
+    title: "Focal decor rentals",
+    text: "Backdrop pieces, candles, and decor assets that can support a rentals-only inquiry or be folded into a broader design scope.",
+  },
+  {
+    title: "Delivery and setup support",
+    text: "Qualifying rental items can include delivery, setup, breakdown, and refundable security deposit terms within the quote flow.",
+  },
+];
+
 export default async function ServicesPage() {
   const packages = await getPackages(3);
   const images = await getGalleryItems(6);
@@ -100,6 +115,30 @@ export default async function ServicesPage() {
             <p>{item.text}</p>
           </Card>
         ))}
+      </section>
+
+      <section className="simple-package-shell">
+        <div className="simple-package-head">
+          <p className="eyebrow">Rentals</p>
+          <h2>Browse rental inventory for seating, focal pieces, and event-ready decor assets.</h2>
+          <p className="muted">
+            If you need rentals without full event design, or you want to combine both in one inquiry,
+            the rentals page gives a cleaner starting point.
+          </p>
+        </div>
+        <div className="public-callout-grid">
+          {rentalHighlights.map((item) => (
+            <Card key={item.title} className="public-callout-card">
+              <p className="eyebrow">Rental support</p>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </Card>
+          ))}
+        </div>
+        <div className="btn-row">
+          <Button href="/rentals">Browse Rentals</Button>
+          <Button href="/request?service=rentals" variant="secondary">Request Rental Quote</Button>
+        </div>
       </section>
 
       <section className="seo-service-links-shell">
