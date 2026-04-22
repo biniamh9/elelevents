@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
+import { clearRentalInquiryItems, readRentalInquiryItems } from "@/lib/rental-inquiry";
 import type { SiteSocialLinks } from "@/lib/social-links";
 import type { PublicVendorRecommendation } from "@/lib/vendors";
 import { VENDOR_SERVICE_CATEGORIES } from "@/lib/vendors";
@@ -644,12 +645,14 @@ export default function EventRequestForm({
   socialLinks,
   initialInquiryNote,
   initialServices,
+  rentalInquiryMode,
 }: {
   vendors: PublicVendorRecommendation[];
   portfolioItems: GalleryItem[];
   socialLinks: SiteSocialLinks;
   initialInquiryNote?: string;
   initialServices?: string[];
+  rentalInquiryMode?: "single" | "shortlist" | null;
 }) {
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
@@ -676,6 +679,7 @@ export default function EventRequestForm({
   const [momentGuidanceRequested, setMomentGuidanceRequested] = useState(false);
   const [activeDecorKey, setActiveDecorKey] = useState("");
   const [expandedCategoryImages, setExpandedCategoryImages] = useState<Record<string, boolean>>({});
+  const [rentalInquirySummary, setRentalInquirySummary] = useState("");
   const effectiveEventType =
     form.eventType === "Other" ? form.customEventType.trim() : form.eventType;
   const experienceCards = useMemo(
@@ -859,6 +863,34 @@ export default function EventRequestForm({
           : initialServices,
     }));
   }, [initialInquiryNote, initialServices]);
+
+  useEffect(() => {
+    if (rentalInquiryMode !== "shortlist") {
+      setRentalInquirySummary("");
+      return;
+    }
+
+    const shortlist = readRentalInquiryItems();
+    if (!shortlist.length) {
+      setRentalInquirySummary("");
+      return;
+    }
+
+    const summary = shortlist
+      .map((item) => `${item.name} (${item.minimum_order_quantity}+ minimum)`)
+      .join(", ");
+    const shortlistNote = `Rental shortlist inquiry requested for: ${summary}. Please confirm availability, quantities, delivery/setup options, and refundable security deposit details.`;
+
+    setRentalInquirySummary(summary);
+    setForm((prev) => ({
+      ...prev,
+      additionalInfo:
+        prev.additionalInfo && prev.additionalInfo.trim().length > 0
+          ? prev.additionalInfo
+          : shortlistNote,
+      services: prev.services.length ? prev.services : ["Rental inquiry"],
+    }));
+  }, [rentalInquiryMode]);
 
   useEffect(() => {
     setSelectedDecorCategories([]);
@@ -1598,6 +1630,11 @@ export default function EventRequestForm({
     setExpandedCategoryImages({});
     setStep(0);
     setLoading(false);
+
+    if (rentalInquiryMode === "shortlist") {
+      clearRentalInquiryItems();
+      setRentalInquirySummary("");
+    }
   }
 
   if (success && submittedSummary) {
@@ -1808,6 +1845,17 @@ export default function EventRequestForm({
 
   return (
     <div className="booking-shell">
+      {rentalInquiryMode === "shortlist" && rentalInquirySummary ? (
+        <section className="booking-hero card">
+          <div className="booking-hero-copy">
+            <p className="eyebrow">Rental shortlist ready</p>
+            <h3>Your saved rental items will be included in this inquiry.</h3>
+            <p className="muted">
+              {rentalInquirySummary}
+            </p>
+          </div>
+        </section>
+      ) : null}
       <section className="booking-hero card">
         <div className="booking-hero-copy">
           <p className="eyebrow">Luxury request experience</p>

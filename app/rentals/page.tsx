@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import PageCTA from "@/components/site/page-cta";
+import RentalInquiryBanner from "@/components/site/rental-inquiry-banner";
 import RentalsGrid from "@/components/site/rentals-grid";
 import Card from "@/components/ui/card";
 import { getRentalCategories, getRentalItems } from "@/lib/rentals";
@@ -66,6 +67,8 @@ export default async function RentalsPage({
           ))}
         </div>
       </section>
+
+      <RentalInquiryBanner />
 
       <RentalsGrid items={items} />
 

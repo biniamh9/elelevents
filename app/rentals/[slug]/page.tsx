@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
 import PageCTA from "@/components/site/page-cta";
+import RentalDetailActions from "@/components/site/rental-detail-actions";
 import {
   calculateRentalSecurityDeposit,
   formatMoney,
@@ -108,10 +108,7 @@ export default async function RentalDetailPage({ params }: PageProps) {
             <div><span>Breakdown</span><strong>{item.breakdown_available ? formatMoney(item.default_breakdown_fee) : "Not available"}</strong></div>
           </div>
 
-          <div className="btn-row">
-            <Button href={`/request?service=rentals&item=${item.slug}`}>Request Rental Quote</Button>
-            <Button href="/gallery" variant="secondary">View Portfolio</Button>
-          </div>
+          <RentalDetailActions item={item} />
         </Card>
       </section>
 

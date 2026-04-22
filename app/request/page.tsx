@@ -10,7 +10,7 @@ import { getRentalItemBySlug } from "@/lib/rentals";
 export default async function RequestPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string; item?: string }>;
+  searchParams: Promise<{ service?: string; item?: string; source?: string }>;
 }) {
   const params = await searchParams;
   const { data: vendors } = await supabaseAdmin
@@ -23,12 +23,19 @@ export default async function RequestPage({
   const socialLinks = await getSiteSocialLinks();
   const requestedService = params.service?.trim().toLowerCase() || "";
   const rentalSlug = params.item?.trim() || "";
+  const rentalSource = params.source?.trim().toLowerCase() || "";
   const rentalItem =
     requestedService === "rentals" && rentalSlug ? await getRentalItemBySlug(rentalSlug) : null;
+  const rentalInquiryMode =
+    requestedService === "rentals"
+      ? rentalSource === "shortlist"
+        ? "shortlist"
+        : "single"
+      : null;
   const initialServices =
     requestedService === "rentals" ? ["Rental inquiry"] : [];
   const initialInquiryNote =
-    requestedService === "rentals"
+    rentalInquiryMode === "single"
       ? rentalItem
         ? `Rental inquiry requested for: ${rentalItem.name}. Please confirm availability, quantity, delivery/setup options, and refundable security deposit details.`
         : "Rental inquiry requested. Please confirm availability, quantity, delivery/setup options, and refundable security deposit details."
@@ -76,6 +83,7 @@ export default async function RequestPage({
         socialLinks={socialLinks}
         initialInquiryNote={initialInquiryNote}
         initialServices={initialServices}
+        rentalInquiryMode={rentalInquiryMode}
       />
 
       <div style={{ marginTop: "24px" }} className="grid-2 public-note-grid">
