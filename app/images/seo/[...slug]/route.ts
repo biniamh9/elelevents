@@ -25,29 +25,36 @@ export async function GET(_: Request, context: RouteContext) {
     <svg width="1600" height="1120" viewBox="0 0 1600 1120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="1120" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#F7F1E8"/>
-          <stop offset="0.55" stop-color="#E9DED0"/>
-          <stop offset="1" stop-color="#DCC4AA"/>
+          <stop stop-color="#F8F3EB"/>
+          <stop offset="0.58" stop-color="#EADFCC"/>
+          <stop offset="1" stop-color="#D7C2A4"/>
         </linearGradient>
-        <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1248 228) rotate(123.987) scale(642.958 582.387)">
-          <stop stop-color="#F6D7B4" stop-opacity="0.9"/>
-          <stop offset="1" stop-color="#F6D7B4" stop-opacity="0"/>
+        <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1190 250) rotate(125) scale(720 540)">
+          <stop stop-color="#F2D2AF" stop-opacity="0.7"/>
+          <stop offset="1" stop-color="#F2D2AF" stop-opacity="0"/>
         </radialGradient>
-        <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
-          <stop stop-color="rgba(255,255,255,0.88)"/>
-          <stop offset="1" stop-color="rgba(255,255,255,0.58)"/>
+        <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(420 860) rotate(32) scale(680 440)">
+          <stop stop-color="#FFFFFF" stop-opacity="0.54"/>
+          <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+          <stop stop-color="#FFFDF8" stop-opacity="0.78"/>
+          <stop offset="1" stop-color="#FFF8EF" stop-opacity="0.4"/>
         </linearGradient>
       </defs>
       <rect width="1600" height="1120" rx="48" fill="url(#bg)"/>
-      <rect width="1600" height="1120" rx="48" fill="url(#glow)"/>
-      <rect x="96" y="96" width="1408" height="928" rx="40" fill="rgba(255,255,255,0.28)" stroke="rgba(93,39,4,0.12)" stroke-width="2"/>
-      <circle cx="336" cy="336" r="208" fill="rgba(255,255,255,0.22)"/>
-      <circle cx="1264" cy="764" r="236" fill="rgba(93,39,4,0.08)"/>
-      <rect x="196" y="176" width="1208" height="768" rx="34" fill="rgba(255,255,255,0.18)"/>
-      <rect x="376" y="354" width="848" height="246" rx="28" fill="url(#panel)" stroke="rgba(93,39,4,0.08)"/>
-      <text x="800" y="314" text-anchor="middle" fill="#7A471F" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="6">ELEL EVENTS</text>
-      <text x="800" y="465" text-anchor="middle" fill="#221813" font-family="Georgia, serif" font-size="78" font-weight="700">${label}</text>
-      <text x="800" y="533" text-anchor="middle" fill="#5F564F" font-family="Arial, sans-serif" font-size="28">Luxury placeholder image</text>
+      <rect width="1600" height="1120" rx="48" fill="url(#glowA)"/>
+      <rect width="1600" height="1120" rx="48" fill="url(#glowB)"/>
+      <rect x="96" y="96" width="1408" height="928" rx="40" fill="url(#frame)" stroke="rgba(93,39,4,0.12)" stroke-width="2"/>
+      <rect x="196" y="164" width="1208" height="792" rx="34" fill="rgba(255,255,255,0.16)" stroke="rgba(93,39,4,0.08)"/>
+      <path d="M196 746C338 676 471 638 614 638C828 638 968 746 1148 746C1244 746 1328 716 1404 666V956H196V746Z" fill="rgba(93,39,4,0.08)"/>
+      <path d="M196 626C324 528 451 480 604 480C798 480 944 598 1132 598C1238 598 1326 564 1404 502V758C1326 808 1230 834 1124 834C938 834 798 734 608 734C460 734 334 772 196 850V626Z" fill="rgba(255,255,255,0.34)"/>
+      <circle cx="456" cy="408" r="126" fill="rgba(255,255,255,0.28)"/>
+      <circle cx="1188" cy="332" r="152" fill="rgba(93,39,4,0.08)"/>
+      <rect x="290" y="236" width="192" height="18" rx="9" fill="rgba(122,71,31,0.16)"/>
+      <rect x="290" y="836" width="288" height="72" rx="24" fill="rgba(255,255,255,0.6)" stroke="rgba(93,39,4,0.1)"/>
+      <text x="338" y="872" fill="#7A471F" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="5">ELEL EVENTS</text>
+      <text x="338" y="902" fill="#3B2A21" font-family="Arial, sans-serif" font-size="24" font-weight="600">${label}</text>
     </svg>
   `.trim();
 

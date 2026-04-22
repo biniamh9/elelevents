@@ -11,6 +11,7 @@ const staticRoutes = [
   "/gallery",
   "/packages",
   "/request",
+  "/rentals",
   "/services",
   "/vendors",
 ];

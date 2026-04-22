@@ -1,0 +1,279 @@
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { RENTAL_PRICE_TYPES, type RentalItemInput } from "@/lib/validations/rentals";
+
+export type RentalPriceType = (typeof RENTAL_PRICE_TYPES)[number];
+
+export type RentalItemImage = {
+  id: string;
+  rental_item_id: string;
+  image_url: string;
+  image_path: string | null;
+  sort_order: number;
+  created_at: string;
+};
+
+export type RentalItem = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string | null;
+  short_description: string | null;
+  full_description: string | null;
+  featured_image_url: string | null;
+  featured_image_path?: string | null;
+  base_rental_price: number;
+  price_type: RentalPriceType;
+  available_quantity: number;
+  minimum_order_quantity: number;
+  delivery_available: boolean;
+  setup_available: boolean;
+  breakdown_available: boolean;
+  default_delivery_fee: number;
+  default_setup_fee: number;
+  default_breakdown_fee: number;
+  featured: boolean;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  images?: RentalItemImage[];
+};
+
+type RentalItemRow = Omit<RentalItem, "images">;
+
+function toNumber(value: unknown, fallback = 0) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
+export function slugifyRentalName(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+export function formatMoney(value: number | null | undefined) {
+  const amount = typeof value === "number" && Number.isFinite(value) ? value : 0;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+export function formatRentalPrice(value: number, priceType: RentalPriceType) {
+  const suffix =
+    priceType === "flat_rate"
+      ? "flat rate"
+      : priceType === "per_set"
+        ? "per set"
+        : "per item";
+
+  return `${formatMoney(value)} ${suffix}`;
+}
+
+export type RentalQuoteInput = {
+  quantity: number;
+  baseRentalPrice: number;
+  priceType: RentalPriceType;
+  deliveryFee?: number;
+  setupFee?: number;
+  breakdownFee?: number;
+  includeDelivery?: boolean;
+  includeSetup?: boolean;
+  includeBreakdown?: boolean;
+};
+
+export function calculateRentalSubtotal({
+  quantity,
+  baseRentalPrice,
+  priceType,
+}: Pick<RentalQuoteInput, "quantity" | "baseRentalPrice" | "priceType">) {
+  const normalizedQuantity = Math.max(toNumber(quantity, 1), 1);
+  const normalizedPrice = Math.max(toNumber(baseRentalPrice, 0), 0);
+
+  if (priceType === "flat_rate") {
+    return Number(normalizedPrice.toFixed(2));
+  }
+
+  return Number((normalizedQuantity * normalizedPrice).toFixed(2));
+}
+
+export function calculateRentalQuoteTotals(input: RentalQuoteInput) {
+  const subtotal = calculateRentalSubtotal(input);
+  const deliveryFee = input.includeDelivery ? Math.max(toNumber(input.deliveryFee, 0), 0) : 0;
+  const setupFee = input.includeSetup ? Math.max(toNumber(input.setupFee, 0), 0) : 0;
+  const breakdownFee = input.includeBreakdown ? Math.max(toNumber(input.breakdownFee, 0), 0) : 0;
+  const total = Number((subtotal + deliveryFee + setupFee + breakdownFee).toFixed(2));
+
+  return {
+    subtotal,
+    deliveryFee,
+    setupFee,
+    breakdownFee,
+    total,
+  };
+}
+
+function mapRentalItemRow(row: Record<string, unknown>): RentalItemRow {
+  return {
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    slug: String(row.slug ?? ""),
+    category: row.category ? String(row.category) : null,
+    short_description: row.short_description ? String(row.short_description) : null,
+    full_description: row.full_description ? String(row.full_description) : null,
+    featured_image_url: row.featured_image_url ? String(row.featured_image_url) : null,
+    featured_image_path: row.featured_image_path ? String(row.featured_image_path) : null,
+    base_rental_price: toNumber(row.base_rental_price, 0),
+    price_type: (row.price_type as RentalPriceType) || "per_item",
+    available_quantity: Math.max(Math.trunc(toNumber(row.available_quantity, 0)), 0),
+    minimum_order_quantity: Math.max(Math.trunc(toNumber(row.minimum_order_quantity, 1)), 1),
+    delivery_available: Boolean(row.delivery_available),
+    setup_available: Boolean(row.setup_available),
+    breakdown_available: Boolean(row.breakdown_available),
+    default_delivery_fee: toNumber(row.default_delivery_fee, 0),
+    default_setup_fee: toNumber(row.default_setup_fee, 0),
+    default_breakdown_fee: toNumber(row.default_breakdown_fee, 0),
+    featured: Boolean(row.featured),
+    active: Boolean(row.active),
+    sort_order: Math.trunc(toNumber(row.sort_order, 0)),
+    created_at: String(row.created_at ?? new Date().toISOString()),
+    updated_at: String(row.updated_at ?? new Date().toISOString()),
+  };
+}
+
+function mapRentalItemImage(row: Record<string, unknown>): RentalItemImage {
+  return {
+    id: String(row.id),
+    rental_item_id: String(row.rental_item_id),
+    image_url: String(row.image_url ?? ""),
+    image_path: row.image_path ? String(row.image_path) : null,
+    sort_order: Math.trunc(toNumber(row.sort_order, 0)),
+    created_at: String(row.created_at ?? new Date().toISOString()),
+  };
+}
+
+export async function getRentalItems(options?: {
+  activeOnly?: boolean;
+  featuredOnly?: boolean;
+  category?: string | null;
+  limit?: number;
+}) {
+  let query = supabaseAdmin
+    .from("rental_items")
+    .select("*")
+    .order("featured", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true });
+
+  if (options?.activeOnly) {
+    query = query.eq("active", true);
+  }
+
+  if (options?.featuredOnly) {
+    query = query.eq("featured", true);
+  }
+
+  if (options?.category) {
+    query = query.eq("category", options.category);
+  }
+
+  if (options?.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return [] as RentalItem[];
+  }
+
+  return data.map((row) => mapRentalItemRow(row as Record<string, unknown>));
+}
+
+export async function getRentalItemBySlug(slug: string) {
+  const { data: item, error } = await supabaseAdmin
+    .from("rental_items")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error || !item) {
+    return null;
+  }
+
+  const { data: images } = await supabaseAdmin
+    .from("rental_item_images")
+    .select("*")
+    .eq("rental_item_id", item.id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  return {
+    ...mapRentalItemRow(item as Record<string, unknown>),
+    images: (images ?? []).map((row) => mapRentalItemImage(row as Record<string, unknown>)),
+  } satisfies RentalItem;
+}
+
+export async function getRentalItemById(id: string) {
+  const { data: item, error } = await supabaseAdmin
+    .from("rental_items")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !item) {
+    return null;
+  }
+
+  const { data: images } = await supabaseAdmin
+    .from("rental_item_images")
+    .select("*")
+    .eq("rental_item_id", id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  return {
+    ...mapRentalItemRow(item as Record<string, unknown>),
+    images: (images ?? []).map((row) => mapRentalItemImage(row as Record<string, unknown>)),
+  } satisfies RentalItem;
+}
+
+export function getRentalCategories(items: RentalItem[]) {
+  return Array.from(new Set(items.map((item) => item.category).filter(Boolean) as string[])).sort();
+}
+
+export function toRentalItemInput(raw: Record<string, unknown>): RentalItemInput {
+  return {
+    name: String(raw.name ?? "").trim(),
+    slug: String(raw.slug ?? "").trim(),
+    category: raw.category ? String(raw.category).trim() || null : null,
+    short_description: raw.short_description ? String(raw.short_description).trim() || null : null,
+    full_description: raw.full_description ? String(raw.full_description).trim() || null : null,
+    base_rental_price: Math.max(toNumber(raw.base_rental_price, 0), 0),
+    price_type: (raw.price_type as RentalPriceType) || "per_item",
+    available_quantity: Math.max(Math.trunc(toNumber(raw.available_quantity, 0)), 0),
+    minimum_order_quantity: Math.max(Math.trunc(toNumber(raw.minimum_order_quantity, 1)), 1),
+    delivery_available: Boolean(raw.delivery_available),
+    setup_available: Boolean(raw.setup_available),
+    breakdown_available: Boolean(raw.breakdown_available),
+    default_delivery_fee: Math.max(toNumber(raw.default_delivery_fee, 0), 0),
+    default_setup_fee: Math.max(toNumber(raw.default_setup_fee, 0), 0),
+    default_breakdown_fee: Math.max(toNumber(raw.default_breakdown_fee, 0), 0),
+    featured: Boolean(raw.featured),
+    active: Boolean(raw.active),
+    sort_order: Math.max(Math.trunc(toNumber(raw.sort_order, 0)), 0),
+  };
+}
