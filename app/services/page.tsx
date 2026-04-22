@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -6,6 +8,7 @@ import { getPackages } from "@/lib/packages";
 import { getGalleryItems } from "@/lib/gallery";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
+import { getSeoLandingPageEntries } from "@/lib/seo-landing-pages";
 
 const serviceAreas = [
   {
@@ -47,6 +50,7 @@ const inclusionHighlights = [
 export default async function ServicesPage() {
   const packages = await getPackages(3);
   const images = await getGalleryItems(6);
+  const seoPages = getSeoLandingPageEntries();
 
   return (
     <main className="container section public-page-shell">
@@ -96,6 +100,26 @@ export default async function ServicesPage() {
             <p>{item.text}</p>
           </Card>
         ))}
+      </section>
+
+      <section className="seo-service-links-shell">
+        <div className="section-heading section-heading--tight">
+          <p className="eyebrow">Atlanta Service Guides</p>
+          <h2>Browse focused decor pages for the celebrations and focal moments clients ask about most.</h2>
+          <p className="lead">
+            These pages cover specific design directions, planning questions, and service details
+            for weddings and milestone events across Atlanta.
+          </p>
+        </div>
+
+        <div className="seo-related-grid">
+          {seoPages.map((page) => (
+            <Link key={page.slug} href={`/${page.slug}`} className="seo-related-card">
+              <strong>{page.title}</strong>
+              <span>{page.metaDescription}</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="simple-package-shell">
