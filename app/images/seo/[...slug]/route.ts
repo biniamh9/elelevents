@@ -33,24 +33,21 @@ export async function GET(_: Request, context: RouteContext) {
           <stop stop-color="#F6D7B4" stop-opacity="0.9"/>
           <stop offset="1" stop-color="#F6D7B4" stop-opacity="0"/>
         </radialGradient>
+        <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+          <stop stop-color="rgba(255,255,255,0.88)"/>
+          <stop offset="1" stop-color="rgba(255,255,255,0.58)"/>
+        </linearGradient>
       </defs>
       <rect width="1600" height="1120" rx="48" fill="url(#bg)"/>
       <rect width="1600" height="1120" rx="48" fill="url(#glow)"/>
-      <rect x="98" y="98" width="1404" height="924" rx="36" fill="rgba(255,255,255,0.5)" stroke="rgba(93,39,4,0.12)" stroke-width="2"/>
-      <rect x="172" y="172" width="488" height="694" rx="28" fill="rgba(255,255,255,0.46)"/>
-      <rect x="710" y="204" width="692" height="244" rx="28" fill="rgba(93,39,4,0.08)"/>
-      <rect x="710" y="488" width="320" height="288" rx="28" fill="rgba(255,255,255,0.74)"/>
-      <rect x="1082" y="488" width="320" height="288" rx="28" fill="rgba(255,255,255,0.74)"/>
-      <text x="172" y="254" fill="#7A471F" font-family="Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="6">ELEL EVENTS</text>
-      <text x="172" y="342" fill="#221813" font-family="Georgia, serif" font-size="94" font-weight="700">${label}</text>
-      <text x="172" y="414" fill="#5F564F" font-family="Arial, sans-serif" font-size="34">Luxury placeholder image for SEO landing pages</text>
-      <text x="172" y="486" fill="#5F564F" font-family="Arial, sans-serif" font-size="30">Replace this with a real portfolio image when ready.</text>
-      <text x="770" y="326" fill="#221813" font-family="Georgia, serif" font-size="52" font-weight="700">Editorial image slot</text>
-      <text x="770" y="388" fill="#5F564F" font-family="Arial, sans-serif" font-size="30">/images/seo/${lastSegment}</text>
-      <text x="770" y="584" fill="#7A471F" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="4">PORTFOLIO READY</text>
-      <text x="770" y="640" fill="#221813" font-family="Georgia, serif" font-size="42">Swap with a real design image</text>
-      <text x="1142" y="584" fill="#7A471F" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="4">LUXURY BRAND FIT</text>
-      <text x="1142" y="640" fill="#221813" font-family="Georgia, serif" font-size="42">Warm, timeless, polished</text>
+      <rect x="96" y="96" width="1408" height="928" rx="40" fill="rgba(255,255,255,0.28)" stroke="rgba(93,39,4,0.12)" stroke-width="2"/>
+      <circle cx="336" cy="336" r="208" fill="rgba(255,255,255,0.22)"/>
+      <circle cx="1264" cy="764" r="236" fill="rgba(93,39,4,0.08)"/>
+      <rect x="196" y="176" width="1208" height="768" rx="34" fill="rgba(255,255,255,0.18)"/>
+      <rect x="376" y="354" width="848" height="246" rx="28" fill="url(#panel)" stroke="rgba(93,39,4,0.08)"/>
+      <text x="800" y="314" text-anchor="middle" fill="#7A471F" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="6">ELEL EVENTS</text>
+      <text x="800" y="465" text-anchor="middle" fill="#221813" font-family="Georgia, serif" font-size="78" font-weight="700">${label}</text>
+      <text x="800" y="533" text-anchor="middle" fill="#5F564F" font-family="Arial, sans-serif" font-size="28">Luxury placeholder image</text>
     </svg>
   `.trim();
 

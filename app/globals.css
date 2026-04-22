@@ -2685,7 +2685,7 @@ a { color: inherit; text-decoration: none; }
   margin-top: 0;
 }
 .seo-landing-page {
-  padding-top: calc(var(--site-header-height) + 28px);
+  padding-top: calc(var(--site-header-height) + 72px);
 }
 .seo-breadcrumbs {
   display: flex;
@@ -2725,8 +2725,8 @@ a { color: inherit; text-decoration: none; }
 }
 .seo-hero-copy h1 {
   margin: 0 0 18px;
-  font-size: clamp(2.9rem, 5.2vw, 5.2rem);
-  line-height: 0.94;
+  font-size: clamp(2.75rem, 4.8vw, 4.8rem);
+  line-height: 0.98;
   max-width: 11ch;
 }
 .seo-hero-copy .lead {
@@ -2779,7 +2779,7 @@ a { color: inherit; text-decoration: none; }
   flex: 0 0 auto;
 }
 .seo-section {
-  margin-top: 34px;
+  margin-top: 44px;
 }
 .section-heading--tight {
   margin-bottom: 22px;
@@ -2803,8 +2803,11 @@ a { color: inherit; text-decoration: none; }
 }
 .seo-gallery-media {
   position: relative;
-  aspect-ratio: 0.9 / 1;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.48), rgba(227, 213, 196, 0.3)),
+    #efe5d8;
 }
 .seo-gallery-media img {
   width: 100%;
@@ -2826,6 +2829,8 @@ a { color: inherit; text-decoration: none; }
   padding: 18px 18px 20px;
   display: grid;
   gap: 8px;
+  min-height: 148px;
+  align-content: start;
 }
 .seo-gallery-meta strong {
   font-size: 1.02rem;
@@ -16361,6 +16366,10 @@ th { background: var(--surface-soft); }
     padding: 28px;
   }
 
+  .seo-landing-page {
+    padding-top: calc(var(--site-header-height) + 48px);
+  }
+
   .booking-workspace {
     grid-template-columns: 1fr !important;
   }
@@ -16401,6 +16410,10 @@ th { background: var(--surface-soft); }
 
   .seo-hero-copy h1 {
     max-width: none;
+  }
+
+  .seo-landing-page {
+    padding-top: calc(var(--site-header-height) + 36px);
   }
 
   .seo-gallery-media {
