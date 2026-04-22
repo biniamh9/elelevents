@@ -642,6 +642,30 @@ export default function QuoteManagementForm({
           <p className="muted">
             Sending to: {clientName} {clientEmail ? `(${clientEmail})` : ""}
           </p>
+
+          <div className="admin-quote-footer-actions">
+            <AdminWorkflowAction
+              tone="internal"
+              label={saving ? "Saving..." : "Save Quote Builder"}
+              description="Save the quote draft and itemized pricing before moving forward."
+              onClick={() => saveQuoteBuilder(false)}
+              disabled={saving}
+            />
+            <AdminWorkflowAction
+              tone="internal"
+              label={saving ? "Saving..." : "Save Quote + Set Quoted Status"}
+              description="Save the quote and update the inquiry status to quoted without emailing the client."
+              onClick={() => saveQuoteBuilder(true)}
+              disabled={saving}
+            />
+            <AdminWorkflowAction
+              tone="email"
+              label={sending ? "Sending..." : "Email Quote to Client"}
+              description="Send the quote email with the current pricing, approval link, and revision flow."
+              onClick={sendQuote}
+              disabled={sending}
+            />
+          </div>
         </div>
 
         <aside className="card admin-quote-sidebar">

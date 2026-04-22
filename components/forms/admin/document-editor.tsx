@@ -12,6 +12,7 @@ import {
   documentTypeLabels,
   formatMoney,
 } from "@/lib/client-documents";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import DocumentActionBar from "@/components/forms/admin/document-action-bar";
 import DocumentHeaderFields from "@/components/forms/admin/document-header-fields";
 import ClientEventDetailsCard from "@/components/forms/admin/client-event-details-card";
@@ -316,6 +317,47 @@ export default function DocumentEditor({
               balance_due: totals.balanceDue,
             })}
           </section>
+
+          <div className="admin-document-footer-actions">
+            <AdminWorkflowAction
+              tone="internal"
+              label={saving ? "Saving..." : document.document_type === "quote"
+                ? "Save Quote Draft"
+                : document.document_type === "invoice"
+                  ? "Save Invoice Draft"
+                  : "Save Receipt Draft"}
+              description="Save the current document details, totals, and preview without changing the external workflow."
+              onClick={() => saveDocument(false)}
+              disabled={saving}
+            />
+            {document.document_type !== "receipt" ? (
+              <AdminWorkflowAction
+                tone="internal"
+                label={document.document_type === "quote" ? "Mark Quote Ready to Share" : "Mark Invoice Ready to Share"}
+                description="Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
+                onClick={() => saveDocument(true)}
+                disabled={saving}
+              />
+            ) : null}
+            {document.document_type !== "receipt" ? (
+              <AdminWorkflowAction
+                tone="record"
+                label={document.document_type === "quote" ? "Convert Quote to Invoice" : "Generate Receipt"}
+                description="Create the next downstream document record from this document."
+                onClick={convertDocument}
+                disabled={saving}
+              />
+            ) : null}
+            {document.document_type === "invoice" ? (
+              <AdminWorkflowAction
+                tone="record"
+                label={showPaymentForm ? "Hide Payment Entry" : "Record Payment"}
+                description="Open payment entry so balances update and a receipt can be generated."
+                onClick={() => setShowPaymentForm((current) => !current)}
+                disabled={saving}
+              />
+            ) : null}
+          </div>
         </div>
 
         <div className="admin-document-sidebar">

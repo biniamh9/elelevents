@@ -15337,6 +15337,33 @@ th { background: var(--surface-soft); }
   transform: none;
 }
 
+.contract-section-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.contract-section-footer-actions .admin-workflow-action {
+  min-width: 260px;
+}
+
+.admin-quote-footer-actions,
+.admin-document-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(73, 49, 31, 0.08);
+}
+
+.admin-quote-footer-actions .admin-workflow-action,
+.admin-document-footer-actions .admin-workflow-action {
+  min-width: 260px;
+}
+
 @media (max-width: 1480px) {
   .admin-workflow-lane {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -15346,6 +15373,21 @@ th { background: var(--surface-soft); }
 @media (max-width: 900px) {
   .admin-workflow-lane {
     grid-template-columns: 1fr;
+  }
+
+  .contract-section-footer-actions {
+    width: 100%;
+  }
+
+  .contract-section-footer-actions .admin-workflow-action,
+  .admin-quote-footer-actions .admin-workflow-action,
+  .admin-document-footer-actions .admin-workflow-action {
+    min-width: 0;
+  }
+
+  .admin-quote-footer-actions,
+  .admin-document-footer-actions {
+    width: 100%;
   }
 }
 

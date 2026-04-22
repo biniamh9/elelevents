@@ -60,6 +60,7 @@ export default function ContractManagementForm({
   const activeSectionIndex = sections.findIndex((item) => item.id === activeSection);
   const activeSectionConfig =
     sections[activeSectionIndex] ?? sections[0];
+  const isLastSection = activeSectionIndex === sections.length - 1;
 
   function updateDetails<K extends keyof ContractDetails>(
     section: K,
@@ -888,23 +889,41 @@ export default function ContractManagementForm({
           Previous Section
         </button>
 
-        <button
-          type="button"
-          className="btn secondary"
-          disabled={activeSectionIndex === sections.length - 1}
-          onClick={() =>
-            setActiveSection(
-              sections[
-                Math.min(
-                  sections.length - 1,
-                  activeSectionIndex + 1
-                )
-              ].id
-            )
-          }
-        >
-          Next Section
-        </button>
+        {isLastSection ? (
+          <div className="contract-section-footer-actions">
+            <AdminWorkflowAction
+              tone="internal"
+              label={loading ? "Saving..." : "Save Contract"}
+              description="Save the final contract details before sending the signature request."
+              onClick={handleSave}
+              disabled={loading}
+            />
+            <AdminWorkflowAction
+              tone="email"
+              label={sending ? "Sending..." : "Send Signature Request"}
+              description="Send the finished contract to the client for signing."
+              onClick={sendContract}
+              disabled={sending}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() =>
+              setActiveSection(
+                sections[
+                  Math.min(
+                    sections.length - 1,
+                    activeSectionIndex + 1
+                  )
+                ].id
+              )
+            }
+          >
+            Next Section
+          </button>
+        )}
       </div>
     </div>
   );
