@@ -46,7 +46,7 @@ export default function RentalInquiryBanner() {
       </div>
 
       <div className="btn-row">
-          <Button href="/request?service=rentals&source=shortlist">Request Saved Rentals</Button>
+          <Button href="/rentals/request?source=shortlist">Request Saved Rentals</Button>
         <Button
           variant="secondary"
           onClick={() => {

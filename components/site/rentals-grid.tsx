@@ -48,7 +48,7 @@ export default function RentalsGrid({
                 </div>
 
                 <div className="btn-row">
-                  <Button href={`/request?service=rentals&item=${item.slug}`}>Request Rental Quote</Button>
+                  <Button href={`/rentals/request?item=${item.slug}`}>Request Rental Quote</Button>
                   <Button
                     variant="secondary"
                     onClick={() => {

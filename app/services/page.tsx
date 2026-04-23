@@ -137,7 +137,7 @@ export default async function ServicesPage() {
         </div>
         <div className="btn-row">
           <Button href="/rentals">Browse Rentals</Button>
-          <Button href="/request?service=rentals" variant="secondary">Request Rental Quote</Button>
+          <Button href="/rentals/request" variant="secondary">Request Rental Quote</Button>
         </div>
       </section>
 
