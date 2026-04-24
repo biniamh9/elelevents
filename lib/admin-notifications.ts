@@ -5,6 +5,8 @@ export const adminNotificationActions = [
   "inquiry.reply_received",
   "inquiry.quote_accepted",
   "inquiry.quote_changes_requested",
+  "rental_request.created",
+  "rental_request.status_updated",
   "vendor.applied",
   "vendor.signed_in",
   "vendor_referral.accepted",

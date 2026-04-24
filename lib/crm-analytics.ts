@@ -66,6 +66,8 @@ export type CrmTask = {
   status: CrmTaskStatus;
   dueLabel: string;
   detail?: string;
+  href?: string;
+  entityType?: "lead" | "rental_request";
 };
 
 export type CrmRevenuePoint = {

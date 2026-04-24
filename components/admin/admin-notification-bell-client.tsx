@@ -28,6 +28,10 @@ function buildNotificationLink(item: AdminNotificationItem) {
     return `/admin/inquiries/${item.entity_id}`;
   }
 
+  if (item.action.startsWith("rental_request.") || item.entity_type === "rental_request") {
+    return `/admin/rentals/requests/${item.entity_id}`;
+  }
+
   if (item.action.startsWith("vendor.") || item.entity_type === "vendor") {
     return "/admin/vendors";
   }
@@ -54,11 +58,13 @@ function notificationTone(item: AdminNotificationItem) {
   }
 
   if (
+    item.action === "rental_request.created" ||
+    item.action === "rental_request.status_updated" ||
     item.action === "inquiry.reply_received" ||
     item.action === "inquiry.quote_accepted" ||
     item.action === "inquiry.quote_changes_requested"
   ) {
-    return "email" as const;
+    return item.action === "rental_request.created" ? ("record" as const) : ("internal" as const);
   }
 
   if (
@@ -77,6 +83,12 @@ function humanizeSummary(item: AdminNotificationItem) {
   }
   if (item.action === "inquiry.reply_received") {
     return "Lead replied by email";
+  }
+  if (item.action === "rental_request.created") {
+    return "New rental quote request";
+  }
+  if (item.action === "rental_request.status_updated") {
+    return item.summary || "Rental request stage updated";
   }
   if (item.action === "inquiry.quote_accepted") {
     return "Quote approved by client";

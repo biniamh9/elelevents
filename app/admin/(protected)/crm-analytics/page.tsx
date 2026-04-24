@@ -35,8 +35,11 @@ import {
   getPipelineValue,
   getSourceMetrics,
   type CrmLead,
+  type CrmTask,
 } from "@/lib/crm-analytics";
 import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
+import { buildRentalFollowUpTasks } from "@/lib/rental-follow-up-tasks";
+import { getRentalQuoteRequests } from "@/lib/rental-requests";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const dynamic = "force-dynamic";
@@ -54,7 +57,8 @@ function formatDate(value: string) {
   });
 }
 
-function getTaskPriority(task: { status: string; title: string }) {
+function getTaskPriority(task: Pick<CrmTask, "status" | "title" | "entityType">) {
+  if (task.entityType === "rental_request") return 0;
   if (task.title.toLowerCase().includes("revise quote")) return 0;
   if (task.status === "overdue") return 1;
   if (task.status === "today") return 2;
@@ -64,8 +68,13 @@ function getTaskPriority(task: { status: string; title: string }) {
   return 6;
 }
 
-function getTaskActionTone(task: { status: string; title: string }) {
+function getTaskActionTone(task: Pick<CrmTask, "status" | "title" | "entityType">) {
   const title = task.title.toLowerCase();
+
+  if (task.entityType === "rental_request") {
+    if (task.status === "awaiting_reply") return "email" as const;
+    return "record" as const;
+  }
 
   if (title.includes("reply") || task.status === "awaiting_reply") {
     return "email" as const;
@@ -100,7 +109,11 @@ export default async function AdminCrmAnalyticsPage({
 
   const filteredLeads = filterCrmLeads(crmLeads, params);
   const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, { status: "open" });
-  const combinedTasks = [...persistedTasks, ...crmTasks].sort((a, b) => {
+  const rentalRequests = await getRentalQuoteRequests({ status: "all" });
+  const rentalTasks = buildRentalFollowUpTasks(
+    rentalRequests.filter((request) => !["completed", "cancelled"].includes(request.status))
+  );
+  const combinedTasks = [...rentalTasks, ...persistedTasks, ...crmTasks].sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return a.title.localeCompare(b.title);
@@ -418,13 +431,14 @@ export default async function AdminCrmAnalyticsPage({
             <div className="crm-task-list">
               {combinedTasks.map((task) => {
                 const lead = leadsById.get(task.leadId);
+                const taskHref = task.href ?? `/admin/crm-analytics/${task.leadId}`;
                 return (
                   <AdminWorkflowAction
                     key={task.id}
-                    href={`/admin/crm-analytics/${task.leadId}`}
+                    href={taskHref}
                     className="crm-task-row admin-workflow-action--menu"
                     tone={getTaskActionTone(task)}
-                    label={task.title}
+                    label={task.entityType === "rental_request" ? `${task.title} · Rental` : task.title}
                     description={`${task.detail || (lead ? `${lead.clientName} · ${lead.eventType}` : "Lead")} · ${task.dueLabel}`}
                   />
                 );
