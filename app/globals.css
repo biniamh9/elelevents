@@ -8527,7 +8527,12 @@ th { background: var(--surface-soft); }
 }
 .admin-status-badge--new { background: #f59e0b; }
 .admin-status-badge--contacted { background: #3b82f6; }
+.admin-status-badge--requested { background: #f59e0b; }
+.admin-status-badge--reviewing { background: #3b82f6; }
 .admin-status-badge--quoted { background: #8b5cf6; }
+.admin-status-badge--reserved { background: #16a34a; }
+.admin-status-badge--completed { background: #0f766e; }
+.admin-status-badge--cancelled { background: #ef4444; }
 .admin-status-badge--booked { background: #16a34a; }
 .admin-status-badge--closed_lost { background: #ef4444; }
 .admin-record-substatus {

@@ -59,7 +59,8 @@ const navSections: NavSection[] = [
     children: [
       { href: "/admin/documents", label: "Documents" },
       { href: "/admin/contracts", label: "Contracts" },
-      { href: "/admin/rentals", label: "Rentals" },
+      { href: "/admin/rentals", label: "Rental Requests" },
+      { href: "/admin/rentals?tab=inventory", label: "Rental Inventory" },
       { href: "/admin/packages", label: "Packages" },
       { href: "/admin/pricing", label: "Pricing" },
     ],

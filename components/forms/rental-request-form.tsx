@@ -297,37 +297,45 @@ export default function RentalRequestForm({
       lastName: form.lastName.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
-      eventType: "Rental inquiry",
       eventDate: form.eventDate || null,
       guestCount: form.guestCount ? Number(form.guestCount) || null : null,
       venueName: form.venueName.trim() || null,
-      venueStatus: null,
-      services: [
-        "Rental inquiry",
-        form.includeDelivery ? "Rental delivery" : null,
-        form.includeSetup ? "Rental setup" : null,
-        form.includeBreakdown ? "Rental breakdown" : null,
-      ].filter(Boolean),
-      indoorOutdoor: null,
-      colorsTheme: null,
-      inspirationNotes: null,
-      visionBoardUrls: [],
-      selectedDecorCategories: [],
-      decorSelections: [],
-      additionalInfo: notes,
-      requestedVendorCategories: [],
-      vendorRequestNotes: null,
-      preferredContactMethod: "Email",
-      consultationPreferenceDate: null,
-      consultationPreferenceTime: null,
-      consultationVideoPlatform: null,
-      referralSource: "website_rental_inquiry",
-      needsDeliverySetup: form.includeDelivery || form.includeSetup || form.includeBreakdown,
-      estimatedPrice: quoteTotals.serviceTotal,
+      occasionLabel: form.occasionLabel.trim() || null,
+      notes,
+      includeDelivery: form.includeDelivery,
+      includeSetup: form.includeSetup,
+      includeBreakdown: form.includeBreakdown,
+      subtotal: quoteTotals.subtotal,
+      deliveryFee: quoteTotals.deliveryFee,
+      setupFee: quoteTotals.setupFee,
+      breakdownFee: quoteTotals.breakdownFee,
+      securityDeposit: quoteTotals.securityDeposit,
+      total: quoteTotals.total,
+      items: selectedItems.map(({ item, quantity }) => {
+        const totals = calculateRentalQuoteTotals({
+          quantity,
+          baseRentalPrice: item.base_rental_price,
+          priceType: item.price_type,
+          depositRequired: item.deposit_required,
+          depositType: item.deposit_type,
+          depositAmount: item.deposit_amount,
+        });
+
+        return {
+          rentalItemId: item.id,
+          slug: item.slug,
+          name: item.name,
+          quantity,
+          unitPrice: item.base_rental_price,
+          priceType: item.price_type,
+          lineSubtotal: totals.subtotal,
+          securityDeposit: totals.securityDeposit,
+        };
+      }),
     };
 
     try {
-      const inquiryRes = await fetch("/api/inquiries", {
+      const inquiryRes = await fetch("/api/rental-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(inquiryPayload),
@@ -339,23 +347,6 @@ export default function RentalRequestForm({
         setError(inquiryData.error || "Unable to submit the rental quote request.");
         setLoading(false);
         return;
-      }
-
-      try {
-        await fetch("/api/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: `${form.firstName} ${form.lastName}`.trim(),
-            email: form.email.trim(),
-            phone: form.phone.trim(),
-            eventDate: form.eventDate,
-            guestCount: form.guestCount || "",
-            notes,
-          }),
-        });
-      } catch (sendError) {
-        console.error("Rental request email failed:", sendError);
       }
 
       if (source === "shortlist") {
