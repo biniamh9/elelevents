@@ -15158,6 +15158,19 @@ th { background: var(--surface-soft); }
   color: rgba(73, 62, 50, 0.72);
 }
 
+.admin-kpi-link-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.admin-kpi-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(70, 45, 24, 0.08);
+  border-color: rgba(166, 125, 64, 0.18);
+}
+
 .admin-dashboard-row,
 .admin-dashboard-row--overview-clean {
   gap: 16px;
@@ -15779,6 +15792,49 @@ th { background: var(--surface-soft); }
   text-transform: uppercase;
 }
 
+.luxury-home-rentals {
+  display: grid;
+  gap: 24px;
+}
+
+.luxury-home-rentals-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 30px;
+  border-radius: 30px;
+  background: rgba(255, 252, 248, 0.96);
+  border: 1px solid rgba(84, 62, 38, 0.08);
+  box-shadow: 0 24px 50px rgba(70, 45, 24, 0.06);
+}
+
+.luxury-home-rentals-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.luxury-home-rentals-copy strong {
+  color: #8d6d42;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.luxury-home-rentals-copy p {
+  margin: 0;
+  max-width: 58ch;
+  color: rgba(73, 62, 50, 0.76);
+  line-height: 1.72;
+}
+
+.luxury-home-rentals-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .luxury-testimonial-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -15913,6 +15969,11 @@ th { background: var(--surface-soft); }
   .luxury-testimonial-card,
   .luxury-portfolio-copy {
     padding: 24px;
+  }
+
+  .luxury-home-rentals-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

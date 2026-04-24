@@ -416,30 +416,35 @@ export default async function AdminInquiriesPage({
       value: String(pendingCount ?? 0),
       note: `${buildShare(pendingCount, totalCount)}% of all requests`,
       tone: "amber",
+      href: "/admin/inquiries?tab=inquiries&status=new",
     },
     {
       label: "Consultations Scheduled",
       value: String(scheduledConsultationCount ?? 0),
       note: "Meetings currently on the calendar",
       tone: "violet",
+      href: "/admin/inquiries?tab=schedule",
     },
     {
       label: "Pending Quotes",
       value: String(quotedCount ?? 0),
       note: "Waiting on client movement",
       tone: "blue",
+      href: "/admin/inquiries?tab=inquiries&status=quoted",
     },
     {
       label: "Booked Events",
       value: String(reservedCount ?? 0),
       note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion`,
       tone: "green",
+      href: "/admin/inquiries?tab=pipeline",
     },
     {
       label: "Booked Revenue",
       value: `$${formatMoney(bookedRevenueThisMonth)}`,
       note: `Outstanding balances: ${outstandingFinalPayments ?? 0}`,
       tone: "red",
+      href: "/admin/contracts",
     },
   ];
 
@@ -457,6 +462,7 @@ export default async function AdminInquiriesPage({
       value: String(currentMonthRentalIntake),
       note: `${rentalIntakeShare}% of this month's total intake`,
       tone: "amber",
+      href: "/admin/rentals?status=requested",
     });
   }
 
@@ -673,11 +679,23 @@ export default async function AdminInquiriesPage({
           <section className="admin-mini-report admin-mini-report--compact">
             <div className="admin-kpi-grid">
               {reportCards.map((card) => (
-                <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
-                  <p className="muted">{card.label}</p>
-                  <strong>{card.value}</strong>
-                  <span>{card.note}</span>
-                </div>
+                card.href ? (
+                  <Link
+                    key={card.label}
+                    href={card.href}
+                    className={`card metric-card metric-card--${card.tone} admin-kpi-link-card`}
+                  >
+                    <p className="muted">{card.label}</p>
+                    <strong>{card.value}</strong>
+                    <span>{card.note}</span>
+                  </Link>
+                ) : (
+                  <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
+                    <p className="muted">{card.label}</p>
+                    <strong>{card.value}</strong>
+                    <span>{card.note}</span>
+                  </div>
+                )
               ))}
             </div>
           </section>

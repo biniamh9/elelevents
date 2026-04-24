@@ -211,6 +211,39 @@ export default async function HomePage() {
 
       <section className="luxury-home-section luxury-home-section--white">
         <div className="container luxury-home-shell">
+          <div className="luxury-home-rentals">
+            <div className="luxury-home-section-head">
+              <span>Rentals</span>
+              <h2>Need rentals without full event design?</h2>
+              <p>
+                Browse quote-ready rental inventory for seating and decor assets,
+                or start a rental-specific request that separates quantity,
+                logistics, and refundable security deposit terms from the full
+                event design flow.
+              </p>
+            </div>
+
+            <div className="luxury-home-rentals-card">
+              <div className="luxury-home-rentals-copy">
+                <strong>Rentals now available</strong>
+                <p>
+                  Chairs, focal decor, and event-ready styling pieces can now be
+                  requested through a dedicated rental quote flow.
+                </p>
+              </div>
+              <div className="luxury-home-rentals-actions">
+                <Button href="/rentals">Browse Rentals</Button>
+                <Button href="/rentals/request" variant="secondary">
+                  Request Rental Quote
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="luxury-home-section luxury-home-section--white">
+        <div className="container luxury-home-shell">
           <div className="luxury-home-section-head">
             <span>Testimonials</span>
             <h2>Trusted by couples and families who wanted the room to feel extraordinary.</h2>
