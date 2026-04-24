@@ -234,6 +234,22 @@ export default async function AdminInquiriesPage({
     .select("*", { count: "exact", head: true })
     .eq("deposit_paid", false);
 
+  const { count: newRentalRequestsCount } = await supabaseAdmin
+    .from("rental_quote_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "requested");
+
+  const { count: rentalQuotesAwaitingReplyCount } = await supabaseAdmin
+    .from("rental_quote_requests")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "quoted");
+
+  const { count: rentalRequestsThisMonth } = await supabaseAdmin
+    .from("rental_quote_requests")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", startOfMonth)
+    .lt("created_at", startOfNextMonth);
+
   const { data: pipelineRows } = await supabaseAdmin
     .from("event_inquiries")
     .select("estimated_price, status, booking_stage, consultation_status")
@@ -427,6 +443,23 @@ export default async function AdminInquiriesPage({
     },
   ];
 
+  const currentMonthRentalIntake = rentalRequestsThisMonth ?? 0;
+  const currentMonthInquiryIntake = inquiriesThisMonth ?? 0;
+  const combinedIntakeThisMonth = currentMonthInquiryIntake + currentMonthRentalIntake;
+  const rentalIntakeShare =
+    combinedIntakeThisMonth > 0 ? Math.round((currentMonthRentalIntake / combinedIntakeThisMonth) * 100) : 0;
+  const shouldHighlightRentalIntake =
+    currentMonthRentalIntake >= 3 || rentalIntakeShare >= 15;
+
+  if (shouldHighlightRentalIntake) {
+    reportCards.splice(3, 0, {
+      label: "Rental Requests",
+      value: String(currentMonthRentalIntake),
+      note: `${rentalIntakeShare}% of this month's total intake`,
+      tone: "amber",
+    });
+  }
+
   const attentionItems = [
     {
       title: "New inquiries waiting on response",
@@ -459,6 +492,22 @@ export default async function AdminInquiriesPage({
       tone: "info" as const,
       href: "/admin/inquiries?tab=schedule",
       cta: "View schedule",
+    },
+    {
+      title: "Rental requests waiting on review",
+      count: newRentalRequestsCount ?? 0,
+      detail: "New rental quote requests that still need inventory and logistics review.",
+      tone: "warning" as const,
+      href: "/admin/rentals?status=requested",
+      cta: "Open rentals",
+    },
+    {
+      title: "Rental quotes awaiting reply",
+      count: rentalQuotesAwaitingReplyCount ?? 0,
+      detail: "Rental clients have been quoted and still need a follow-up or decision.",
+      tone: "attention" as const,
+      href: "/admin/rentals?status=quoted",
+      cta: "Review rental pipeline",
     },
   ].filter((item) => item.count > 0);
 
