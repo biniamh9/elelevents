@@ -25,17 +25,21 @@ export default function GalleryStrip({
         <h2>{title}</h2>
       </div>
       <div className="gallery-strip">
-        {items.map((item) => (
-          <Link key={item.id} href="/gallery" className="gallery-strip-item">
+        {items.map((item, index) => (
+          <Link
+            key={item.id}
+            href={`/gallery/${item.id}`}
+            className="gallery-strip-item"
+            data-reveal-child
+            style={{ ["--reveal-delay" as string]: `${80 + index * 90}ms` }}
+          >
             <img src={item.imageUrl} alt={item.title} />
-            {showCaption ? (
-              <>
-                <span className="gallery-strip-overlay" />
-                <div className="gallery-strip-label">
-                  <span>{item.label || "Event detail"}</span>
-                </div>
-              </>
-            ) : null}
+            <span className="gallery-strip-overlay" />
+            <div className="gallery-strip-label">
+              {showCaption ? <span>{item.label || "Event detail"}</span> : null}
+              <strong>{item.title}</strong>
+              <small>View Experience</small>
+            </div>
           </Link>
         ))}
       </div>

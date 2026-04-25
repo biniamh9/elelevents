@@ -22,8 +22,8 @@ export default function StorySection({
   children,
 }: StorySectionProps) {
   return (
-    <section className={`story-feature ${reverse ? "is-reversed" : ""}`}>
-      <div className="story-feature-media">
+    <section className={`story-feature ${reverse ? "is-reversed" : ""}`} data-reveal>
+      <div className="story-feature-media" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
         {imageUrl ? <img src={imageUrl} alt={imageAlt} /> : null}
         {tags.length ? (
           <div className="story-feature-tags">
@@ -34,7 +34,7 @@ export default function StorySection({
         ) : null}
       </div>
 
-      <div className="story-feature-copy">
+      <div className="story-feature-copy" data-reveal-child style={{ ["--reveal-delay" as string]: "120ms" }}>
         <p className="eyebrow">{eyebrow}</p>
         <h2>{title}</h2>
         <p className="lead">{description}</p>

@@ -1,4 +1,10 @@
 import { Resend } from "resend";
+import {
+  buildAdminMeetingNotificationEmailVariables,
+  buildConsultationScheduledCustomerEmailVariables,
+  buildInquiryConfirmationEmailVariables,
+  buildVideoLinkReminderEmailVariables,
+} from "@/lib/email-template-variables";
 import { getNotificationFromEmail, renderEmailTemplate } from "@/lib/email-template-renderer";
 
 const resend = process.env.RESEND_API_KEY
@@ -60,6 +66,36 @@ function humanizeMeetingType(type: string) {
   return type.replaceAll("_", " ");
 }
 
+function buildCalendarLink(payload: {
+  title: string;
+  description: string;
+  location?: string | null;
+  start: string;
+}) {
+  try {
+    const start = new Date(payload.start);
+    if (Number.isNaN(start.getTime())) {
+      return "";
+    }
+
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const format = (date: Date) =>
+      date.toISOString().replaceAll("-", "").replaceAll(":", "").replace(/\.\d{3}Z$/, "Z");
+
+    const url = new URL("https://calendar.google.com/calendar/render");
+    url.searchParams.set("action", "TEMPLATE");
+    url.searchParams.set("text", payload.title);
+    url.searchParams.set("dates", `${format(start)}/${format(end)}`);
+    url.searchParams.set("details", payload.description);
+    if (payload.location) {
+      url.searchParams.set("location", payload.location);
+    }
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
 export function canSendConsultationEmail() {
   return Boolean(resend);
 }
@@ -85,14 +121,15 @@ async function sendRenderedEmail(to: string, subject: string, html: string, text
 }
 
 export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationPayload) {
-  const [firstName] = payload.clientName.split(" ");
-  const rendered = renderEmailTemplate("request_submitted", {
-    customer_first_name: firstName,
-    customer_full_name: payload.clientName,
-    event_type: payload.eventType,
-    event_date: payload.eventDate || "To be confirmed",
-    response_window: "12–24 hours",
-  });
+  const rendered = renderEmailTemplate(
+    "request_submitted",
+    buildInquiryConfirmationEmailVariables({
+      clientName: payload.clientName,
+      eventType: payload.eventType,
+      eventDate: payload.eventDate,
+      responseWindow: "12–24 hours",
+    })
+  );
 
   await sendRenderedEmail(
     payload.clientEmail,
@@ -105,7 +142,6 @@ export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationP
 export async function sendConsultationScheduledEmails(
   payload: ScheduledConsultationPayload
 ) {
-  const [firstName] = payload.clientName.split(" ");
   const meetingDate = formatMeetingDate(payload.meetingAt);
   const meetingTime = formatMeetingTime(payload.meetingAt);
   const customerTemplate =
@@ -113,17 +149,31 @@ export async function sendConsultationScheduledEmails(
       ? "consultation_scheduled_in_person"
       : "consultation_scheduled_video";
 
-  const customerRendered = renderEmailTemplate(customerTemplate, {
-    customer_first_name: firstName,
-    customer_full_name: payload.clientName,
-    event_type: payload.eventType,
-    event_date: payload.eventDate || "To be confirmed",
-    meeting_date: meetingDate,
-    meeting_time: meetingTime,
-    meeting_type: humanizeMeetingType(payload.meetingType),
-    meeting_location: payload.meetingLocation || "To be confirmed",
-    video_link: payload.videoLink || "",
-  });
+  const customerRendered = renderEmailTemplate(
+    customerTemplate,
+    buildConsultationScheduledCustomerEmailVariables({
+      clientName: payload.clientName,
+      eventType: payload.eventType,
+      eventDate: payload.eventDate,
+      meetingDate,
+      meetingTime,
+      meetingType: humanizeMeetingType(payload.meetingType),
+      meetingLocation: payload.meetingLocation,
+      videoLink: payload.videoLink,
+      calendarLink: buildCalendarLink({
+        title: `${payload.eventType} consultation with Elel Events`,
+        description:
+          payload.meetingType === "in_person"
+            ? "In-person design consultation with Elel Events & Design."
+            : "Video design consultation with Elel Events & Design.",
+        location:
+          payload.meetingType === "in_person"
+            ? payload.meetingLocation || "To be confirmed"
+            : payload.videoLink || "Meeting link will be shared before the call.",
+        start: payload.meetingAt,
+      }),
+    })
+  );
 
   await sendRenderedEmail(
     payload.clientEmail,
@@ -133,19 +183,21 @@ export async function sendConsultationScheduledEmails(
   );
 
   if (process.env.NOTIFICATION_TO_EMAIL) {
-    const adminRendered = renderEmailTemplate("admin_meeting_notification", {
-      customer_first_name: firstName,
-      customer_full_name: payload.clientName,
-      event_type: payload.eventType,
-      event_date: payload.eventDate || "—",
-      meeting_date: meetingDate,
-      meeting_time: meetingTime,
-      meeting_type: humanizeMeetingType(payload.meetingType),
-      meeting_location: payload.meetingLocation || "—",
-      video_link: payload.videoLink || "Will be sent later",
-      customer_email: payload.clientEmail,
-      customer_phone: payload.clientPhone || "—",
-    });
+    const adminRendered = renderEmailTemplate(
+      "admin_meeting_notification",
+      buildAdminMeetingNotificationEmailVariables({
+        clientName: payload.clientName,
+        clientEmail: payload.clientEmail,
+        clientPhone: payload.clientPhone,
+        eventType: payload.eventType,
+        eventDate: payload.eventDate,
+        meetingDate,
+        meetingTime,
+        meetingType: humanizeMeetingType(payload.meetingType),
+        meetingLocation: payload.meetingLocation,
+        videoLink: payload.videoLink,
+      })
+    );
 
     await sendRenderedEmail(
       process.env.NOTIFICATION_TO_EMAIL,
@@ -157,14 +209,15 @@ export async function sendConsultationScheduledEmails(
 }
 
 export async function sendVideoLinkReminderEmail(payload: VideoReminderPayload) {
-  const [firstName] = payload.clientName.split(" ");
-  const rendered = renderEmailTemplate("video_link_reminder", {
-    customer_first_name: firstName,
-    customer_full_name: payload.clientName,
-    meeting_date: formatMeetingDate(payload.meetingAt),
-    meeting_time: formatMeetingTime(payload.meetingAt),
-    video_link: payload.videoLink,
-  });
+  const rendered = renderEmailTemplate(
+    "video_link_reminder",
+    buildVideoLinkReminderEmailVariables({
+      clientName: payload.clientName,
+      meetingDate: formatMeetingDate(payload.meetingAt),
+      meetingTime: formatMeetingTime(payload.meetingAt),
+      videoLink: payload.videoLink,
+    })
+  );
 
   await sendRenderedEmail(
     payload.clientEmail,

@@ -4,7 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { estimateEventPrice } from "@/lib/pricing";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
 import { canSendConsultationEmail, sendInquiryConfirmationEmail } from "@/lib/consultation-email";
-import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
+import { buildAdminEventInquiryEmailVariables } from "@/lib/email-template-variables";
+import {
+  getNotificationFromEmail,
+  renderEmailTemplate,
+} from "@/lib/email-template-renderer";
 import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY
@@ -101,42 +105,24 @@ export async function POST(request: Request) {
     if (resend && process.env.NOTIFICATION_TO_EMAIL) {
       try {
         const fromEmail = getNotificationFromEmail();
+        const renderedEmail = renderEmailTemplate(
+          "admin_event_inquiry",
+          buildAdminEventInquiryEmailVariables({
+            customerFullName: `${data.firstName} ${data.lastName}`,
+            customerEmail: data.email,
+            customerPhone: data.phone,
+            eventType: data.eventType,
+            eventDate: data.eventDate,
+            guestCount: String(data.guestCount ?? "N/A"),
+            venueName: data.venueName,
+            estimatedValue: estimatedPrice,
+          })
+        );
         const { error: sendError } = await resend.emails.send({
           from: fromEmail,
           to: process.env.NOTIFICATION_TO_EMAIL,
-          subject: `New Event Inquiry: ${data.eventType} - ${data.firstName} ${data.lastName}`,
-          html: renderBrandedEmail({
-            eyebrow: "New Inquiry Submitted",
-            heading: `${data.firstName} ${data.lastName} submitted a new event inquiry.`,
-            intro: "A new event request is ready for review in the Elel Events admin workspace.",
-            body: `
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                <tr><td style="padding:0 0 18px;">
-                  <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                    <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Client details</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Name</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.firstName} ${data.lastName}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Email</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.email}</td></tr>
-                      <tr><td style="padding:0;color:#6a5a49;">Phone</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">${data.phone}</td></tr>
-                    </table>
-                  </div>
-                </td></tr>
-                <tr><td>
-                  <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                    <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Event summary</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Event type</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.eventType}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Event date</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.eventDate || "N/A"}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Guest count</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.guestCount ?? "N/A"}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Venue</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.venueName || "N/A"}</td></tr>
-                      <tr><td style="padding:0;color:#6a5a49;">Estimated value</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">$${estimatedPrice.toLocaleString()}</td></tr>
-                    </table>
-                  </div>
-                </td></tr>
-              </table>
-            `,
-            footerNote: "Open the inquiry record to review consultation preference, decor selections, and next steps.",
-          }),
+          subject: renderedEmail.subject,
+          html: renderedEmail.html,
         });
 
         if (sendError) {

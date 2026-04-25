@@ -3,7 +3,15 @@ import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { createDocusignEnvelope, getDocuSignSetupError, isDocuSignConfigured } from "@/lib/docusign";
 import { logActivity } from "@/lib/crm";
-import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
+import {
+  buildContractDeliveryActivityMetadata,
+  buildContractDeliveryWorkflowMetadata,
+} from "@/lib/email-delivery-metadata";
+import { buildContractReadyEmailVariables } from "@/lib/email-template-variables";
+import {
+  getNotificationFromEmail,
+  renderEmailTemplate,
+} from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -78,11 +86,12 @@ export async function POST(
         entityId: id,
         action: "contract.sent",
         summary: "Contract sent through DocuSign",
-        metadata: {
-          client_email: email,
-          envelope_id: envelope.envelopeId,
-          envelope_status: envelope.status,
-        },
+        metadata: buildContractDeliveryActivityMetadata({
+          mode: "docusign",
+          clientEmail: email,
+          envelopeId: envelope.envelopeId,
+          envelopeStatus: envelope.status,
+        }),
       });
 
       if (updated.inquiry_id) {
@@ -96,9 +105,7 @@ export async function POST(
           actorId: auth.user.id,
           sourceAction: "contract.sent",
           note: "Contract sent to client through DocuSign.",
-          metadata: {
-            delivery_mode: "docusign",
-          },
+          metadata: buildContractDeliveryWorkflowMetadata("docusign"),
         });
       }
 
@@ -128,25 +135,26 @@ export async function POST(
 
     const fromEmail = getNotificationFromEmail();
 
+    const renderedContract = renderEmailTemplate(
+      "contract_ready",
+      buildContractReadyEmailVariables({
+        clientName: name,
+        eventType: contract.event_type,
+        eventDate: contract.event_date,
+        venueName: contract.venue_name,
+        contractTotal: contract.contract_total,
+        depositAmount: contract.deposit_amount,
+        balanceDue: contract.balance_due,
+        contractUrl: docusign,
+      })
+    );
+
     const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: email,
-      subject: "Your Event Contract – Elel Events",
-      html: renderBrandedEmail({
-        eyebrow: "Contract Ready",
-        heading: "Your event agreement is ready for review.",
-        intro: `Hello ${name}, thank you for choosing Elel Events for your celebration.`,
-        body: `
-          <p>Please review and sign your contract using the secure link below.</p>
-          <div style="margin:26px 0;">
-            <a href="${docusign}" style="display:inline-block;padding:14px 24px;background:#8c5327;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;">
-              Review & Sign Contract
-            </a>
-          </div>
-          <p>Once signed, we will confirm your booking status and share the next payment and production steps.</p>
-        `,
-        footerNote: "If you need any clarification before signing, reply directly to this message and our team will assist you.",
-      }),
+      subject: renderedContract.subject,
+      html: renderedContract.html,
+      text: renderedContract.text,
     });
 
     if (sendError) {
@@ -180,10 +188,10 @@ export async function POST(
       entityId: id,
       action: "contract.sent",
       summary: "Contract email sent to client using manual signing link",
-      metadata: {
-        client_email: email,
-        manual_link: true,
-      },
+      metadata: buildContractDeliveryActivityMetadata({
+        mode: "manual",
+        clientEmail: email,
+      }),
     });
 
     if (updated.inquiry_id) {
@@ -192,16 +200,14 @@ export async function POST(
         .update({ booking_stage: "contract_sent" })
         .eq("id", updated.inquiry_id);
 
-      await syncInquiryWorkflowStage(supabaseAdmin, {
-        inquiryId: updated.inquiry_id,
-        actorId: auth.user.id,
-        sourceAction: "contract.sent",
-        note: "Contract email sent to client using manual signing link.",
-        metadata: {
-          delivery_mode: "manual",
-        },
-      });
-    }
+        await syncInquiryWorkflowStage(supabaseAdmin, {
+          inquiryId: updated.inquiry_id,
+          actorId: auth.user.id,
+          sourceAction: "contract.sent",
+          note: "Contract email sent to client using manual signing link.",
+          metadata: buildContractDeliveryWorkflowMetadata("manual"),
+        });
+      }
 
     return NextResponse.json({ success: true, mode: "manual", contract: updated });
   } catch (err) {

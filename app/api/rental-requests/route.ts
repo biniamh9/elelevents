@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
-import { getNotificationFromEmail, renderBrandedEmail } from "@/lib/email-template-renderer";
-import { formatMoney } from "@/lib/rental-shared";
+import { buildAdminRentalRequestEmailVariables } from "@/lib/email-template-variables";
+import {
+  getNotificationFromEmail,
+  renderEmailPricingSummarySection,
+  renderEmailTemplate,
+  renderRentalRequestItemsSection,
+} from "@/lib/email-template-renderer";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { rentalRequestSchema } from "@/lib/validations/rental-requests";
 
@@ -112,58 +117,35 @@ export async function POST(request: Request) {
     if (resend && process.env.NOTIFICATION_TO_EMAIL) {
       try {
         const fromEmail = getNotificationFromEmail();
-        const itemRows = requestItems
-          .map(
-            (item) =>
-              `<tr><td style="padding:0 0 8px;color:#6a5a49;">${item.item_name}</td><td style="padding:0 0 8px;text-align:right;font-weight:700;color:#241d18;">${item.quantity}</td><td style="padding:0 0 8px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(Number(item.line_subtotal))}</td></tr>`
-          )
-          .join("");
-
+        const renderedEmail = renderEmailTemplate(
+          "admin_rental_request",
+          buildAdminRentalRequestEmailVariables({
+            customerFullName: `${data.firstName} ${data.lastName}`,
+            customerEmail: data.email,
+            customerPhone: data.phone,
+            rentalItemsHtml: renderRentalRequestItemsSection(
+              requestItems.map((item) => ({
+                item_name: item.item_name,
+                quantity: item.quantity,
+                line_subtotal: Number(item.line_subtotal),
+              }))
+            ),
+            pricingSummaryHtml: renderEmailPricingSummarySection("Pricing summary", [
+              { label: "Rental subtotal", value: data.subtotal },
+              { label: "Delivery", value: data.deliveryFee },
+              { label: "Setup", value: data.setupFee },
+              { label: "Breakdown", value: data.breakdownFee },
+              { label: "Refundable deposit", value: data.securityDeposit },
+              { label: "Estimated total", value: data.total },
+            ]),
+          })
+        );
         await resend.emails.send({
           from: fromEmail,
           to: process.env.NOTIFICATION_TO_EMAIL,
-          subject: `New Rental Quote Request: ${data.firstName} ${data.lastName}`,
-          html: renderBrandedEmail({
-            eyebrow: "New Rental Request",
-            heading: `${data.firstName} ${data.lastName} requested a rental quote.`,
-            intro: "A rental-specific request is ready for review in the rental pipeline.",
-            body: `
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                <tr><td style="padding:0 0 18px;">
-                  <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                    <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Client details</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Name</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.firstName} ${data.lastName}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Email</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${data.email}</td></tr>
-                      <tr><td style="padding:0;color:#6a5a49;">Phone</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">${data.phone}</td></tr>
-                    </table>
-                  </div>
-                </td></tr>
-                <tr><td style="padding:0 0 18px;">
-                  <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                    <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Rental items</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                      ${itemRows}
-                    </table>
-                  </div>
-                </td></tr>
-                <tr><td>
-                  <div style="padding:20px 22px;border:1px solid rgba(121,94,61,0.12);border-radius:22px;background:#fffdfa;">
-                    <div style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#8a5f3a;margin-bottom:14px;">Pricing summary</div>
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Rental subtotal</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.subtotal)}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Delivery</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.deliveryFee)}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Setup</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.setupFee)}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Breakdown</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.breakdownFee)}</td></tr>
-                      <tr><td style="padding:0 0 10px;color:#6a5a49;">Refundable deposit</td><td style="padding:0 0 10px;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.securityDeposit)}</td></tr>
-                      <tr><td style="padding:0;color:#6a5a49;">Estimated total</td><td style="padding:0;text-align:right;font-weight:700;color:#241d18;">${formatMoney(data.total)}</td></tr>
-                    </table>
-                  </div>
-                </td></tr>
-              </table>
-            `,
-            footerNote: "Open Admin > Rentals > Requests to review and move this quote request through the rental pipeline.",
-          }),
+          subject: renderedEmail.subject,
+          html: renderedEmail.html,
+          text: renderedEmail.text,
         });
       } catch (emailError) {
         console.error("Rental request notification failed:", emailError);

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { GalleryItem } from "@/lib/gallery";
 
@@ -130,42 +131,72 @@ export default function GalleryBrowser({
     setActiveIndex(null);
   }, [activeCategory]);
 
+  useEffect(() => {
+    if (activeIndex === null) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [activeIndex]);
+
   return (
     <>
-      <div className="gallery-toolbar">
-        <div className="option-pills">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={`pill ${activeCategory === category ? "selected" : ""}`}
-              onClick={() => setActiveCategory(category)}
+      <section className="gallery-browser-shell" data-reveal>
+        <div className="gallery-toolbar" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
+          <div className="option-pills">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`pill ${activeCategory === category ? "selected" : ""}`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          <p className="muted">
+            {filteredItems.length} {filteredItems.length === 1 ? "image" : "images"}
+          </p>
+        </div>
+
+        <div className="gallery-grid">
+          {filteredItems.map((item, index) => (
+            <article
+              key={item.id}
+              className="gallery-item gallery-item-button"
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${80 + (index % 6) * 70}ms` }}
             >
-              {category}
-            </button>
+              <button
+                type="button"
+                className="gallery-item-media"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Open ${normalizeTitle(item.title, "Portfolio image")} full screen`}
+              >
+                <img src={item.image_url} alt={normalizeTitle(item.title, "Portfolio image")} />
+                <div className="gallery-item-overlay" />
+                <div className="gallery-item-cta">Open full screen</div>
+              </button>
+              <div className="meta">
+                <div className="gallery-item-copy">
+                  <strong>{normalizeTitle(item.title, "Portfolio image")}</strong>
+                  <div className="muted">{normalizeCategory(item.category, "Portfolio")}</div>
+                </div>
+                <Link href={`/gallery/${item.id}`} className="gallery-item-link">
+                  View Experience
+                </Link>
+              </div>
+            </article>
           ))}
         </div>
-        <p className="muted">
-          {filteredItems.length} {filteredItems.length === 1 ? "image" : "images"}
-        </p>
-      </div>
-
-      <div className="gallery-grid">
-        {filteredItems.map((item, index) => (
-          <button
-            key={item.id}
-            type="button"
-            className="gallery-item gallery-item-button"
-            onClick={() => setActiveIndex(index)}
-          >
-            <img src={item.image_url} alt={normalizeTitle(item.title, "Portfolio image")} />
-            <div className="meta">
-              <strong>{normalizeTitle(item.title, "Portfolio image")}</strong>
-              <div className="muted">{normalizeCategory(item.category, "Portfolio")}</div>
-            </div>
-          </button>
-        ))}
-      </div>
+      </section>
 
       {activeItem ? (
         <div
@@ -200,10 +231,14 @@ export default function GalleryBrowser({
             className="gallery-lightbox-stage"
             onClick={(event) => event.stopPropagation()}
           >
+            <div className="gallery-lightbox-stage-frame">
             <img src={activeItem.image_url} alt={normalizeTitle(activeItem.title, "Portfolio image")} />
+            </div>
             <div className="gallery-lightbox-meta">
-              <strong>{normalizeTitle(activeItem.title, "Portfolio image")}</strong>
-              <span>{normalizeCategory(activeItem.category, "Portfolio")}</span>
+              <div className="gallery-lightbox-copy">
+                <strong>{normalizeTitle(activeItem.title, "Portfolio image")}</strong>
+                <span>{normalizeCategory(activeItem.category, "Portfolio")}</span>
+              </div>
               <small>
                 {activeIndex! + 1} / {filteredItems.length}
               </small>

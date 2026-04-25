@@ -1,5 +1,6 @@
 import { getPackages } from "@/lib/packages";
 import { getGalleryItems } from "@/lib/gallery";
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -19,6 +20,7 @@ export default async function PackagesPage() {
 
   return (
     <main className="container section public-page-shell public-page-shell--packages">
+      <CinematicHomeMotion />
       <ImmersivePageHero
         eyebrow="Packages"
         title="Choose the styling level, then shape the room with us."
@@ -56,8 +58,8 @@ export default async function PackagesPage() {
         tags={["Guest tables", "Focal styling", "Venue flow"]}
       />
 
-      <section className="package-compare-shell">
-        <div className="section-heading">
+      <section className="package-compare-shell" data-reveal>
+        <div className="section-heading" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Compare packages</p>
           <h2>Three clear starting points for different event sizes and styling needs.</h2>
         </div>
@@ -66,6 +68,8 @@ export default async function PackagesPage() {
             <Card
               key={pkg.id}
               className={`package-card package-card--editorial ${pkg.featured ? "featured" : ""}`}
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${120 + index * 80}ms` }}
             >
               <p className="eyebrow">{getPackageTierLabel(index)}</p>
               <strong>{pkg.name}</strong>
@@ -95,18 +99,18 @@ export default async function PackagesPage() {
         </div>
       </section>
 
-      <section className="public-callout-grid">
-        <Card className="public-callout-card">
+      <section className="public-callout-grid" data-reveal>
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Pricing guidance</p>
           <h3>Packages guide direction, not the final quote.</h3>
           <p>Final investment depends on venue, guest count, rentals, labor, floral needs, and custom styling.</p>
         </Card>
-        <Card className="public-callout-card">
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "120ms" }}>
           <p className="eyebrow">Availability</p>
           <h3>Popular dates tend to book first.</h3>
           <p>Spring weekends, summer celebrations, and holiday dates usually move the quickest.</p>
         </Card>
-        <Card className="public-callout-card">
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "240ms" }}>
           <p className="eyebrow">What&apos;s included</p>
           <h3>Decor scope is refined during consultation.</h3>
           <p>Focal tables, backdrops, guest tables, room atmosphere, and on-site support are shaped around the event.</p>

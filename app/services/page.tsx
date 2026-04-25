@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -69,6 +70,7 @@ export default async function ServicesPage() {
 
   return (
     <main className="container section public-page-shell">
+      <CinematicHomeMotion />
       <ImmersivePageHero
         eyebrow="Services"
         title="Decor services designed to transform the full experience of the room."
@@ -97,9 +99,14 @@ export default async function ServicesPage() {
         tags={["Backdrop", "Tablescape", "Lighting"]}
       />
 
-      <section className="public-callout-grid">
-        {serviceAreas.map((item) => (
-          <Card key={item.title} className="public-callout-card">
+      <section className="public-callout-grid" data-reveal>
+        {serviceAreas.map((item, index) => (
+          <Card
+            key={item.title}
+            className="public-callout-card"
+            data-reveal-child
+            style={{ ["--reveal-delay" as string]: `${80 + index * 80}ms` }}
+          >
             <p className="eyebrow">Service</p>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
@@ -107,9 +114,14 @@ export default async function ServicesPage() {
         ))}
       </section>
 
-      <section className="public-callout-grid">
-        {inclusionHighlights.map((item) => (
-          <Card key={item.title} className="public-callout-card">
+      <section className="public-callout-grid" data-reveal>
+        {inclusionHighlights.map((item, index) => (
+          <Card
+            key={item.title}
+            className="public-callout-card"
+            data-reveal-child
+            style={{ ["--reveal-delay" as string]: `${80 + index * 80}ms` }}
+          >
             <p className="eyebrow">{item.eyebrow}</p>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
@@ -117,8 +129,8 @@ export default async function ServicesPage() {
         ))}
       </section>
 
-      <section className="simple-package-shell">
-        <div className="simple-package-head">
+      <section className="simple-package-shell" data-reveal>
+        <div className="simple-package-head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Rentals</p>
           <h2>Browse rental inventory for seating, focal pieces, and event-ready decor assets.</h2>
           <p className="muted">
@@ -127,22 +139,27 @@ export default async function ServicesPage() {
           </p>
         </div>
         <div className="public-callout-grid">
-          {rentalHighlights.map((item) => (
-            <Card key={item.title} className="public-callout-card">
+          {rentalHighlights.map((item, index) => (
+            <Card
+              key={item.title}
+              className="public-callout-card"
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${120 + index * 80}ms` }}
+            >
               <p className="eyebrow">Rental support</p>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
             </Card>
           ))}
         </div>
-        <div className="btn-row">
+        <div className="btn-row" data-reveal-child style={{ ["--reveal-delay" as string]: "360ms" }}>
           <Button href="/rentals">Browse Rentals</Button>
           <Button href="/rentals/request" variant="secondary">Request Rental Quote</Button>
         </div>
       </section>
 
-      <section className="seo-service-links-shell">
-        <div className="section-heading section-heading--tight">
+      <section className="seo-service-links-shell" data-reveal>
+        <div className="section-heading section-heading--tight" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Atlanta Service Guides</p>
           <h2>Browse focused decor pages for the celebrations and focal moments clients ask about most.</h2>
           <p className="lead">
@@ -152,8 +169,14 @@ export default async function ServicesPage() {
         </div>
 
         <div className="seo-related-grid">
-          {seoPages.map((page) => (
-            <Link key={page.slug} href={`/${page.slug}`} className="seo-related-card">
+          {seoPages.map((page, index) => (
+            <Link
+              key={page.slug}
+              href={`/${page.slug}`}
+              className="seo-related-card"
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${120 + index * 60}ms` }}
+            >
               <strong>{page.title}</strong>
               <span>{page.metaDescription}</span>
             </Link>
@@ -161,14 +184,19 @@ export default async function ServicesPage() {
         </div>
       </section>
 
-      <section className="simple-package-shell">
-        <div className="simple-package-head">
+      <section className="simple-package-shell" data-reveal>
+        <div className="simple-package-head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Package directions</p>
           <h2>Choose the styling level that fits your event best.</h2>
         </div>
         <div className="simple-package-grid">
-          {packages.map((pkg) => (
-            <div key={pkg.id} className="package-card package-card--simple">
+          {packages.map((pkg, index) => (
+            <div
+              key={pkg.id}
+              className="package-card package-card--simple"
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${120 + index * 80}ms` }}
+            >
               <p className="eyebrow">Best for</p>
               <h3>{pkg.name}</h3>
               <p className="muted">{pkg.best_for ?? pkg.summary}</p>
@@ -176,21 +204,23 @@ export default async function ServicesPage() {
             </div>
           ))}
         </div>
-        <div className="btn-row">
+        <div className="btn-row" data-reveal-child style={{ ["--reveal-delay" as string]: "360ms" }}>
           <Button href="/packages" variant="secondary">View Package Details</Button>
         </div>
       </section>
 
-      <GalleryStrip
-        title="Visual references from real celebrations."
-        items={images.slice(2, 5).map((item) => ({
-          id: item.id,
-          imageUrl: item.image_url,
-          title: item.title,
-          label: item.category,
-        }))}
-        showCaption={false}
-      />
+      <section data-reveal>
+        <GalleryStrip
+          title="Visual references from real celebrations."
+          items={images.slice(2, 5).map((item) => ({
+            id: item.id,
+            imageUrl: item.image_url,
+            title: item.title,
+            label: item.category,
+          }))}
+          showCaption={false}
+        />
+      </section>
 
       <PageCTA
         title="Choose the service direction that fits your event, then refine it with us."

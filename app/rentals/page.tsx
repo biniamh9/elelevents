@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import PageCTA from "@/components/site/page-cta";
 import RentalInquiryBanner from "@/components/site/rental-inquiry-banner";
@@ -36,6 +37,7 @@ export default async function RentalsPage({
 
   return (
     <main className="container section public-page-shell">
+      <CinematicHomeMotion />
       <ImmersivePageHero
         eyebrow="Rentals"
         title="Luxury rental inventory for celebrations that need polish, structure, and visual presence."
@@ -53,12 +55,12 @@ export default async function RentalsPage({
         }
       />
 
-      <section className="rental-filter-shell">
-        <div className="section-heading section-heading--tight">
+      <section className="rental-filter-shell" data-reveal>
+        <div className="section-heading section-heading--tight" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Browse inventory</p>
           <h2>Filter by rental category.</h2>
         </div>
-        <div className="rental-filter-chips">
+        <div className="rental-filter-chips" data-reveal-child style={{ ["--reveal-delay" as string]: "120ms" }}>
           <Link href="/rentals" className={`rental-filter-chip${!selectedCategory ? " is-active" : ""}`}>All rentals</Link>
           {categories.map((category) => (
             <Link
@@ -72,13 +74,17 @@ export default async function RentalsPage({
         </div>
       </section>
 
-      <RentalInquiryBanner />
+      <section data-reveal>
+        <RentalInquiryBanner />
+      </section>
 
       {items.length ? (
-        <RentalsGrid items={items} />
+        <section data-reveal>
+          <RentalsGrid items={items} />
+        </section>
       ) : (
-        <section className="rental-grid-shell">
-          <Card className="admin-empty-state">
+        <section className="rental-grid-shell" data-reveal>
+          <Card className="admin-empty-state" data-reveal-child>
             <strong>No in-stock rentals in this category right now</strong>
             <p className="muted">
               We only show active inventory that is currently available to quote. Try another category

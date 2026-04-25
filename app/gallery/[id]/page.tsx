@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
 import { getPortfolioDetailById } from "@/lib/gallery";
@@ -44,6 +45,7 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
 
   return (
     <main className="portfolio-detail-page">
+      <CinematicHomeMotion />
       <section className="portfolio-detail-hero">
         <img src={detail.item.image_url} alt={detail.title} className="portfolio-detail-hero__image" />
         <div className="portfolio-detail-hero__overlay" />
@@ -67,10 +69,10 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="portfolio-detail-section">
+      <section className="portfolio-detail-section" data-reveal>
         <div className="container portfolio-detail-shell">
           <div className="portfolio-detail-intro">
-            <div className="portfolio-detail-copy">
+            <div className="portfolio-detail-copy" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
               <span>Event Story</span>
               <h2>A visual direction built for emotion, atmosphere, and memorable guest experience.</h2>
               <p>
@@ -80,7 +82,7 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
               </p>
             </div>
 
-            <Card className="portfolio-detail-meta">
+            <Card className="portfolio-detail-meta" data-reveal-child style={{ ["--reveal-delay" as string]: "120ms" }}>
               <div>
                 <span>Venue</span>
                 <strong>{detail.location}</strong>
@@ -101,8 +103,13 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
           </div>
 
           <div className="portfolio-detail-sections">
-            {detail.sections.map((section) => (
-              <section key={section.title} className="portfolio-gallery-section">
+            {detail.sections.map((section, sectionIndex) => (
+              <section
+                key={section.title}
+                className="portfolio-gallery-section"
+                data-reveal-child
+                style={{ ["--reveal-delay" as string]: `${180 + sectionIndex * 120}ms` }}
+              >
                 <div className="portfolio-gallery-section__head">
                   <span>{section.title}</span>
                   <h3>{section.title} moments</h3>
@@ -114,8 +121,15 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
                     <article
                       key={`${section.title}-${item.id}-${index}`}
                       className={`portfolio-gallery-section__card${index === 0 ? " is-featured" : ""}`}
+                      data-reveal-child
+                      style={{ ["--reveal-delay" as string]: `${220 + sectionIndex * 120 + index * 80}ms` }}
                     >
+                      <div className="portfolio-gallery-section__card-overlay" />
                       <img src={item.image_url} alt={item.title} />
+                      <div className="portfolio-gallery-section__card-meta">
+                        <strong>{item.title}</strong>
+                        <span>{section.title}</span>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -125,11 +139,13 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <PageCTA
-        eyebrow="Inspired by this event?"
-        title="Design My Event Like This"
-        description="Bring this same level of atmosphere, polish, and visual storytelling into your own celebration."
-      />
+      <section data-reveal>
+        <PageCTA
+          eyebrow="Inspired by this event?"
+          title="Design My Event Like This"
+          description="Bring this same level of atmosphere, polish, and visual storytelling into your own celebration."
+        />
+      </section>
     </main>
   );
 }

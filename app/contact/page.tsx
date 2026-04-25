@@ -1,3 +1,4 @@
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -11,6 +12,7 @@ export default async function ContactPage() {
 
   return (
     <main className="container section public-page-shell">
+      <CinematicHomeMotion />
       <ImmersivePageHero
         eyebrow="Contact"
         title="Start the conversation, then we’ll guide the next step clearly."
@@ -55,8 +57,8 @@ export default async function ContactPage() {
         tags={["Vision", "Planning", "Atmosphere"]}
       />
 
-      <section className="grid-2 public-note-grid">
-        <Card>
+      <section className="grid-2 public-note-grid" data-reveal>
+        <Card data-reveal-child style={{ ["--reveal-delay" as string]: "80ms" }}>
           <h3>What happens next?</h3>
           <div className="contact-next-steps">
             <p><span>1</span> We review your event details and confirm the best way to start the consultation.</p>
@@ -65,7 +67,7 @@ export default async function ContactPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card data-reveal-child style={{ ["--reveal-delay" as string]: "160ms" }}>
           <h3>Contact confidence</h3>
           <p className="muted">Email: yordecor@gmail.com</p>
           <p className="muted">Phone: 612-964-3553</p>
@@ -77,16 +79,18 @@ export default async function ContactPage() {
         </Card>
       </section>
 
-      <GalleryStrip
-        title="A glimpse of the atmosphere we help clients create."
-        items={images.slice(0, 4).map((item) => ({
-          id: item.id,
-          imageUrl: item.image_url,
-          title: item.title,
-          label: item.category,
-        }))}
-        showCaption={false}
-      />
+      <section data-reveal>
+        <GalleryStrip
+          title="A glimpse of the atmosphere we help clients create."
+          items={images.slice(0, 4).map((item) => ({
+            id: item.id,
+            imageUrl: item.image_url,
+            title: item.title,
+            label: item.category,
+          }))}
+          showCaption={false}
+        />
+      </section>
 
       <PageCTA
         title="Share the event details and we’ll guide the next step clearly."

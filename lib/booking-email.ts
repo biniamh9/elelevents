@@ -33,6 +33,14 @@ function firstNameFrom(fullName: string) {
   return fullName.trim().split(/\s+/)[0] || fullName;
 }
 
+function getPaymentInstructions(contract: ContractEmailRecord) {
+  const venueNote = contract.venue_name
+    ? `Reference ${contract.venue_name} when confirming your payment with our team.`
+    : "Reference your event name when confirming your payment with our team.";
+
+  return `Please submit your payment using the approved Elel Events payment method on file and include your client name in the reference. ${venueNote}`;
+}
+
 export function canSendBookingEmail() {
   return Boolean(resend);
 }
@@ -65,6 +73,7 @@ export async function sendBookingLifecycleEmail(
         ? formatCurrency(contract.deposit_amount)
         : formatCurrency(contract.balance_due),
     meeting_location: contract.venue_name || "",
+    payment_instructions: getPaymentInstructions(contract),
   });
 
   const { error } = await resend.emails.send({

@@ -1,3 +1,4 @@
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import ImmersivePageHero from "@/components/site/immersive-page-hero";
 import StorySection from "@/components/site/story-section";
 import GalleryStrip from "@/components/site/gallery-strip";
@@ -12,6 +13,7 @@ export default async function AboutPage() {
 
   return (
     <main className="container section public-page-shell">
+      <CinematicHomeMotion />
       <ImmersivePageHero
         eyebrow="About Elel Events"
         title="Elegant celebrations shaped with warmth, precision, and visual care."
@@ -70,45 +72,53 @@ export default async function AboutPage() {
         </div>
       </StorySection>
 
-      <section className="public-callout-grid">
-        <Card className="public-callout-card">
+      <section className="public-callout-grid" data-reveal>
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "80ms" }}>
           <p className="eyebrow">Design philosophy</p>
           <h3>Elegant, warm, and photographable.</h3>
           <p>We focus on focal points, balanced rooms, and layered details that never feel overcrowded.</p>
         </Card>
-        <Card className="public-callout-card">
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "160ms" }}>
           <p className="eyebrow">How clients describe us</p>
           <h3>Professional, reliable, and detail-driven.</h3>
           <p>Clients trust the process because communication stays clear and the finished room feels polished.</p>
         </Card>
-        <Card className="public-callout-card">
+        <Card className="public-callout-card" data-reveal-child style={{ ["--reveal-delay" as string]: "240ms" }}>
           <p className="eyebrow">What we create</p>
           <h3>Reception, Melsi, and milestone atmospheres.</h3>
           <p>Every room is shaped to feel welcoming, intentional, and beautiful the moment guests arrive.</p>
         </Card>
       </section>
 
-      <GalleryStrip
-        title="A closer look at the details that shape the room."
-        items={images.slice(2, 5).map((item) => ({
-          id: item.id,
-          imageUrl: item.image_url,
-          title: item.title,
-          label: item.category,
-        }))}
-        showCaption={false}
-      />
+      <section data-reveal>
+        <GalleryStrip
+          title="A closer look at the details that shape the room."
+          items={images.slice(2, 5).map((item) => ({
+            id: item.id,
+            imageUrl: item.image_url,
+            title: item.title,
+            label: item.category,
+          }))}
+          showCaption={false}
+        />
+      </section>
 
-      <section id="reviews" className="simple-testimonial-shell">
-        <div className="simple-testimonial-head">
+      <section id="reviews" className="simple-testimonial-shell" data-reveal>
+        <div className="simple-testimonial-head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <div>
             <p className="eyebrow">Client reviews</p>
             <h2>What clients remember most</h2>
           </div>
         </div>
         <div className="simple-testimonial-grid">
-          {testimonials.map((item) => (
-            <Card key={item.id} as="article" className="testimonial-card">
+          {testimonials.map((item, index) => (
+            <Card
+              key={item.id}
+              as="article"
+              className="testimonial-card"
+              data-reveal-child
+              style={{ ["--reveal-delay" as string]: `${120 + index * 90}ms` }}
+            >
               <div className="testimonial-card-top">
                 <span className="testimonial-stars">{"★".repeat(item.rating ?? 5)}</span>
                 <span className="testimonial-source">{item.source_label || "Google review"}</span>
