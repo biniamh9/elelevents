@@ -4,6 +4,7 @@ import {
   calculateQuoteTotals,
   DEFAULT_ITEMIZED_DISCLAIMER,
 } from "@/lib/admin-pricing";
+import { buildQuoteEmailSentActivityEvent } from "@/lib/email-activity-events";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
 import {
@@ -209,16 +210,15 @@ export async function POST(
       createdAt: quotedAt,
     });
 
+    const quoteActivityEvent = buildQuoteEmailSentActivityEvent({
+      quoteAmount,
+      lineItemCount: normalizedLineItems.length,
+      clientEmail: inquiry.email,
+    });
     await logActivity(supabaseAdmin, {
       entityType: "inquiry",
       entityId: id,
-      action: "inquiry.quote_sent",
-      summary: "Quote email sent to client",
-      metadata: buildQuoteEmailActivityMetadata({
-        quoteAmount,
-        lineItemCount: normalizedLineItems.length,
-        clientEmail: inquiry.email,
-      }),
+      ...quoteActivityEvent,
     });
 
     await syncInquiryWorkflowStage(supabaseAdmin, {

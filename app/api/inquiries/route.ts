@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildEventInquiryCreatedActivityEvent } from "@/lib/email-activity-events";
 import { inquirySchema } from "@/lib/validations/inquiry";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { estimateEventPrice } from "@/lib/pricing";
@@ -89,17 +90,15 @@ export async function POST(request: Request) {
     await logActivity(supabaseAdmin, {
       entityType: "inquiry",
       entityId: inserted.id,
-      action: "inquiry.created",
-      summary: "Quote request submitted from website",
-        metadata: {
-          client_id: client.id,
-          event_type: inserted.event_type,
-          estimated_price: inserted.estimated_price,
-          requested_vendor_categories: inserted.requested_vendor_categories,
-          selected_decor_categories: inserted.selected_decor_categories,
-          consultation_request_date: inserted.consultation_request_date,
-          consultation_request_time: inserted.consultation_request_time,
-        },
+      ...buildEventInquiryCreatedActivityEvent({
+        clientId: client.id,
+        eventType: inserted.event_type,
+        estimatedPrice: inserted.estimated_price,
+        requestedVendorCategories: inserted.requested_vendor_categories,
+        selectedDecorCategories: inserted.selected_decor_categories,
+        consultationRequestDate: inserted.consultation_request_date,
+        consultationRequestTime: inserted.consultation_request_time,
+      }),
     });
 
     if (resend && process.env.NOTIFICATION_TO_EMAIL) {

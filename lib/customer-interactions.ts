@@ -1,3 +1,4 @@
+import { buildInboundReplyActivityEvent } from "@/lib/email-activity-events";
 import { logActivity } from "@/lib/crm";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -144,19 +145,16 @@ export async function recordInboundEmailReply(
   await logActivity(supabase, {
     entityType: "inquiry",
     entityId: match.id,
-    action: "inquiry.reply_received",
-    summary: input.subject?.trim()
-      ? `Lead replied: ${input.subject.trim()}`
-      : "Lead replied by email",
-    metadata: {
-      client_email: normalizeEmail(input.fromEmail),
-      thread_id: input.threadId ?? null,
-      message_id: input.messageId ?? null,
-      in_reply_to: input.inReplyTo ?? null,
-      references: input.references ?? [],
-      provider: input.provider ?? null,
-      body_preview: input.bodyText.slice(0, 240),
-    },
+    ...buildInboundReplyActivityEvent({
+      fromEmail: normalizeEmail(input.fromEmail),
+      subject: input.subject,
+      threadId: input.threadId,
+      messageId: input.messageId,
+      inReplyTo: input.inReplyTo,
+      references: input.references,
+      provider: input.provider,
+      bodyText: input.bodyText,
+    }),
   });
 
   return {

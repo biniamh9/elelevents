@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+import { buildRentalRequestCreatedActivityEvent } from "@/lib/email-activity-events";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
 import { buildAdminRentalRequestEmailVariables } from "@/lib/email-template-variables";
 import {
@@ -100,18 +101,16 @@ export async function POST(request: Request) {
     await logActivity(supabaseAdmin, {
       entityType: "rental_request",
       entityId: inserted.id,
-      action: "rental_request.created",
-      summary: "Rental quote request submitted from website",
-      metadata: {
-        client_id: client.id,
+      ...buildRentalRequestCreatedActivityEvent({
+        clientId: client.id,
         items: requestItems.map((item) => ({
           item_name: item.item_name,
           quantity: item.quantity,
           line_subtotal: item.line_subtotal,
         })),
-        estimated_total: inserted.estimated_total,
-        refundable_security_deposit: inserted.refundable_security_deposit,
-      },
+        estimatedTotal: inserted.estimated_total,
+        refundableSecurityDeposit: inserted.refundable_security_deposit,
+      }),
     });
 
     if (resend && process.env.NOTIFICATION_TO_EMAIL) {

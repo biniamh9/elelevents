@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { createDocusignEnvelope, getDocuSignSetupError, isDocuSignConfigured } from "@/lib/docusign";
+import { buildContractSentActivityEvent } from "@/lib/email-activity-events";
 import { logActivity } from "@/lib/crm";
 import {
   buildContractDeliveryActivityMetadata,
@@ -84,9 +85,7 @@ export async function POST(
       await logActivity(supabaseAdmin, {
         entityType: "contract",
         entityId: id,
-        action: "contract.sent",
-        summary: "Contract sent through DocuSign",
-        metadata: buildContractDeliveryActivityMetadata({
+        ...buildContractSentActivityEvent({
           mode: "docusign",
           clientEmail: email,
           envelopeId: envelope.envelopeId,
@@ -186,9 +185,7 @@ export async function POST(
     await logActivity(supabaseAdmin, {
       entityType: "contract",
       entityId: id,
-      action: "contract.sent",
-      summary: "Contract email sent to client using manual signing link",
-      metadata: buildContractDeliveryActivityMetadata({
+      ...buildContractSentActivityEvent({
         mode: "manual",
         clientEmail: email,
       }),
