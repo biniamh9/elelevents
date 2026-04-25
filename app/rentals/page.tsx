@@ -26,8 +26,12 @@ export default async function RentalsPage({
 }) {
   const params = await searchParams;
   const selectedCategory = params.category || null;
-  const items = await getRentalItems({ activeOnly: true, category: selectedCategory });
-  const allItems = await getRentalItems({ activeOnly: true });
+  const items = (await getRentalItems({ activeOnly: true, category: selectedCategory })).filter(
+    (item) => item.available_quantity > 0
+  );
+  const allItems = (await getRentalItems({ activeOnly: true })).filter(
+    (item) => item.available_quantity > 0
+  );
   const categories = getRentalCategories(allItems);
 
   return (
@@ -70,7 +74,27 @@ export default async function RentalsPage({
 
       <RentalInquiryBanner />
 
-      <RentalsGrid items={items} />
+      {items.length ? (
+        <RentalsGrid items={items} />
+      ) : (
+        <section className="rental-grid-shell">
+          <Card className="admin-empty-state">
+            <strong>No in-stock rentals in this category right now</strong>
+            <p className="muted">
+              We only show active inventory that is currently available to quote. Try another category
+              or request a rental quote and we can confirm upcoming availability.
+            </p>
+            <div className="btn-row">
+              <Link href="/rentals" className="btn secondary">
+                View all rentals
+              </Link>
+              <Link href="/rentals/request" className="btn">
+                Request Rental Quote
+              </Link>
+            </div>
+          </Card>
+        </section>
+      )}
 
       <PageCTA
         eyebrow="Rental inquiry"

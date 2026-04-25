@@ -76,14 +76,22 @@ export default async function HomePage() {
     getGalleryItems(8),
     getHomeProcessSteps(),
     getTestimonials(5),
-    getRentalItems({ activeOnly: true, featuredOnly: true, limit: 3 }),
-    getRentalItems({ activeOnly: true, limit: 3 }),
+    getRentalItems({ activeOnly: true, featuredOnly: true, limit: 12 }),
+    getRentalItems({ activeOnly: true, limit: 12 }),
   ]);
 
   const featuredPortfolio = galleryItems.slice(0, 4);
   const featuredTestimonials = testimonials.slice(0, 3);
+  const featuredRentalCandidates = featuredRentals
+    .filter((item) => item.active && item.available_quantity > 0)
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+  const fallbackRentalCandidates = fallbackRentals
+    .filter((item) => item.active && item.available_quantity > 0)
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
   const homepageRentals =
-    featuredRentals.length >= 3 ? featuredRentals.slice(0, 3) : fallbackRentals.slice(0, 3);
+    featuredRentalCandidates.length >= 3
+      ? featuredRentalCandidates.slice(0, 3)
+      : fallbackRentalCandidates.slice(0, 3);
 
   return (
     <main className="luxury-homepage">

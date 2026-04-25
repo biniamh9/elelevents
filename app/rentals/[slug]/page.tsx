@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -9,6 +10,7 @@ import {
   formatMoney,
   formatRentalPrice,
   getRentalItemBySlug,
+  getRentalItems,
 } from "@/lib/rentals";
 
 type PageProps = {
@@ -38,11 +40,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function RentalDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const item = await getRentalItemBySlug(slug);
+  const [item, relatedCandidates] = await Promise.all([
+    getRentalItemBySlug(slug),
+    getRentalItems({ activeOnly: true, limit: 12 }),
+  ]);
 
   if (!item || !item.active) {
     notFound();
   }
+
+  const relatedItems = relatedCandidates
+    .filter(
+      (candidate) =>
+        candidate.id !== item.id &&
+        candidate.active &&
+        candidate.available_quantity > 0 &&
+        (!item.category || candidate.category === item.category)
+    )
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    .slice(0, 3);
 
   const galleryImages = item.images ?? [];
   const securityDeposit = calculateRentalSecurityDeposit({
@@ -148,6 +164,49 @@ export default async function RentalDetailPage({ params }: PageProps) {
           </Card>
         </div>
       </section>
+
+      {relatedItems.length ? (
+        <section className="rental-detail-section">
+          <div className="section-heading section-heading--tight">
+            <p className="eyebrow">Related rentals</p>
+            <h2>Other in-stock pieces that pair well with this selection.</h2>
+          </div>
+          <div className="rental-grid">
+            {relatedItems.map((relatedItem) => (
+              <Card key={relatedItem.id} className="rental-card">
+                <Link href={`/rentals/${relatedItem.slug}`} className="rental-card-media">
+                  {relatedItem.featured_image_url ? (
+                    <img src={relatedItem.featured_image_url} alt={relatedItem.name} />
+                  ) : (
+                    <div className="rental-card-media-placeholder">Rental item</div>
+                  )}
+                </Link>
+
+                <div className="rental-card-copy">
+                  <p className="eyebrow">{relatedItem.category || "Rental"}</p>
+                  <h3>
+                    <Link href={`/rentals/${relatedItem.slug}`}>{relatedItem.name}</Link>
+                  </h3>
+                  <p>
+                    {relatedItem.short_description ||
+                      "Rental item details available on request."}
+                  </p>
+
+                  <div className="rental-card-meta">
+                    <strong>
+                      {formatRentalPrice(
+                        relatedItem.base_rental_price,
+                        relatedItem.price_type
+                      )}
+                    </strong>
+                    <span>{relatedItem.available_quantity} available</span>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <PageCTA
         eyebrow="Start rental inquiry"
