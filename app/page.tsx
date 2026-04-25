@@ -1,6 +1,8 @@
+import Link from "next/link";
 import Button from "@/components/ui/button";
 import { getGalleryItems } from "@/lib/gallery";
 import { getHomeProcessSteps } from "@/lib/home-process";
+import { formatRentalPrice, getRentalItems } from "@/lib/rentals";
 import { getTestimonials } from "@/lib/testimonials";
 
 export const dynamic = "force-dynamic";
@@ -70,14 +72,18 @@ const serviceCards = [
 ];
 
 export default async function HomePage() {
-  const [galleryItems, processSteps, testimonials] = await Promise.all([
+  const [galleryItems, processSteps, testimonials, featuredRentals, fallbackRentals] = await Promise.all([
     getGalleryItems(8),
     getHomeProcessSteps(),
     getTestimonials(5),
+    getRentalItems({ activeOnly: true, featuredOnly: true, limit: 3 }),
+    getRentalItems({ activeOnly: true, limit: 3 }),
   ]);
 
   const featuredPortfolio = galleryItems.slice(0, 4);
   const featuredTestimonials = testimonials.slice(0, 3);
+  const homepageRentals =
+    featuredRentals.length >= 3 ? featuredRentals.slice(0, 3) : fallbackRentals.slice(0, 3);
 
   return (
     <main className="luxury-homepage">
@@ -238,6 +244,39 @@ export default async function HomePage() {
                 </Button>
               </div>
             </div>
+
+            {homepageRentals.length ? (
+              <div className="luxury-home-rental-strip">
+                {homepageRentals.map((item) => (
+                  <article key={item.id} className="luxury-home-rental-card">
+                    <Link href={`/rentals/${item.slug}`} className="luxury-home-rental-media">
+                      {item.featured_image_url ? (
+                        <img src={item.featured_image_url} alt={item.name} />
+                      ) : (
+                        <div className="luxury-home-rental-placeholder">Rental item</div>
+                      )}
+                    </Link>
+                    <div className="luxury-home-rental-copy">
+                      <span>{item.category || "Rental"}</span>
+                      <h3>{item.name}</h3>
+                      <p>{item.short_description || "Quote-ready rental inventory for events that need structure and polish."}</p>
+                      <div className="luxury-home-rental-meta">
+                        <strong>{formatRentalPrice(item.base_rental_price, item.price_type)}</strong>
+                        <small>{item.available_quantity} available</small>
+                      </div>
+                      <div className="luxury-home-rental-actions">
+                        <Button href={`/rentals/${item.slug}`} variant="secondary">
+                          View Rental
+                        </Button>
+                        <Button href={`/rentals/request?item=${item.slug}`}>
+                          Request Quote
+                        </Button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
