@@ -93,16 +93,16 @@ export default function SiteHeader() {
 
   useEffect(() => {
     if (pathname !== "/") {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 60);
       setShowFloatingCta(false);
       setDismissedFloatingCta(false);
       return;
     }
 
-    const hero = document.querySelector<HTMLElement>(".hero-stage--timeless");
+    const hero = document.querySelector<HTMLElement>(".cinematic-hero");
 
     const updateScroll = () => {
-      setScrolled(window.scrollY > 18);
+      setScrolled(window.scrollY > 60);
 
       const heroHeight = hero?.offsetHeight ?? window.innerHeight;
       const showThreshold = heroHeight * 0.3;
@@ -228,7 +228,7 @@ export default function SiteHeader() {
     }
 
     const sections = [
-      { id: "home", element: document.querySelector(".hero-stage--timeless") },
+      { id: "home", element: document.querySelector(".cinematic-hero") },
       { id: "process", element: document.getElementById("process") },
     ].filter((item) => item.element) as Array<{ id: string; element: Element }>;
 

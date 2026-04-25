@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import Button from "@/components/ui/button";
 import { getGalleryItems, normalizeGalleryCategory, normalizeGalleryTitle } from "@/lib/gallery";
 import { getRentalItems } from "@/lib/rentals";
@@ -86,6 +87,7 @@ export default async function HomePage() {
 
   return (
     <main className="cinematic-homepage">
+      <CinematicHomeMotion />
       <section className="cinematic-hero">
         <div className="cinematic-hero__media" aria-hidden="true">
           <img src="/hero1.jpeg" alt="" className="cinematic-hero__image" />
@@ -94,22 +96,27 @@ export default async function HomePage() {
 
         <div className="container cinematic-hero__shell">
           <div className="cinematic-hero__content">
-            <span className="cinematic-hero__eyebrow">Luxury Wedding Design in Atlanta</span>
-            <h1>Where Moments Become Masterpieces</h1>
-            <p>
+            <span className="cinematic-hero__eyebrow cinematic-hero__reveal cinematic-hero__reveal--1">
+              Luxury Wedding Design in Atlanta
+            </span>
+            <h1 className="cinematic-hero__headline cinematic-hero__reveal cinematic-hero__reveal--2">
+              <span>Where Moments</span>
+              <span>Become Masterpieces</span>
+            </h1>
+            <p className="cinematic-hero__reveal cinematic-hero__reveal--3">
               We don&apos;t just decorate spaces. We design experiences your guests will remember
               for a lifetime, with layered styling, editorial polish, and a room reveal that feels
               as emotional as the celebration itself.
             </p>
 
-            <div className="cinematic-hero__actions">
+            <div className="cinematic-hero__actions cinematic-hero__reveal cinematic-hero__reveal--4">
               <Button href="/request">Check Your Date Availability</Button>
-              <Button href="/gallery" variant="secondary">
+              <Button href="/gallery" variant="secondary" arrow>
                 Explore Our Work
               </Button>
             </div>
 
-            <div className="cinematic-hero__trust">
+            <div className="cinematic-hero__trust cinematic-hero__reveal cinematic-hero__reveal--5">
               <span>Luxury weddings</span>
               <span>Refined cultural celebrations</span>
               <span>Limited events each month</span>
@@ -123,9 +130,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="cinematic-section">
+      <section className="cinematic-section" data-reveal>
         <div className="container cinematic-shell">
-          <div className="cinematic-section__head">
+          <div className="cinematic-section__head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
             <span>Portfolio</span>
             <h2>Real Events. Real Transformations.</h2>
             <p>Every design tells a story. Step inside ours.</p>
@@ -136,6 +143,8 @@ export default async function HomePage() {
               <article
                 key={item.id}
                 className={`cinematic-portfolio-card cinematic-portfolio-card--${index === 0 ? "hero" : index === 3 ? "wide" : "standard"}`}
+                data-reveal-child
+                style={{ ["--reveal-delay" as string]: `${120 + index * 110}ms` }}
               >
                 <img src={item.image_url} alt={item.title} />
                 <div className="cinematic-portfolio-card__overlay" />
@@ -155,16 +164,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="cinematic-section cinematic-section--dark">
+      <section className="cinematic-section cinematic-section--dark" id="process" data-reveal>
         <div className="container cinematic-shell">
-          <div className="cinematic-process-head">
+          <div className="cinematic-process-head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
             <span>Our Process</span>
             <h2>Every step is designed to feel calm, clear, and elevated.</h2>
           </div>
 
-          <div className="cinematic-process-track">
-            {processSteps.map((step) => (
-              <article key={step.number} className="cinematic-process-step">
+          <div className="cinematic-process-track" data-reveal-child style={{ ["--reveal-delay" as string]: "120ms" }}>
+            {processSteps.map((step, index) => (
+              <article
+                key={step.number}
+                className="cinematic-process-step"
+                data-reveal-child
+                style={{ ["--reveal-delay" as string]: `${180 + index * 110}ms` }}
+              >
                 <span>{step.number}</span>
                 <h3>{step.title}</h3>
                 <p>{step.description}</p>
@@ -174,9 +188,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="cinematic-section">
+      <section className="cinematic-section" data-reveal>
         <div className="container cinematic-shell cinematic-shell--split">
-          <div className="cinematic-limited">
+          <div className="cinematic-limited" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
             <span>Limited Availability</span>
             <h2>We accept a limited number of events each month.</h2>
             <p>
@@ -192,8 +206,13 @@ export default async function HomePage() {
           </div>
 
           <div className="cinematic-proof-grid">
-            {featuredTestimonials.map((item) => (
-              <article key={item.id} className="cinematic-proof-card">
+            {featuredTestimonials.map((item, index) => (
+              <article
+                key={item.id}
+                className="cinematic-proof-card"
+                data-reveal-child
+                style={{ ["--reveal-delay" as string]: `${120 + index * 110}ms` }}
+              >
                 <p>{item.highlight ?? item.quote}</p>
                 <div>
                   <strong>{item.reviewer_name}</strong>
@@ -206,17 +225,22 @@ export default async function HomePage() {
       </section>
 
       {homepageRentals.length ? (
-        <section className="cinematic-section cinematic-section--white">
+        <section className="cinematic-section cinematic-section--white" data-reveal>
           <div className="container cinematic-shell">
-            <div className="cinematic-section__head">
+            <div className="cinematic-section__head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
               <span>Rentals</span>
               <h2>Quote-ready rentals for events that need seating and focal pieces.</h2>
               <p>Browse in-stock inventory or request a rental-specific quote without entering the full design flow.</p>
             </div>
 
             <div className="cinematic-rental-strip">
-              {homepageRentals.map((item) => (
-                <article key={item.id} className="cinematic-rental-card">
+              {homepageRentals.map((item, index) => (
+                <article
+                  key={item.id}
+                  className="cinematic-rental-card"
+                  data-reveal-child
+                  style={{ ["--reveal-delay" as string]: `${120 + index * 110}ms` }}
+                >
                   <Link href={`/rentals/${item.slug}`} className="cinematic-rental-card__media">
                     {item.featured_image_url ? (
                       <img src={item.featured_image_url} alt={item.name} />
@@ -229,7 +253,7 @@ export default async function HomePage() {
                     <h3>{item.name}</h3>
                     <p>{item.short_description || "Premium rental inventory available for quote."}</p>
                     <div className="cinematic-rental-card__actions">
-                      <Button href={`/rentals/${item.slug}`} variant="secondary">
+                      <Button href={`/rentals/${item.slug}`} variant="secondary" arrow>
                         View Rental
                       </Button>
                       <Button href={`/rentals/request?item=${item.slug}`}>Request Quote</Button>
@@ -242,18 +266,21 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      <section className="cinematic-final-cta">
+      <section className="cinematic-final-cta" data-reveal>
         <div className="container">
-          <div className="cinematic-final-cta__shell">
+          <div className="cinematic-final-cta__shell" data-reveal-child>
             <span>Begin your event journey</span>
             <h2>Design a celebration that feels unforgettable the moment your guests arrive.</h2>
             <p>
               Share your vision, your date, and the atmosphere you want to create. We&apos;ll
               shape the next step with clarity and intention.
             </p>
+            <small className="cinematic-final-cta__microcopy">
+              We accept a limited number of events each month.
+            </small>
             <div className="cinematic-final-cta__actions">
               <Button href="/request">Check Your Date Availability</Button>
-              <Button href="/gallery" variant="secondary">
+              <Button href="/gallery" variant="secondary" arrow>
                 Explore Our Work
               </Button>
             </div>

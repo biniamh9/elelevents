@@ -11,6 +11,7 @@ type BaseProps = {
   children: ReactNode;
   variant?: ButtonVariant;
   className?: string;
+  arrow?: boolean;
 };
 
 type ButtonAsButtonProps = BaseProps &
@@ -27,13 +28,14 @@ type ButtonProps = ButtonAsButtonProps | ButtonAsLinkProps;
 
 export default function Button(props: ButtonProps) {
   const variantClass = props.variant === "secondary" ? "secondary" : undefined;
-  const className = joinClasses("btn", variantClass, props.className);
+  const className = joinClasses("btn", variantClass, props.arrow && "btn--with-arrow", props.className);
 
   if ("href" in props && props.href) {
-    const { href, children, className: _className, variant, ...rest } = props as ButtonAsLinkProps;
+    const { href, children, className: _className, variant, arrow, ...rest } = props as ButtonAsLinkProps;
     return (
       <Link href={href} className={className} {...rest}>
-        {children}
+        <span className="btn-label">{children}</span>
+        {arrow ? <span className="btn-arrow" aria-hidden="true">→</span> : null}
       </Link>
     );
   }
@@ -42,13 +44,15 @@ export default function Button(props: ButtonProps) {
     children,
     className: _className,
     variant,
+    arrow,
     type = "button",
     ...rest
   } = props as ButtonAsButtonProps;
 
   return (
     <button type={type as "button" | "submit" | "reset"} className={className} {...rest}>
-      {children}
+      <span className="btn-label">{children}</span>
+      {arrow ? <span className="btn-arrow" aria-hidden="true">→</span> : null}
     </button>
   );
 }
