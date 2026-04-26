@@ -4,6 +4,7 @@ import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import RentalManagement from "@/components/forms/admin/rental-management";
 import RentalRequestManagement from "@/components/forms/admin/rental-request-management";
+import { buildRentalWorkspaceHref } from "@/lib/admin-navigation";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { getRentalItems } from "@/lib/rentals";
 import { getRentalQuoteRequests, getRentalRequestMetrics, type RentalRequestStatus } from "@/lib/rental-requests";
@@ -27,6 +28,7 @@ export default async function AdminRentalsPage({
   const featuredCount = items.filter((item) => item.featured).length;
   const categoryCount = new Set(items.map((item) => item.category).filter(Boolean)).size;
   const totalUnits = items.reduce((sum, item) => sum + item.available_quantity, 0);
+  const rentalWorkspaceState = { tab, status };
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -43,10 +45,10 @@ export default async function AdminRentalsPage({
       />
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline">
-        <Link href="/admin/rentals" className={`admin-workspace-tab${tab === "requests" ? " is-active" : ""}`}>
+        <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: status })} className={`admin-workspace-tab${tab === "requests" ? " is-active" : ""}`}>
           Requests
         </Link>
-        <Link href="/admin/rentals?tab=inventory" className={`admin-workspace-tab${tab === "inventory" ? " is-active" : ""}`}>
+        <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "inventory" })} className={`admin-workspace-tab${tab === "inventory" ? " is-active" : ""}`}>
           Inventory
         </Link>
       </div>
@@ -74,19 +76,19 @@ export default async function AdminRentalsPage({
       {tab === "requests" ? (
         <>
           <div className="admin-workspace-tabs admin-workspace-tabs--inline">
-            <Link href="/admin/rentals" className={`admin-workspace-tab${status === "all" ? " is-active" : ""}`}>
+            <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "all" })} className={`admin-workspace-tab${status === "all" ? " is-active" : ""}`}>
               All
             </Link>
-            <Link href="/admin/rentals?status=requested" className={`admin-workspace-tab${status === "requested" ? " is-active" : ""}`}>
+            <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "requested" })} className={`admin-workspace-tab${status === "requested" ? " is-active" : ""}`}>
               Requested
             </Link>
-            <Link href="/admin/rentals?status=reviewing" className={`admin-workspace-tab${status === "reviewing" ? " is-active" : ""}`}>
+            <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "reviewing" })} className={`admin-workspace-tab${status === "reviewing" ? " is-active" : ""}`}>
               Reviewing
             </Link>
-            <Link href="/admin/rentals?status=quoted" className={`admin-workspace-tab${status === "quoted" ? " is-active" : ""}`}>
+            <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "quoted" })} className={`admin-workspace-tab${status === "quoted" ? " is-active" : ""}`}>
               Quoted
             </Link>
-            <Link href="/admin/rentals?status=reserved" className={`admin-workspace-tab${status === "reserved" ? " is-active" : ""}`}>
+            <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "reserved" })} className={`admin-workspace-tab${status === "reserved" ? " is-active" : ""}`}>
               Reserved
             </Link>
           </div>

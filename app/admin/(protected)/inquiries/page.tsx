@@ -1,5 +1,6 @@
 import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
+import { buildInquiryWorkspaceHref, buildRentalWorkspaceHref } from "@/lib/admin-navigation";
 import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
@@ -129,36 +130,28 @@ export default async function AdminInquiriesPage({
   const page = normalizePage(params.page);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const followUpFilterParams = new URLSearchParams();
-  followUpFilterParams.set("tab", "inquiries");
-  if (status) followUpFilterParams.set("status", status);
-  if (eventType) followUpFilterParams.set("event_type", eventType);
-  if (queryText) followUpFilterParams.set("q", queryText);
-  if (sort) followUpFilterParams.set("sort", sort);
-  if (params.page) followUpFilterParams.set("page", String(page));
-  const followUpFilterHref = `/admin/inquiries?${followUpFilterParams.toString()}&follow_up=with_inspiration`;
-  const clearFollowUpFilterHref = `/admin/inquiries?${followUpFilterParams.toString()}`;
-
-  function buildWorkspaceHref({
-    tab,
-    nextStatus,
-    nextFollowUp,
-  }: {
-    tab: WorkspaceTab;
-    nextStatus?: string;
-    nextFollowUp?: string;
-  }) {
-    const nextParams = new URLSearchParams();
-    nextParams.set("tab", tab);
-    if (tab === "inquiries") {
-      if (queryText) nextParams.set("q", queryText);
-      if (eventType) nextParams.set("event_type", eventType);
-      if (sort) nextParams.set("sort", sort);
-      if (nextStatus) nextParams.set("status", nextStatus);
-      if (nextFollowUp) nextParams.set("follow_up", nextFollowUp);
-    }
-    return `/admin/inquiries?${nextParams.toString()}`;
-  }
+  const inquiryWorkspaceState = {
+    status,
+    eventType,
+    followUp,
+    q: queryText,
+    sort,
+    page,
+  };
+  const rentalWorkspaceState = { tab: "requests", status: "all" };
+  const followUpFilterHref = buildInquiryWorkspaceHref({
+    tab: "inquiries",
+    state: inquiryWorkspaceState,
+    nextStatus: status,
+    nextFollowUp: "with_inspiration",
+    preservePage: true,
+  });
+  const clearFollowUpFilterHref = buildInquiryWorkspaceHref({
+    tab: "inquiries",
+    state: inquiryWorkspaceState,
+    nextStatus: status,
+    preservePage: true,
+  });
 
   const { data: followUpInspirationRows } = await supabaseAdmin
     .from("event_inquiries")
@@ -456,7 +449,19 @@ export default async function AdminInquiriesPage({
       contract_status: pipelineContractMap.get(row.id)?.contract_status ?? null,
       deposit_paid: pipelineContractMap.get(row.id)?.deposit_paid ?? null,
     }))
-  );
+  ).map((column) => ({
+    ...column,
+    href:
+      column.key === "intake"
+        ? buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" })
+        : column.key === "consultation"
+          ? buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })
+          : column.key === "quote"
+            ? buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" })
+            : column.key === "handoff"
+              ? buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })
+              : column.href,
+  }));
 
   const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
   const eventTypes = [
@@ -476,28 +481,28 @@ export default async function AdminInquiriesPage({
       value: String(pendingCount ?? 0),
       note: `${buildShare(pendingCount, totalCount)}% of all requests`,
       tone: "amber",
-      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "new" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
     },
     {
       label: "Consultations Scheduled",
       value: String(scheduledConsultationCount ?? 0),
       note: "Meetings currently on the calendar",
       tone: "violet",
-      href: buildWorkspaceHref({ tab: "schedule" }),
+      href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
     },
     {
       label: "Pending Quotes",
       value: String(quotedCount ?? 0),
       note: "Waiting on client movement",
       tone: "blue",
-      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "quoted" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" }),
     },
     {
       label: "Booked Events",
       value: String(reservedCount ?? 0),
       note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion`,
       tone: "green",
-      href: buildWorkspaceHref({ tab: "pipeline" }),
+      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
     },
     {
       label: "Booked Revenue",
@@ -522,7 +527,7 @@ export default async function AdminInquiriesPage({
       value: String(currentMonthRentalIntake),
       note: `${rentalIntakeShare}% of this month's total intake`,
       tone: "amber",
-      href: "/admin/rentals?status=requested",
+      href: buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextStatus: "requested" }),
     });
   }
 
@@ -532,7 +537,7 @@ export default async function AdminInquiriesPage({
       count: pendingCount ?? 0,
       detail: "Fresh leads that still need a first touch or triage.",
       tone: "warning" as const,
-      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "new" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
       cta: "Review leads",
     },
     {
@@ -556,7 +561,7 @@ export default async function AdminInquiriesPage({
       count: upcomingConsultations?.length ?? 0,
       detail: "Meetings within the next two weeks that need preparation.",
       tone: "info" as const,
-      href: buildWorkspaceHref({ tab: "schedule" }),
+      href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
       cta: "View schedule",
     },
     {
@@ -564,7 +569,12 @@ export default async function AdminInquiriesPage({
       count: followUpInspirationCount ?? 0,
       detail: "Clients added inspiration images or style notes after the initial request.",
       tone: "info" as const,
-      href: buildWorkspaceHref({ tab: "inquiries", nextFollowUp: "with_inspiration" }),
+      href: buildInquiryWorkspaceHref({
+        tab: "inquiries",
+        state: inquiryWorkspaceState,
+        nextStatus: status,
+        nextFollowUp: "with_inspiration",
+      }),
       cta: "Review follow-up",
     },
     {
@@ -572,7 +582,7 @@ export default async function AdminInquiriesPage({
       count: newRentalRequestsCount ?? 0,
       detail: "New rental quote requests that still need inventory and logistics review.",
       tone: "warning" as const,
-      href: "/admin/rentals?status=requested",
+      href: buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextStatus: "requested" }),
       cta: "Open rentals",
     },
     {
@@ -580,7 +590,7 @@ export default async function AdminInquiriesPage({
       count: rentalQuotesAwaitingReplyCount ?? 0,
       detail: "Rental clients have been quoted and still need a follow-up or decision.",
       tone: "attention" as const,
-      href: "/admin/rentals?status=quoted",
+      href: buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextStatus: "quoted" }),
       cta: "Review rental pipeline",
     },
   ].filter((item) => item.count > 0);
@@ -653,15 +663,16 @@ export default async function AdminInquiriesPage({
   const nextPage = page < totalPages ? page + 1 : null;
 
   function buildPageHref(nextPageValue: number) {
-    const nextParams = new URLSearchParams();
-    nextParams.set("tab", "inquiries");
-    if (status) nextParams.set("status", status);
-    if (eventType) nextParams.set("event_type", eventType);
-    if (followUp) nextParams.set("follow_up", followUp);
-    if (queryText) nextParams.set("q", queryText);
-    if (sort) nextParams.set("sort", sort);
-    if (nextPageValue > 1) nextParams.set("page", String(nextPageValue));
-    return `/admin/inquiries?${nextParams.toString()}`;
+    return buildInquiryWorkspaceHref({
+      tab: "inquiries",
+      state: {
+        ...inquiryWorkspaceState,
+        page: nextPageValue,
+      },
+      nextStatus: status,
+      nextFollowUp: followUp || undefined,
+      preservePage: true,
+    });
   }
 
   const tabHeadingMap: Record<WorkspaceTab, { title: string; description: string }> = {

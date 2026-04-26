@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import { buildCrmLeadsHref } from "@/lib/admin-navigation";
 import CrmAlertsPanel from "@/components/admin/crm-alerts-panel";
 import CrmForecastCard from "@/components/admin/crm-forecast-card";
 import CrmFunnelCard from "@/components/admin/crm-funnel-card";
@@ -181,16 +182,22 @@ export default async function AdminCrmAnalyticsPage({
   if (params.dateRange) exportParams.set("dateRange", params.dateRange);
   if (params.followUp) exportParams.set("followUp", params.followUp);
   const exportHref = `/api/admin/crm-analytics/export?${exportParams.toString()}`;
-  const leadFilterParams = new URLSearchParams();
-  leadFilterParams.set("tab", "leads");
-  if (params.q) leadFilterParams.set("q", params.q);
-  if (params.stage) leadFilterParams.set("stage", params.stage);
-  if (params.eventType) leadFilterParams.set("eventType", params.eventType);
-  if (params.source) leadFilterParams.set("source", params.source);
-  if (params.owner) leadFilterParams.set("owner", params.owner);
-  if (params.dateRange) leadFilterParams.set("dateRange", params.dateRange);
-  const followUpFilterHref = `/admin/crm-analytics?${leadFilterParams.toString()}&followUp=with_inspiration`;
-  const clearFollowUpFilterHref = `/admin/crm-analytics?${leadFilterParams.toString()}`;
+  const crmLeadsState = {
+    q: params.q,
+    stage: params.stage,
+    eventType: params.eventType,
+    source: params.source,
+    owner: params.owner,
+    dateRange: params.dateRange,
+    followUp: params.followUp,
+  };
+  const followUpFilterHref = buildCrmLeadsHref({
+    state: crmLeadsState,
+    nextFollowUp: "with_inspiration",
+  });
+  const clearFollowUpFilterHref = buildCrmLeadsHref({
+    state: crmLeadsState,
+  });
 
   const kpis = [
     { label: "Active Leads", value: String(crmLeads.length), detail: "Open relationships across inquiry to booking", tone: "neutral" as const },
@@ -400,15 +407,7 @@ export default async function AdminCrmAnalyticsPage({
         <div className="admin-stack">
           <CrmLeadsTable
             leads={filteredLeads}
-            filters={{
-              q: params.q,
-              stage: params.stage,
-              eventType: params.eventType,
-              source: params.source,
-              owner: params.owner,
-              dateRange: params.dateRange,
-              followUp: params.followUp,
-            }}
+            filters={crmLeadsState}
             revisionLeadIds={revisionLeadIds}
             followUpSummary={{
               pending: followUpPendingCount,
