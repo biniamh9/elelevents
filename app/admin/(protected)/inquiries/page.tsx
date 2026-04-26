@@ -2,6 +2,7 @@ import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
 import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
+import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -105,6 +106,7 @@ export default async function AdminInquiriesPage({
     tab?: string;
     status?: string;
     event_type?: string;
+    follow_up?: string;
     q?: string;
     sort?: string;
     page?: string;
@@ -120,11 +122,28 @@ export default async function AdminInquiriesPage({
     : "overview";
   const status = params.status || "";
   const eventType = params.event_type || "";
+  const followUp = params.follow_up || "";
+  const followUpFilterActive = followUp === "with_inspiration";
   const queryText = params.q?.trim() || "";
   const sort = params.sort || "newest";
   const page = normalizePage(params.page);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+
+  const { data: followUpInspirationRows } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("id, follow_up_details_json")
+    .neq("follow_up_details_json", "{}");
+
+  const unresolvedFollowUpIds = (followUpInspirationRows ?? [])
+    .filter((row) =>
+      inquiryFollowUpNeedsReview(normalizeInquiryFollowUpDetails(row.follow_up_details_json))
+    )
+    .map((row) => row.id);
+  const reviewedFollowUpCount = Math.max(
+    0,
+    (followUpInspirationRows ?? []).length - unresolvedFollowUpIds.length
+  );
 
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -137,7 +156,7 @@ export default async function AdminInquiriesPage({
   let query = supabaseAdmin
     .from("event_inquiries")
     .select(
-      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status",
+      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_details_json",
       { count: "exact" }
     )
     .range(from, to);
@@ -148,6 +167,14 @@ export default async function AdminInquiriesPage({
 
   if (eventType) {
     query = query.eq("event_type", eventType);
+  }
+
+  if (followUp === "with_inspiration") {
+    if (unresolvedFollowUpIds.length) {
+      query = query.in("id", unresolvedFollowUpIds);
+    } else {
+      query = query.in("id", ["00000000-0000-0000-0000-000000000000"]);
+    }
   }
 
   if (queryText) {
@@ -243,6 +270,9 @@ export default async function AdminInquiriesPage({
     .from("rental_quote_requests")
     .select("*", { count: "exact", head: true })
     .eq("status", "quoted");
+
+  const followUpInspirationCount =
+    unresolvedFollowUpIds.length;
 
   const { count: rentalRequestsThisMonth } = await supabaseAdmin
     .from("rental_quote_requests")
@@ -500,6 +530,14 @@ export default async function AdminInquiriesPage({
       cta: "View schedule",
     },
     {
+      title: "Follow-up inspiration ready for review",
+      count: followUpInspirationCount ?? 0,
+      detail: "Clients added inspiration images or style notes after the initial request.",
+      tone: "info" as const,
+      href: "/admin/inquiries?tab=inquiries&follow_up=with_inspiration",
+      cta: "Review follow-up",
+    },
+    {
       title: "Rental requests waiting on review",
       count: newRentalRequestsCount ?? 0,
       detail: "New rental quote requests that still need inventory and logistics review.",
@@ -589,6 +627,7 @@ export default async function AdminInquiriesPage({
     nextParams.set("tab", "inquiries");
     if (status) nextParams.set("status", status);
     if (eventType) nextParams.set("event_type", eventType);
+    if (followUp) nextParams.set("follow_up", followUp);
     if (queryText) nextParams.set("q", queryText);
     if (sort) nextParams.set("sort", sort);
     if (nextPageValue > 1) nextParams.set("page", String(nextPageValue));
@@ -924,6 +963,16 @@ export default async function AdminInquiriesPage({
           <div className="admin-workspace-subheader">
             <form method="GET" className="admin-filters admin-filters--records admin-filters--sticky">
               <input type="hidden" name="tab" value="inquiries" />
+              <div className="admin-inline-actions admin-inline-actions--filters">
+                <span className="admin-head-pill">Follow-up pending: {unresolvedFollowUpIds.length}</span>
+                <span className="admin-head-pill">Reviewed: {reviewedFollowUpCount}</span>
+                <Link
+                  href="/admin/inquiries?tab=inquiries&follow_up=with_inspiration"
+                  className={`admin-head-pill${followUpFilterActive ? " admin-head-pill--active" : ""}`}
+                >
+                  Pending follow-up review
+                </Link>
+              </div>
               <div className="field">
                 <label className="label">Search</label>
                 <input
@@ -964,6 +1013,14 @@ export default async function AdminInquiriesPage({
                   <option value="newest">Created date: newest</option>
                   <option value="oldest">Created date: oldest</option>
                   <option value="event_date">Event date</option>
+                </select>
+              </div>
+
+              <div className={`field${followUpFilterActive ? " admin-filter-field--active" : ""}`}>
+                <label className="label">Follow-up</label>
+                <select name="follow_up" defaultValue={followUp} className="input">
+                  <option value="">All</option>
+                  <option value="with_inspiration">Has follow-up inspiration</option>
                 </select>
               </div>
 
@@ -1010,11 +1067,14 @@ export default async function AdminInquiriesPage({
                       const contract = contractMap.get(row.id) ?? null;
                       const needsQuoteRevision =
                         row.quote_response_status === "changes_requested";
+                      const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
+                        normalizeInquiryFollowUpDetails(row.follow_up_details_json)
+                      );
 
                       return (
                         <tr
                           key={row.id}
-                          className={needsQuoteRevision ? "admin-record-row--attention" : undefined}
+                          className={needsQuoteRevision || hasFollowUpInspiration ? "admin-record-row--attention" : undefined}
                         >
                           <td>
                             <div className="admin-record-main">
@@ -1028,6 +1088,11 @@ export default async function AdminInquiriesPage({
                                   Client requested quote changes
                                 </span>
                               ) : null}
+                              {hasFollowUpInspiration ? (
+                                <span className="admin-inline-attention-chip">
+                                  Follow-up inspiration added
+                                </span>
+                              ) : null}
                             </div>
                           </td>
                           <td>{row.event_type}</td>
@@ -1039,6 +1104,8 @@ export default async function AdminInquiriesPage({
                               <span className="admin-record-substatus">
                                 {needsQuoteRevision
                                   ? "Quote revision needed"
+                                  : hasFollowUpInspiration
+                                    ? "Inspiration follow-up ready for review"
                                   : `${humanizeBookingStage(row.booking_stage)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
                               </span>
                             </div>
@@ -1093,11 +1160,14 @@ export default async function AdminInquiriesPage({
                 const contract = contractMap.get(row.id) ?? null;
                 const needsQuoteRevision =
                   row.quote_response_status === "changes_requested";
+                const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
+                  normalizeInquiryFollowUpDetails(row.follow_up_details_json)
+                );
 
                 return (
                   <div
                     key={row.id}
-                    className={`admin-mobile-record${needsQuoteRevision ? " admin-mobile-record--attention" : ""}`}
+                    className={`admin-mobile-record${needsQuoteRevision || hasFollowUpInspiration ? " admin-mobile-record--attention" : ""}`}
                   >
                     <div className="admin-mobile-record-head">
                       <div>
@@ -1106,6 +1176,11 @@ export default async function AdminInquiriesPage({
                         {needsQuoteRevision ? (
                           <span className="admin-inline-attention-chip">
                             Client requested quote changes
+                          </span>
+                        ) : null}
+                        {hasFollowUpInspiration ? (
+                          <span className="admin-inline-attention-chip">
+                            Follow-up inspiration added
                           </span>
                         ) : null}
                       </div>

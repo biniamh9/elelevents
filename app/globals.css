@@ -16073,6 +16073,26 @@ tbody tr:last-child td {
   color: rgba(73, 62, 50, 0.72);
 }
 
+.admin-head-pill--active {
+  background: rgba(237, 122, 48, 0.14);
+  border-color: rgba(237, 122, 48, 0.38);
+  color: var(--accent-dark);
+  box-shadow: inset 0 0 0 1px rgba(237, 122, 48, 0.08);
+}
+
+.admin-filter-field--active .label,
+.admin-filter-field--active > span {
+  color: var(--accent-dark);
+}
+
+.admin-filter-field--active .input,
+.admin-filter-field--active select,
+.admin-filter-field--active input {
+  border-color: rgba(237, 122, 48, 0.38);
+  background: linear-gradient(180deg, rgba(255, 250, 245, 0.98), rgba(252, 243, 235, 0.98));
+  box-shadow: 0 0 0 3px rgba(237, 122, 48, 0.08);
+}
+
 .admin-mini-report {
   gap: 14px;
   margin-bottom: 18px;

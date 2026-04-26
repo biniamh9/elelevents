@@ -38,6 +38,7 @@ import {
   type CrmTask,
 } from "@/lib/crm-analytics";
 import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
+import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { buildRentalFollowUpTasks } from "@/lib/rental-follow-up-tasks";
 import { getRentalQuoteRequests } from "@/lib/rental-requests";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
@@ -98,6 +99,7 @@ export default async function AdminCrmAnalyticsPage({
     source?: string;
     owner?: string;
     dateRange?: string;
+    followUp?: string;
   }>;
 }) {
   await requireAdminPage("crm");
@@ -107,7 +109,34 @@ export default async function AdminCrmAnalyticsPage({
     ? (params.tab as Tab)
     : "dashboard";
 
-  const filteredLeads = filterCrmLeads(crmLeads, params);
+  const { data: followUpInquiries } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("email, follow_up_details_json")
+    .neq("follow_up_details_json", "{}");
+
+  const followUpEmails = new Set(
+    (followUpInquiries ?? [])
+      .filter(
+        (item) =>
+          item.email &&
+          inquiryFollowUpNeedsReview(
+            normalizeInquiryFollowUpDetails(item.follow_up_details_json)
+          )
+      )
+      .map((item) => String(item.email).trim().toLowerCase())
+  );
+  const followUpPendingCount = followUpEmails.size;
+  const followUpReviewedCount = Math.max(
+    0,
+    (followUpInquiries ?? []).filter((item) => item.email).length - followUpPendingCount
+  );
+
+  const crmLeadsWithFollowUp = crmLeads.map((lead) => ({
+    ...lead,
+    hasFollowUpInspiration: followUpEmails.has(lead.email.trim().toLowerCase()),
+  }));
+
+  const filteredLeads = filterCrmLeads(crmLeadsWithFollowUp, params);
   const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, { status: "open" });
   const rentalRequests = await getRentalQuoteRequests({ status: "all" });
   const rentalTasks = buildRentalFollowUpTasks(
@@ -123,22 +152,22 @@ export default async function AdminCrmAnalyticsPage({
       .filter((task) => task.title.toLowerCase().includes("revise quote"))
       .map((task) => task.leadId)
   );
-  const leadsById = new Map(crmLeads.map((lead) => [lead.id, lead]));
-  const totalBookedRevenue = getBookedRevenue(crmLeads);
-  const totalPipelineValue = getPipelineValue(crmLeads);
-  const forecastedRevenue = getForecastedRevenue(crmLeads);
-  const likelyRevenue = getLikelyRevenue(crmLeads);
-  const totalOutstanding = getOutstandingBalances(crmLeads);
-  const hotLeads = crmLeads.filter((lead) =>
+  const leadsById = new Map(crmLeadsWithFollowUp.map((lead) => [lead.id, lead]));
+  const totalBookedRevenue = getBookedRevenue(crmLeadsWithFollowUp);
+  const totalPipelineValue = getPipelineValue(crmLeadsWithFollowUp);
+  const forecastedRevenue = getForecastedRevenue(crmLeadsWithFollowUp);
+  const likelyRevenue = getLikelyRevenue(crmLeadsWithFollowUp);
+  const totalOutstanding = getOutstandingBalances(crmLeadsWithFollowUp);
+  const hotLeads = crmLeadsWithFollowUp.filter((lead) =>
     ["consultation_scheduled", "consultation_completed", "quote_sent", "awaiting_deposit"].includes(lead.stage)
   ).length;
-  const quotesSent = crmLeads.filter((lead) => lead.stage === "quote_sent").length;
-  const conversionRate = getConversionRate(crmLeads);
-  const averageEventValue = getAverageEventValue(crmLeads);
-  const activeOpportunities = crmLeads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
+  const quotesSent = crmLeadsWithFollowUp.filter((lead) => lead.stage === "quote_sent").length;
+  const conversionRate = getConversionRate(crmLeadsWithFollowUp);
+  const averageEventValue = getAverageEventValue(crmLeadsWithFollowUp);
+  const activeOpportunities = crmLeadsWithFollowUp.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
   const filteredSourceMetrics = getSourceMetrics(filteredLeads);
   const filteredLostReasonMetrics = getLostReasonMetrics(filteredLeads);
-  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeads, {
+  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeadsWithFollowUp, {
     revisionLeadIds,
   });
 
@@ -150,6 +179,7 @@ export default async function AdminCrmAnalyticsPage({
   if (params.source) exportParams.set("source", params.source);
   if (params.owner) exportParams.set("owner", params.owner);
   if (params.dateRange) exportParams.set("dateRange", params.dateRange);
+  if (params.followUp) exportParams.set("followUp", params.followUp);
   const exportHref = `/api/admin/crm-analytics/export?${exportParams.toString()}`;
 
   const kpis = [
@@ -365,10 +395,15 @@ export default async function AdminCrmAnalyticsPage({
               stage: params.stage,
               eventType: params.eventType,
               source: params.source,
-              owner: params.owner,
-              dateRange: params.dateRange,
+            owner: params.owner,
+            dateRange: params.dateRange,
+              followUp: params.followUp,
             }}
             revisionLeadIds={revisionLeadIds}
+            followUpSummary={{
+              pending: followUpPendingCount,
+              reviewed: followUpReviewedCount,
+            }}
           />
           <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
         </div>

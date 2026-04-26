@@ -47,6 +47,7 @@ export type CrmLead = {
   paymentStatus?: "unpaid" | "deposit_due" | "deposit_paid" | "paid";
   decorStatus?: "pending" | "in_progress" | "approved" | "ready";
   lostReason?: "Price too high" | "Chose competitor" | "No response" | "Date unavailable" | "Not ready" | "Other";
+  hasFollowUpInspiration?: boolean;
 };
 
 export type CrmInteraction = {
@@ -113,6 +114,7 @@ export type CrmLeadFilters = {
   source?: string;
   owner?: string;
   dateRange?: string;
+  followUp?: string;
 };
 
 export const CRM_STAGE_LABELS: Record<CrmStage, string> = {
@@ -396,6 +398,7 @@ export function filterCrmLeads(leads: CrmLead[], filters: CrmLeadFilters) {
     if (filters.eventType && lead.eventType !== filters.eventType) return false;
     if (filters.source && lead.source !== filters.source) return false;
     if (filters.owner && lead.owner !== filters.owner) return false;
+    if (filters.followUp === "with_inspiration" && !lead.hasFollowUpInspiration) return false;
     if (filters.dateRange) {
       const days = Number(filters.dateRange);
       const diff = (new Date(lead.eventDate).getTime() - Date.now()) / 86400000;

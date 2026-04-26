@@ -4,12 +4,14 @@ import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
 import BookingLifecycleForm from "@/components/forms/admin/booking-lifecycle-form";
 import ConsultationManagementForm from "@/components/forms/admin/consultation-management-form";
+import FollowUpReviewForm from "@/components/forms/admin/follow-up-review-form";
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
 import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
+import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { requireAdminPage } from "@/lib/auth/admin";
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,38 @@ function humanizeLabel(value: string | null | undefined) {
   return value
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function extractLabeledSection(source: string | null | undefined, label: string) {
+  if (!source) {
+    return null;
+  }
+
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = source.match(new RegExp(`(?:^|\\n\\n)${escapedLabel}:\\s*([\\s\\S]*?)(?=\\n\\n[A-Za-z][^\\n]*:\\s|$)`));
+  return match?.[1]?.trim() || null;
+}
+
+function removeLabeledSections(source: string | null | undefined, labels: string[]) {
+  if (!source) {
+    return null;
+  }
+
+  let cleaned = source;
+
+  for (const label of labels) {
+    const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    cleaned = cleaned.replace(
+      new RegExp(`(?:^|\\n\\n)${escapedLabel}:\\s*[\\s\\S]*?(?=\\n\\n[A-Za-z][^\\n]*:\\s|$)`, "g"),
+      ""
+    );
+  }
+
+  const normalized = cleaned
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return normalized || null;
 }
 
 type WorkflowStepKey =
@@ -255,7 +289,7 @@ export default async function InquiryDetailPage({
   const selectedDecorCategories = Array.isArray(inquiry.selected_decor_categories)
     ? (inquiry.selected_decor_categories as string[])
     : [];
-      const decorSelections = Array.isArray(inquiry.decor_selections)
+  const decorSelections = Array.isArray(inquiry.decor_selections)
     ? (inquiry.decor_selections as Array<{
         categoryKey: string;
         categoryTitle: string;
@@ -275,6 +309,37 @@ export default async function InquiryDetailPage({
         notes?: string | null;
       }>)
     : [];
+  const structuredFollowUp = normalizeInquiryFollowUpDetails(inquiry.follow_up_details_json);
+  const followUpNeedsReview = inquiryFollowUpNeedsReview(structuredFollowUp);
+  const fallbackStyleDirection = extractLabeledSection(inquiry.inspiration_notes, "Style direction");
+  const fallbackInspirationLinks =
+    extractLabeledSection(inquiry.inspiration_notes, "Inspiration links")
+      ?.split("\n")
+      .map((value) => value.trim())
+      .filter(Boolean) ?? [];
+  const postSubmissionStyleDirection =
+    structuredFollowUp?.selected_styles?.length
+      ? structuredFollowUp.selected_styles.join(", ")
+      : fallbackStyleDirection;
+  const postSubmissionInspirationLinks =
+    structuredFollowUp?.inspiration_links?.length
+      ? structuredFollowUp.inspiration_links
+      : fallbackInspirationLinks;
+  const postSubmissionUploadedUrls =
+    structuredFollowUp?.uploaded_urls?.length
+      ? structuredFollowUp.uploaded_urls
+      : inquiry.vision_board_urls ?? [];
+  const originalInspirationNotes = removeLabeledSections(inquiry.inspiration_notes, [
+    "Style direction",
+    "Inspiration links",
+  ]);
+  const followUpSummary = structuredFollowUp?.note ?? extractLabeledSection(inquiry.additional_info, "Follow-up");
+  const originalAdditionalInfo = removeLabeledSections(inquiry.additional_info, ["Follow-up"]);
+  const hasPostSubmissionInspiration =
+    Boolean(postSubmissionStyleDirection) ||
+    postSubmissionInspirationLinks.length > 0 ||
+    Boolean(followUpSummary) ||
+    Boolean(postSubmissionUploadedUrls.length);
   const bookingStage: BookingStage = deriveBookingStage({
     bookingStage: inquiry.booking_stage,
     inquiryStatus: inquiry.status,
@@ -715,11 +780,11 @@ export default async function InquiryDetailPage({
           <div className="admin-vision-summary">
             <div className="admin-vision-block">
               <strong>Inspiration Notes</strong>
-              <p>{inquiry.inspiration_notes ?? "—"}</p>
+              <p>{originalInspirationNotes ?? "—"}</p>
             </div>
             <div className="admin-vision-block">
               <strong>Additional Info</strong>
-              <p>{inquiry.additional_info ?? "—"}</p>
+              <p>{originalAdditionalInfo ?? "—"}</p>
             </div>
             <div className="admin-vision-block">
               <strong>All Uploaded Inspiration</strong>
@@ -745,6 +810,79 @@ export default async function InquiryDetailPage({
         </div>
       </div>
       </section>
+
+      {hasPostSubmissionInspiration ? (
+        <section className="admin-record-section">
+          <div className="admin-section-title">
+            <h3>Post-submission inspiration</h3>
+            <p className="muted">
+              These details were added after the initial availability request and should guide the consultation review.
+            </p>
+          </div>
+
+          <div className="grid-2">
+            <div className="card">
+              <h3>Style and links</h3>
+              <FollowUpReviewForm
+                inquiryId={inquiry.id}
+                isReviewed={!followUpNeedsReview}
+                reviewedAt={structuredFollowUp?.reviewed_at ?? null}
+              />
+              <div className="admin-vision-summary">
+                <div className="admin-vision-block">
+                  <strong>Style direction</strong>
+                  <p>{postSubmissionStyleDirection ?? "—"}</p>
+                </div>
+                <div className="admin-vision-block">
+                  <strong>Inspiration links</strong>
+                  {postSubmissionInspirationLinks.length ? (
+                    <div className="summary-pills">
+                      {postSubmissionInspirationLinks.map((link) => (
+                        <a
+                          key={link}
+                          href={link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="summary-chip"
+                        >
+                          Open link
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>—</p>
+                  )}
+                </div>
+                <div className="admin-vision-block">
+                  <strong>Follow-up note</strong>
+                  <p>{followUpSummary ?? "Client added inspiration after the initial submission."}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <h3>Follow-up uploads</h3>
+              {postSubmissionUploadedUrls.length ? (
+                <div className="vision-board-grid vision-board-grid--admin">
+                  {postSubmissionUploadedUrls.map((url: string) => (
+                    <a
+                      key={`follow-up-${url}`}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="vision-board-item vision-board-item--admin"
+                    >
+                      <img src={url} alt="Post-submission inspiration upload" />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No uploaded follow-up inspiration yet.</p>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <CustomerTimeline
         eyebrow="Client timeline"

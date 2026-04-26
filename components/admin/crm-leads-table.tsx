@@ -22,6 +22,7 @@ export default function CrmLeadsTable({
   leads,
   filters,
   revisionLeadIds,
+  followUpSummary,
 }: {
   leads: CrmLead[];
   filters: {
@@ -31,12 +32,18 @@ export default function CrmLeadsTable({
     owner?: string;
     dateRange?: string;
     q?: string;
+    followUp?: string;
   };
   revisionLeadIds?: Set<string>;
+  followUpSummary?: {
+    pending: number;
+    reviewed: number;
+  };
 }) {
   const eventTypes = [...new Set(leads.map((lead) => lead.eventType))];
   const owners = [...new Set(leads.map((lead) => lead.owner))];
   const sources = [...new Set(leads.map((lead) => lead.source))] as LeadSource[];
+  const followUpFilterActive = filters.followUp === "with_inspiration";
 
   return (
     <section className="card admin-section-card admin-panel admin-panel--wide crm-leads-section">
@@ -45,6 +52,18 @@ export default function CrmLeadsTable({
           <p className="eyebrow">Leads</p>
           <h3>Active relationship pipeline</h3>
         </div>
+        {followUpSummary ? (
+          <div className="admin-inline-actions">
+            <span className="admin-head-pill">Follow-up pending: {followUpSummary.pending}</span>
+            <span className="admin-head-pill">Reviewed: {followUpSummary.reviewed}</span>
+            <a
+              href="/admin/crm-analytics?tab=leads&followUp=with_inspiration"
+              className={`admin-head-pill${followUpFilterActive ? " admin-head-pill--active" : ""}`}
+            >
+              Pending follow-up review
+            </a>
+          </div>
+        ) : null}
       </div>
 
       <form className="admin-record-filters admin-filters admin-filters--records crm-filter-grid crm-filter-grid--leads" action="/admin/crm-analytics">
@@ -106,6 +125,13 @@ export default function CrmLeadsTable({
             <option value="90">Next 90 days</option>
           </select>
         </label>
+        <label className={followUpFilterActive ? "admin-filter-field--active" : undefined}>
+          <span>Follow-up</span>
+          <select name="followUp" defaultValue={filters.followUp ?? ""}>
+            <option value="">All</option>
+            <option value="with_inspiration">Has follow-up inspiration</option>
+          </select>
+        </label>
         <button type="submit" className="btn secondary">
           Apply
         </button>
@@ -129,11 +155,12 @@ export default function CrmLeadsTable({
           <tbody>
             {leads.map((lead) => {
               const needsRevision = revisionLeadIds?.has(lead.id) ?? false;
+              const hasFollowUpInspiration = lead.hasFollowUpInspiration ?? false;
 
               return (
               <tr
                 key={lead.id}
-                className={needsRevision ? "admin-record-row--attention" : undefined}
+                className={needsRevision || hasFollowUpInspiration ? "admin-record-row--attention" : undefined}
               >
                 <td>
                   <div className="admin-record-main">
@@ -142,6 +169,11 @@ export default function CrmLeadsTable({
                     {needsRevision ? (
                       <span className="admin-inline-attention-chip">
                         Client requested quote changes
+                      </span>
+                    ) : null}
+                    {hasFollowUpInspiration ? (
+                      <span className="admin-inline-attention-chip">
+                        Follow-up inspiration added
                       </span>
                     ) : null}
                   </div>
@@ -155,6 +187,8 @@ export default function CrmLeadsTable({
                     </span>
                     {needsRevision ? (
                       <span className="admin-record-substatus">Quote revision needed</span>
+                    ) : hasFollowUpInspiration ? (
+                      <span className="admin-record-substatus">Inspiration follow-up ready for review</span>
                     ) : null}
                   </div>
                 </td>
