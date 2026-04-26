@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import AdminEmptyState from "@/components/admin/admin-empty-state";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { buildRentalRequestDetailHref } from "@/lib/admin-navigation";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import {
   getRentalRequestSummary,
@@ -71,7 +72,7 @@ export default function RentalRequestManagement({
                 <td>{getRentalRequestTotalLabel(request)}</td>
                 <td><StatusBadge status={request.status} /></td>
                 <td>
-                  <Link href={`/admin/rentals/requests/${request.id}`} className="admin-record-link">
+                  <Link href={buildRentalRequestDetailHref(request.id)} className="admin-record-link">
                     Open
                   </Link>
                 </td>

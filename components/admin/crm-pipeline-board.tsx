@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildCrmLeadDetailHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type CrmStage } from "@/lib/crm-analytics";
 
 const stageOrder: CrmStage[] = [
@@ -34,7 +35,7 @@ export default function CrmPipelineBoard({ leads }: { leads: CrmLead[] }) {
               <div className="crm-pipeline-column-list">
                 {stageLeads.length ? (
                   stageLeads.map((lead) => (
-                    <Link key={lead.id} href={`/admin/crm-analytics/${lead.id}`} className="crm-pipeline-card">
+                    <Link key={lead.id} href={buildCrmLeadDetailHref(lead.id)} className="crm-pipeline-card">
                       <strong>{lead.clientName}</strong>
                       <span>{lead.eventType}</span>
                       <small>${lead.estimatedValue.toLocaleString()}</small>

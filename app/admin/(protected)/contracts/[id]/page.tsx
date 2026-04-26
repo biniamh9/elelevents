@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildContractsWorkspaceHref, buildInvoiceCreateHref } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractManagementForm from "@/components/forms/admin/contract-management-form";
 import ContractPreview from "@/components/forms/admin/contract-preview";
@@ -130,7 +131,7 @@ export default async function ContractDetailPage({
     <main className="container section">
       <div className="contract-page-header">
         <div>
-          <Link href="/admin/contracts" className="btn secondary">
+          <Link href={buildContractsWorkspaceHref({ queue: "all" })} className="btn secondary">
             ← Back to Contracts
           </Link>
           <p className="eyebrow" style={{ marginTop: "18px" }}>
@@ -223,7 +224,13 @@ export default async function ContractDetailPage({
             <p><strong>Envelope:</strong> {contract.docusign_envelope_id ?? "Not sent yet"}</p>
             <p><strong>Payment method:</strong> {details.payment_record.payment_method ?? "—"}</p>
             <div className="summary-pills">
-              <Link href={`/admin/documents/new?type=invoice&contractId=${contract.id}&inquiryId=${contract.inquiry_id ?? ""}`} className="summary-chip">
+              <Link
+                href={buildInvoiceCreateHref({
+                  contractId: contract.id,
+                  inquiryId: contract.inquiry_id,
+                })}
+                className="summary-chip"
+              >
                 Create Invoice
               </Link>
               <Link href="/admin/documents" className="summary-chip">

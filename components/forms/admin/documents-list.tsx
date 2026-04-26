@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { buildQuoteCreateHref } from "@/lib/admin-navigation";
 import type { ClientDocumentRecord } from "@/lib/client-documents";
 import { documentTypeLabels, formatDocumentDate, formatMoney } from "@/lib/client-documents";
 import DocumentStatusBadge from "@/components/forms/admin/document-status-badge";
@@ -52,7 +53,7 @@ export default function DocumentsList({
             </p>
           </div>
           <div className="admin-inline-actions">
-            <Link href="/admin/documents/new?type=quote" className="btn">
+            <Link href={buildQuoteCreateHref()} className="btn">
               Create Quote
             </Link>
           </div>

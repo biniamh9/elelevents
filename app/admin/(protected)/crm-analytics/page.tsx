@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
-import { buildCrmLeadsHref } from "@/lib/admin-navigation";
+import { buildCrmLeadDetailHref, buildCrmLeadsHref } from "@/lib/admin-navigation";
 import CrmAlertsPanel from "@/components/admin/crm-alerts-panel";
 import CrmForecastCard from "@/components/admin/crm-forecast-card";
 import CrmFunnelCard from "@/components/admin/crm-funnel-card";
@@ -425,7 +425,7 @@ export default async function AdminCrmAnalyticsPage({
           <AdminSectionHeader eyebrow="Customers" title="Relationship roster" />
           <div className="crm-customer-grid">
             {crmLeads.map((lead) => (
-              <Link key={lead.id} href={`/admin/crm-analytics/${lead.id}`} className="crm-customer-card">
+              <Link key={lead.id} href={buildCrmLeadDetailHref(lead.id)} className="crm-customer-card">
                 <strong>{lead.clientName}</strong>
                 <span>{lead.eventType} · {formatDate(lead.eventDate)}</span>
                 <small>{lead.quoteSummary}</small>
@@ -477,7 +477,7 @@ export default async function AdminCrmAnalyticsPage({
             <div className="crm-task-list">
               {combinedTasks.map((task) => {
                 const lead = leadsById.get(task.leadId);
-                const taskHref = task.href ?? `/admin/crm-analytics/${task.leadId}`;
+                const taskHref = task.href ?? buildCrmLeadDetailHref(task.leadId);
                 return (
                   <AdminWorkflowAction
                     key={task.id}

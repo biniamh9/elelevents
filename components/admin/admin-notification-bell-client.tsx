@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import {
+  buildContractDetailHref,
+  buildInquiryDetailHref,
+  buildRentalRequestDetailHref,
+} from "@/lib/admin-navigation";
 import type { AdminNotificationItem } from "@/lib/admin-notifications";
 
 function timeAgo(value: string) {
@@ -25,11 +30,11 @@ function timeAgo(value: string) {
 
 function buildNotificationLink(item: AdminNotificationItem) {
   if (item.action === "inquiry.created" || item.entity_type === "inquiry") {
-    return `/admin/inquiries/${item.entity_id}`;
+    return buildInquiryDetailHref(item.entity_id);
   }
 
   if (item.action.startsWith("rental_request.") || item.entity_type === "rental_request") {
-    return `/admin/rentals/requests/${item.entity_id}`;
+    return buildRentalRequestDetailHref(item.entity_id);
   }
 
   if (item.action.startsWith("vendor.") || item.entity_type === "vendor") {
@@ -42,11 +47,11 @@ function buildNotificationLink(item: AdminNotificationItem) {
         ? item.metadata.inquiry_id
         : null;
 
-    return inquiryId ? `/admin/inquiries/${inquiryId}` : "/admin/vendors";
+    return inquiryId ? buildInquiryDetailHref(inquiryId) : "/admin/vendors";
   }
 
   if (item.entity_type === "contract") {
-    return `/admin/contracts/${item.entity_id}`;
+    return buildContractDetailHref(item.entity_id);
   }
 
   return "/admin/inquiries";

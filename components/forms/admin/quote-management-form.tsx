@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import { buildInquiryItemizedDraftHref } from "@/lib/admin-navigation";
 import {
   calculateLineTotal,
   calculateQuoteTotals,
@@ -770,7 +771,7 @@ export default function QuoteManagementForm({
                     tone="internal"
                     label="Open Itemized Draft Preview"
                     description="Opens the saved itemized draft preview in the admin workspace."
-                    onClick={() => router.push(`/admin/inquiries/${inquiryId}/itemized-draft`)}
+                    onClick={() => router.push(buildInquiryItemizedDraftHref(inquiryId))}
                   />
                   <AdminWorkflowAction
                     className="admin-workflow-action--menu"

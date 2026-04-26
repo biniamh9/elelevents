@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import AdminEmptyState from "@/components/admin/admin-empty-state";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
+import { buildRentalItemCreateHref, buildRentalItemDetailHref } from "@/lib/admin-navigation";
 import { formatMoney, formatRentalPrice, type RentalItem } from "@/lib/rental-shared";
 
 export default function RentalManagement({
@@ -15,7 +16,7 @@ export default function RentalManagement({
         eyebrow="Rentals"
         title="No rental items yet"
         description="Start by adding a rental item such as Chiavari chairs, candles, or focal decor so pricing, quantity, and deposit defaults can be managed centrally."
-        action={<Link href="/admin/rentals/new" className="btn">Create rental item</Link>}
+        action={<Link href={buildRentalItemCreateHref()} className="btn">Create rental item</Link>}
       />
     );
   }
@@ -28,7 +29,7 @@ export default function RentalManagement({
         eyebrow="Rental Inventory"
         title="Manage rental items"
         description="Open an item to edit pricing, images, refundable deposit defaults, and post-rental deposit tracking."
-        actions={<Link href="/admin/rentals/new" className="btn">New rental item</Link>}
+        actions={<Link href={buildRentalItemCreateHref()} className="btn">New rental item</Link>}
       />
 
       <div className="admin-record-table-shell">
@@ -82,7 +83,7 @@ export default function RentalManagement({
                 <td>{item.active ? "Active" : "Archived"}</td>
                 <td>{item.featured ? "Featured" : "Standard"}</td>
                 <td>
-                  <Link href={`/admin/rentals/${item.id}`} className="admin-record-link">
+                  <Link href={buildRentalItemDetailHref(item.id)} className="admin-record-link">
                     Open
                   </Link>
                 </td>

@@ -1,4 +1,5 @@
 import type { CrmTask } from "@/lib/crm-analytics";
+import { buildRentalRequestDetailHref } from "@/lib/admin-navigation";
 import type { RentalQuoteRequest } from "@/lib/rental-requests";
 
 function formatDueLabel(value: string | null) {
@@ -17,7 +18,7 @@ export function buildRentalFollowUpTasks(
   requests: RentalQuoteRequest[]
 ): CrmTask[] {
   return requests.flatMap((request) => {
-    const href = `/admin/rentals/requests/${request.id}`;
+    const href = buildRentalRequestDetailHref(request.id);
     const baseDetail = `${request.first_name} ${request.last_name} · ${request.occasion_label || "Rental request"}`;
 
     if (request.status === "requested") {

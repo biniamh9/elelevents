@@ -1,4 +1,9 @@
 import Link from "next/link";
+import {
+  buildContractDetailHref,
+  buildContractsWorkspaceHref,
+  type ContractQueue,
+} from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
@@ -18,8 +23,18 @@ function humanizeLabel(value: string | null | undefined) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-export default async function ContractsPage() {
+export default async function ContractsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ queue?: string }>;
+}) {
   await requireAdminPage("sales");
+  const { queue: rawQueue = "all" } = await searchParams;
+  const queue = (
+    ["all", "draft", "sent", "signed", "unsigned", "deposit_pending"].includes(rawQueue)
+      ? rawQueue
+      : "all"
+  ) as ContractQueue;
 
   const { data, error } = await supabaseAdmin
     .from("contracts")
@@ -49,31 +64,43 @@ export default async function ContractsPage() {
     .from("contracts")
     .select("*", { count: "exact", head: true })
     .eq("deposit_paid", true);
+  const { count: depositPendingCount } = await supabaseAdmin
+    .from("contracts")
+    .select("*", { count: "exact", head: true })
+    .eq("deposit_paid", false);
 
   const { count: sentDocusignCount } = await supabaseAdmin
     .from("contracts")
     .select("*", { count: "exact", head: true })
     .eq("docusign_envelope_status", "sent");
+  const filteredContracts = (data ?? []).filter((row) => {
+    if (queue === "draft") return row.contract_status === "draft";
+    if (queue === "sent") return row.contract_status === "sent";
+    if (queue === "signed") return row.contract_status === "signed";
+    if (queue === "unsigned") return ["draft", "sent"].includes(row.contract_status ?? "draft");
+    if (queue === "deposit_pending") return !row.deposit_paid;
+    return true;
+  });
   const boardStages = [
     {
       key: "draft",
       label: "Draft",
-      items: (data ?? []).filter((row) => row.contract_status === "draft"),
+      items: filteredContracts.filter((row) => row.contract_status === "draft"),
     },
     {
       key: "sent",
       label: "Sent",
-      items: (data ?? []).filter((row) => row.contract_status === "sent"),
+      items: filteredContracts.filter((row) => row.contract_status === "sent"),
     },
     {
       key: "signed",
       label: "Signed",
-      items: (data ?? []).filter((row) => row.contract_status === "signed"),
+      items: filteredContracts.filter((row) => row.contract_status === "signed"),
     },
     {
       key: "deposit_paid",
       label: "Deposit Paid",
-      items: (data ?? []).filter((row) => row.deposit_paid),
+      items: filteredContracts.filter((row) => row.deposit_paid),
     },
   ];
 
@@ -97,9 +124,30 @@ export default async function ContractsPage() {
           { label: "Draft", value: draftCount ?? 0 },
           { label: "Sent", value: sentCount ?? 0, tone: "blue" },
           { label: "Signed", value: signedCount ?? 0, tone: "violet" },
-          { label: "Deposit paid", value: depositPaidCount ?? 0, tone: "green" },
+          { label: "Deposit pending", value: depositPendingCount ?? 0, tone: "amber" },
         ]}
       />
+
+      <div className="admin-workspace-tabs admin-workspace-tabs--inline">
+        <Link href={buildContractsWorkspaceHref({ queue: "all" })} className={`admin-workspace-tab${queue === "all" ? " is-active" : ""}`}>
+          All
+        </Link>
+        <Link href={buildContractsWorkspaceHref({ queue: "unsigned" })} className={`admin-workspace-tab${queue === "unsigned" ? " is-active" : ""}`}>
+          Unsigned
+        </Link>
+        <Link href={buildContractsWorkspaceHref({ queue: "draft" })} className={`admin-workspace-tab${queue === "draft" ? " is-active" : ""}`}>
+          Draft
+        </Link>
+        <Link href={buildContractsWorkspaceHref({ queue: "sent" })} className={`admin-workspace-tab${queue === "sent" ? " is-active" : ""}`}>
+          Sent
+        </Link>
+        <Link href={buildContractsWorkspaceHref({ queue: "signed" })} className={`admin-workspace-tab${queue === "signed" ? " is-active" : ""}`}>
+          Signed
+        </Link>
+        <Link href={buildContractsWorkspaceHref({ queue: "deposit_pending" })} className={`admin-workspace-tab${queue === "deposit_pending" ? " is-active" : ""}`}>
+          Deposit pending
+        </Link>
+      </div>
 
       <section className="admin-board-shell">
         <AdminSectionHeader
@@ -120,7 +168,7 @@ export default async function ContractsPage() {
                   stage.items.slice(0, 5).map((row) => (
                     <Link
                       key={row.id}
-                      href={`/admin/contracts/${row.id}`}
+                      href={buildContractDetailHref(row.id)}
                       className="admin-kanban-card"
                     >
                       <strong>{row.client_name}</strong>
@@ -167,12 +215,12 @@ export default async function ContractsPage() {
             </tr>
           </thead>
           <tbody>
-            {data?.map((row) => (
+            {filteredContracts.map((row) => (
               <tr key={row.id}>
                 <td>{new Date(row.created_at).toLocaleDateString()}</td>
                 <td>
                   <Link
-                    href={`/admin/contracts/${row.id}`}
+                    href={buildContractDetailHref(row.id)}
                     style={{ color: "#a74471", fontWeight: 600 }}
                   >
                     {row.client_name}
@@ -193,10 +241,10 @@ export default async function ContractsPage() {
       </div>
 
       <div className="admin-mobile-records">
-        {data?.map((row) => (
+        {filteredContracts.map((row) => (
           <Link
             key={row.id}
-            href={`/admin/contracts/${row.id}`}
+            href={buildContractDetailHref(row.id)}
             className="admin-mobile-record"
           >
             <div className="admin-mobile-record-head">

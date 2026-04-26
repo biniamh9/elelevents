@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import { buildInquiryItemizedDraftHref } from "@/lib/admin-navigation";
 import { getInquiryWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 
 export default function InquiryRecordActions({
@@ -114,7 +115,7 @@ export default function InquiryRecordActions({
           <div className="admin-row-action-group">
             <p className="admin-row-action-group-label">Extras</p>
             <AdminWorkflowAction
-              href={`/admin/inquiries/${inquiryId}/itemized-draft`}
+              href={buildInquiryItemizedDraftHref(inquiryId)}
               className="admin-workflow-action--menu"
               tone="internal"
               label="Itemized Draft"

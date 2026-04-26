@@ -4,7 +4,7 @@ import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import RentalManagement from "@/components/forms/admin/rental-management";
 import RentalRequestManagement from "@/components/forms/admin/rental-request-management";
-import { buildRentalWorkspaceHref } from "@/lib/admin-navigation";
+import { buildRentalItemCreateHref, buildRentalWorkspaceHref } from "@/lib/admin-navigation";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { getRentalItems } from "@/lib/rentals";
 import { getRentalQuoteRequests, getRentalRequestMetrics, type RentalRequestStatus } from "@/lib/rental-requests";
@@ -37,7 +37,7 @@ export default async function AdminRentalsPage({
         description="Run the rental pipeline separately from event design inquiries, while keeping inventory, pricing, and quote intake in one workspace."
         aside={
           tab === "inventory" ? (
-            <Link href="/admin/rentals/new" className="btn">New rental item</Link>
+            <Link href={buildRentalItemCreateHref()} className="btn">New rental item</Link>
           ) : (
             <Link href="/rentals" className="btn secondary">Open rentals page</Link>
           )

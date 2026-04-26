@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildCrmLeadDetailHref } from "@/lib/admin-navigation";
 import type { CrmInteraction, CrmLead } from "@/lib/crm-analytics";
 
 function formatRelative(value: string) {
@@ -30,7 +31,7 @@ export default function CrmInteractionsFeed({
         {items.map((item) => {
           const lead = leadsById.get(item.leadId);
           return (
-            <Link key={item.id} href={`/admin/crm-analytics/${item.leadId}`} className="admin-list-item crm-interaction-item">
+            <Link key={item.id} href={buildCrmLeadDetailHref(item.leadId)} className="admin-list-item crm-interaction-item">
               <div>
                 <strong>{item.title}</strong>
                 <span>{lead ? `${lead.clientName} · ${item.summary}` : item.summary}</span>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { notFound } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
+import { buildCrmLeadDetailHref, buildInquiryDetailHref, buildQuoteCreateHref } from "@/lib/admin-navigation";
 import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
@@ -118,8 +119,8 @@ export default async function AdminCrmLeadDetailPage({
       })),
     ],
     followUpTasks: combinedTasks,
-    recordHref: `/admin/crm-analytics/${leadId}`,
-    workflowHref: `/admin/inquiries/${leadId}`,
+    recordHref: buildCrmLeadDetailHref(leadId),
+    workflowHref: buildInquiryDetailHref(leadId),
   }).slice(0, 24);
 
   return (
@@ -132,7 +133,7 @@ export default async function AdminCrmLeadDetailPage({
         </div>
         <div className="admin-page-head-aside">
           <Link href="/admin/crm-analytics" className="admin-topbar-pill">Back to CRM</Link>
-          <Link href="/admin/documents/new?type=quote" className="btn">Create quote</Link>
+          <Link href={buildQuoteCreateHref({ inquiryId: leadId })} className="btn">Create quote</Link>
         </div>
       </div>
 
@@ -174,7 +175,7 @@ export default async function AdminCrmLeadDetailPage({
             {combinedTasks.map((task) => (
               <AdminWorkflowAction
                 key={task.id}
-                href={`/admin/crm-analytics/${leadId}`}
+                href={buildCrmLeadDetailHref(leadId)}
                 className="crm-task-row admin-workflow-action--menu"
                 tone={getTaskActionTone(task)}
                 label={task.title}

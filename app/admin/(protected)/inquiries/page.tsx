@@ -1,6 +1,11 @@
 import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
-import { buildInquiryWorkspaceHref, buildRentalWorkspaceHref } from "@/lib/admin-navigation";
+import {
+  buildContractsWorkspaceHref,
+  buildInquiryDetailHref,
+  buildInquiryWorkspaceHref,
+  buildRentalWorkspaceHref,
+} from "@/lib/admin-navigation";
 import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
@@ -509,7 +514,7 @@ export default async function AdminInquiriesPage({
       value: `$${formatMoney(bookedRevenueThisMonth)}`,
       note: `Outstanding balances: ${outstandingFinalPayments ?? 0}`,
       tone: "red",
-      href: "/admin/contracts",
+      href: buildContractsWorkspaceHref({ queue: "deposit_pending" }),
     },
   ];
 
@@ -545,7 +550,7 @@ export default async function AdminInquiriesPage({
       count: unsignedContractsCount ?? 0,
       detail: "Quotes are moving, but the agreement is not fully secured yet.",
       tone: "attention" as const,
-      href: "/admin/contracts",
+      href: buildContractsWorkspaceHref({ queue: "unsigned" }),
       cta: "Open contracts",
     },
     {
@@ -553,7 +558,7 @@ export default async function AdminInquiriesPage({
       count: unpaidDepositsCount ?? 0,
       detail: "Follow up before dates drift into soft-hold territory.",
       tone: "warning" as const,
-      href: "/admin/contracts",
+      href: buildContractsWorkspaceHref({ queue: "deposit_pending" }),
       cta: "Track payments",
     },
     {
@@ -895,7 +900,7 @@ export default async function AdminInquiriesPage({
                 <div className="admin-kanban-list">
                   {column.items.length ? (
                     column.items.map((item) => (
-                      <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-kanban-card">
+                      <Link key={item.id} href={buildInquiryDetailHref(item.id)} className="admin-kanban-card">
                         <strong>{item.first_name} {item.last_name}</strong>
                         <span>{item.event_type || "Event"}</span>
                         <small>{item.event_date ? new Date(item.event_date).toLocaleDateString() : "Date pending"}</small>
@@ -936,7 +941,7 @@ export default async function AdminInquiriesPage({
                 {(upcomingConsultations ?? []).length ? (
                   <div className="admin-schedule-list">
                     {upcomingConsultations?.map((item) => (
-                      <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-schedule-item">
+                      <Link key={item.id} href={buildInquiryDetailHref(item.id)} className="admin-schedule-item">
                         <div>
                           <strong>{item.first_name} {item.last_name}</strong>
                           <p>{item.event_type || "Event"} {item.event_date ? `• ${new Date(item.event_date).toLocaleDateString()}` : ""}</p>

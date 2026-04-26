@@ -1,5 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import {
+  buildContractDetailHref,
+  buildCrmLeadDetailHref,
+  buildInvoiceCreateHref,
+  buildInquiryDetailHref,
+  buildInquiryWorkspaceHref,
+  buildQuoteCreateHref,
+} from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
 import BookingLifecycleForm from "@/components/forms/admin/booking-lifecycle-form";
@@ -398,15 +406,15 @@ export default async function InquiryDetailPage({
     activityLog,
     customerInteractions,
     followUpTasks,
-    recordHref: `/admin/inquiries/${inquiry.id}`,
-    workflowHref: `/admin/inquiries/${inquiry.id}`,
-    contractHref: linkedContract?.id ? `/admin/contracts/${linkedContract.id}` : null,
+    recordHref: buildInquiryDetailHref(inquiry.id),
+    workflowHref: buildInquiryDetailHref(inquiry.id),
+    contractHref: linkedContract?.id ? buildContractDetailHref(linkedContract.id) : null,
   }).slice(0, 24);
 
   return (
     <main className="container section">
       <div style={{ marginBottom: "20px" }}>
-        <Link href="/admin/inquiries" className="btn secondary">
+        <Link href={buildInquiryWorkspaceHref({ tab: "inquiries" })} className="btn secondary">
           ← Back to Inquiries
         </Link>
       </div>
@@ -582,7 +590,7 @@ export default async function InquiryDetailPage({
               >
                 {inquiry.quote_response_status === "accepted" ? "Move to contract" : "Review next actions"}
               </a>
-              <Link href={`/admin/crm-analytics/${inquiry.id}`} className="summary-chip">
+              <Link href={buildCrmLeadDetailHref(inquiry.id)} className="summary-chip">
                 Open CRM record
               </Link>
             </div>
@@ -733,11 +741,17 @@ export default async function InquiryDetailPage({
         <div className="card">
           <h3>Quote, Contract, and Payment</h3>
           <div className="summary-pills" style={{ marginBottom: "14px" }}>
-            <Link href={`/admin/documents/new?type=quote&inquiryId=${inquiry.id}`} className="summary-chip">
+            <Link href={buildQuoteCreateHref({ inquiryId: inquiry.id })} className="summary-chip">
               Create Quote Document
             </Link>
             {linkedContract ? (
-              <Link href={`/admin/documents/new?type=invoice&inquiryId=${inquiry.id}&contractId=${linkedContract.id}`} className="summary-chip">
+              <Link
+                href={buildInvoiceCreateHref({
+                  inquiryId: inquiry.id,
+                  contractId: linkedContract.id,
+                })}
+                className="summary-chip"
+              >
                 Create Invoice Document
               </Link>
             ) : null}

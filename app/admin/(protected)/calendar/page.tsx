@@ -5,6 +5,7 @@ import {
   humanizeBookingStage,
 } from "@/lib/booking-lifecycle";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
+import { buildInquiryDetailHref } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
@@ -287,7 +288,7 @@ export default async function AdminCalendarPage({
                     {day.items.slice(0, 3).map((item) => (
                       <Link
                         key={item.id}
-                        href={`/admin/inquiries/${item.id}`}
+                        href={buildInquiryDetailHref(item.id)}
                         className="admin-calendar-event-pill"
                         title={`${item.first_name} ${item.last_name} • ${item.event_type || "Event"} • ${humanizeBookingStage(item.lifecycle)}`}
                       >
@@ -317,7 +318,7 @@ export default async function AdminCalendarPage({
                 </div>
                 <div className="admin-calendar-list-events">
                   {day.items.map((item) => (
-                    <Link key={item.id} href={`/admin/inquiries/${item.id}`} className="admin-calendar-list-item">
+                    <Link key={item.id} href={buildInquiryDetailHref(item.id)} className="admin-calendar-list-item">
                       <div>
                         <strong>{item.first_name} {item.last_name}</strong>
                         <p>{item.event_type || "Event"} {item.venue_name ? `• ${item.venue_name}` : ""}</p>

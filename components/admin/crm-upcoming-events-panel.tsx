@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildCrmLeadDetailHref } from "@/lib/admin-navigation";
 import type { CrmLead } from "@/lib/crm-analytics";
 
 function formatDate(value: string) {
@@ -20,7 +21,7 @@ export default function CrmUpcomingEventsPanel({ items }: { items: CrmLead[] }) 
       </div>
       <div className="crm-upcoming-list">
         {items.map((item) => (
-          <Link key={item.id} href={`/admin/crm-analytics/${item.id}`} className="crm-upcoming-item">
+          <Link key={item.id} href={buildCrmLeadDetailHref(item.id)} className="crm-upcoming-item">
             <div>
               <strong>{item.clientName}</strong>
               <span>{item.eventType} · {formatDate(item.eventDate)}</span>

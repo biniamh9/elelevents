@@ -7,6 +7,7 @@ import AdminActionRow from "@/components/admin/admin-action-row";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import RentalDepositTracking from "@/components/forms/admin/rental-deposit-tracking";
 import RentalQuotePreview from "@/components/forms/admin/rental-quote-preview";
+import { buildRentalItemDetailHref, buildRentalWorkspaceHref } from "@/lib/admin-navigation";
 import {
   slugifyRentalName,
   type RentalDepositRecord,
@@ -161,7 +162,11 @@ export default function RentalItemForm({
       return;
     }
 
-    router.push(item ? `/admin/rentals/${item.id}` : "/admin/rentals");
+    router.push(
+      item
+        ? buildRentalItemDetailHref(item.id)
+        : buildRentalWorkspaceHref({ nextTab: "inventory" })
+    );
     router.refresh();
   }
 
@@ -187,7 +192,7 @@ export default function RentalItemForm({
       return;
     }
 
-    router.push("/admin/rentals");
+    router.push(buildRentalWorkspaceHref({ nextTab: "inventory" }));
     router.refresh();
   }
 

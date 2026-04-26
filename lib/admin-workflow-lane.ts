@@ -1,5 +1,12 @@
 import type { CrmLead } from "@/lib/crm-analytics";
 import {
+  buildContractDetailHref,
+  buildContractsWorkspaceHref,
+  buildCrmLeadDetailHref,
+  buildQuoteCreateHref,
+  buildInquiryDetailHref,
+} from "@/lib/admin-navigation";
+import {
   deriveWorkflowStage,
   getWorkflowStageFromBookingStage,
   type WorkflowStage,
@@ -128,7 +135,7 @@ export function buildWorkflowColumnsFromInquiries(
         inquiry.quote_response_status === "changes_requested"
           ? "Client requested quote changes"
           : [inquiry.event_type, inquiry.event_date].filter(Boolean).join(" • ") || "Event details pending",
-      href: `/admin/inquiries/${inquiry.id}`,
+      href: buildInquiryDetailHref(inquiry.id),
       attention:
         inquiry.quote_response_status === "changes_requested"
           ? "Revision needed"
@@ -147,7 +154,7 @@ export function buildWorkflowColumnsFromInquiries(
           : lane.key === "quote"
             ? "/admin/inquiries?tab=inquiries&status=quoted"
             : lane.key === "contract"
-              ? "/admin/contracts"
+              ? buildContractsWorkspaceHref({ queue: "unsigned" })
               : "/admin/inquiries?tab=schedule",
     items: (grouped.get(lane.key) ?? [])
       .sort((a, b) => Number(Boolean(b.attention)) - Number(Boolean(a.attention)))
@@ -167,7 +174,7 @@ export function getInquiryWorkflowActionGroups(input: {
   completed_at?: string | null;
 }): WorkflowActionGroup[] {
   const lane = getInquiryWorkflowLane(input);
-  const base = `/admin/inquiries/${input.inquiryId}`;
+  const base = buildInquiryDetailHref(input.inquiryId);
 
   const laneActionMap: Record<WorkflowLaneKey, WorkflowActionGroup[]> = {
     intake: [
@@ -203,7 +210,7 @@ export function getInquiryWorkflowActionGroups(input: {
         actions: [
           {
             label: input.contractId ? "Open contract" : "Create contract",
-            href: input.contractId ? `/admin/contracts/${input.contractId}` : `${base}#contract-stage`,
+            href: input.contractId ? buildContractDetailHref(input.contractId) : `${base}#contract-stage`,
           },
           { label: "Open deposit tracking", href: `${base}#contract-stage` },
         ],
@@ -255,7 +262,7 @@ export function getLaneFromCrmLead(lead: CrmLead): WorkflowLaneKey | null {
 
 export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGroup[] {
   const lane = getLaneFromCrmLead(lead) ?? "intake";
-  const base = `/admin/crm-analytics/${lead.id}`;
+  const base = buildCrmLeadDetailHref(lead.id);
 
   const laneActionMap: Record<WorkflowLaneKey, WorkflowActionGroup[]> = {
     intake: [
@@ -280,7 +287,7 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
       {
         title: "Current step",
         actions: [
-          { label: "Open quote draft", href: "/admin/documents/new?type=quote" },
+          { label: "Open quote draft", href: buildQuoteCreateHref() },
           { label: "Add quote note", href: `${base}#notes` },
         ],
       },
@@ -345,7 +352,7 @@ export function buildWorkflowColumnsFromCrmLeads(
       subtitle: needsRevision
         ? "Client requested quote changes"
         : `${lead.eventType} • ${lead.eventDate}`,
-      href: `/admin/crm-analytics/${lead.id}`,
+      href: buildCrmLeadDetailHref(lead.id),
       attention: needsRevision ? "Revision needed" : null,
     });
   }

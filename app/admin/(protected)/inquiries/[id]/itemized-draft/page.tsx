@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ItemizedPricePreview from "@/components/forms/admin/itemized-price-preview";
+import { buildInquiryDetailHref } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
 
@@ -41,7 +42,7 @@ export default async function InquiryItemizedDraftPage({
   return (
     <main className="admin-page section">
       <div style={{ marginBottom: "20px" }}>
-        <Link href={`/admin/inquiries/${id}`} className="btn secondary">
+        <Link href={buildInquiryDetailHref(id)} className="btn secondary">
           ← Back to Inquiry
         </Link>
       </div>
