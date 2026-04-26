@@ -129,6 +129,36 @@ export default async function AdminInquiriesPage({
   const page = normalizePage(params.page);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  const followUpFilterParams = new URLSearchParams();
+  followUpFilterParams.set("tab", "inquiries");
+  if (status) followUpFilterParams.set("status", status);
+  if (eventType) followUpFilterParams.set("event_type", eventType);
+  if (queryText) followUpFilterParams.set("q", queryText);
+  if (sort) followUpFilterParams.set("sort", sort);
+  if (params.page) followUpFilterParams.set("page", String(page));
+  const followUpFilterHref = `/admin/inquiries?${followUpFilterParams.toString()}&follow_up=with_inspiration`;
+  const clearFollowUpFilterHref = `/admin/inquiries?${followUpFilterParams.toString()}`;
+
+  function buildWorkspaceHref({
+    tab,
+    nextStatus,
+    nextFollowUp,
+  }: {
+    tab: WorkspaceTab;
+    nextStatus?: string;
+    nextFollowUp?: string;
+  }) {
+    const nextParams = new URLSearchParams();
+    nextParams.set("tab", tab);
+    if (tab === "inquiries") {
+      if (queryText) nextParams.set("q", queryText);
+      if (eventType) nextParams.set("event_type", eventType);
+      if (sort) nextParams.set("sort", sort);
+      if (nextStatus) nextParams.set("status", nextStatus);
+      if (nextFollowUp) nextParams.set("follow_up", nextFollowUp);
+    }
+    return `/admin/inquiries?${nextParams.toString()}`;
+  }
 
   const { data: followUpInspirationRows } = await supabaseAdmin
     .from("event_inquiries")
@@ -446,28 +476,28 @@ export default async function AdminInquiriesPage({
       value: String(pendingCount ?? 0),
       note: `${buildShare(pendingCount, totalCount)}% of all requests`,
       tone: "amber",
-      href: "/admin/inquiries?tab=inquiries&status=new",
+      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "new" }),
     },
     {
       label: "Consultations Scheduled",
       value: String(scheduledConsultationCount ?? 0),
       note: "Meetings currently on the calendar",
       tone: "violet",
-      href: "/admin/inquiries?tab=schedule",
+      href: buildWorkspaceHref({ tab: "schedule" }),
     },
     {
       label: "Pending Quotes",
       value: String(quotedCount ?? 0),
       note: "Waiting on client movement",
       tone: "blue",
-      href: "/admin/inquiries?tab=inquiries&status=quoted",
+      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "quoted" }),
     },
     {
       label: "Booked Events",
       value: String(reservedCount ?? 0),
       note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion`,
       tone: "green",
-      href: "/admin/inquiries?tab=pipeline",
+      href: buildWorkspaceHref({ tab: "pipeline" }),
     },
     {
       label: "Booked Revenue",
@@ -502,7 +532,7 @@ export default async function AdminInquiriesPage({
       count: pendingCount ?? 0,
       detail: "Fresh leads that still need a first touch or triage.",
       tone: "warning" as const,
-      href: "/admin/inquiries?tab=inquiries&status=new",
+      href: buildWorkspaceHref({ tab: "inquiries", nextStatus: "new" }),
       cta: "Review leads",
     },
     {
@@ -526,7 +556,7 @@ export default async function AdminInquiriesPage({
       count: upcomingConsultations?.length ?? 0,
       detail: "Meetings within the next two weeks that need preparation.",
       tone: "info" as const,
-      href: "/admin/inquiries?tab=schedule",
+      href: buildWorkspaceHref({ tab: "schedule" }),
       cta: "View schedule",
     },
     {
@@ -534,7 +564,7 @@ export default async function AdminInquiriesPage({
       count: followUpInspirationCount ?? 0,
       detail: "Clients added inspiration images or style notes after the initial request.",
       tone: "info" as const,
-      href: "/admin/inquiries?tab=inquiries&follow_up=with_inspiration",
+      href: buildWorkspaceHref({ tab: "inquiries", nextFollowUp: "with_inspiration" }),
       cta: "Review follow-up",
     },
     {
@@ -967,11 +997,19 @@ export default async function AdminInquiriesPage({
                 <span className="admin-head-pill">Follow-up pending: {unresolvedFollowUpIds.length}</span>
                 <span className="admin-head-pill">Reviewed: {reviewedFollowUpCount}</span>
                 <Link
-                  href="/admin/inquiries?tab=inquiries&follow_up=with_inspiration"
+                  href={followUpFilterHref}
                   className={`admin-head-pill${followUpFilterActive ? " admin-head-pill--active" : ""}`}
                 >
                   Pending follow-up review
                 </Link>
+                {followUpFilterActive ? (
+                  <Link
+                    href={clearFollowUpFilterHref}
+                    className="admin-head-pill admin-head-pill--clear"
+                  >
+                    Clear follow-up filter
+                  </Link>
+                ) : null}
               </div>
               <div className="field">
                 <label className="label">Search</label>

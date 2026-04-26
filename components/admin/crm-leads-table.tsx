@@ -23,6 +23,8 @@ export default function CrmLeadsTable({
   filters,
   revisionLeadIds,
   followUpSummary,
+  followUpFilterHref,
+  clearFollowUpFilterHref,
 }: {
   leads: CrmLead[];
   filters: {
@@ -39,6 +41,8 @@ export default function CrmLeadsTable({
     pending: number;
     reviewed: number;
   };
+  followUpFilterHref: string;
+  clearFollowUpFilterHref: string;
 }) {
   const eventTypes = [...new Set(leads.map((lead) => lead.eventType))];
   const owners = [...new Set(leads.map((lead) => lead.owner))];
@@ -57,11 +61,19 @@ export default function CrmLeadsTable({
             <span className="admin-head-pill">Follow-up pending: {followUpSummary.pending}</span>
             <span className="admin-head-pill">Reviewed: {followUpSummary.reviewed}</span>
             <a
-              href="/admin/crm-analytics?tab=leads&followUp=with_inspiration"
+              href={followUpFilterHref}
               className={`admin-head-pill${followUpFilterActive ? " admin-head-pill--active" : ""}`}
             >
               Pending follow-up review
             </a>
+            {followUpFilterActive ? (
+              <a
+                href={clearFollowUpFilterHref}
+                className="admin-head-pill admin-head-pill--clear"
+              >
+                Clear follow-up filter
+              </a>
+            ) : null}
           </div>
         ) : null}
       </div>
