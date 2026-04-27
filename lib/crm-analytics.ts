@@ -40,6 +40,8 @@ export type CrmLead = {
   lastContact: string;
   nextFollowUp: string;
   owner: string;
+  nextAction?: string | null;
+  nextActionDueAt?: string | null;
   source: LeadSource;
   budgetRange: string;
   quoteSummary: string;
@@ -125,6 +127,7 @@ export type CrmLeadFilters = {
   eventType?: string;
   source?: string;
   owner?: string;
+  nextAction?: string;
   dateRange?: string;
   followUp?: string;
 };
@@ -410,6 +413,12 @@ export function filterCrmLeads(leads: CrmLead[], filters: CrmLeadFilters) {
     if (filters.eventType && lead.eventType !== filters.eventType) return false;
     if (filters.source && lead.source !== filters.source) return false;
     if (filters.owner && lead.owner !== filters.owner) return false;
+    if (filters.nextAction === "set" && !lead.nextAction?.trim()) return false;
+    if (filters.nextAction === "none" && lead.nextAction?.trim()) return false;
+    if (filters.nextAction === "overdue") {
+      if (!lead.nextActionDueAt) return false;
+      if (new Date(lead.nextActionDueAt).getTime() >= Date.now()) return false;
+    }
     if (filters.followUp === "with_inspiration" && !lead.hasFollowUpInspiration) return false;
     if (filters.dateRange) {
       const days = Number(filters.dateRange);

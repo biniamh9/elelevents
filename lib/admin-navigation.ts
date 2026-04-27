@@ -49,6 +49,7 @@ export type CrmLeadsState = {
   eventType?: string;
   source?: string;
   owner?: string;
+  nextAction?: string;
   dateRange?: string;
   followUp?: string;
 };
@@ -56,9 +57,11 @@ export type CrmLeadsState = {
 export function buildCrmLeadsHref({
   state,
   nextFollowUp,
+  nextAction,
 }: {
   state?: CrmLeadsState;
   nextFollowUp?: string;
+  nextAction?: string;
 }) {
   const params = new URLSearchParams();
   params.set("tab", "leads");
@@ -67,6 +70,9 @@ export function buildCrmLeadsHref({
   if (state?.eventType) params.set("eventType", state.eventType);
   if (state?.source) params.set("source", state.source);
   if (state?.owner) params.set("owner", state.owner);
+  if (nextAction ?? state?.nextAction) {
+    params.set("nextAction", nextAction ?? state?.nextAction ?? "");
+  }
   if (state?.dateRange) params.set("dateRange", state.dateRange);
   if (nextFollowUp) params.set("followUp", nextFollowUp);
   return `/admin/crm-analytics?${params.toString()}`;

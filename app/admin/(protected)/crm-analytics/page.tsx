@@ -90,6 +90,7 @@ export default async function AdminCrmAnalyticsPage({
     eventType?: string;
     source?: string;
     owner?: string;
+    nextAction?: string;
     dateRange?: string;
     followUp?: string;
   }>;
@@ -147,6 +148,7 @@ export default async function AdminCrmAnalyticsPage({
   if (params.eventType) exportParams.set("eventType", params.eventType);
   if (params.source) exportParams.set("source", params.source);
   if (params.owner) exportParams.set("owner", params.owner);
+  if (params.nextAction) exportParams.set("nextAction", params.nextAction);
   if (params.dateRange) exportParams.set("dateRange", params.dateRange);
   if (params.followUp) exportParams.set("followUp", params.followUp);
   const exportHref = `/api/admin/crm-analytics/export?${exportParams.toString()}`;
@@ -156,6 +158,7 @@ export default async function AdminCrmAnalyticsPage({
     eventType: params.eventType,
     source: params.source,
     owner: params.owner,
+    nextAction: params.nextAction,
     dateRange: params.dateRange,
     followUp: params.followUp,
   };

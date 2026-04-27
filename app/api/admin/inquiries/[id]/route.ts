@@ -49,7 +49,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature, crm_owner, lost_reason")
+      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature, crm_owner, lost_reason, crm_next_action, crm_next_action_due_at")
       .eq("id", id)
       .single();
 
@@ -82,6 +82,16 @@ export async function PATCH(
     if (body.crm_owner === null || typeof body.crm_owner === "string") {
       const owner = typeof body.crm_owner === "string" ? body.crm_owner.trim() : "";
       updates.crm_owner = owner || null;
+    }
+
+    if (body.crm_next_action === null || typeof body.crm_next_action === "string") {
+      const nextAction =
+        typeof body.crm_next_action === "string" ? body.crm_next_action.trim() : "";
+      updates.crm_next_action = nextAction || null;
+    }
+
+    if (body.crm_next_action_due_at === null || typeof body.crm_next_action_due_at === "string") {
+      updates.crm_next_action_due_at = body.crm_next_action_due_at;
     }
 
     if (body.estimated_price === null || typeof body.estimated_price === "number") {
@@ -355,6 +365,8 @@ export async function PATCH(
         requested_vendor_categories: data.requested_vendor_categories,
         vendor_request_notes: data.vendor_request_notes,
         crm_owner: data.crm_owner,
+        crm_next_action: data.crm_next_action,
+        crm_next_action_due_at: data.crm_next_action_due_at,
         lost_reason: data.lost_reason,
       },
     });

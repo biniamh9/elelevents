@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import CrmLeadOperationsForm from "@/components/forms/admin/crm-lead-operations-form";
 import { notFound } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import {
@@ -80,6 +81,11 @@ export default async function AdminCrmLeadDetailPage({
     .eq("inquiry_id", leadId)
     .order("created_at", { ascending: false })
     .limit(20);
+  const { data: inquiryRecord } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at")
+    .eq("id", leadId)
+    .maybeSingle();
 
   const combinedTasks = crmSnapshot.tasks.sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
@@ -132,6 +138,9 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Phone</small><span>{lead.phone}</span></div>
             <div><small>Budget range</small><span>{lead.budgetRange}</span></div>
             <div><small>Stage</small><span>{CRM_STAGE_LABELS[lead.stage]}</span></div>
+            <div><small>Owner</small><span>{lead.owner}</span></div>
+            <div><small>Next action</small><span>{lead.nextAction || "Not set"}</span></div>
+            <div><small>Next action due</small><span>{lead.nextActionDueAt ? formatDate(lead.nextActionDueAt) : "No due date"}</span></div>
             <div><small>Quote summary</small><span>{lead.quoteSummary}</span></div>
             <div><small>Payment summary</small><span>{lead.paymentSummary}</span></div>
           </div>
@@ -152,6 +161,23 @@ export default async function AdminCrmLeadDetailPage({
             )}
           </div>
         </section>
+
+        <aside className="card admin-section-card admin-panel">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">CRM operations</p>
+              <h3>Ownership and next action</h3>
+            </div>
+          </div>
+          {inquiryRecord ? (
+            <CrmLeadOperationsForm
+              inquiryId={leadId}
+              initialOwner={inquiryRecord.crm_owner}
+              initialNextAction={inquiryRecord.crm_next_action}
+              initialNextActionDueAt={inquiryRecord.crm_next_action_due_at}
+            />
+          ) : null}
+        </aside>
 
         <aside className="card admin-section-card admin-panel">
           <div className="admin-panel-head">

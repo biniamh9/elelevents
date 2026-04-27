@@ -438,6 +438,7 @@ export default async function InquiryDetailPage({
             <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
             <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
             <span className="summary-chip">Owner: {inquiry.crm_owner?.trim() || "Unassigned"}</span>
+            <span className="summary-chip">Next action: {inquiry.crm_next_action?.trim() || "Not set"}</span>
             {inquiry.status === "closed_lost" ? (
               <span className="summary-chip">Lost reason: {inquiry.lost_reason ?? "Not set"}</span>
             ) : null}
@@ -933,6 +934,8 @@ export default async function InquiryDetailPage({
               currentNotes={inquiry.admin_notes ?? ""}
               currentOwner={inquiry.crm_owner ?? null}
               currentLostReason={inquiry.lost_reason ?? null}
+              currentNextAction={inquiry.crm_next_action ?? null}
+              currentNextActionDueAt={inquiry.crm_next_action_due_at ?? null}
             />
           </div>
 

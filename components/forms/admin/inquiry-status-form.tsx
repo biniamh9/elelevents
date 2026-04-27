@@ -5,23 +5,39 @@ import { CRM_LOST_REASONS, CRM_OWNER_SUGGESTIONS } from "@/lib/crm-options";
 
 const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
 
+function toLocalInputValue(value: string | null) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+}
+
 export default function InquiryStatusForm({
   inquiryId,
   currentStatus,
   currentNotes,
   currentOwner,
   currentLostReason,
+  currentNextAction,
+  currentNextActionDueAt,
 }: {
   inquiryId: string;
   currentStatus: string;
   currentNotes: string | null;
   currentOwner: string | null;
   currentLostReason: string | null;
+  currentNextAction: string | null;
+  currentNextActionDueAt: string | null;
 }) {
   const [status, setStatus] = useState(currentStatus || "new");
   const [notes, setNotes] = useState(currentNotes || "");
   const [owner, setOwner] = useState(currentOwner || "");
   const [lostReason, setLostReason] = useState(currentLostReason || "");
+  const [nextAction, setNextAction] = useState(currentNextAction || "");
+  const [nextActionDueAt, setNextActionDueAt] = useState(
+    toLocalInputValue(currentNextActionDueAt)
+  );
   const [message, setMessage] = useState("");
   const ownerSuggestionsId = useId();
 
@@ -41,6 +57,10 @@ export default function InquiryStatusForm({
         status,
         admin_notes: notes,
         crm_owner: owner.trim() || null,
+        crm_next_action: nextAction.trim() || null,
+        crm_next_action_due_at: nextActionDueAt
+          ? new Date(nextActionDueAt).toISOString()
+          : null,
         lost_reason: status === "closed_lost" ? lostReason || null : null,
       }),
     });
@@ -95,6 +115,26 @@ export default function InquiryStatusForm({
             <option key={item} value={item} />
           ))}
         </datalist>
+      </div>
+
+      <div className="field">
+        <label className="label">Next Action</label>
+        <input
+          className="input"
+          value={nextAction}
+          onChange={(e) => setNextAction(e.target.value)}
+          placeholder="Call client, revise quote, send contract"
+        />
+      </div>
+
+      <div className="field">
+        <label className="label">Next Action Due</label>
+        <input
+          className="input"
+          type="datetime-local"
+          value={nextActionDueAt}
+          onChange={(e) => setNextActionDueAt(e.target.value)}
+        />
       </div>
 
       {status === "closed_lost" ? (

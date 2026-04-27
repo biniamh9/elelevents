@@ -32,6 +32,7 @@ export default function CrmLeadsTable({
     eventType?: string;
     source?: string;
     owner?: string;
+    nextAction?: string;
     dateRange?: string;
     q?: string;
     followUp?: string;
@@ -129,6 +130,15 @@ export default function CrmLeadsTable({
           </select>
         </label>
         <label>
+          <span>Next action</span>
+          <select name="nextAction" defaultValue={filters.nextAction ?? ""}>
+            <option value="">All</option>
+            <option value="set">Has next action</option>
+            <option value="overdue">Action overdue</option>
+            <option value="none">Not set</option>
+          </select>
+        </label>
+        <label>
           <span>Date range</span>
           <select name="dateRange" defaultValue={filters.dateRange ?? ""}>
             <option value="">All dates</option>
@@ -160,6 +170,7 @@ export default function CrmLeadsTable({
               <th>Estimated Value</th>
               <th>Last Contact</th>
               <th>Next Follow-up</th>
+              <th>Next Action</th>
               <th>Owner</th>
               <th>Actions</th>
             </tr>
@@ -207,6 +218,16 @@ export default function CrmLeadsTable({
                 <td>${lead.estimatedValue.toLocaleString()}</td>
                 <td>{formatDate(lead.lastContact)}</td>
                 <td>{formatDate(lead.nextFollowUp)}</td>
+                <td>
+                  <div className="admin-record-main">
+                    <strong>{lead.nextAction || "Not set"}</strong>
+                    <small>
+                      {lead.nextActionDueAt
+                        ? `Due ${formatDate(lead.nextActionDueAt)}`
+                        : "No due date"}
+                    </small>
+                  </div>
+                </td>
                 <td>{lead.owner}</td>
                 <td className="admin-record-cell-actions">
                   <details className="admin-row-action-menu">
