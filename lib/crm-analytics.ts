@@ -48,6 +48,16 @@ export type CrmLead = {
   decorStatus?: "pending" | "in_progress" | "approved" | "ready";
   lostReason?: "Price too high" | "Chose competitor" | "No response" | "Date unavailable" | "Not ready" | "Other";
   hasFollowUpInspiration?: boolean;
+  contractId?: string | null;
+  inquiryStatus?: string | null;
+  consultationStatus?: string | null;
+  quoteResponseStatus?: string | null;
+  bookingStage?: string | null;
+  createdAt?: string;
+  consultationAt?: string | null;
+  bookedAt?: string | null;
+  firstResponseHours?: number | null;
+  outstandingBalance?: number;
 };
 
 export type CrmInteraction = {

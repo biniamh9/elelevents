@@ -2,10 +2,15 @@ import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { notFound } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
-import { buildCrmLeadDetailHref, buildInquiryDetailHref, buildQuoteCreateHref } from "@/lib/admin-navigation";
-import { getCrmLeadById, getLeadInteractions, getLeadTasks, CRM_STAGE_LABELS } from "@/lib/crm-analytics";
+import {
+  buildContractDetailHref,
+  buildCrmLeadDetailHref,
+  buildInquiryDetailHref,
+  buildQuoteCreateHref,
+} from "@/lib/admin-navigation";
+import { CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
-import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
+import { getLiveCrmSnapshot } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
 
@@ -15,16 +20,6 @@ function formatDate(value: string) {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function formatRelative(value: string) {
-  const date = new Date(value);
-  const diffMs = Date.now() - date.getTime();
-  const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  const diffHours = Math.round(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return `${Math.round(diffHours / 24)}d ago`;
 }
 
 function getTaskPriority(task: { status: string; title: string }) {
@@ -59,22 +54,17 @@ export default async function AdminCrmLeadDetailPage({
   await requireAdminPage("crm");
 
   const { leadId } = await params;
-  const lead = getCrmLeadById(leadId);
+  const crmSnapshot = await getLiveCrmSnapshot(supabaseAdmin, { inquiryId: leadId });
+  const lead = crmSnapshot.leads[0] ?? null;
 
   if (!lead) {
     notFound();
   }
 
-  const interactions = getLeadInteractions(leadId);
-  const tasks = getLeadTasks(leadId);
-  const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, {
-    inquiryId: leadId,
-    status: "open",
-  });
   const { data: persistedInteractions } = await supabaseAdmin
     .from("customer_interactions")
     .select("id, subject, body_text, created_at, channel, direction, provider")
-    .or(`sender_email.eq.${lead.email},recipient_email.eq.${lead.email}`)
+    .eq("inquiry_id", leadId)
     .order("created_at", { ascending: false })
     .limit(20);
   const { data: activityLog } = await supabaseAdmin
@@ -91,36 +81,28 @@ export default async function AdminCrmLeadDetailPage({
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const combinedTasks = [...persistedTasks, ...tasks].sort((a, b) => {
+  const combinedTasks = crmSnapshot.tasks.sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return a.title.localeCompare(b.title);
   });
+  const contractHref = lead.contractId ? buildContractDetailHref(lead.contractId) : null;
 
   const unifiedTimeline = buildCustomerTimeline({
     workflowTransitions,
     activityLog,
-    customerInteractions: [
-      ...interactions.map((item) => ({
-        id: item.id,
-        subject: item.title,
-        body_text: item.summary,
-        created_at: item.createdAt,
-        direction: "internal",
-        channel: "other",
-      })),
-      ...(persistedInteractions ?? []).map((item) => ({
-        id: item.id,
-        subject: item.subject,
-        body_text: item.body_text,
-        created_at: item.created_at,
-        direction: item.direction,
-        channel: item.channel,
-      })),
-    ],
+    customerInteractions: (persistedInteractions ?? []).map((item) => ({
+      id: item.id,
+      subject: item.subject,
+      body_text: item.body_text,
+      created_at: item.created_at,
+      direction: item.direction,
+      channel: item.channel,
+    })),
     followUpTasks: combinedTasks,
     recordHref: buildCrmLeadDetailHref(leadId),
     workflowHref: buildInquiryDetailHref(leadId),
+    contractHref,
   }).slice(0, 24);
 
   return (
@@ -155,12 +137,19 @@ export default async function AdminCrmLeadDetailPage({
           </div>
 
           <div id="notes" className="admin-placeholder-list">
-            {lead.notes.map((note) => (
-              <div key={note}>
+            {lead.notes.length ? (
+              lead.notes.map((note) => (
+                <div key={note}>
+                  <strong>Note</strong>
+                  <span>{note}</span>
+                </div>
+              ))
+            ) : (
+              <div>
                 <strong>Note</strong>
-                <span>{note}</span>
+                <span>No additional CRM notes have been recorded yet.</span>
               </div>
-            ))}
+            )}
           </div>
         </section>
 

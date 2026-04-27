@@ -15,15 +15,6 @@ import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
 import { requireAdminPage } from "@/lib/auth/admin";
 import {
-  CRM_STAGE_LABELS,
-  crmDashboardAlerts,
-  crmInteractions,
-  crmLeads,
-  crmLostReasonMetrics,
-  crmRevenueTrend,
-  crmSourceMetrics,
-  crmTeamPerformance,
-  crmTasks,
   filterCrmLeads,
   getAverageEventValue,
   getBookedRevenue,
@@ -31,17 +22,17 @@ import {
   getForecastedRevenue,
   getLikelyRevenue,
   getLostReasonMetrics,
-  getOutstandingBalances,
   getPipelineStageCounts,
   getPipelineValue,
   getSourceMetrics,
-  type CrmLead,
   type CrmTask,
 } from "@/lib/crm-analytics";
-import { getPersistedCrmTasks } from "@/lib/crm-follow-up-tasks";
-import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
-import { buildRentalFollowUpTasks } from "@/lib/rental-follow-up-tasks";
-import { getRentalQuoteRequests } from "@/lib/rental-requests";
+import {
+  buildDashboardAlerts,
+  buildRevenueTrend,
+  buildTeamPerformance,
+  getLiveCrmMetrics,
+} from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const dynamic = "force-dynamic";
@@ -110,40 +101,13 @@ export default async function AdminCrmAnalyticsPage({
     ? (params.tab as Tab)
     : "dashboard";
 
-  const { data: followUpInquiries } = await supabaseAdmin
-    .from("event_inquiries")
-    .select("email, follow_up_details_json")
-    .neq("follow_up_details_json", "{}");
-
-  const followUpEmails = new Set(
-    (followUpInquiries ?? [])
-      .filter(
-        (item) =>
-          item.email &&
-          inquiryFollowUpNeedsReview(
-            normalizeInquiryFollowUpDetails(item.follow_up_details_json)
-          )
-      )
-      .map((item) => String(item.email).trim().toLowerCase())
+  const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
+  const filteredLeads = filterCrmLeads(crmMetrics.leads, params);
+  const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
+  const filteredInteractions = crmMetrics.interactions.filter((item) =>
+    filteredLeadIds.has(item.leadId)
   );
-  const followUpPendingCount = followUpEmails.size;
-  const followUpReviewedCount = Math.max(
-    0,
-    (followUpInquiries ?? []).filter((item) => item.email).length - followUpPendingCount
-  );
-
-  const crmLeadsWithFollowUp = crmLeads.map((lead) => ({
-    ...lead,
-    hasFollowUpInspiration: followUpEmails.has(lead.email.trim().toLowerCase()),
-  }));
-
-  const filteredLeads = filterCrmLeads(crmLeadsWithFollowUp, params);
-  const persistedTasks = await getPersistedCrmTasks(supabaseAdmin, { status: "open" });
-  const rentalRequests = await getRentalQuoteRequests({ status: "all" });
-  const rentalTasks = buildRentalFollowUpTasks(
-    rentalRequests.filter((request) => !["completed", "cancelled"].includes(request.status))
-  );
-  const combinedTasks = [...rentalTasks, ...persistedTasks, ...crmTasks].sort((a, b) => {
+  const combinedTasks = crmMetrics.tasks.filter((task) => filteredLeadIds.has(task.leadId)).sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return a.title.localeCompare(b.title);
@@ -153,24 +117,28 @@ export default async function AdminCrmAnalyticsPage({
       .filter((task) => task.title.toLowerCase().includes("revise quote"))
       .map((task) => task.leadId)
   );
-  const leadsById = new Map(crmLeadsWithFollowUp.map((lead) => [lead.id, lead]));
-  const totalBookedRevenue = getBookedRevenue(crmLeadsWithFollowUp);
-  const totalPipelineValue = getPipelineValue(crmLeadsWithFollowUp);
-  const forecastedRevenue = getForecastedRevenue(crmLeadsWithFollowUp);
-  const likelyRevenue = getLikelyRevenue(crmLeadsWithFollowUp);
-  const totalOutstanding = getOutstandingBalances(crmLeadsWithFollowUp);
-  const hotLeads = crmLeadsWithFollowUp.filter((lead) =>
+  const leadsById = new Map(crmMetrics.leads.map((lead) => [lead.id, lead]));
+  const totalBookedRevenue = getBookedRevenue(crmMetrics.leads);
+  const totalPipelineValue = getPipelineValue(crmMetrics.leads);
+  const forecastedRevenue = getForecastedRevenue(crmMetrics.leads);
+  const likelyRevenue = getLikelyRevenue(crmMetrics.leads);
+  const totalOutstanding = crmMetrics.totals.outstandingBalances;
+  const activeLeads = crmMetrics.leads.filter((lead) => lead.stage !== "lost").length;
+  const hotLeads = crmMetrics.leads.filter((lead) =>
     ["consultation_scheduled", "consultation_completed", "quote_sent", "awaiting_deposit"].includes(lead.stage)
   ).length;
-  const quotesSent = crmLeadsWithFollowUp.filter((lead) => lead.stage === "quote_sent").length;
-  const conversionRate = getConversionRate(crmLeadsWithFollowUp);
-  const averageEventValue = getAverageEventValue(crmLeadsWithFollowUp);
-  const activeOpportunities = crmLeadsWithFollowUp.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
+  const quotesSent = crmMetrics.leads.filter((lead) => lead.stage === "quote_sent").length;
+  const conversionRate = getConversionRate(crmMetrics.leads);
+  const averageEventValue = getAverageEventValue(crmMetrics.leads);
+  const activeOpportunities = crmMetrics.leads.filter((lead) => !["booked", "lost"].includes(lead.stage)).length;
   const filteredSourceMetrics = getSourceMetrics(filteredLeads);
   const filteredLostReasonMetrics = getLostReasonMetrics(filteredLeads);
-  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmLeadsWithFollowUp, {
+  const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmMetrics.leads, {
     revisionLeadIds,
   });
+  const revenueTrend = buildRevenueTrend(filteredLeads);
+  const teamPerformance = buildTeamPerformance(filteredLeads);
+  const dashboardAlerts = buildDashboardAlerts(crmMetrics.leads, crmMetrics.tasks);
 
   const exportParams = new URLSearchParams();
   exportParams.set("tab", activeTab);
@@ -200,7 +168,7 @@ export default async function AdminCrmAnalyticsPage({
   });
 
   const kpis = [
-    { label: "Active Leads", value: String(crmLeads.length), detail: "Open relationships across inquiry to booking", tone: "neutral" as const },
+    { label: "Active Leads", value: String(activeLeads), detail: "Open relationships across inquiry to booking", tone: "neutral" as const },
     { label: "Hot Leads", value: String(hotLeads), detail: "Needs timely follow-up this week", tone: "amber" as const },
     { label: "Quotes Sent", value: String(quotesSent), detail: "Currently under client review", tone: "violet" as const },
     { label: "Conversion Rate", value: `${conversionRate}%`, detail: "Inquiry to booked this cycle", tone: "blue" as const },
@@ -212,7 +180,7 @@ export default async function AdminCrmAnalyticsPage({
     { label: "Active Opportunities", value: String(activeOpportunities), detail: "Leads still moving through the pipeline", tone: "violet" as const },
   ];
 
-  const stageCounts = getPipelineStageCounts(crmLeads);
+  const stageCounts = getPipelineStageCounts(crmMetrics.leads);
   const funnelItems = stageCounts.map((stage, index, all) => ({
     label: stage.label,
     count: stage.count,
@@ -315,7 +283,7 @@ export default async function AdminCrmAnalyticsPage({
               pipeline={formatMoney(totalPipelineValue)}
               forecast={formatMoney(forecastedRevenue)}
             />
-            <CrmAlertsPanel items={crmDashboardAlerts} />
+            <CrmAlertsPanel items={dashboardAlerts} />
           </div>
 
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
@@ -333,8 +301,8 @@ export default async function AdminCrmAnalyticsPage({
           </div>
 
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-            <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
-            <CrmUpcomingEventsPanel items={crmLeads.filter((lead) => lead.stage === "booked")} />
+            <CrmInteractionsFeed items={crmMetrics.interactions.slice(0, 12)} leadsById={leadsById} />
+            <CrmUpcomingEventsPanel items={crmMetrics.leads.filter((lead) => lead.stage === "booked")} />
           </div>
         </>
       ) : null}
@@ -357,7 +325,7 @@ export default async function AdminCrmAnalyticsPage({
             <section className="card admin-section-card admin-panel admin-panel--wide">
               <AdminSectionHeader eyebrow="Revenue by month" title="Monthly booked revenue" />
               <div className="crm-chart">
-                {crmRevenueTrend.map((point) => (
+                {revenueTrend.map((point) => (
                   <div key={point.month} className="crm-chart-bar">
                     <div style={{ height: `${Math.max(18, (point.value / 31400) * 180)}px` }} />
                     <strong>{point.month}</strong>
@@ -384,7 +352,7 @@ export default async function AdminCrmAnalyticsPage({
           </div>
 
           <div className="admin-stack admin-stack--crm-reports-secondary">
-            <CrmTeamPerformanceTable items={crmTeamPerformance} />
+            <CrmTeamPerformanceTable items={teamPerformance} />
             <section className="card admin-section-card admin-panel admin-panel--wide">
               <AdminSectionHeader eyebrow="Lost lead reasons" title="Why opportunities were lost" />
               <div className="crm-source-list">
@@ -410,13 +378,13 @@ export default async function AdminCrmAnalyticsPage({
             filters={crmLeadsState}
             revisionLeadIds={revisionLeadIds}
             followUpSummary={{
-              pending: followUpPendingCount,
-              reviewed: followUpReviewedCount,
+              pending: crmMetrics.followUpSummary.pending,
+              reviewed: crmMetrics.followUpSummary.reviewed,
             }}
             followUpFilterHref={followUpFilterHref}
             clearFollowUpFilterHref={clearFollowUpFilterHref}
           />
-          <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
+          <CrmInteractionsFeed items={filteredInteractions.slice(0, 12)} leadsById={leadsById} />
         </div>
       ) : null}
 
@@ -424,7 +392,7 @@ export default async function AdminCrmAnalyticsPage({
         <section className="card admin-section-card admin-panel admin-panel--wide">
           <AdminSectionHeader eyebrow="Customers" title="Relationship roster" />
           <div className="crm-customer-grid">
-            {crmLeads.map((lead) => (
+            {filteredLeads.map((lead) => (
               <Link key={lead.id} href={buildCrmLeadDetailHref(lead.id)} className="crm-customer-card">
                 <strong>{lead.clientName}</strong>
                 <span>{lead.eventType} · {formatDate(lead.eventDate)}</span>
@@ -444,7 +412,7 @@ export default async function AdminCrmAnalyticsPage({
               collected deposits, and expenses.
             </p>
             <div className="crm-chart">
-              {crmRevenueTrend.map((point) => (
+              {revenueTrend.map((point) => (
                 <div key={point.month} className="crm-chart-bar">
                   <div style={{ height: `${Math.max(18, (point.value / 31400) * 180)}px` }} />
                   <strong>{point.month}</strong>
@@ -491,7 +459,7 @@ export default async function AdminCrmAnalyticsPage({
               })}
             </div>
           </section>
-          <CrmInteractionsFeed items={crmInteractions} leadsById={leadsById} />
+            <CrmInteractionsFeed items={filteredInteractions.slice(0, 12)} leadsById={leadsById} />
         </div>
       ) : null}
     </main>

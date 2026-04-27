@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CrmTask, CrmTaskStatus } from "@/lib/crm-analytics";
-import { getCrmLeadById } from "@/lib/crm-analytics";
+import type { CrmLead, CrmTask, CrmTaskStatus } from "@/lib/crm-analytics";
 
 type FollowUpTaskKind =
   | "quote_approval"
@@ -126,6 +125,7 @@ export async function getPersistedCrmTasks(
   filters: {
     inquiryId?: string;
     status?: "open" | "completed";
+    leadLookup?: Map<string, Pick<CrmLead, "clientName" | "eventType">>;
   } = {}
 ): Promise<CrmTask[]> {
   let query = supabase
@@ -147,7 +147,7 @@ export async function getPersistedCrmTasks(
   }
 
   return ((data ?? []) as FollowUpTaskRecord[]).map((task) => {
-    const lead = getCrmLeadById(task.inquiry_id);
+    const lead = filters.leadLookup?.get(task.inquiry_id);
     return {
       id: task.id,
       leadId: task.inquiry_id,
@@ -158,4 +158,3 @@ export async function getPersistedCrmTasks(
     };
   });
 }
-

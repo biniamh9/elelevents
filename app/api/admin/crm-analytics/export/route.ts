@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import {
   CRM_STAGE_LABELS,
-  crmInteractions,
-  crmLeads,
-  crmRevenueTrend,
-  crmTasks,
   filterCrmLeads,
   getAverageEventValue,
   getBookedRevenue,
@@ -13,11 +9,12 @@ import {
   getForecastedRevenue,
   getLikelyRevenue,
   getLostReasonMetrics,
-  getOutstandingBalances,
   getPipelineStageCounts,
   getPipelineValue,
   getSourceMetrics,
 } from "@/lib/crm-analytics";
+import { buildRevenueTrend, getLiveCrmMetrics } from "@/lib/crm-live";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 type ExportTab = "dashboard" | "reports" | "leads" | "customers" | "revenue" | "tasks";
 
@@ -63,9 +60,19 @@ export async function GET(request: Request) {
     source: searchParams.get("source") ?? undefined,
     owner: searchParams.get("owner") ?? undefined,
     dateRange: searchParams.get("dateRange") ?? undefined,
+    followUp: searchParams.get("followUp") ?? undefined,
   };
 
-  const filteredLeads = filterCrmLeads(crmLeads, filters);
+  const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
+  const filteredLeads = filterCrmLeads(crmMetrics.leads, filters);
+  const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
+  const filteredTasks = crmMetrics.tasks.filter((task) => filteredLeadIds.has(task.leadId));
+  const filteredInteractions = crmMetrics.interactions.filter((item) => filteredLeadIds.has(item.leadId));
+  const revenueTrend = buildRevenueTrend(filteredLeads);
+  const outstandingBalances = filteredLeads.reduce(
+    (sum, lead) => sum + Number(lead.outstandingBalance ?? 0),
+    0
+  );
 
   let rows: Array<Record<string, unknown>> = [];
 
@@ -106,7 +113,7 @@ export async function GET(request: Request) {
       }));
       break;
     case "revenue":
-      rows = crmRevenueTrend.map((point) => ({
+      rows = revenueTrend.map((point) => ({
         Month: point.month,
         "Booked Revenue": point.value,
       }));
@@ -129,12 +136,12 @@ export async function GET(request: Request) {
       });
       rows.push({
         Summary: "Outstanding Payments",
-        Value: getOutstandingBalances(filteredLeads),
+        Value: Math.round(outstandingBalances),
       });
       break;
     case "tasks":
-      rows = crmTasks.map((task) => {
-        const lead = crmLeads.find((item) => item.id === task.leadId);
+      rows = filteredTasks.map((task) => {
+        const lead = crmMetrics.leads.find((item) => item.id === task.leadId);
         return {
           Task: task.title,
           Status: task.status,
@@ -172,7 +179,7 @@ export async function GET(request: Request) {
       rows = [
         {
           Metric: "Active Leads",
-          Value: filteredLeads.length,
+          Value: filteredLeads.filter((lead) => lead.stage !== "lost").length,
           Detail: "Open relationships across inquiry to booking",
         },
         {
@@ -209,7 +216,7 @@ export async function GET(request: Request) {
         },
         {
           Metric: "Outstanding Payments",
-          Value: getOutstandingBalances(filteredLeads),
+          Value: Math.round(outstandingBalances),
           Detail: "Deposits or balances still open",
         },
         {
@@ -219,14 +226,13 @@ export async function GET(request: Request) {
         },
         {
           Metric: "Recent Interactions",
-          Value: crmInteractions.length,
+          Value: filteredInteractions.length,
           Detail: "Rolling CRM activity entries",
         },
       ];
       break;
   }
 
-  // TODO: Replace mock CRM selectors with live CRM/inquiry/quote/payment data once those tables are wired.
   const csv = toCsv(rows);
   const today = new Date().toISOString().slice(0, 10);
   const filename = `crm-${tab}-report-${today}.csv`;

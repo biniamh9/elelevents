@@ -287,7 +287,7 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
       {
         title: "Current step",
         actions: [
-          { label: "Open quote draft", href: buildQuoteCreateHref() },
+          { label: "Open quote draft", href: buildQuoteCreateHref({ inquiryId: lead.id }) },
           { label: "Add quote note", href: `${base}#notes` },
         ],
       },
