@@ -16,11 +16,15 @@ export default function CrmLeadOperationsForm({
   initialOwner,
   initialNextAction,
   initialNextActionDueAt,
+  initialLeadScore,
+  initialLeadTemperature,
 }: {
   inquiryId: string;
   initialOwner: string | null;
   initialNextAction: string | null;
   initialNextActionDueAt: string | null;
+  initialLeadScore: number | null;
+  initialLeadTemperature: string | null;
 }) {
   const ownerSuggestionsId = useId();
   const [owner, setOwner] = useState(initialOwner ?? "");
@@ -28,6 +32,10 @@ export default function CrmLeadOperationsForm({
   const [nextActionDueAt, setNextActionDueAt] = useState(
     toLocalInputValue(initialNextActionDueAt)
   );
+  const [leadScore, setLeadScore] = useState(
+    initialLeadScore === null || initialLeadScore === undefined ? "" : String(initialLeadScore)
+  );
+  const [leadTemperature, setLeadTemperature] = useState(initialLeadTemperature ?? "");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -44,6 +52,8 @@ export default function CrmLeadOperationsForm({
         crm_next_action_due_at: nextActionDueAt
           ? new Date(nextActionDueAt).toISOString()
           : null,
+        crm_lead_score: leadScore === "" ? null : Number(leadScore),
+        crm_lead_temperature: leadTemperature || null,
       }),
     });
 
@@ -94,6 +104,33 @@ export default function CrmLeadOperationsForm({
           value={nextActionDueAt}
           onChange={(e) => setNextActionDueAt(e.target.value)}
         />
+      </div>
+
+      <div className="field">
+        <label className="label">Lead score</label>
+        <input
+          className="input"
+          type="number"
+          min="0"
+          max="100"
+          value={leadScore}
+          onChange={(e) => setLeadScore(e.target.value)}
+          placeholder="0-100"
+        />
+      </div>
+
+      <div className="field">
+        <label className="label">Temperature</label>
+        <select
+          className="input"
+          value={leadTemperature}
+          onChange={(e) => setLeadTemperature(e.target.value)}
+        >
+          <option value="">Not set</option>
+          <option value="hot">hot</option>
+          <option value="warm">warm</option>
+          <option value="cold">cold</option>
+        </select>
       </div>
 
       <button type="button" className="btn secondary" onClick={handleSave} disabled={saving}>

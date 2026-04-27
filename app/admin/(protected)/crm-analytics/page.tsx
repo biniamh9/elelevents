@@ -20,6 +20,7 @@ import {
   getBookedRevenue,
   getConversionRate,
   getForecastedRevenue,
+  getLeadTemperature,
   getLikelyRevenue,
   getLostReasonMetrics,
   getPipelineStageCounts,
@@ -125,9 +126,7 @@ export default async function AdminCrmAnalyticsPage({
   const likelyRevenue = getLikelyRevenue(crmMetrics.leads);
   const totalOutstanding = crmMetrics.totals.outstandingBalances;
   const activeLeads = crmMetrics.leads.filter((lead) => lead.stage !== "lost").length;
-  const hotLeads = crmMetrics.leads.filter((lead) =>
-    ["consultation_scheduled", "consultation_completed", "quote_sent", "awaiting_deposit"].includes(lead.stage)
-  ).length;
+  const hotLeads = crmMetrics.leads.filter((lead) => getLeadTemperature(lead) === "hot").length;
   const quotesSent = crmMetrics.leads.filter((lead) => lead.stage === "quote_sent").length;
   const conversionRate = getConversionRate(crmMetrics.leads);
   const averageEventValue = getAverageEventValue(crmMetrics.leads);

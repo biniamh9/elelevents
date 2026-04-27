@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { BOOKING_STAGES } from "@/lib/booking-lifecycle";
 import { canSendConsultationEmail, sendConsultationScheduledEmails } from "@/lib/consultation-email";
-import { CRM_LOST_REASONS, isCrmLostReason } from "@/lib/crm-options";
+import {
+  CRM_LEAD_TEMPERATURES,
+  CRM_LOST_REASONS,
+  isCrmLeadTemperature,
+  isCrmLostReason,
+} from "@/lib/crm-options";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
@@ -49,7 +54,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature, crm_owner, lost_reason, crm_next_action, crm_next_action_due_at")
+      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature, crm_owner, lost_reason, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature, crm_lost_at, crm_lost_context")
       .eq("id", id)
       .single();
 
@@ -92,6 +97,41 @@ export async function PATCH(
 
     if (body.crm_next_action_due_at === null || typeof body.crm_next_action_due_at === "string") {
       updates.crm_next_action_due_at = body.crm_next_action_due_at;
+    }
+
+    if (body.crm_lead_score === null || typeof body.crm_lead_score === "number") {
+      if (body.crm_lead_score === null) {
+        updates.crm_lead_score = null;
+      } else if (
+        Number.isFinite(body.crm_lead_score) &&
+        body.crm_lead_score >= 0 &&
+        body.crm_lead_score <= 100
+      ) {
+        updates.crm_lead_score = Math.round(body.crm_lead_score);
+      } else {
+        return NextResponse.json(
+          { error: "Lead score must be a number between 0 and 100." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.crm_lead_temperature === null || typeof body.crm_lead_temperature === "string") {
+      const normalizedTemperature =
+        typeof body.crm_lead_temperature === "string"
+          ? body.crm_lead_temperature.trim().toLowerCase()
+          : null;
+
+      if (normalizedTemperature === null || normalizedTemperature === "") {
+        updates.crm_lead_temperature = null;
+      } else if (isCrmLeadTemperature(normalizedTemperature)) {
+        updates.crm_lead_temperature = normalizedTemperature;
+      } else {
+        return NextResponse.json(
+          { error: `Invalid lead temperature. Allowed values: ${CRM_LEAD_TEMPERATURES.join(", ")}` },
+          { status: 400 }
+        );
+      }
     }
 
     if (body.estimated_price === null || typeof body.estimated_price === "number") {
@@ -187,6 +227,24 @@ export async function PATCH(
 
     if (nextStatus !== "closed_lost" && existing.lost_reason && body.lost_reason === undefined) {
       updates.lost_reason = null;
+    }
+
+    if (body.crm_lost_context === null || typeof body.crm_lost_context === "string") {
+      const lostContext =
+        typeof body.crm_lost_context === "string" ? body.crm_lost_context.trim() : "";
+      updates.crm_lost_context = lostContext || null;
+    }
+
+    if (nextStatus === "closed_lost") {
+      updates.crm_lost_at =
+        body.crm_lost_at === null || typeof body.crm_lost_at === "string"
+          ? body.crm_lost_at || existing.crm_lost_at || new Date().toISOString()
+          : existing.crm_lost_at || new Date().toISOString();
+    } else {
+      updates.crm_lost_at = null;
+      if (body.crm_lost_context === undefined && existing.crm_lost_context) {
+        updates.crm_lost_context = null;
+      }
     }
 
     if (body.booking_stage) {
@@ -367,7 +425,12 @@ export async function PATCH(
         crm_owner: data.crm_owner,
         crm_next_action: data.crm_next_action,
         crm_next_action_due_at: data.crm_next_action_due_at,
+        crm_lead_score: data.crm_lead_score,
+        crm_lead_temperature: data.crm_lead_temperature,
         lost_reason: data.lost_reason,
+        crm_lost_at: data.crm_lost_at,
+        crm_lost_context: data.crm_lost_context,
+        lead_closed_lost: data.status === "closed_lost",
       },
     });
 

@@ -83,7 +83,7 @@ export default async function AdminCrmLeadDetailPage({
     .limit(20);
   const { data: inquiryRecord } = await supabaseAdmin
     .from("event_inquiries")
-    .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at")
+    .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature")
     .eq("id", leadId)
     .maybeSingle();
 
@@ -141,9 +141,22 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Owner</small><span>{lead.owner}</span></div>
             <div><small>Next action</small><span>{lead.nextAction || "Not set"}</span></div>
             <div><small>Next action due</small><span>{lead.nextActionDueAt ? formatDate(lead.nextActionDueAt) : "No due date"}</span></div>
+            <div><small>Lead score</small><span>{lead.leadScore ?? "Not set"}</span></div>
+            <div><small>Temperature</small><span>{lead.leadTemperature ?? "Not set"}</span></div>
+            <div><small>Lost reason</small><span>{lead.lostReason ?? "Not set"}</span></div>
+            <div><small>Lost at</small><span>{lead.lostAt ? formatDate(lead.lostAt) : "Not set"}</span></div>
             <div><small>Quote summary</small><span>{lead.quoteSummary}</span></div>
             <div><small>Payment summary</small><span>{lead.paymentSummary}</span></div>
           </div>
+
+          {lead.lostContext ? (
+            <div className="admin-placeholder-list">
+              <div>
+                <strong>Lost context</strong>
+                <span>{lead.lostContext}</span>
+              </div>
+            </div>
+          ) : null}
 
           <div id="notes" className="admin-placeholder-list">
             {lead.notes.length ? (
@@ -175,6 +188,8 @@ export default async function AdminCrmLeadDetailPage({
               initialOwner={inquiryRecord.crm_owner}
               initialNextAction={inquiryRecord.crm_next_action}
               initialNextActionDueAt={inquiryRecord.crm_next_action_due_at}
+              initialLeadScore={inquiryRecord.crm_lead_score}
+              initialLeadTemperature={inquiryRecord.crm_lead_temperature}
             />
           ) : null}
         </aside>

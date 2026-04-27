@@ -439,8 +439,15 @@ export default async function InquiryDetailPage({
             <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
             <span className="summary-chip">Owner: {inquiry.crm_owner?.trim() || "Unassigned"}</span>
             <span className="summary-chip">Next action: {inquiry.crm_next_action?.trim() || "Not set"}</span>
+            <span className="summary-chip">Lead score: {inquiry.crm_lead_score ?? "Not set"}</span>
+            <span className="summary-chip">Temperature: {inquiry.crm_lead_temperature ?? "Not set"}</span>
             {inquiry.status === "closed_lost" ? (
               <span className="summary-chip">Lost reason: {inquiry.lost_reason ?? "Not set"}</span>
+            ) : null}
+            {inquiry.status === "closed_lost" && inquiry.crm_lost_at ? (
+              <span className="summary-chip">
+                Lost at: {new Date(inquiry.crm_lost_at).toLocaleDateString()}
+              </span>
             ) : null}
           </div>
         </div>
@@ -936,6 +943,9 @@ export default async function InquiryDetailPage({
               currentLostReason={inquiry.lost_reason ?? null}
               currentNextAction={inquiry.crm_next_action ?? null}
               currentNextActionDueAt={inquiry.crm_next_action_due_at ?? null}
+              currentLeadScore={inquiry.crm_lead_score ?? null}
+              currentLeadTemperature={inquiry.crm_lead_temperature ?? null}
+              currentLostContext={inquiry.crm_lost_context ?? null}
             />
           </div>
 

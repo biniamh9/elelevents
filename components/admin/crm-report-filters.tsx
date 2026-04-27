@@ -7,6 +7,7 @@ export default function CrmReportFilters({
     eventType?: string;
     source?: string;
     owner?: string;
+    nextAction?: string;
     dateRange?: string;
   };
 }) {
@@ -32,6 +33,15 @@ export default function CrmReportFilters({
       <label>
         <span>Owner</span>
         <input name="owner" defaultValue={filters.owner ?? ""} placeholder="Owner" />
+      </label>
+      <label>
+        <span>Next action</span>
+        <select name="nextAction" defaultValue={filters.nextAction ?? ""}>
+          <option value="">All</option>
+          <option value="set">Has next action</option>
+          <option value="overdue">Action overdue</option>
+          <option value="none">Not set</option>
+        </select>
       </label>
       <label>
         <span>Date range</span>

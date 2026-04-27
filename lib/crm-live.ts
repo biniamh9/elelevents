@@ -22,7 +22,7 @@ import {
   inquiryFollowUpNeedsReview,
   normalizeInquiryFollowUpDetails,
 } from "@/lib/inquiry-follow-up";
-import { isCrmLostReason } from "@/lib/crm-options";
+import { isCrmLeadTemperature, isCrmLostReason } from "@/lib/crm-options";
 
 type InquiryRow = {
   id: string;
@@ -50,7 +50,11 @@ type InquiryRow = {
   crm_owner: string | null;
   crm_next_action: string | null;
   crm_next_action_due_at: string | null;
+  crm_lead_score: number | null;
+  crm_lead_temperature: string | null;
   lost_reason: string | null;
+  crm_lost_at: string | null;
+  crm_lost_context: string | null;
   referral_source: string | null;
   guest_count: number | null;
   booked_at: string | null;
@@ -587,7 +591,7 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
   let inquiryQuery = supabase
     .from("event_inquiries")
     .select(
-      "id, client_id, created_at, first_name, last_name, email, phone, event_type, event_date, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_at, follow_up_details_json, inspiration_notes, additional_info, colors_theme, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, lost_reason, referral_source, guest_count, booked_at, reserved_at, completed_at, floor_plan_received, walkthrough_completed"
+      "id, client_id, created_at, first_name, last_name, email, phone, event_type, event_date, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_at, follow_up_details_json, inspiration_notes, additional_info, colors_theme, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature, lost_reason, crm_lost_at, crm_lost_context, referral_source, guest_count, booked_at, reserved_at, completed_at, floor_plan_received, walkthrough_completed"
     )
     .order("created_at", { ascending: false });
 
@@ -750,6 +754,10 @@ export async function getLiveCrmSnapshot(
       owner,
       nextAction: inquiry.crm_next_action?.trim() || null,
       nextActionDueAt: inquiry.crm_next_action_due_at,
+      leadScore: inquiry.crm_lead_score,
+      leadTemperature: isCrmLeadTemperature(inquiry.crm_lead_temperature)
+        ? inquiry.crm_lead_temperature
+        : null,
       source: normalizeSource(inquiry.referral_source),
       budgetRange: getBudgetRange(inquiry, estimatedValue),
       quoteSummary: getQuoteSummary(stage, inquiry, contract),
@@ -759,6 +767,8 @@ export async function getLiveCrmSnapshot(
       paymentStatus,
       decorStatus: getDecorStatus(inquiry, stage),
       lostReason: stage === "lost" && isCrmLostReason(inquiry.lost_reason) ? inquiry.lost_reason : undefined,
+      lostAt: stage === "lost" ? inquiry.crm_lost_at : null,
+      lostContext: stage === "lost" ? inquiry.crm_lost_context : null,
       hasFollowUpInspiration,
       contractId: contract?.id ?? null,
       inquiryStatus: inquiry.status,

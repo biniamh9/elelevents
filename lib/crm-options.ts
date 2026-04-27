@@ -16,6 +16,16 @@ export const CRM_OWNER_SUGGESTIONS = [
   "Finance",
 ] as const;
 
+export const CRM_LEAD_TEMPERATURES = ["hot", "warm", "cold"] as const;
+
+export type CrmLeadTemperature = (typeof CRM_LEAD_TEMPERATURES)[number];
+
 export function isCrmLostReason(value: string | null | undefined): value is CrmLostReason {
   return Boolean(value && CRM_LOST_REASONS.includes(value as CrmLostReason));
+}
+
+export function isCrmLeadTemperature(
+  value: string | null | undefined
+): value is CrmLeadTemperature {
+  return Boolean(value && CRM_LEAD_TEMPERATURES.includes(value as CrmLeadTemperature));
 }

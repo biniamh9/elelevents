@@ -1,4 +1,4 @@
-import type { CrmLostReason } from "@/lib/crm-options";
+import type { CrmLeadTemperature, CrmLostReason } from "@/lib/crm-options";
 
 export type CrmStage =
   | "new_inquiry"
@@ -42,6 +42,8 @@ export type CrmLead = {
   owner: string;
   nextAction?: string | null;
   nextActionDueAt?: string | null;
+  leadScore?: number | null;
+  leadTemperature?: CrmLeadTemperature | null;
   source: LeadSource;
   budgetRange: string;
   quoteSummary: string;
@@ -51,6 +53,8 @@ export type CrmLead = {
   paymentStatus?: "unpaid" | "deposit_due" | "deposit_paid" | "paid";
   decorStatus?: "pending" | "in_progress" | "approved" | "ready";
   lostReason?: CrmLostReason;
+  lostAt?: string | null;
+  lostContext?: string | null;
   hasFollowUpInspiration?: boolean;
   contractId?: string | null;
   inquiryStatus?: string | null;
@@ -440,14 +444,14 @@ export function getLeadTasks(leadId: string) {
 }
 
 export function getLeadTemperature(lead: CrmLead): LeadTemperature {
-  if (lead.stage === "booked" || lead.stage === "awaiting_deposit" || lead.stage === "quote_sent") return "hot";
-  if (lead.stage === "consultation_scheduled" || lead.stage === "consultation_completed" || lead.stage === "contacted") {
-    return "warm";
-  }
-  return "cold";
+  return lead.leadTemperature ?? "cold";
 }
 
 export function getLeadProbability(lead: CrmLead) {
+  if (typeof lead.leadScore === "number" && Number.isFinite(lead.leadScore)) {
+    const normalized = Math.max(0.1, Math.min(0.95, lead.leadScore / 100));
+    return Number(normalized.toFixed(2));
+  }
   const temperature = getLeadTemperature(lead);
   if (temperature === "hot") return 0.8;
   if (temperature === "warm") return 0.5;
