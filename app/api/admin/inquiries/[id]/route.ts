@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { BOOKING_STAGES } from "@/lib/booking-lifecycle";
 import { canSendConsultationEmail, sendConsultationScheduledEmails } from "@/lib/consultation-email";
+import { CRM_LOST_REASONS, isCrmLostReason } from "@/lib/crm-options";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
@@ -48,7 +49,7 @@ export async function PATCH(
 
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("event_inquiries")
-      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature")
+      .select("id, client_id, first_name, last_name, email, phone, event_type, event_date, status, quoted_at, booked_at, admin_notes, consultation_status, consultation_type, consultation_at, consultation_location, consultation_video_link, consultation_admin_notes, follow_up_at, quote_response_status, requested_vendor_categories, vendor_request_notes, booking_stage, floor_plan_received, walkthrough_completed, reserved_at, completed_at, booking_confirmed_at, final_payment_reminder_sent_at, consultation_schedule_email_signature, crm_owner, lost_reason")
       .eq("id", id)
       .single();
 
@@ -76,6 +77,11 @@ export async function PATCH(
 
     if (typeof body.admin_notes === "string") {
       updates.admin_notes = body.admin_notes;
+    }
+
+    if (body.crm_owner === null || typeof body.crm_owner === "string") {
+      const owner = typeof body.crm_owner === "string" ? body.crm_owner.trim() : "";
+      updates.crm_owner = owner || null;
     }
 
     if (body.estimated_price === null || typeof body.estimated_price === "number") {
@@ -138,6 +144,39 @@ export async function PATCH(
       ) {
         updates.booking_stage = "quote_sent";
       }
+    }
+
+    const nextStatus = updates.status ?? existing.status;
+
+    if (body.lost_reason === null || typeof body.lost_reason === "string") {
+      const normalizedLostReason =
+        typeof body.lost_reason === "string" ? body.lost_reason.trim() : null;
+
+      if (normalizedLostReason === null || normalizedLostReason === "") {
+        updates.lost_reason = null;
+      } else {
+        if (nextStatus !== "closed_lost") {
+          return NextResponse.json(
+            { error: "Lost reason can only be set when the inquiry is closed lost." },
+            { status: 400 }
+          );
+        }
+
+        if (!isCrmLostReason(normalizedLostReason)) {
+          return NextResponse.json(
+            { error: `Invalid lost reason. Allowed values: ${CRM_LOST_REASONS.join(", ")}` },
+            { status: 400 }
+          );
+        }
+
+        updates.lost_reason = normalizedLostReason;
+      }
+    } else if (nextStatus !== "closed_lost" && existing.lost_reason) {
+      updates.lost_reason = null;
+    }
+
+    if (nextStatus !== "closed_lost" && existing.lost_reason && body.lost_reason === undefined) {
+      updates.lost_reason = null;
     }
 
     if (body.booking_stage) {
@@ -315,6 +354,8 @@ export async function PATCH(
         booking_confirmed_at: data.booking_confirmed_at,
         requested_vendor_categories: data.requested_vendor_categories,
         vendor_request_notes: data.vendor_request_notes,
+        crm_owner: data.crm_owner,
+        lost_reason: data.lost_reason,
       },
     });
 

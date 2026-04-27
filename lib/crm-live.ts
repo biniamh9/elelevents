@@ -22,6 +22,7 @@ import {
   inquiryFollowUpNeedsReview,
   normalizeInquiryFollowUpDetails,
 } from "@/lib/inquiry-follow-up";
+import { isCrmLostReason } from "@/lib/crm-options";
 
 type InquiryRow = {
   id: string;
@@ -46,6 +47,8 @@ type InquiryRow = {
   additional_info: string | null;
   colors_theme: string | null;
   admin_notes: string | null;
+  crm_owner: string | null;
+  lost_reason: string | null;
   referral_source: string | null;
   guest_count: number | null;
   booked_at: string | null;
@@ -303,9 +306,16 @@ function getBudgetRange(inquiry: InquiryRow, estimatedValue: number) {
   return "Not set";
 }
 
-function getOwner(inquiryId: string, stage: CrmStage, tasksByInquiryId: Map<string, TaskRow[]>) {
+function getOwner(
+  inquiry: Pick<InquiryRow, "id" | "crm_owner">,
+  stage: CrmStage,
+  tasksByInquiryId: Map<string, TaskRow[]>
+) {
+  const persistedOwner = inquiry.crm_owner?.trim();
+  if (persistedOwner) return persistedOwner;
+
   const taskOwner = tasksByInquiryId
-    .get(inquiryId)
+    .get(inquiry.id)
     ?.find((task) => task.owner_name?.trim())
     ?.owner_name?.trim();
 
@@ -589,7 +599,7 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
   let inquiryQuery = supabase
     .from("event_inquiries")
     .select(
-      "id, client_id, created_at, first_name, last_name, email, phone, event_type, event_date, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_at, follow_up_details_json, inspiration_notes, additional_info, colors_theme, admin_notes, referral_source, guest_count, booked_at, reserved_at, completed_at, floor_plan_received, walkthrough_completed"
+      "id, client_id, created_at, first_name, last_name, email, phone, event_type, event_date, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_at, follow_up_details_json, inspiration_notes, additional_info, colors_theme, admin_notes, crm_owner, lost_reason, referral_source, guest_count, booked_at, reserved_at, completed_at, floor_plan_received, walkthrough_completed"
     )
     .order("created_at", { ascending: false });
 
@@ -729,7 +739,7 @@ export async function getLiveCrmSnapshot(
       ...interactions.map((item) => item.created_at),
       ...activities.map((item) => item.created_at),
     ]);
-    const owner = getOwner(inquiry.id, stage, tasksByInquiryId);
+    const owner = getOwner(inquiry, stage, tasksByInquiryId);
     const outstandingBalance = getOutstandingBalance(inquiry, contract, stage);
     const paymentStatus = getPaymentStatus(contract, outstandingBalance);
 
@@ -761,7 +771,7 @@ export async function getLiveCrmSnapshot(
       contractStatus: getContractStatus(contract),
       paymentStatus,
       decorStatus: getDecorStatus(inquiry, stage),
-      lostReason: stage === "lost" ? "Other" : undefined,
+      lostReason: stage === "lost" && isCrmLostReason(inquiry.lost_reason) ? inquiry.lost_reason : undefined,
       hasFollowUpInspiration,
       contractId: contract?.id ?? null,
       inquiryStatus: inquiry.status,

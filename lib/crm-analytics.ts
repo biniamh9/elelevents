@@ -1,3 +1,5 @@
+import type { CrmLostReason } from "@/lib/crm-options";
+
 export type CrmStage =
   | "new_inquiry"
   | "contacted"
@@ -46,7 +48,7 @@ export type CrmLead = {
   contractStatus?: "unsigned" | "sent" | "signed";
   paymentStatus?: "unpaid" | "deposit_due" | "deposit_paid" | "paid";
   decorStatus?: "pending" | "in_progress" | "approved" | "ready";
-  lostReason?: "Price too high" | "Chose competitor" | "No response" | "Date unavailable" | "Not ready" | "Other";
+  lostReason?: CrmLostReason;
   hasFollowUpInspiration?: boolean;
   contractId?: string | null;
   inquiryStatus?: string | null;

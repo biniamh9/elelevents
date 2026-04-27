@@ -437,6 +437,10 @@ export default async function InquiryDetailPage({
             <span className="summary-chip">Quote: ${Number(inquiry.estimated_price ?? 0).toLocaleString()}</span>
             <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
             <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
+            <span className="summary-chip">Owner: {inquiry.crm_owner?.trim() || "Unassigned"}</span>
+            {inquiry.status === "closed_lost" ? (
+              <span className="summary-chip">Lost reason: {inquiry.lost_reason ?? "Not set"}</span>
+            ) : null}
           </div>
         </div>
 
@@ -927,6 +931,8 @@ export default async function InquiryDetailPage({
               inquiryId={inquiry.id}
               currentStatus={inquiry.status ?? "new"}
               currentNotes={inquiry.admin_notes ?? ""}
+              currentOwner={inquiry.crm_owner ?? null}
+              currentLostReason={inquiry.lost_reason ?? null}
             />
           </div>
 
