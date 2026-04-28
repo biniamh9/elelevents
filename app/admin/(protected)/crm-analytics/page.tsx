@@ -312,15 +312,25 @@ export default async function AdminCrmAnalyticsPage({
                   <div className="admin-workflow-lane-list">
                     {column.items.length ? (
                       column.items.map((item) => (
-                        <Link
+                        <div
                           key={item.id}
-                          href={item.href}
                           className={`admin-workflow-lane-item${item.attention ? " admin-workflow-lane-item--attention" : ""}`}
                         >
-                          <strong>{item.title}</strong>
-                          <span>{item.subtitle}</span>
-                          {item.attention ? <small>{item.attention}</small> : null}
-                        </Link>
+                          <Link href={item.href} className="admin-workflow-lane-item-link">
+                            <strong>{item.title}</strong>
+                            <span>{item.subtitle}</span>
+                            {item.attention ? <small>{item.attention}</small> : null}
+                          </Link>
+                          {item.primaryAction ? (
+                            <Link
+                              href={item.primaryAction.href}
+                              className="admin-workflow-lane-next-action"
+                            >
+                              <span>Do next</span>
+                              <strong>{item.primaryAction.label}</strong>
+                            </Link>
+                          ) : null}
+                        </div>
                       ))
                     ) : (
                       <div className="admin-workflow-lane-item admin-workflow-lane-item--empty">

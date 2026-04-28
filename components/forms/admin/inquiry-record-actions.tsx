@@ -7,7 +7,10 @@ import {
   buildInquiryItemizedDraftHref,
   buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
-import { getInquiryWorkflowActionGroups } from "@/lib/admin-workflow-lane";
+import {
+  getInquiryWorkflowActionGroups,
+  getInquiryWorkflowPrimaryAction,
+} from "@/lib/admin-workflow-lane";
 
 export default function InquiryRecordActions({
   inquiryId,
@@ -37,6 +40,16 @@ export default function InquiryRecordActions({
   const [message, setMessage] = useState("");
   const [open, setOpen] = useState(false);
   const actionGroups = getInquiryWorkflowActionGroups({
+    inquiryId,
+    contractId,
+    status,
+    consultation_status: consultationStatus,
+    booking_stage: bookingStage,
+    quote_response_status: quoteResponseStatus,
+    contract_status: contractStatus,
+    deposit_paid: depositPaid,
+  });
+  const primaryAction = getInquiryWorkflowPrimaryAction({
     inquiryId,
     contractId,
     status,
@@ -79,6 +92,13 @@ export default function InquiryRecordActions({
 
   return (
     <div className="admin-row-actions">
+      <AdminWorkflowAction
+        href={primaryAction.href}
+        className="admin-workflow-action--menu admin-row-action-primary"
+        tone={primaryAction.tone}
+        label={primaryAction.label}
+        description={primaryAction.description}
+      />
       <details
         className="admin-row-action-menu"
         open={open}

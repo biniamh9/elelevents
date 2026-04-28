@@ -20,6 +20,7 @@ export type WorkflowLaneItem = {
   subtitle: string;
   href: string;
   attention?: string | null;
+  primaryAction?: WorkflowResolvedAction | null;
 };
 
 export type WorkflowLaneColumn = {
@@ -34,6 +35,13 @@ export type WorkflowLaneColumn = {
 export type WorkflowAction = {
   label: string;
   href: string;
+};
+
+export type WorkflowActionTone = "internal" | "email" | "sync" | "record";
+
+export type WorkflowResolvedAction = WorkflowAction & {
+  description: string;
+  tone: WorkflowActionTone;
 };
 
 export type WorkflowActionGroup = {
@@ -95,6 +103,184 @@ export function getInquiryWorkflowLane(input: {
   });
 }
 
+export function getInquiryWorkflowPrimaryAction(input: {
+  inquiryId: string;
+  contractId?: string | null;
+  status: string | null;
+  consultation_status: string | null;
+  booking_stage: string | null;
+  quote_response_status: string | null;
+  quoted_at?: string | null;
+  contract_status?: string | null;
+  deposit_paid?: boolean | null;
+  completed_at?: string | null;
+}): WorkflowResolvedAction {
+  const lane = getInquiryWorkflowLane(input);
+  const base = buildInquiryDetailHref(input.inquiryId);
+
+  if (lane === "intake") {
+    if ((input.status ?? "new") === "new") {
+      return {
+        label: "Review request",
+        href: `${base}#intake-stage`,
+        description: "Confirm fit, assign owner, and set the first follow-up.",
+        tone: "internal",
+      };
+    }
+
+    return {
+      label: "Schedule consultation",
+      href: `${base}#consultation-stage`,
+      description: "Move the request out of intake by setting the meeting plan.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "consultation") {
+    if ((input.consultation_status ?? "not_scheduled") === "completed") {
+      return {
+        label: "Prepare quote",
+        href: `${base}#quote-stage`,
+        description: "Turn consultation notes into the client-facing proposal.",
+        tone: "record",
+      };
+    }
+
+    return {
+      label:
+        (input.consultation_status ?? "not_scheduled") === "scheduled"
+          ? "Complete consultation"
+          : "Plan consultation",
+      href: `${base}#consultation-stage`,
+      description: "Keep meeting timing and follow-up visible in one place.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "quote") {
+    if (input.quote_response_status === "changes_requested") {
+      return {
+        label: "Revise quote",
+        href: `${base}#quote-stage`,
+        description: "Client changes are waiting. Update pricing and resend.",
+        tone: "email",
+      };
+    }
+
+    const quoteIsInMotion = input.status === "quoted" || Boolean(input.quoted_at);
+    return {
+      label: quoteIsInMotion ? "Follow up on quote" : "Build quote",
+      href: `${base}#quote-stage`,
+      description: quoteIsInMotion
+        ? "Keep the proposal moving instead of letting it stall."
+        : "Create the proposal and share it from the quote stage.",
+      tone: quoteIsInMotion ? "email" : "record",
+    };
+  }
+
+  if (lane === "contract") {
+    if (!input.contractId) {
+      return {
+        label: "Create contract",
+        href: `${base}#contract-stage`,
+        description: "Turn the approved scope into a contract and deposit path.",
+        tone: "record",
+      };
+    }
+
+    if (input.contract_status === "draft") {
+      return {
+        label: "Send contract",
+        href: buildContractDetailHref(input.contractId),
+        description: "Get the agreement out for signature instead of leaving it in draft.",
+        tone: "email",
+      };
+    }
+
+    if (!input.deposit_paid) {
+      return {
+        label: "Track deposit",
+        href: buildContractDetailHref(input.contractId),
+        description: "Signature or deposit is still open. Keep the booking from drifting.",
+        tone: "sync",
+      };
+    }
+
+    return {
+      label: "Confirm handoff",
+      href: `${base}#handoff-stage`,
+      description: "The contract is in place. Move the event into production readiness.",
+      tone: "internal",
+    };
+  }
+
+  return {
+    label: "Open handoff",
+    href: `${base}#handoff-stage`,
+    description: "Advance readiness, logistics, and production milestones.",
+    tone: "internal",
+  };
+}
+
+export function getInquiryWorkflowSecondaryAction(input: {
+  inquiryId: string;
+  contractId?: string | null;
+  status: string | null;
+  consultation_status: string | null;
+  booking_stage: string | null;
+  quote_response_status: string | null;
+  quoted_at?: string | null;
+  contract_status?: string | null;
+  deposit_paid?: boolean | null;
+  completed_at?: string | null;
+}): WorkflowResolvedAction | null {
+  const lane = getInquiryWorkflowLane(input);
+  const base = buildInquiryDetailHref(input.inquiryId);
+
+  if (lane === "intake") {
+    return {
+      label: "Open workflow",
+      href: `${base}#next-action`,
+      description: "See the full sequence before changing status.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "consultation") {
+    return {
+      label: "Review intake notes",
+      href: `${base}#intake-stage`,
+      description: "Check owner, notes, and original request context.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "quote") {
+    return {
+      label: "Review client replies",
+      href: `${base}#timeline`,
+      description: "Use the latest client feedback while moving the quote.",
+      tone: "email",
+    };
+  }
+
+  if (lane === "contract") {
+    return {
+      label: "Open quote context",
+      href: `${base}#quote-stage`,
+      description: "Check the approved pricing and revision history.",
+      tone: "internal",
+    };
+  }
+
+  return {
+    label: "Open booking readiness",
+    href: `${base}#booking-stage`,
+    description: "Use the checklist and production milestones together.",
+    tone: "sync",
+  };
+}
+
 export function buildWorkflowColumnsFromInquiries(
   inquiries: Array<{
     id: string;
@@ -140,6 +326,17 @@ export function buildWorkflowColumnsFromInquiries(
         inquiry.quote_response_status === "changes_requested"
           ? "Revision needed"
           : null,
+      primaryAction: getInquiryWorkflowPrimaryAction({
+        inquiryId: inquiry.id,
+        status: inquiry.status,
+        consultation_status: inquiry.consultation_status,
+        booking_stage: inquiry.booking_stage,
+        quote_response_status: inquiry.quote_response_status,
+        quoted_at: inquiry.quoted_at ?? null,
+        contract_status: inquiry.contract_status ?? null,
+        deposit_paid: inquiry.deposit_paid ?? null,
+        completed_at: inquiry.completed_at ?? null,
+      }),
     });
   }
 
@@ -331,6 +528,54 @@ export function getCrmLeadWorkflowActionGroups(lead: CrmLead): WorkflowActionGro
   ];
 }
 
+export function getCrmLeadPrimaryWorkflowAction(lead: CrmLead): WorkflowResolvedAction {
+  const base = buildCrmLeadDetailHref(lead.id);
+  const lane = getLaneFromCrmLead(lead) ?? "intake";
+
+  if (lane === "intake") {
+    return {
+      label: "Review lead",
+      href: base,
+      description: "Confirm owner, next action, and first response context.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "consultation") {
+    return {
+      label: "Open consultation context",
+      href: `${base}#tasks`,
+      description: "Use the lead record and next actions to move the meeting forward.",
+      tone: "internal",
+    };
+  }
+
+  if (lane === "quote") {
+    return {
+      label: "Open quote draft",
+      href: buildQuoteCreateHref({ inquiryId: lead.id }),
+      description: "Move from client direction into proposal work without switching modules.",
+      tone: "record",
+    };
+  }
+
+  if (lane === "contract") {
+    return {
+      label: "Track deposit follow-up",
+      href: `${base}#tasks`,
+      description: "Keep contract and deposit movement tied to the lead.",
+      tone: "sync",
+    };
+  }
+
+  return {
+    label: "Review booked handoff",
+    href: `${base}#tasks`,
+    description: "Use the lead record as the handoff control point for booked work.",
+    tone: "internal",
+  };
+}
+
 export function buildWorkflowColumnsFromCrmLeads(
   leads: CrmLead[],
   options?: { revisionLeadIds?: Set<string> }
@@ -354,6 +599,7 @@ export function buildWorkflowColumnsFromCrmLeads(
         : `${lead.eventType} • ${lead.eventDate}`,
       href: buildCrmLeadDetailHref(lead.id),
       attention: needsRevision ? "Revision needed" : null,
+      primaryAction: getCrmLeadPrimaryWorkflowAction(lead),
     });
   }
 

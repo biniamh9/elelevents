@@ -17,11 +17,16 @@ import FollowUpReviewForm from "@/components/forms/admin/follow-up-review-form";
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
 import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
+import {
+  getInquiryWorkflowPrimaryAction,
+  getInquiryWorkflowSecondaryAction,
+} from "@/lib/admin-workflow-lane";
 import { requireAdminPage } from "@/lib/auth/admin";
 export const dynamic = "force-dynamic";
 
@@ -383,6 +388,30 @@ export default async function InquiryDetailPage({
     contractStatus: linkedContract?.contract_status,
     depositPaid: linkedContract?.deposit_paid,
   });
+  const primaryWorkflowAction = getInquiryWorkflowPrimaryAction({
+    inquiryId: inquiry.id,
+    contractId: linkedContract?.id ?? null,
+    status: inquiry.status,
+    consultation_status: inquiry.consultation_status,
+    booking_stage: inquiry.booking_stage,
+    quote_response_status: inquiry.quote_response_status,
+    quoted_at: inquiry.quoted_at,
+    contract_status: linkedContract?.contract_status,
+    deposit_paid: linkedContract?.deposit_paid,
+    completed_at: inquiry.completed_at,
+  });
+  const secondaryWorkflowAction = getInquiryWorkflowSecondaryAction({
+    inquiryId: inquiry.id,
+    contractId: linkedContract?.id ?? null,
+    status: inquiry.status,
+    consultation_status: inquiry.consultation_status,
+    booking_stage: inquiry.booking_stage,
+    quote_response_status: inquiry.quote_response_status,
+    quoted_at: inquiry.quoted_at,
+    contract_status: linkedContract?.contract_status,
+    deposit_paid: linkedContract?.deposit_paid,
+    completed_at: inquiry.completed_at,
+  });
   const latestQuoteClientResponse =
     customerInteractions?.find((entry) => {
       const metadata =
@@ -531,6 +560,22 @@ export default async function InquiryDetailPage({
             <p className="eyebrow">Current step</p>
             <h3>{workflow.nextActionTitle}</h3>
             <p className="muted">{workflow.nextActionDetail}</p>
+            <div className="admin-workflow-summary-actions">
+              <AdminWorkflowAction
+                href={primaryWorkflowAction.href}
+                tone={primaryWorkflowAction.tone}
+                label={primaryWorkflowAction.label}
+                description={primaryWorkflowAction.description}
+              />
+              {secondaryWorkflowAction ? (
+                <AdminWorkflowAction
+                  href={secondaryWorkflowAction.href}
+                  tone={secondaryWorkflowAction.tone}
+                  label={secondaryWorkflowAction.label}
+                  description={secondaryWorkflowAction.description}
+                />
+              ) : null}
+            </div>
             <div className="summary-pills">
               <span className="summary-chip">
                 Lead status: {humanizeLabel(inquiry.status ?? "new")}

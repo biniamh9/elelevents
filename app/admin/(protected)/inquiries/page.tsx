@@ -762,10 +762,21 @@ export default async function AdminInquiriesPage({
                   <div className="admin-workflow-lane-list">
                     {column.items.length ? (
                       column.items.map((item) => (
-                        <Link key={item.id} href={item.href} className="admin-workflow-lane-item">
-                          <strong>{item.title}</strong>
-                          <span>{item.subtitle}</span>
-                        </Link>
+                        <div key={item.id} className="admin-workflow-lane-item">
+                          <Link href={item.href} className="admin-workflow-lane-item-link">
+                            <strong>{item.title}</strong>
+                            <span>{item.subtitle}</span>
+                          </Link>
+                          {item.primaryAction ? (
+                            <Link
+                              href={item.primaryAction.href}
+                              className="admin-workflow-lane-next-action"
+                            >
+                              <span>Do next</span>
+                              <strong>{item.primaryAction.label}</strong>
+                            </Link>
+                          ) : null}
+                        </div>
                       ))
                     ) : (
                       <div className="admin-workflow-lane-item admin-workflow-lane-item--empty">
