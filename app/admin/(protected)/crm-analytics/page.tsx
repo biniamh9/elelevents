@@ -36,7 +36,10 @@ import {
   getLiveCrmMetrics,
 } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import { getUnmatchedInboundReplies } from "@/lib/unmatched-inbound-replies";
+import {
+  getStrongUnmatchedReplyCandidatesByInquiry,
+  getUnmatchedInboundReplies,
+} from "@/lib/unmatched-inbound-replies";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +118,13 @@ export default async function AdminCrmAnalyticsPage({
     reviewStatus: "pending_review",
     limit: 12,
   });
+  const unmatchedReplyCandidatesByInquiry =
+    await getStrongUnmatchedReplyCandidatesByInquiry(
+      crmMetrics.leads.map((lead) => ({
+        id: lead.id,
+        email: lead.email,
+      }))
+    );
   const filteredLeads = filterCrmLeads(crmMetrics.leads, params);
   const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
   const filteredInteractions = crmMetrics.interactions.filter((item) =>
@@ -145,6 +155,21 @@ export default async function AdminCrmAnalyticsPage({
       .map((task) => task.leadId)
   );
   const leadsById = new Map(crmMetrics.leads.map((lead) => [lead.id, lead]));
+  const unmatchedReplyCandidateCounts = Object.fromEntries(
+    crmMetrics.leads.map((lead) => [
+      lead.id,
+      unmatchedReplyCandidatesByInquiry[lead.id]?.length ?? 0,
+    ])
+  );
+  const unmatchedReplyReviewHrefs = Object.fromEntries(
+    crmMetrics.leads.map((lead) => [
+      lead.id,
+      buildUnmatchedReplyReviewHref({
+        status: "pending_review",
+        replyId: unmatchedReplyCandidatesByInquiry[lead.id]?.[0]?.replyId ?? null,
+      }),
+    ])
+  );
   const totalBookedRevenue = getBookedRevenue(crmMetrics.leads);
   const totalPipelineValue = getPipelineValue(crmMetrics.leads);
   const forecastedRevenue = getForecastedRevenue(crmMetrics.leads);
@@ -421,6 +446,8 @@ export default async function AdminCrmAnalyticsPage({
             }}
             followUpFilterHref={followUpFilterHref}
             clearFollowUpFilterHref={clearFollowUpFilterHref}
+            unmatchedReplyCandidateCounts={unmatchedReplyCandidateCounts}
+            unmatchedReplyReviewHrefs={unmatchedReplyReviewHrefs}
           />
           <CrmInteractionsFeed items={filteredInteractions.slice(0, 12)} leadsById={leadsById} />
         </div>

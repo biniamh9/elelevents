@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import AttachUnmatchedReplyShortcut from "@/components/forms/admin/attach-unmatched-reply-shortcut";
 import CrmLeadOperationsForm from "@/components/forms/admin/crm-lead-operations-form";
 import { notFound } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
@@ -8,12 +9,14 @@ import {
   buildCrmLeadDetailHref,
   buildInquiryDetailHref,
   buildQuoteCreateHref,
+  buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getLiveCrmSnapshot } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
+import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
@@ -61,6 +64,22 @@ export default async function AdminCrmLeadDetailPage({
   if (!lead) {
     notFound();
   }
+
+  const unmatchedReplyCandidatesByInquiry =
+    await getStrongUnmatchedReplyCandidatesByInquiry([
+      {
+        id: leadId,
+        email: lead.email,
+      },
+    ]);
+  const unmatchedReplyCandidates =
+    unmatchedReplyCandidatesByInquiry[leadId] ?? [];
+  const hasUnmatchedReplyCandidate = unmatchedReplyCandidates.length > 0;
+  const hasSingleStrongUnmatchedReplyCandidate = unmatchedReplyCandidates.length === 1;
+  const unmatchedReplyReviewHref = buildUnmatchedReplyReviewHref({
+    status: "pending_review",
+    replyId: unmatchedReplyCandidates[0]?.replyId ?? null,
+  });
 
   const { data: persistedInteractions } = await supabaseAdmin
     .from("customer_interactions")
@@ -161,11 +180,23 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Next action due</small><span>{lead.nextActionDueAt ? formatDate(lead.nextActionDueAt) : "No due date"}</span></div>
             <div><small>Lead score</small><span>{lead.leadScore ?? "Not set"}</span></div>
             <div><small>Temperature</small><span>{lead.leadTemperature ?? "Not set"}</span></div>
+            <div><small>Reply review</small><span>{hasUnmatchedReplyCandidate ? `${unmatchedReplyCandidates.length} pending` : "Clear"}</span></div>
             <div><small>Lost reason</small><span>{lead.lostReason ?? "Not set"}</span></div>
             <div><small>Lost at</small><span>{lead.lostAt ? formatDate(lead.lostAt) : "Not set"}</span></div>
             <div><small>Quote summary</small><span>{lead.quoteSummary}</span></div>
             <div><small>Payment summary</small><span>{lead.paymentSummary}</span></div>
           </div>
+
+          {hasUnmatchedReplyCandidate ? (
+            <div className="summary-pills">
+              <Link href={unmatchedReplyReviewHref} className="summary-chip">
+                Review unmatched reply candidate
+              </Link>
+              {hasSingleStrongUnmatchedReplyCandidate ? (
+                <span className="summary-chip">Safe direct attach available</span>
+              ) : null}
+            </div>
+          ) : null}
 
           {lead.lostContext ? (
             <div className="admin-placeholder-list">
@@ -241,6 +272,39 @@ export default async function AdminCrmLeadDetailPage({
         items={unifiedTimeline}
         emptyMessage="No CRM timeline entries yet."
       />
+
+      {hasUnmatchedReplyCandidate ? (
+        <section className="card admin-section-card admin-panel">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Reply review</p>
+              <h3>Unmatched reply candidate</h3>
+            </div>
+          </div>
+          <div className="admin-placeholder-list">
+            <div>
+              <strong>{unmatchedReplyCandidates[0]?.subject?.trim() || "No subject"}</strong>
+              <span>
+                From {unmatchedReplyCandidates[0]?.fromEmail ?? lead.email} · held for manual attachment to protect this opportunity timeline.
+              </span>
+            </div>
+          </div>
+          <div className="summary-pills">
+            <Link href={unmatchedReplyReviewHref} className="summary-chip">
+              Open reply review
+            </Link>
+            <Link href={buildInquiryDetailHref(leadId)} className="summary-chip">
+              Open inquiry record
+            </Link>
+          </div>
+          {hasSingleStrongUnmatchedReplyCandidate ? (
+            <AttachUnmatchedReplyShortcut
+              inquiryId={leadId}
+              replyId={unmatchedReplyCandidates[0].replyId}
+            />
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="card admin-section-card admin-panel">
         <div className="admin-panel-head">

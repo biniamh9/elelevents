@@ -1,5 +1,6 @@
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
+import { buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
 function formatDate(value: string) {
@@ -25,6 +26,8 @@ export default function CrmLeadsTable({
   followUpSummary,
   followUpFilterHref,
   clearFollowUpFilterHref,
+  unmatchedReplyCandidateCounts,
+  unmatchedReplyReviewHrefs,
 }: {
   leads: CrmLead[];
   filters: {
@@ -44,6 +47,8 @@ export default function CrmLeadsTable({
   };
   followUpFilterHref: string;
   clearFollowUpFilterHref: string;
+  unmatchedReplyCandidateCounts?: Record<string, number>;
+  unmatchedReplyReviewHrefs?: Record<string, string>;
 }) {
   const eventTypes = [...new Set(leads.map((lead) => lead.eventType))];
   const owners = [...new Set(leads.map((lead) => lead.owner))];
@@ -179,11 +184,21 @@ export default function CrmLeadsTable({
             {leads.map((lead) => {
               const needsRevision = revisionLeadIds?.has(lead.id) ?? false;
               const hasFollowUpInspiration = lead.hasFollowUpInspiration ?? false;
+              const unmatchedReplyCandidateCount =
+                unmatchedReplyCandidateCounts?.[lead.id] ?? 0;
+              const hasUnmatchedReplyCandidate = unmatchedReplyCandidateCount > 0;
+              const unmatchedReplyReviewHref =
+                unmatchedReplyReviewHrefs?.[lead.id] ??
+                buildUnmatchedReplyReviewHref({ status: "pending_review" });
 
               return (
               <tr
                 key={lead.id}
-                className={needsRevision || hasFollowUpInspiration ? "admin-record-row--attention" : undefined}
+                className={
+                  needsRevision || hasFollowUpInspiration || hasUnmatchedReplyCandidate
+                    ? "admin-record-row--attention"
+                    : undefined
+                }
               >
                 <td>
                   <div className="admin-record-main">
@@ -199,6 +214,11 @@ export default function CrmLeadsTable({
                         Follow-up inspiration added
                       </span>
                     ) : null}
+                    {hasUnmatchedReplyCandidate ? (
+                      <span className="admin-inline-attention-chip">
+                        Has unmatched reply candidate
+                      </span>
+                    ) : null}
                   </div>
                 </td>
                 <td>{lead.eventType}</td>
@@ -212,6 +232,8 @@ export default function CrmLeadsTable({
                       <span className="admin-record-substatus">Quote revision needed</span>
                     ) : hasFollowUpInspiration ? (
                       <span className="admin-record-substatus">Inspiration follow-up ready for review</span>
+                    ) : hasUnmatchedReplyCandidate ? (
+                      <span className="admin-record-substatus">Reply review pending for this lead</span>
                     ) : null}
                   </div>
                 </td>
@@ -259,6 +281,22 @@ export default function CrmLeadsTable({
                           ))}
                         </div>
                       ))}
+                      {hasUnmatchedReplyCandidate ? (
+                        <div className="admin-row-action-group">
+                          <p className="admin-row-action-group-label">Reply review</p>
+                          <AdminWorkflowAction
+                            href={unmatchedReplyReviewHref}
+                            className="admin-workflow-action--menu"
+                            tone="email"
+                            label={
+                              unmatchedReplyCandidateCount === 1
+                                ? "Review unmatched reply candidate"
+                                : `Review ${unmatchedReplyCandidateCount} unmatched reply candidates`
+                            }
+                            description="Open the safe review queue and attach the inbound reply only if this is the correct opportunity."
+                          />
+                        </div>
+                      ) : null}
                     </div>
                   </details>
                 </td>
