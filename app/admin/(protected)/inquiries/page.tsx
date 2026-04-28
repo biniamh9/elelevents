@@ -10,7 +10,10 @@ import {
 import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
-import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
+import {
+  getStrongUnmatchedReplyCandidatesByInquiry,
+  getUnmatchedInboundReplyCounts,
+} from "@/lib/unmatched-inbound-replies";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -307,6 +310,8 @@ export default async function AdminInquiriesPage({
     .select("*", { count: "exact", head: true })
     .eq("status", "quoted");
 
+  const unmatchedReplyCounts = await getUnmatchedInboundReplyCounts();
+
   const followUpInspirationCount =
     unresolvedFollowUpIds.length;
 
@@ -589,6 +594,15 @@ export default async function AdminInquiriesPage({
         nextFollowUp: "with_inspiration",
       }),
       cta: "Review follow-up",
+    },
+    {
+      title: "Unmatched replies awaiting review",
+      count: unmatchedReplyCounts.pending_review,
+      detail:
+        "Inbound emails were held back because the system could not safely prove the exact opportunity.",
+      tone: "warning" as const,
+      href: buildUnmatchedReplyReviewHref({ status: "pending_review" }),
+      cta: "Review replies",
     },
     {
       title: "Rental requests waiting on review",
