@@ -1,4 +1,6 @@
 import { Resend } from "resend";
+import { buildInquiryReplyToAddress } from "@/lib/crm-opportunity-identity";
+import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
 import {
   buildAdminMeetingNotificationEmailVariables,
   buildConsultationScheduledCustomerEmailVariables,
@@ -6,12 +8,16 @@ import {
   buildVideoLinkReminderEmailVariables,
 } from "@/lib/email-template-variables";
 import { getNotificationFromEmail, renderEmailTemplate } from "@/lib/email-template-renderer";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
 type InquiryConfirmationPayload = {
+  inquiryId?: string | null;
+  clientId?: string | null;
+  conversationKey?: string | null;
   clientName: string;
   clientEmail: string;
   eventType: string;
@@ -19,6 +25,9 @@ type InquiryConfirmationPayload = {
 };
 
 type ScheduledConsultationPayload = {
+  inquiryId?: string | null;
+  clientId?: string | null;
+  conversationKey?: string | null;
   clientName: string;
   clientEmail: string;
   clientPhone?: string | null;
@@ -31,6 +40,9 @@ type ScheduledConsultationPayload = {
 };
 
 type VideoReminderPayload = {
+  inquiryId?: string | null;
+  clientId?: string | null;
+  conversationKey?: string | null;
   clientName: string;
   clientEmail: string;
   meetingAt: string;
@@ -100,24 +112,38 @@ export function canSendConsultationEmail() {
   return Boolean(resend);
 }
 
-async function sendRenderedEmail(to: string, subject: string, html: string, text: string) {
+async function sendRenderedEmail(
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  options?: {
+    replyTo?: string | null;
+  }
+) {
   if (!resend) {
     throw new Error("RESEND_API_KEY is not configured");
   }
 
   const fromEmail = getNotificationFromEmail();
 
-  const { error } = await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: fromEmail,
     to,
     subject,
     html,
     text,
+    replyTo: options?.replyTo ?? undefined,
   });
 
   if (error) {
     throw new Error(error.message || "Email failed to send");
   }
+
+  return {
+    messageId: data?.id ?? null,
+    senderEmail: fromEmail,
+  };
 }
 
 export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationPayload) {
@@ -131,12 +157,37 @@ export async function sendInquiryConfirmationEmail(payload: InquiryConfirmationP
     })
   );
 
-  await sendRenderedEmail(
+  const sendResult = await sendRenderedEmail(
     payload.clientEmail,
     rendered.subject,
     rendered.html,
-    rendered.text
+    rendered.text,
+    {
+      replyTo: buildInquiryReplyToAddress(
+        getNotificationFromEmail(),
+        payload.conversationKey
+      ),
+    }
   );
+
+  if (payload.inquiryId) {
+    await recordOutboundEmailInteraction(
+      supabaseAdmin,
+      {
+        inquiryId: payload.inquiryId,
+        clientId: payload.clientId ?? null,
+        subject: rendered.subject,
+        bodyText: rendered.text,
+        senderEmail: sendResult.senderEmail,
+        recipientEmail: payload.clientEmail,
+        conversationKey: payload.conversationKey ?? null,
+        threadId: sendResult.messageId,
+        messageId: sendResult.messageId,
+        provider: "resend",
+        metadata: { type: "inquiry_confirmation_email" },
+      }
+    );
+  }
 }
 
 export async function sendConsultationScheduledEmails(
@@ -175,12 +226,40 @@ export async function sendConsultationScheduledEmails(
     })
   );
 
-  await sendRenderedEmail(
+  const customerSend = await sendRenderedEmail(
     payload.clientEmail,
     customerRendered.subject,
     customerRendered.html,
-    customerRendered.text
+    customerRendered.text,
+    {
+      replyTo: buildInquiryReplyToAddress(
+        getNotificationFromEmail(),
+        payload.conversationKey
+      ),
+    }
   );
+
+  if (payload.inquiryId) {
+    await recordOutboundEmailInteraction(
+      supabaseAdmin,
+      {
+        inquiryId: payload.inquiryId,
+        clientId: payload.clientId ?? null,
+        subject: customerRendered.subject,
+        bodyText: customerRendered.text,
+        senderEmail: customerSend.senderEmail,
+        recipientEmail: payload.clientEmail,
+        conversationKey: payload.conversationKey ?? null,
+        threadId: customerSend.messageId,
+        messageId: customerSend.messageId,
+        provider: "resend",
+        metadata: {
+          type: "consultation_schedule_email",
+          meeting_type: payload.meetingType,
+        },
+      }
+    );
+  }
 
   if (process.env.NOTIFICATION_TO_EMAIL) {
     const adminRendered = renderEmailTemplate(
@@ -219,10 +298,35 @@ export async function sendVideoLinkReminderEmail(payload: VideoReminderPayload) 
     })
   );
 
-  await sendRenderedEmail(
+  const sendResult = await sendRenderedEmail(
     payload.clientEmail,
     rendered.subject,
     rendered.html,
-    rendered.text
+    rendered.text,
+    {
+      replyTo: buildInquiryReplyToAddress(
+        getNotificationFromEmail(),
+        payload.conversationKey
+      ),
+    }
   );
+
+  if (payload.inquiryId) {
+    await recordOutboundEmailInteraction(
+      supabaseAdmin,
+      {
+        inquiryId: payload.inquiryId,
+        clientId: payload.clientId ?? null,
+        subject: rendered.subject,
+        bodyText: rendered.text,
+        senderEmail: sendResult.senderEmail,
+        recipientEmail: payload.clientEmail,
+        conversationKey: payload.conversationKey ?? null,
+        threadId: sendResult.messageId,
+        messageId: sendResult.messageId,
+        provider: "resend",
+        metadata: { type: "consultation_video_reminder" },
+      }
+    );
+  }
 }

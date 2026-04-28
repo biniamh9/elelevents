@@ -86,6 +86,24 @@ export default async function AdminCrmLeadDetailPage({
     .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature")
     .eq("id", leadId)
     .maybeSingle();
+  const { data: siblingOpportunities } =
+    lead.clientId
+      ? await supabaseAdmin
+          .from("event_inquiries")
+          .select("id, event_type, event_date, venue_name, status, estimated_price, created_at")
+          .eq("client_id", lead.clientId)
+          .neq("id", leadId)
+          .order("created_at", { ascending: false })
+          .limit(8)
+      : { data: [] as Array<{
+          id: string;
+          event_type: string | null;
+          event_date: string | null;
+          venue_name: string | null;
+          status: string | null;
+          estimated_price: number | null;
+          created_at: string;
+        }> };
 
   const combinedTasks = crmSnapshot.tasks.sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
@@ -223,6 +241,36 @@ export default async function AdminCrmLeadDetailPage({
         items={unifiedTimeline}
         emptyMessage="No CRM timeline entries yet."
       />
+
+      <section className="card admin-section-card admin-panel">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Client account history</p>
+            <h3>Other events for this client</h3>
+          </div>
+        </div>
+        <div className="admin-placeholder-list">
+          {siblingOpportunities?.length ? (
+            siblingOpportunities.map((event) => (
+              <div key={event.id}>
+                <strong>
+                  <Link href={buildCrmLeadDetailHref(event.id)}>
+                    {event.event_type || "Event"}{event.event_date ? ` · ${formatDate(event.event_date)}` : ""}
+                  </Link>
+                </strong>
+                <span>
+                  {event.venue_name || "Venue not set"} · {event.status ? event.status.replaceAll("_", " ") : "status not set"} · ${Number(event.estimated_price ?? 0).toLocaleString()}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div>
+              <strong>No other events</strong>
+              <span>This timeline is scoped to the active opportunity only.</span>
+            </div>
+          )}
+        </div>
+      </section>
     </main>
   );
 }

@@ -367,6 +367,9 @@ export async function PATCH(
       } else if (data.email) {
         try {
           await sendConsultationScheduledEmails({
+            inquiryId: data.id,
+            clientId: data.client_id,
+            conversationKey: data.crm_conversation_key ?? null,
             clientName: `${data.first_name} ${data.last_name}`.trim(),
             clientEmail: data.email,
             clientPhone: data.phone,

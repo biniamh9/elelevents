@@ -737,6 +737,7 @@ export async function getLiveCrmSnapshot(
 
     return {
       id: inquiry.id,
+      clientId: inquiry.client_id,
       clientName: formatName(inquiry.first_name, inquiry.last_name),
       email: inquiry.email?.trim().toLowerCase() ?? "",
       phone: inquiry.phone ?? "Not provided",

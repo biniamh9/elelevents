@@ -29,6 +29,7 @@ export type CrmTaskStatus = "overdue" | "today" | "awaiting_reply" | "deposit" |
 
 export type CrmLead = {
   id: string;
+  clientId?: string | null;
   clientName: string;
   email: string;
   phone: string;

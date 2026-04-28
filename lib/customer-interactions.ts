@@ -1,4 +1,8 @@
 import { buildInboundReplyActivityEvent } from "@/lib/email-activity-events";
+import {
+  extractConversationKeyFromAddress,
+  normalizeConversationKey,
+} from "@/lib/crm-opportunity-identity";
 import { logActivity } from "@/lib/crm";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -25,13 +29,45 @@ export async function matchInquiryForInboundReply(
   supabase: SupabaseClient,
   input: {
     fromEmail: string;
+    toEmail?: string | null;
     threadId?: string | null;
     messageId?: string | null;
     inReplyTo?: string | null;
     references?: string[] | null;
+    metadata?: Record<string, unknown>;
   }
 ) {
-  const normalizedEmail = normalizeEmail(input.fromEmail);
+  const metadataConversationKey =
+    typeof input.metadata?.conversationKey === "string"
+      ? input.metadata.conversationKey
+      : typeof input.metadata?.conversation_key === "string"
+        ? input.metadata.conversation_key
+        : null;
+  const inferredConversationKey =
+    normalizeConversationKey(metadataConversationKey) ??
+    extractConversationKeyFromAddress(input.toEmail);
+  if (inferredConversationKey) {
+    const { data: inquiryByConversationKey, error: inquiryByConversationKeyError } =
+      await supabase
+        .from("event_inquiries")
+        .select(
+          "id, client_id, first_name, last_name, email, status, created_at, crm_conversation_key"
+        )
+        .eq("crm_conversation_key", inferredConversationKey)
+        .maybeSingle();
+
+    if (inquiryByConversationKeyError) {
+      throw new Error(inquiryByConversationKeyError.message);
+    }
+
+    if (inquiryByConversationKey) {
+      return {
+        inquiry: inquiryByConversationKey,
+        matchReason: "conversation_key" as const,
+        conversationKey: inferredConversationKey,
+      };
+    }
+  }
 
   const candidateMessageIds = [
     input.messageId,
@@ -42,7 +78,7 @@ export async function matchInquiryForInboundReply(
   if (input.threadId || candidateMessageIds.length > 0) {
     let query = supabase
       .from("customer_interactions")
-      .select("inquiry_id, client_id, sender_email, recipient_email, created_at")
+      .select("inquiry_id, client_id, sender_email, recipient_email, created_at, conversation_key")
       .eq("channel", "email")
       .order("created_at", { ascending: false })
       .limit(1);
@@ -68,7 +104,9 @@ export async function matchInquiryForInboundReply(
     if (interactionMatch?.inquiry_id) {
       const { data: inquiryByInteraction, error: inquiryByInteractionError } = await supabase
         .from("event_inquiries")
-        .select("id, client_id, first_name, last_name, email, status, created_at")
+        .select(
+          "id, client_id, first_name, last_name, email, status, created_at, crm_conversation_key"
+        )
         .eq("id", interactionMatch.inquiry_id)
         .maybeSingle();
 
@@ -77,24 +115,22 @@ export async function matchInquiryForInboundReply(
       }
 
       if (inquiryByInteraction) {
-        return inquiryByInteraction;
+        return {
+          inquiry: inquiryByInteraction,
+          matchReason: "thread_or_message" as const,
+          conversationKey:
+            normalizeConversationKey(interactionMatch.conversation_key) ??
+            normalizeConversationKey(inquiryByInteraction.crm_conversation_key),
+        };
       }
     }
   }
 
-  const { data, error } = await supabase
-    .from("event_inquiries")
-    .select("id, client_id, first_name, last_name, email, status, created_at")
-    .eq("email", normalizedEmail)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
+  return {
+    inquiry: null,
+    matchReason: inferredConversationKey ? "missing_conversation_match" : "email_only_unsafe",
+    conversationKey: inferredConversationKey,
+  };
 }
 
 export async function recordInboundEmailReply(
@@ -103,25 +139,52 @@ export async function recordInboundEmailReply(
 ) {
   const match = await matchInquiryForInboundReply(supabase, {
     fromEmail: input.fromEmail,
+    toEmail: input.toEmail,
     threadId: input.threadId,
     messageId: input.messageId,
     inReplyTo: input.inReplyTo,
     references: input.references,
+    metadata: input.metadata,
   });
 
-  if (!match) {
+  if (!match.inquiry) {
+    const { error: unmatchedError } = await supabase
+      .from("unmatched_inbound_email_replies")
+      .insert({
+        from_email: normalizeEmail(input.fromEmail),
+        to_email: input.toEmail ? normalizeEmail(input.toEmail) : null,
+        subject: input.subject ?? null,
+        body_text: input.bodyText,
+        body_html: input.bodyHtml ?? null,
+        thread_id: input.threadId ?? null,
+        message_id: input.messageId ?? null,
+        in_reply_to: input.inReplyTo ?? null,
+        provider: input.provider ?? null,
+        conversation_key: match.conversationKey ?? null,
+        match_reason: match.matchReason,
+        metadata: {
+          ...(input.metadata ?? {}),
+          references: input.references ?? [],
+        },
+      });
+
+    if (unmatchedError) {
+      throw new Error(unmatchedError.message);
+    }
+
     return {
       matched: false as const,
       inquiryId: null,
       clientId: null,
+      reason: match.matchReason,
     };
   }
 
   const insertedAt = input.receivedAt ?? new Date().toISOString();
 
   const { error: insertError } = await supabase.from("customer_interactions").insert({
-    client_id: match.client_id ?? null,
-    inquiry_id: match.id,
+    client_id: match.inquiry.client_id ?? null,
+    inquiry_id: match.inquiry.id,
     contract_id: null,
     channel: "email",
     direction: "inbound",
@@ -130,6 +193,10 @@ export async function recordInboundEmailReply(
     body_html: input.bodyHtml ?? null,
     sender_email: normalizeEmail(input.fromEmail),
     recipient_email: input.toEmail ? normalizeEmail(input.toEmail) : null,
+    conversation_key:
+      match.conversationKey ??
+      normalizeConversationKey(match.inquiry.crm_conversation_key) ??
+      null,
     thread_id: input.threadId ?? null,
     message_id: input.messageId ?? null,
     provider: input.provider ?? null,
@@ -144,7 +211,7 @@ export async function recordInboundEmailReply(
 
   await logActivity(supabase, {
     entityType: "inquiry",
-    entityId: match.id,
+    entityId: match.inquiry.id,
     ...buildInboundReplyActivityEvent({
       fromEmail: normalizeEmail(input.fromEmail),
       subject: input.subject,
@@ -159,8 +226,9 @@ export async function recordInboundEmailReply(
 
   return {
     matched: true as const,
-    inquiryId: match.id,
-    clientId: match.client_id ?? null,
+    inquiryId: match.inquiry.id,
+    clientId: match.inquiry.client_id ?? null,
+    reason: match.matchReason,
   };
 }
 
@@ -176,6 +244,7 @@ export async function recordCustomerInteraction(
     bodyHtml?: string | null;
     senderEmail?: string | null;
     recipientEmail?: string | null;
+    conversationKey?: string | null;
     threadId?: string | null;
     messageId?: string | null;
     metadata?: Record<string, unknown>;
@@ -195,6 +264,7 @@ export async function recordCustomerInteraction(
     body_html: input.bodyHtml ?? null,
     sender_email: input.senderEmail ? normalizeEmail(input.senderEmail) : null,
     recipient_email: input.recipientEmail ? normalizeEmail(input.recipientEmail) : null,
+    conversation_key: normalizeConversationKey(input.conversationKey) ?? null,
     thread_id: input.threadId ?? null,
     message_id: input.messageId ?? null,
     provider: "client-quote-response",
@@ -217,6 +287,7 @@ export async function recordOutboundEmailInteraction(
     bodyText: string;
     senderEmail: string;
     recipientEmail: string;
+    conversationKey?: string | null;
     threadId?: string | null;
     messageId?: string | null;
     provider?: string | null;
@@ -237,6 +308,7 @@ export async function recordOutboundEmailInteraction(
     body_html: null,
     sender_email: normalizeEmail(input.senderEmail),
     recipient_email: normalizeEmail(input.recipientEmail),
+    conversation_key: normalizeConversationKey(input.conversationKey) ?? null,
     thread_id: input.threadId ?? input.messageId ?? null,
     message_id: input.messageId ?? null,
     provider: input.provider ?? "resend",

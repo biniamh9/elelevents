@@ -7,12 +7,15 @@ import { logActivity } from "@/lib/crm";
 import {
   buildContractDeliveryActivityMetadata,
   buildContractDeliveryWorkflowMetadata,
+  extractEmailAddress,
 } from "@/lib/email-delivery-metadata";
+import { buildInquiryReplyToAddress } from "@/lib/crm-opportunity-identity";
 import { buildContractReadyEmailVariables } from "@/lib/email-template-variables";
 import {
   getNotificationFromEmail,
   renderEmailTemplate,
 } from "@/lib/email-template-renderer";
+import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -133,6 +136,18 @@ export async function POST(
     }
 
     const fromEmail = getNotificationFromEmail();
+    const inquiryConversation =
+      contract.inquiry_id
+        ? await supabaseAdmin
+            .from("event_inquiries")
+            .select("id, client_id, crm_conversation_key")
+            .eq("id", contract.inquiry_id)
+            .maybeSingle()
+        : { data: null, error: null };
+
+    if (inquiryConversation.error) {
+      return NextResponse.json({ error: inquiryConversation.error.message }, { status: 500 });
+    }
 
     const renderedContract = renderEmailTemplate(
       "contract_ready",
@@ -148,10 +163,14 @@ export async function POST(
       })
     );
 
-    const { error: sendError } = await resend.emails.send({
+    const { data: sentEmail, error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: email,
       subject: renderedContract.subject,
+      replyTo: buildInquiryReplyToAddress(
+        extractEmailAddress(fromEmail),
+        inquiryConversation.data?.crm_conversation_key ?? null
+      ),
       html: renderedContract.html,
       text: renderedContract.text,
     });
@@ -180,6 +199,27 @@ export async function POST(
         { error: updateError?.message || "Failed to update contract after sending" },
         { status: 500 }
       );
+    }
+
+    if (updated.inquiry_id) {
+      await recordOutboundEmailInteraction(supabaseAdmin, {
+        inquiryId: updated.inquiry_id,
+        clientId: inquiryConversation.data?.client_id ?? null,
+        subject: renderedContract.subject,
+        bodyText: renderedContract.text,
+        senderEmail: extractEmailAddress(fromEmail),
+        recipientEmail: email,
+        conversationKey: inquiryConversation.data?.crm_conversation_key ?? null,
+        threadId: sentEmail?.id ?? null,
+        messageId: sentEmail?.id ?? null,
+        provider: "resend",
+        metadata: {
+          type: "contract_email",
+          mode: "manual",
+          contract_id: updated.id,
+        },
+        createdAt: sentAt,
+      });
     }
 
     await logActivity(supabaseAdmin, {

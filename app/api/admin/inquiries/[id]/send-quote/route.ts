@@ -13,6 +13,7 @@ import {
   buildQuoteEmailWorkflowMetadata,
   extractEmailAddress,
 } from "@/lib/email-delivery-metadata";
+import { buildInquiryReplyToAddress } from "@/lib/crm-opportunity-identity";
 import { buildQuoteProposalEmailVariables } from "@/lib/email-template-variables";
 import {
   getBusinessTemplateVariables,
@@ -181,7 +182,10 @@ export async function POST(
       from: fromEmail,
       to: inquiry.email,
       subject,
-      replyTo: extractEmailAddress(fromEmail),
+      replyTo: buildInquiryReplyToAddress(
+        extractEmailAddress(fromEmail),
+        inquiry.crm_conversation_key
+      ),
       html: emailHtml,
     });
 
@@ -199,6 +203,7 @@ export async function POST(
       bodyText: quoteMessage,
       senderEmail: extractEmailAddress(fromEmail),
       recipientEmail: inquiry.email,
+      conversationKey: inquiry.crm_conversation_key ?? null,
       threadId: sentEmail?.id ?? null,
       messageId: sentEmail?.id ?? null,
       provider: "resend",

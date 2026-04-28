@@ -135,6 +135,9 @@ export async function POST(request: Request) {
     if (canSendConsultationEmail()) {
       try {
         await sendInquiryConfirmationEmail({
+          inquiryId: inserted.id,
+          clientId: client.id,
+          conversationKey: inserted.crm_conversation_key ?? null,
           clientName: `${data.firstName} ${data.lastName}`,
           clientEmail: data.email,
           eventType: data.eventType,
