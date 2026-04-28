@@ -247,6 +247,7 @@ export async function recordCustomerInteraction(
     conversationKey?: string | null;
     threadId?: string | null;
     messageId?: string | null;
+    provider?: string | null;
     metadata?: Record<string, unknown>;
     createdAt?: string | null;
   }
@@ -267,7 +268,7 @@ export async function recordCustomerInteraction(
     conversation_key: normalizeConversationKey(input.conversationKey) ?? null,
     thread_id: input.threadId ?? null,
     message_id: input.messageId ?? null,
-    provider: "client-quote-response",
+    provider: input.provider ?? "client-quote-response",
     metadata: input.metadata ?? {},
     created_at: insertedAt,
     updated_at: insertedAt,

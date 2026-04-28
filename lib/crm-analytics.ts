@@ -87,7 +87,7 @@ export type CrmTask = {
   dueLabel: string;
   detail?: string;
   href?: string;
-  entityType?: "lead" | "rental_request";
+  entityType?: "lead" | "rental_request" | "unmatched_reply";
 };
 
 export type CrmRevenuePoint = {

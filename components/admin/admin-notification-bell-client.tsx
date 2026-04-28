@@ -7,6 +7,7 @@ import {
   buildContractDetailHref,
   buildInquiryDetailHref,
   buildRentalRequestDetailHref,
+  buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
 import type { AdminNotificationItem } from "@/lib/admin-notifications";
 
@@ -29,6 +30,13 @@ function timeAgo(value: string) {
 }
 
 function buildNotificationLink(item: AdminNotificationItem) {
+  if (item.action === "inbound_email_reply.unmatched") {
+    return buildUnmatchedReplyReviewHref({
+      status: "pending_review",
+      replyId: item.entity_id,
+    });
+  }
+
   if (item.action === "inquiry.created" || item.entity_type === "inquiry") {
     return buildInquiryDetailHref(item.entity_id);
   }
@@ -63,12 +71,14 @@ function notificationTone(item: AdminNotificationItem) {
   }
 
   if (
+    item.action === "inbound_email_reply.unmatched" ||
     item.action === "rental_request.created" ||
     item.action === "rental_request.status_updated" ||
     item.action === "inquiry.reply_received" ||
     item.action === "inquiry.quote_accepted" ||
     item.action === "inquiry.quote_changes_requested"
   ) {
+    if (item.action === "inbound_email_reply.unmatched") return "email" as const;
     return item.action === "rental_request.created" ? ("record" as const) : ("internal" as const);
   }
 
@@ -85,6 +95,9 @@ function notificationTone(item: AdminNotificationItem) {
 function humanizeSummary(item: AdminNotificationItem) {
   if (item.action === "inquiry.created") {
     return "New quote request submitted";
+  }
+  if (item.action === "inbound_email_reply.unmatched") {
+    return "Inbound reply needs review";
   }
   if (item.action === "inquiry.reply_received") {
     return "Lead replied by email";
@@ -140,21 +153,30 @@ export default function AdminNotificationBellClient({
     }
   }, [pathname]);
 
-  async function markRead(activityIds: string[]) {
-    if (!activityIds.length) {
+  async function markRead(itemsToMark: AdminNotificationItem[]) {
+    if (!itemsToMark.length) {
       return;
     }
 
+    const activityIds = itemsToMark
+      .filter((item) => item.source !== "unmatched_reply")
+      .map((item) => item.id);
+    const unmatchedReplyIds = itemsToMark
+      .filter((item) => item.source === "unmatched_reply")
+      .map((item) => item.id);
+
     setItems((current) =>
       current.map((item) =>
-        activityIds.includes(item.id) ? { ...item, is_read: true } : item
+        itemsToMark.some((candidate) => candidate.id === item.id)
+          ? { ...item, is_read: true }
+          : item
       )
     );
 
     await fetch("/api/admin/notifications/read", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activityIds }),
+      body: JSON.stringify({ activityIds, unmatchedReplyIds }),
       keepalive: true,
     }).catch(() => undefined);
   }
@@ -188,7 +210,7 @@ export default function AdminNotificationBellClient({
           <button
             type="button"
             className="admin-notifications-markall"
-            onClick={() => markRead(items.filter((item) => !item.is_read).map((item) => item.id))}
+            onClick={() => markRead(items.filter((item) => !item.is_read))}
           >
             Mark all as read
           </button>
@@ -199,7 +221,11 @@ export default function AdminNotificationBellClient({
             {items.map((item) => {
               const summary = humanizeSummary(item);
               const detail =
-                item.summary && item.summary !== summary ? item.summary : "Open details";
+                item.action === "inbound_email_reply.unmatched"
+                  ? `${typeof item.metadata?.from_email === "string" ? item.metadata.from_email : "Unmatched sender"} · Review and attach safely`
+                  : item.summary && item.summary !== summary
+                    ? item.summary
+                    : "Open details";
 
               return (
                 <AdminWorkflowAction
@@ -214,7 +240,7 @@ export default function AdminNotificationBellClient({
                       detailsRef.current.open = false;
                     }
                     if (!item.is_read) {
-                      void markRead([item.id]);
+                      void markRead([item]);
                     }
                   }}
                 />

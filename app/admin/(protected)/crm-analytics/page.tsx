@@ -13,6 +13,7 @@ import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
+import { buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { requireAdminPage } from "@/lib/auth/admin";
 import {
   filterCrmLeads,
@@ -35,6 +36,7 @@ import {
   getLiveCrmMetrics,
 } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { getUnmatchedInboundReplies } from "@/lib/unmatched-inbound-replies";
 
 export const dynamic = "force-dynamic";
 
@@ -52,18 +54,23 @@ function formatDate(value: string) {
 }
 
 function getTaskPriority(task: Pick<CrmTask, "status" | "title" | "entityType">) {
+  if (task.entityType === "unmatched_reply") return 0;
   if (task.entityType === "rental_request") return 0;
-  if (task.title.toLowerCase().includes("revise quote")) return 0;
-  if (task.status === "overdue") return 1;
-  if (task.status === "today") return 2;
-  if (task.status === "contract") return 3;
-  if (task.status === "deposit") return 4;
-  if (task.status === "awaiting_reply") return 5;
-  return 6;
+  if (task.title.toLowerCase().includes("revise quote")) return 1;
+  if (task.status === "overdue") return 2;
+  if (task.status === "today") return 3;
+  if (task.status === "contract") return 4;
+  if (task.status === "deposit") return 5;
+  if (task.status === "awaiting_reply") return 6;
+  return 7;
 }
 
 function getTaskActionTone(task: Pick<CrmTask, "status" | "title" | "entityType">) {
   const title = task.title.toLowerCase();
+
+  if (task.entityType === "unmatched_reply") {
+    return "email" as const;
+  }
 
   if (task.entityType === "rental_request") {
     if (task.status === "awaiting_reply") return "email" as const;
@@ -104,12 +111,30 @@ export default async function AdminCrmAnalyticsPage({
     : "dashboard";
 
   const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
+  const pendingUnmatchedReplies = await getUnmatchedInboundReplies({
+    reviewStatus: "pending_review",
+    limit: 12,
+  });
   const filteredLeads = filterCrmLeads(crmMetrics.leads, params);
   const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
   const filteredInteractions = crmMetrics.interactions.filter((item) =>
     filteredLeadIds.has(item.leadId)
   );
-  const combinedTasks = crmMetrics.tasks.filter((task) => filteredLeadIds.has(task.leadId)).sort((a, b) => {
+  const leadBoundTasks = crmMetrics.tasks.filter((task) => filteredLeadIds.has(task.leadId));
+  const unmatchedReplyTasks: CrmTask[] = pendingUnmatchedReplies.map((reply) => ({
+    id: `unmatched-reply-${reply.id}`,
+    leadId: reply.id,
+    title: "Review unmatched reply",
+    status: "today",
+    dueLabel: "Manual reply review pending",
+    detail: `${reply.from_email} · ${reply.subject?.trim() || "No subject"}`,
+    href: buildUnmatchedReplyReviewHref({
+      status: "pending_review",
+      replyId: reply.id,
+    }),
+    entityType: "unmatched_reply",
+  }));
+  const combinedTasks = [...unmatchedReplyTasks, ...leadBoundTasks].sort((a, b) => {
     const priorityDiff = getTaskPriority(a) - getTaskPriority(b);
     if (priorityDiff !== 0) return priorityDiff;
     return a.title.localeCompare(b.title);
@@ -138,7 +163,16 @@ export default async function AdminCrmAnalyticsPage({
   });
   const revenueTrend = buildRevenueTrend(filteredLeads);
   const teamPerformance = buildTeamPerformance(filteredLeads);
-  const dashboardAlerts = buildDashboardAlerts(crmMetrics.leads, crmMetrics.tasks);
+  const dashboardAlerts = [
+    ...buildDashboardAlerts(crmMetrics.leads, crmMetrics.tasks),
+    {
+      id: "crm-alert-unmatched-replies",
+      title: "Replies awaiting manual review",
+      detail: "Inbound emails were held back because they could not be matched safely to one opportunity.",
+      severity: "high" as const,
+      count: pendingUnmatchedReplies.length,
+    },
+  ];
 
   const exportParams = new URLSearchParams();
   exportParams.set("tab", activeTab);
@@ -197,6 +231,7 @@ export default async function AdminCrmAnalyticsPage({
     awaitingReply: combinedTasks.filter((task) => task.status === "awaiting_reply").length,
     deposits: combinedTasks.filter((task) => task.status === "deposit").length,
     contracts: combinedTasks.filter((task) => task.status === "contract").length,
+    replyReview: pendingUnmatchedReplies.length,
   };
 
   return (
@@ -296,6 +331,7 @@ export default async function AdminCrmAnalyticsPage({
                 <div><strong>{followupCounts.overdue}</strong><span>Overdue follow-ups</span></div>
                 <div><strong>{followupCounts.today}</strong><span>Due today</span></div>
                 <div><strong>{followupCounts.awaitingReply}</strong><span>Awaiting client reply</span></div>
+                <div><strong>{followupCounts.replyReview}</strong><span>Reply review</span></div>
                 <div><strong>{followupCounts.deposits}</strong><span>Unpaid deposits</span></div>
                 <div><strong>{followupCounts.contracts}</strong><span>Unsigned contracts</span></div>
               </div>

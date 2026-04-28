@@ -142,6 +142,24 @@ export function buildInquiryItemizedDraftHref(id: string) {
   return `/admin/inquiries/${id}/itemized-draft`;
 }
 
+export function buildUnmatchedReplyReviewHref({
+  status,
+  replyId,
+}: {
+  status?: "pending_review" | "resolved" | "ignored";
+  replyId?: string | null;
+} = {}) {
+  const params = new URLSearchParams();
+  if (status && status !== "pending_review") {
+    params.set("status", status);
+  }
+  if (replyId) {
+    params.set("reply", replyId);
+  }
+  const query = params.toString();
+  return query ? `/admin/inquiries/reply-review?${query}` : "/admin/inquiries/reply-review";
+}
+
 export function buildCrmLeadDetailHref(id: string) {
   return `/admin/crm-analytics/${id}`;
 }
