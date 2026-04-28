@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
-import { buildInquiryItemizedDraftHref } from "@/lib/admin-navigation";
+import {
+  buildInquiryItemizedDraftHref,
+  buildUnmatchedReplyReviewHref,
+} from "@/lib/admin-navigation";
 import { getInquiryWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 
 export default function InquiryRecordActions({
@@ -15,6 +18,8 @@ export default function InquiryRecordActions({
   quoteResponseStatus,
   contractStatus,
   depositPaid,
+  unmatchedReplyCandidateCount = 0,
+  unmatchedReplyReviewHref,
 }: {
   inquiryId: string;
   contractId?: string | null;
@@ -24,6 +29,8 @@ export default function InquiryRecordActions({
   quoteResponseStatus: string | null;
   contractStatus?: string | null;
   depositPaid?: boolean | null;
+  unmatchedReplyCandidateCount?: number;
+  unmatchedReplyReviewHref?: string;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -39,6 +46,9 @@ export default function InquiryRecordActions({
     contract_status: contractStatus,
     deposit_paid: depositPaid,
   });
+  const reviewHref =
+    unmatchedReplyReviewHref ??
+    buildUnmatchedReplyReviewHref({ status: "pending_review" });
 
   async function handleDelete() {
     const confirmed = window.confirm(
@@ -114,6 +124,19 @@ export default function InquiryRecordActions({
           ))}
           <div className="admin-row-action-group">
             <p className="admin-row-action-group-label">Extras</p>
+            {unmatchedReplyCandidateCount > 0 ? (
+              <AdminWorkflowAction
+                href={reviewHref}
+                className="admin-workflow-action--menu"
+                tone="email"
+                label={
+                  unmatchedReplyCandidateCount === 1
+                    ? "Review unmatched reply candidate"
+                    : `Review ${unmatchedReplyCandidateCount} unmatched reply candidates`
+                }
+                description="A pending inbound reply strongly suggests this inquiry and needs manual attachment review."
+              />
+            ) : null}
             <AdminWorkflowAction
               href={buildInquiryItemizedDraftHref(inquiryId)}
               className="admin-workflow-action--menu"

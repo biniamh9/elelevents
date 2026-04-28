@@ -36,6 +36,14 @@ export type UnmatchedInboundReplyCounts = Record<
   number
 >;
 
+export type StrongUnmatchedReplyCandidate = {
+  inquiryId: string;
+  replyId: string;
+  fromEmail: string;
+  subject: string | null;
+  createdAt: string;
+};
+
 export function buildUnmatchedReplyNotificationId(id: string) {
   return `unmatched-reply:${id}`;
 }
@@ -133,4 +141,78 @@ export async function getUnmatchedReplyNotifications(adminId: string, limit = 24
     items,
     unreadCount: items.filter((item) => !item.is_read).length,
   };
+}
+
+export async function getStrongUnmatchedReplyCandidatesByInquiry(
+  inquiries: Array<{ id: string; email: string | null | undefined }>
+) {
+  const normalizedInquiries = inquiries
+    .map((item) => ({
+      id: item.id,
+      email: item.email?.trim().toLowerCase() ?? null,
+    }))
+    .filter((item): item is { id: string; email: string } => Boolean(item.email));
+
+  const uniqueEmails = [...new Set(normalizedInquiries.map((item) => item.email))];
+
+  if (!uniqueEmails.length) {
+    return {} as Record<string, StrongUnmatchedReplyCandidate[]>;
+  }
+
+  const [pendingReplies, inquiryRowsResult] = await Promise.all([
+    supabaseAdmin
+      .from("unmatched_inbound_email_replies")
+      .select("id, from_email, subject, created_at")
+      .eq("review_status", "pending_review")
+      .in("from_email", uniqueEmails)
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("event_inquiries")
+      .select("id, email")
+      .in("email", uniqueEmails),
+  ]);
+
+  if (pendingReplies.error) {
+    throw new Error(pendingReplies.error.message);
+  }
+
+  if (inquiryRowsResult.error) {
+    throw new Error(inquiryRowsResult.error.message);
+  }
+
+  const inquiryIdsByEmail = new Map<string, string[]>();
+  for (const row of inquiryRowsResult.data ?? []) {
+    const email = row.email?.trim().toLowerCase();
+    if (!email) continue;
+    inquiryIdsByEmail.set(email, [...(inquiryIdsByEmail.get(email) ?? []), row.id]);
+  }
+
+  const replyCandidatesByInquiry = normalizedInquiries.reduce<
+    Record<string, StrongUnmatchedReplyCandidate[]>
+  >((acc, item) => {
+    acc[item.id] = [];
+    return acc;
+  }, {});
+
+  for (const reply of pendingReplies.data ?? []) {
+    const candidateInquiryIds = inquiryIdsByEmail.get(reply.from_email) ?? [];
+    if (candidateInquiryIds.length !== 1) {
+      continue;
+    }
+
+    const inquiryId = candidateInquiryIds[0];
+    if (!replyCandidatesByInquiry[inquiryId]) {
+      continue;
+    }
+
+    replyCandidatesByInquiry[inquiryId].push({
+      inquiryId,
+      replyId: reply.id,
+      fromEmail: reply.from_email,
+      subject: reply.subject,
+      createdAt: reply.created_at,
+    });
+  }
+
+  return replyCandidatesByInquiry;
 }

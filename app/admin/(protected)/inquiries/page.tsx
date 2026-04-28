@@ -5,10 +5,12 @@ import {
   buildInquiryDetailHref,
   buildInquiryWorkspaceHref,
   buildRentalWorkspaceHref,
+  buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
 import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
+import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -222,6 +224,12 @@ export default async function AdminInquiriesPage({
 
   const { data, error, count: filteredCount } = await query;
   const inquiryIds = (data ?? []).map((item) => item.id);
+  const unmatchedReplyCandidatesByInquiry = await getStrongUnmatchedReplyCandidatesByInquiry(
+    (data ?? []).map((item) => ({
+      id: item.id,
+      email: item.email,
+    }))
+  );
 
   const { data: pageContracts } = inquiryIds.length
     ? await supabaseAdmin
@@ -1124,11 +1132,23 @@ export default async function AdminInquiriesPage({
                       const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
                         normalizeInquiryFollowUpDetails(row.follow_up_details_json)
                       );
+                      const unmatchedReplyCandidates =
+                        unmatchedReplyCandidatesByInquiry[row.id] ?? [];
+                      const hasUnmatchedReplyCandidate =
+                        unmatchedReplyCandidates.length > 0;
+                      const unmatchedReplyReviewHref = buildUnmatchedReplyReviewHref({
+                        status: "pending_review",
+                        replyId: unmatchedReplyCandidates[0]?.replyId ?? null,
+                      });
 
                       return (
                         <tr
                           key={row.id}
-                          className={needsQuoteRevision || hasFollowUpInspiration ? "admin-record-row--attention" : undefined}
+                          className={
+                            needsQuoteRevision || hasFollowUpInspiration || hasUnmatchedReplyCandidate
+                              ? "admin-record-row--attention"
+                              : undefined
+                          }
                         >
                           <td>
                             <div className="admin-record-main">
@@ -1147,6 +1167,11 @@ export default async function AdminInquiriesPage({
                                   Follow-up inspiration added
                                 </span>
                               ) : null}
+                              {hasUnmatchedReplyCandidate ? (
+                                <span className="admin-inline-attention-chip">
+                                  Has unmatched reply candidate
+                                </span>
+                              ) : null}
                             </div>
                           </td>
                           <td>{row.event_type}</td>
@@ -1160,6 +1185,8 @@ export default async function AdminInquiriesPage({
                                   ? "Quote revision needed"
                                   : hasFollowUpInspiration
                                     ? "Inspiration follow-up ready for review"
+                                  : hasUnmatchedReplyCandidate
+                                    ? "Reply review pending for this inquiry"
                                   : `${humanizeBookingStage(row.booking_stage)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
                               </span>
                             </div>
@@ -1193,6 +1220,8 @@ export default async function AdminInquiriesPage({
                               quoteResponseStatus={row.quote_response_status ?? "not_sent"}
                               contractStatus={contract?.contract_status ?? null}
                               depositPaid={contract?.deposit_paid ?? null}
+                              unmatchedReplyCandidateCount={unmatchedReplyCandidates.length}
+                              unmatchedReplyReviewHref={unmatchedReplyReviewHref}
                             />
                           </td>
                         </tr>
@@ -1217,11 +1246,22 @@ export default async function AdminInquiriesPage({
                 const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
                   normalizeInquiryFollowUpDetails(row.follow_up_details_json)
                 );
+                const unmatchedReplyCandidates =
+                  unmatchedReplyCandidatesByInquiry[row.id] ?? [];
+                const hasUnmatchedReplyCandidate = unmatchedReplyCandidates.length > 0;
+                const unmatchedReplyReviewHref = buildUnmatchedReplyReviewHref({
+                  status: "pending_review",
+                  replyId: unmatchedReplyCandidates[0]?.replyId ?? null,
+                });
 
                 return (
                   <div
                     key={row.id}
-                    className={`admin-mobile-record${needsQuoteRevision || hasFollowUpInspiration ? " admin-mobile-record--attention" : ""}`}
+                    className={`admin-mobile-record${
+                      needsQuoteRevision || hasFollowUpInspiration || hasUnmatchedReplyCandidate
+                        ? " admin-mobile-record--attention"
+                        : ""
+                    }`}
                   >
                     <div className="admin-mobile-record-head">
                       <div>
@@ -1235,6 +1275,11 @@ export default async function AdminInquiriesPage({
                         {hasFollowUpInspiration ? (
                           <span className="admin-inline-attention-chip">
                             Follow-up inspiration added
+                          </span>
+                        ) : null}
+                        {hasUnmatchedReplyCandidate ? (
+                          <span className="admin-inline-attention-chip">
+                            Has unmatched reply candidate
                           </span>
                         ) : null}
                       </div>
@@ -1278,6 +1323,8 @@ export default async function AdminInquiriesPage({
                       quoteResponseStatus={row.quote_response_status ?? "not_sent"}
                       contractStatus={contract?.contract_status ?? null}
                       depositPaid={contract?.deposit_paid ?? null}
+                      unmatchedReplyCandidateCount={unmatchedReplyCandidates.length}
+                      unmatchedReplyReviewHref={unmatchedReplyReviewHref}
                     />
                   </div>
                 );

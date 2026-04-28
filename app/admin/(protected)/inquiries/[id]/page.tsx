@@ -7,6 +7,7 @@ import {
   buildInquiryDetailHref,
   buildInquiryWorkspaceHref,
   buildQuoteCreateHref,
+  buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
@@ -20,6 +21,7 @@ import CustomerTimeline from "@/components/admin/customer-timeline";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
+import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
 import { requireAdminPage } from "@/lib/auth/admin";
 export const dynamic = "force-dynamic";
 
@@ -216,6 +218,21 @@ export default async function InquiryDetailPage({
     console.error("Inquiry lookup failed:", { id, error });
     notFound();
   }
+
+  const unmatchedReplyCandidatesByInquiry =
+    await getStrongUnmatchedReplyCandidatesByInquiry([
+      {
+        id: inquiry.id,
+        email: inquiry.email,
+      },
+    ]);
+  const unmatchedReplyCandidates =
+    unmatchedReplyCandidatesByInquiry[inquiry.id] ?? [];
+  const hasUnmatchedReplyCandidate = unmatchedReplyCandidates.length > 0;
+  const unmatchedReplyReviewHref = buildUnmatchedReplyReviewHref({
+    status: "pending_review",
+    replyId: unmatchedReplyCandidates[0]?.replyId ?? null,
+  });
 
   const { data: vendors } = await supabaseAdmin
     .from("vendor_accounts")
@@ -441,6 +458,11 @@ export default async function InquiryDetailPage({
             <span className="summary-chip">Next action: {inquiry.crm_next_action?.trim() || "Not set"}</span>
             <span className="summary-chip">Lead score: {inquiry.crm_lead_score ?? "Not set"}</span>
             <span className="summary-chip">Temperature: {inquiry.crm_lead_temperature ?? "Not set"}</span>
+            {hasUnmatchedReplyCandidate ? (
+              <Link href={unmatchedReplyReviewHref} className="summary-chip">
+                Unmatched reply candidate: {unmatchedReplyCandidates.length}
+              </Link>
+            ) : null}
             {inquiry.status === "closed_lost" ? (
               <span className="summary-chip">Lost reason: {inquiry.lost_reason ?? "Not set"}</span>
             ) : null}
@@ -522,6 +544,11 @@ export default async function InquiryDetailPage({
               <span className="summary-chip">
                 Contract: {linkedContract?.contract_status ? humanizeLabel(linkedContract.contract_status) : "Not created"}
               </span>
+              {hasUnmatchedReplyCandidate ? (
+                <Link href={unmatchedReplyReviewHref} className="summary-chip">
+                  Review unmatched reply
+                </Link>
+              ) : null}
             </div>
           </div>
 
@@ -602,6 +629,50 @@ export default async function InquiryDetailPage({
               >
                 {inquiry.quote_response_status === "accepted" ? "Move to contract" : "Review next actions"}
               </a>
+              <Link href={buildCrmLeadDetailHref(inquiry.id)} className="summary-chip">
+                Open CRM record
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {hasUnmatchedReplyCandidate ? (
+        <section className="admin-record-section">
+          <div className="admin-section-title">
+            <h3>Unmatched reply candidate</h3>
+            <p className="muted">
+              A pending inbound reply strongly suggests this inquiry and is waiting for manual attachment review.
+            </p>
+          </div>
+
+          <div className="card admin-customer-response-card admin-customer-response-card--attention">
+            <div className="admin-customer-response-head">
+              <div>
+                <p className="eyebrow">Email review</p>
+                <h3>{unmatchedReplyCandidates.length === 1 ? "One reply is waiting on this inquiry" : `${unmatchedReplyCandidates.length} replies are waiting on this inquiry`}</h3>
+              </div>
+              <span className="summary-chip">Strong suggestion</span>
+            </div>
+
+            <div className="admin-customer-response-grid">
+              <div className="admin-customer-response-message">
+                <strong>Latest pending reply</strong>
+                <p>{unmatchedReplyCandidates[0]?.subject?.trim() || "No subject"}</p>
+                <span>From {unmatchedReplyCandidates[0]?.fromEmail ?? inquiry.email ?? "Unknown sender"}</span>
+              </div>
+
+              <div className="admin-customer-response-message">
+                <strong>Internal next step</strong>
+                <p>Open reply review and attach the inbound message to this inquiry if it is the correct opportunity.</p>
+                <span>This protects the CRM timeline from email-only guesswork.</span>
+              </div>
+            </div>
+
+            <div className="summary-pills">
+              <Link href={unmatchedReplyReviewHref} className="summary-chip">
+                Open reply review
+              </Link>
               <Link href={buildCrmLeadDetailHref(inquiry.id)} className="summary-chip">
                 Open CRM record
               </Link>
