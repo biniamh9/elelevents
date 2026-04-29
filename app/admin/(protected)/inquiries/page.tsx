@@ -2,6 +2,7 @@ import Link from "next/link";
 import InquiryRecordActions from "@/components/forms/admin/inquiry-record-actions";
 import {
   buildContractsWorkspaceHref,
+  buildDocumentDetailHref,
   buildInquiryDetailHref,
   buildInquiryWorkspaceHref,
   buildRentalWorkspaceHref,
@@ -281,6 +282,26 @@ export default async function AdminInquiriesPage({
       };
 
   const contractMap = new Map((pageContracts ?? []).map((item) => [item.inquiry_id, item]));
+  const { data: pageInvoices } = inquiryIds.length
+    ? await supabaseAdmin
+        .from("client_documents")
+        .select("id, inquiry_id")
+        .eq("document_type", "invoice")
+        .in("inquiry_id", inquiryIds)
+        .order("created_at", { ascending: false })
+    : {
+        data: [] as Array<{
+          id: string;
+          inquiry_id: string | null;
+        }>,
+      };
+  const invoiceMap = new Map<string, { id: string }>();
+  for (const invoice of pageInvoices ?? []) {
+    if (!invoice.inquiry_id || invoiceMap.has(invoice.inquiry_id)) {
+      continue;
+    }
+    invoiceMap.set(invoice.inquiry_id, { id: invoice.id });
+  }
 
   if (sort === "action_readiness") {
     orderedRows = [...orderedRows].sort((a, b) => {
@@ -1332,6 +1353,14 @@ export default async function AdminInquiriesPage({
                               quoteResponseStatus={row.quote_response_status ?? "not_sent"}
                               contractStatus={contract?.contract_status ?? null}
                               depositPaid={contract?.deposit_paid ?? null}
+                              recordCashPaymentHref={
+                                invoiceMap.get(row.id)
+                                  ? buildDocumentDetailHref(invoiceMap.get(row.id)!.id, {
+                                      openPayment: true,
+                                      paymentMethod: "cash",
+                                    })
+                                  : null
+                              }
                               unmatchedReplyCandidateCount={unmatchedReplyCandidates.length}
                               unmatchedReplyReviewHref={unmatchedReplyReviewHref}
                             />
@@ -1435,6 +1464,14 @@ export default async function AdminInquiriesPage({
                       quoteResponseStatus={row.quote_response_status ?? "not_sent"}
                       contractStatus={contract?.contract_status ?? null}
                       depositPaid={contract?.deposit_paid ?? null}
+                      recordCashPaymentHref={
+                        invoiceMap.get(row.id)
+                          ? buildDocumentDetailHref(invoiceMap.get(row.id)!.id, {
+                              openPayment: true,
+                              paymentMethod: "cash",
+                            })
+                          : null
+                      }
                       unmatchedReplyCandidateCount={unmatchedReplyCandidates.length}
                       unmatchedReplyReviewHref={unmatchedReplyReviewHref}
                     />

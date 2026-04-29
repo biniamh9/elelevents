@@ -21,6 +21,7 @@ export default function InquiryRecordActions({
   quoteResponseStatus,
   contractStatus,
   depositPaid,
+  recordCashPaymentHref,
   unmatchedReplyCandidateCount = 0,
   unmatchedReplyReviewHref,
 }: {
@@ -32,6 +33,7 @@ export default function InquiryRecordActions({
   quoteResponseStatus: string | null;
   contractStatus?: string | null;
   depositPaid?: boolean | null;
+  recordCashPaymentHref?: string | null;
   unmatchedReplyCandidateCount?: number;
   unmatchedReplyReviewHref?: string;
 }) {
@@ -164,6 +166,15 @@ export default function InquiryRecordActions({
               label="Itemized Draft"
               description="Open the internal itemized quote preview for revision work."
             />
+            {recordCashPaymentHref ? (
+              <AdminWorkflowAction
+                href={recordCashPaymentHref}
+                className="admin-workflow-action--menu"
+                tone="record"
+                label="Record Cash Payment"
+                description="Open the invoice payment entry with cash preselected so balances and receipts update immediately."
+              />
+            ) : null}
           </div>
           <button
             type="button"
