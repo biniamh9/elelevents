@@ -16,6 +16,8 @@ export default function AdminWorkflowAction({
   tone,
   href,
   className = "",
+  showTone = true,
+  showDescription = true,
   ...buttonProps
 }: (
   | (ButtonHTMLAttributes<HTMLButtonElement> & { href?: undefined })
@@ -25,6 +27,8 @@ export default function AdminWorkflowAction({
   description: string;
   tone: WorkflowActionTone;
   href?: string;
+  showTone?: boolean;
+  showDescription?: boolean;
 }) {
   const classes =
     `admin-workflow-action admin-workflow-action--${tone} ${className}`.trim();
@@ -32,9 +36,13 @@ export default function AdminWorkflowAction({
   if (href) {
     return (
       <Link href={href} className={classes}>
-        <span className="admin-workflow-action-tone">{toneLabels[tone]}</span>
+        {showTone ? (
+          <span className="admin-workflow-action-tone">{toneLabels[tone]}</span>
+        ) : null}
         <strong>{label}</strong>
-        <span className="admin-workflow-action-description">{description}</span>
+        {showDescription ? (
+          <span className="admin-workflow-action-description">{description}</span>
+        ) : null}
       </Link>
     );
   }
@@ -48,9 +56,13 @@ export default function AdminWorkflowAction({
       className={classes}
       {...actionButtonProps}
     >
-      <span className="admin-workflow-action-tone">{toneLabels[tone]}</span>
+      {showTone ? (
+        <span className="admin-workflow-action-tone">{toneLabels[tone]}</span>
+      ) : null}
       <strong>{label}</strong>
-      <span className="admin-workflow-action-description">{description}</span>
+      {showDescription ? (
+        <span className="admin-workflow-action-description">{description}</span>
+      ) : null}
     </button>
   );
 }

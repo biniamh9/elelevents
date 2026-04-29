@@ -9955,12 +9955,19 @@ tbody tr:last-child td {
   border: 0;
   box-shadow: none;
   border-radius: 14px;
-  padding: 12px 14px;
+  min-height: 44px;
+  padding: 10px 14px;
   background: transparent;
+  gap: 0;
 }
 .admin-workflow-action--menu:hover:not(:disabled) {
   box-shadow: none;
   background: rgba(107, 52, 24, 0.08);
+}
+.admin-workflow-action--menu strong {
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.25;
 }
 .admin-timeline-action {
   border-radius: 18px;

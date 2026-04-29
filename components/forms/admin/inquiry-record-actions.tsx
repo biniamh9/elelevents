@@ -133,6 +133,8 @@ export default function InquiryRecordActions({
                   className="admin-workflow-action--menu"
                   tone={group.title === "Current step" ? "internal" : "record"}
                   label={action.label}
+                  showTone={false}
+                  showDescription={false}
                   description={
                     group.title === "Current step"
                       ? "Open the next working area for this inquiry."
@@ -151,6 +153,8 @@ export default function InquiryRecordActions({
                 href={reviewHref}
                 className="admin-workflow-action--menu"
                 tone="email"
+                showTone={false}
+                showDescription={false}
                 label={
                   unmatchedReplyCandidateCount === 1
                     ? "Review unmatched reply candidate"
@@ -163,6 +167,8 @@ export default function InquiryRecordActions({
               href={buildInquiryItemizedDraftHref(inquiryId)}
               className="admin-workflow-action--menu"
               tone="internal"
+              showTone={false}
+              showDescription={false}
               label="Itemized Draft"
               description="Open the internal itemized quote preview for revision work."
             />
@@ -171,6 +177,8 @@ export default function InquiryRecordActions({
                 href={recordCashPaymentHref}
                 className="admin-workflow-action--menu"
                 tone="record"
+                showTone={false}
+                showDescription={false}
                 label="Record Cash Payment"
                 description="Open the invoice payment entry with cash preselected so balances and receipts update immediately."
               />
