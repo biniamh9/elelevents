@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   buildContractDetailHref,
   buildCrmLeadDetailHref,
+  buildDocumentDetailHref,
   buildInvoiceCreateHref,
   buildInquiryDetailHref,
   buildInquiryWorkspaceHref,
@@ -278,6 +279,14 @@ export default async function InquiryDetailPage({
     .select("id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, event_date, balance_due_date")
     .eq("inquiry_id", id)
     .maybeSingle();
+  const { data: relatedInvoices } = await supabaseAdmin
+    .from("client_documents")
+    .select("id, document_number, status")
+    .eq("inquiry_id", id)
+    .eq("document_type", "invoice")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const relatedInvoice = relatedInvoices?.[0] ?? null;
 
   const { data: activityLog } = await supabaseAdmin
     .from("activity_log")
@@ -883,6 +892,33 @@ export default async function InquiryDetailPage({
                 Create Invoice Document
               </Link>
             ) : null}
+            {relatedInvoice ? (
+              <>
+                <Link
+                  href={buildDocumentDetailHref(relatedInvoice.id)}
+                  className="summary-chip"
+                >
+                  Open Invoice
+                </Link>
+                <Link
+                  href={buildDocumentDetailHref(relatedInvoice.id, {
+                    openPayment: true,
+                    paymentMethod: "cash",
+                  })}
+                  className="summary-chip"
+                >
+                  Record Cash Payment
+                </Link>
+                <Link
+                  href={buildDocumentDetailHref(relatedInvoice.id, {
+                    openPayment: true,
+                  })}
+                  className="summary-chip"
+                >
+                  Open Payment Entry
+                </Link>
+              </>
+            ) : null}
           </div>
           <p><strong>Colors / Theme:</strong> {inquiry.colors_theme ?? "—"}</p>
           <p><strong>Selected Decor Elements:</strong></p>
@@ -915,6 +951,7 @@ export default async function InquiryDetailPage({
               <p><strong>Balance Due Date:</strong> {linkedContract.balance_due_date ?? "—"}</p>
             </>
           ) : null}
+          <p><strong>Invoice Payment Entry:</strong> {relatedInvoice ? "Ready" : "Create invoice first"}</p>
         </div>
 
         <div className="card">
