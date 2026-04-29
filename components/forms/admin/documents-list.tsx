@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { buildQuoteCreateHref } from "@/lib/admin-navigation";
+import {
+  buildDocumentDetailHref,
+  buildDocumentOutputHref,
+  buildQuoteCreateHref,
+} from "@/lib/admin-navigation";
 import type { ClientDocumentRecord } from "@/lib/client-documents";
 import { documentTypeLabels, formatDocumentDate, formatMoney } from "@/lib/client-documents";
 import DocumentStatusBadge from "@/components/forms/admin/document-status-badge";
@@ -105,6 +109,7 @@ export default function DocumentsList({
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Created</th>
+                <th>Output</th>
               </tr>
             </thead>
             <tbody>
@@ -113,7 +118,7 @@ export default function DocumentsList({
                   <tr key={document.id}>
                     <td>
                       <div className="admin-record-main">
-                        <Link href={`/admin/documents/${document.id}`} style={{ fontWeight: 700 }}>
+                        <Link href={buildDocumentOutputHref(document.id)} style={{ fontWeight: 700 }}>
                           {document.document_number}
                         </Link>
                         <span>{document.venue_name || document.event_type || "Client document"}</span>
@@ -125,11 +130,43 @@ export default function DocumentsList({
                     <td>${formatMoney(document.total_amount)}</td>
                     <td><DocumentStatusBadge status={document.status} /></td>
                     <td>{formatDocumentDate(document.created_at)}</td>
+                    <td>
+                      <div className="admin-document-output-actions-cell">
+                        <Link href={buildDocumentOutputHref(document.id)} className="admin-table-text-action">
+                          Open
+                        </Link>
+                        <Link
+                          href={buildDocumentOutputHref(document.id, {
+                            autoprint: true,
+                            intent: "print",
+                          })}
+                          className="admin-table-text-action"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Print
+                        </Link>
+                        <Link
+                          href={buildDocumentOutputHref(document.id, {
+                            autoprint: true,
+                            intent: "download",
+                          })}
+                          className="admin-table-text-action"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Download PDF
+                        </Link>
+                        <Link href={buildDocumentDetailHref(document.id)} className="admin-table-text-action admin-table-text-action--muted">
+                          Edit
+                        </Link>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="admin-records-empty">
+                  <td colSpan={8} className="admin-records-empty">
                     No documents match the current filters.
                   </td>
                 </tr>

@@ -1,0 +1,78 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef } from "react";
+import type { ClientDocumentWithRelations } from "@/lib/client-documents";
+import DocumentPreviewRenderer from "@/components/forms/admin/document-preview-renderer";
+
+export default function DocumentOutputView({
+  document,
+  editHref,
+  indexHref,
+  autoprint = false,
+  intent = "view",
+}: {
+  document: ClientDocumentWithRelations;
+  editHref: string;
+  indexHref: string;
+  autoprint?: boolean;
+  intent?: "view" | "print" | "download";
+}) {
+  const hasPrintedRef = useRef(false);
+
+  useEffect(() => {
+    if (!autoprint || hasPrintedRef.current) {
+      return;
+    }
+
+    hasPrintedRef.current = true;
+    const frame = window.requestAnimationFrame(() => {
+      window.print();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [autoprint]);
+
+  return (
+    <main className="admin-document-output-page">
+      <div className="admin-document-output-toolbar">
+        <div className="admin-document-output-meta">
+          <p className="eyebrow">Generated document output</p>
+          <h1>{document.document_number}</h1>
+          <p className="muted">
+            {intent === "download"
+              ? "Use Save as PDF in the print dialog to download the document."
+              : "Open a clean printable document surface for client-ready output."}
+          </p>
+        </div>
+
+        <div className="admin-document-output-actions">
+          <Link href={indexHref} className="admin-topbar-pill">
+            Back to Documents
+          </Link>
+          <Link href={editHref} className="admin-topbar-pill">
+            Edit Document
+          </Link>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => window.print()}
+          >
+            Print
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => window.print()}
+          >
+            Download PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="admin-document-output-sheet">
+        <DocumentPreviewRenderer document={document} />
+      </div>
+    </main>
+  );
+}

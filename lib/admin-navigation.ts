@@ -194,6 +194,28 @@ export function buildDocumentDetailHref(
   return query ? `/admin/documents/${id}?${query}` : `/admin/documents/${id}`;
 }
 
+export function buildDocumentsLibraryHref() {
+  return "/admin/documents";
+}
+
+export function buildDocumentOutputHref(
+  id: string,
+  options?: {
+    autoprint?: boolean;
+    intent?: "view" | "print" | "download";
+  }
+) {
+  const params = new URLSearchParams();
+  if (options?.autoprint) {
+    params.set("autoprint", "1");
+  }
+  if (options?.intent && options.intent !== "view") {
+    params.set("intent", options.intent);
+  }
+  const query = params.toString();
+  return query ? `/admin/document-output/${id}?${query}` : `/admin/document-output/${id}`;
+}
+
 export type AdminDocumentType = "quote" | "invoice" | "receipt";
 
 export function buildRentalItemCreateHref() {

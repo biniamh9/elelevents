@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { getDocumentById } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
+import {
+  buildDocumentOutputHref,
+  buildDocumentsLibraryHref,
+} from "@/lib/admin-navigation";
 import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
@@ -28,11 +32,27 @@ export default async function DocumentDetailPage({
     <main className="section admin-page admin-page--workspace">
       <AdminPageIntro
         title={document.document_number}
-        description="Keep the client-facing document, totals, and preview aligned in one editor."
+        description="Edit the record details here, then open the standalone document output to print or save the final client-facing PDF."
       />
       <div className="admin-workspace-actions admin-workspace-actions--page">
-        <Link href="/admin/documents" className="admin-topbar-pill">
+        <Link href={buildDocumentsLibraryHref()} className="admin-topbar-pill">
           Back to Documents
+        </Link>
+        <Link
+          href={buildDocumentOutputHref(document.id)}
+          className="admin-topbar-pill"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open PDF View
+        </Link>
+        <Link
+          href={buildDocumentOutputHref(document.id, { autoprint: true, intent: "download" })}
+          className="admin-topbar-pill"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Download PDF
         </Link>
       </div>
 

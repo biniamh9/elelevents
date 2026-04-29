@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
@@ -12,6 +13,9 @@ import {
   documentTypeLabels,
   formatMoney,
 } from "@/lib/client-documents";
+import {
+  buildDocumentOutputHref,
+} from "@/lib/admin-navigation";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import DocumentActionBar from "@/components/forms/admin/document-action-bar";
 import DocumentHeaderFields from "@/components/forms/admin/document-header-fields";
@@ -19,24 +23,9 @@ import ClientEventDetailsCard from "@/components/forms/admin/client-event-detail
 import DocumentLineItemsTable from "@/components/forms/admin/document-line-items-table";
 import PricingSummaryCard from "@/components/forms/admin/pricing-summary-card";
 import DocumentNotesSection from "@/components/forms/admin/document-notes-section";
-import QuotePreview from "@/components/forms/admin/quote-preview";
-import InvoicePreview from "@/components/forms/admin/invoice-preview";
-import ReceiptPreview from "@/components/forms/admin/receipt-preview";
 import PaymentRecordForm from "@/components/forms/admin/payment-record-form";
 
 type EditableDocument = ClientDocumentWithRelations;
-
-function previewForDocument(document: EditableDocument) {
-  if (document.document_type === "invoice") {
-    return <InvoicePreview document={document} />;
-  }
-
-  if (document.document_type === "receipt") {
-    return <ReceiptPreview document={document} />;
-  }
-
-  return <QuotePreview document={document} />;
-}
 
 function normalizeLineItems(items: ClientDocumentLineItem[]) {
   return items.map((item, index) => ({
@@ -305,22 +294,54 @@ export default function DocumentEditor({
             />
           ) : null}
 
-          <section className="card admin-document-section">
+          <section className="card admin-document-section admin-document-section--output">
             <div className="admin-document-section-head">
               <div>
-                <p className="eyebrow">Preview</p>
-                <h3>{documentTypeLabels[document.document_type]}</h3>
+                <p className="eyebrow">Document output</p>
+                <h3>{documentTypeLabels[document.document_type]} PDF-ready view</h3>
                 <p className="muted">
-                  Review the client-facing version before sharing it through the related inquiry or contract workflow.
+                  Client-facing documents now open in a standalone output surface for printing or saving as PDF instead of living inside the editor page.
                 </p>
               </div>
             </div>
-            {previewForDocument({
-              ...document,
-              subtotal: totals.subtotal,
-              total_amount: totals.totalAmount,
-              balance_due: totals.balanceDue,
-            })}
+            {document.id ? (
+              <div className="admin-document-output-links">
+                <Link
+                  href={buildDocumentOutputHref(document.id)}
+                  className="btn secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open Document View
+                </Link>
+                <Link
+                  href={buildDocumentOutputHref(document.id, {
+                    autoprint: true,
+                    intent: "print",
+                  })}
+                  className="btn secondary"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Print
+                </Link>
+                <Link
+                  href={buildDocumentOutputHref(document.id, {
+                    autoprint: true,
+                    intent: "download",
+                  })}
+                  className="btn"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download PDF
+                </Link>
+              </div>
+            ) : (
+              <p className="muted">
+                Save the document first to open the standalone print and PDF output.
+              </p>
+            )}
           </section>
 
           <div className="admin-document-footer-actions">
