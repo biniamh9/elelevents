@@ -9,11 +9,15 @@ import DocumentStatusBadge from "@/components/forms/admin/document-status-badge"
 
 function PreviewTable({
   lineItems,
+  compact = false,
 }: {
   lineItems: ClientDocumentLineItem[];
+  compact?: boolean;
 }) {
   return (
-    <table className="document-preview-table">
+    <table
+      className={`document-preview-table${compact ? " document-preview-table--compact" : ""}`}
+    >
       <colgroup>
         <col className="document-preview-table-col-item" />
         <col className="document-preview-table-col-details" />
@@ -60,6 +64,7 @@ export default function DocumentPreviewBase({
   balanceLabel = "Balance due",
   showDeposit = true,
   actionCopy,
+  density = "editorial",
 }: {
   document: ClientDocumentRecord;
   lineItems: ClientDocumentLineItem[];
@@ -73,9 +78,16 @@ export default function DocumentPreviewBase({
   balanceLabel?: string;
   showDeposit?: boolean;
   actionCopy?: React.ReactNode;
+  density?: "editorial" | "compact";
 }) {
+  const compact = density === "compact";
+
   return (
-    <section className={`document-preview-page document-preview-page--${document.document_type}`}>
+    <section
+      className={`document-preview-page document-preview-page--${document.document_type}${
+        compact ? " document-preview-page--compact" : ""
+      }`}
+    >
       <header className="document-preview-header">
         <div className="document-preview-brand-block">
           <p className="eyebrow">Elel Events & Design</p>
@@ -118,7 +130,7 @@ export default function DocumentPreviewBase({
       </div>
 
       <div className="document-preview-sheet">
-        <PreviewTable lineItems={lineItems} />
+        <PreviewTable lineItems={lineItems} compact={compact} />
 
         <div className="document-preview-totals">
           <div><span>Subtotal</span><strong>${formatMoney(document.subtotal)}</strong></div>

@@ -15397,6 +15397,11 @@ tbody tr:last-child td {
   border-radius: 30px;
 }
 
+.document-preview-page--compact {
+  gap: 20px;
+  padding: 28px;
+}
+
 .document-preview-page--quote {
   background:
     linear-gradient(180deg, rgba(255, 248, 241, 0.98) 0%, rgba(252, 245, 236, 0.98) 100%);
@@ -15466,6 +15471,11 @@ tbody tr:last-child td {
   letter-spacing: -0.04em;
 }
 
+.document-preview-page--compact .document-preview-header h2 {
+  font-size: 2.15rem;
+  line-height: 1;
+}
+
 .document-preview-meta-card {
   display: grid;
   gap: 12px;
@@ -15473,6 +15483,12 @@ tbody tr:last-child td {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(121, 94, 61, 0.12);
+}
+
+.document-preview-page--compact .document-preview-meta-card {
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
 }
 
 .document-preview-page--quote .document-preview-meta-card {
@@ -15505,6 +15521,10 @@ tbody tr:last-child td {
   gap: 10px;
 }
 
+.document-preview-page--compact .document-preview-meta-list {
+  gap: 8px;
+}
+
 .document-preview-meta-list div {
   display: flex;
   justify-content: space-between;
@@ -15530,6 +15550,10 @@ tbody tr:last-child td {
   gap: 16px;
 }
 
+.document-preview-page--compact .document-preview-info-grid {
+  gap: 12px;
+}
+
 .document-preview-info-card {
   display: grid;
   gap: 8px;
@@ -15537,6 +15561,12 @@ tbody tr:last-child td {
   border-radius: 22px;
   background: #fff;
   border: 1px solid rgba(121, 94, 61, 0.1);
+}
+
+.document-preview-page--compact .document-preview-info-card {
+  gap: 6px;
+  padding: 18px;
+  border-radius: 18px;
 }
 
 .document-preview-info-card p,
@@ -15553,6 +15583,12 @@ tbody tr:last-child td {
   border: 1px solid rgba(121, 94, 61, 0.12);
   box-shadow: 0 18px 42px rgba(44, 31, 18, 0.08);
   overflow: hidden;
+}
+
+.document-preview-page--compact .document-preview-sheet {
+  gap: 18px;
+  padding: 22px;
+  border-radius: 22px;
 }
 
 .document-preview-page--quote .document-preview-sheet {
@@ -15579,6 +15615,16 @@ tbody tr:last-child td {
   border-bottom: 1px solid rgba(121, 94, 61, 0.1);
   text-align: left;
   vertical-align: top;
+}
+
+.document-preview-table--compact th,
+.document-preview-table--compact td {
+  padding: 11px 10px;
+  font-size: 0.94rem;
+}
+
+.document-preview-table--compact th {
+  font-size: 0.73rem;
 }
 
 .document-preview-table th {
@@ -15638,6 +15684,13 @@ tbody tr:last-child td {
   border: 1px solid rgba(121, 94, 61, 0.1);
 }
 
+.document-preview-page--compact .document-preview-totals {
+  width: min(100%, 320px);
+  gap: 9px;
+  padding: 18px;
+  border-radius: 18px;
+}
+
 .document-preview-page--quote .document-preview-totals {
   background: linear-gradient(180deg, #fff8f0 0%, #fcf1e4 100%);
   border-color: rgba(188, 109, 51, 0.14);
@@ -15678,6 +15731,14 @@ tbody tr:last-child td {
   color: #8c5327;
 }
 
+.document-preview-page--compact .document-preview-total-row {
+  padding-top: 9px;
+}
+
+.document-preview-page--compact .document-preview-total-row strong {
+  font-size: 1.15rem;
+}
+
 .document-preview-page--quote .document-preview-total-row strong {
   color: #a15d2a;
 }
@@ -15696,6 +15757,10 @@ tbody tr:last-child td {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.document-preview-page--compact .document-preview-notes {
+  gap: 12px;
+}
+
 .document-preview-notes p {
   margin: 0;
   line-height: 1.7;
@@ -15708,6 +15773,12 @@ tbody tr:last-child td {
   border-radius: 20px;
   background: #fffdfa;
   border: 1px solid rgba(121, 94, 61, 0.08);
+}
+
+.document-preview-page--compact .document-preview-notes > div {
+  gap: 8px;
+  padding: 16px;
+  border-radius: 16px;
 }
 
 .document-preview-page--quote .document-preview-notes > div {
@@ -15737,6 +15808,11 @@ tbody tr:last-child td {
   border-radius: 18px;
   background: #fcf8f2;
   border: 1px solid rgba(121, 94, 61, 0.1);
+}
+
+.document-preview-page--compact .document-preview-payments div {
+  padding: 12px 14px;
+  border-radius: 14px;
 }
 
 .document-preview-page--receipt .document-preview-payments div {
@@ -15837,6 +15913,11 @@ tbody tr:last-child td {
   padding-top: 18px;
   border-top: 1px solid rgba(121, 94, 61, 0.1);
   color: #6e5a46;
+}
+
+.document-preview-page--compact .document-preview-footer {
+  padding-top: 14px;
+  font-size: 0.95rem;
 }
 
 /* Final flatter pass for heavier admin management pages */

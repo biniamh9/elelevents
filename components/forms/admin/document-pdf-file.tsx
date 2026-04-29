@@ -223,6 +223,82 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 700,
   },
+  compactPage: {
+    paddingTop: 28,
+    paddingBottom: 30,
+    paddingHorizontal: 28,
+    fontSize: 9.5,
+    lineHeight: 1.32,
+  },
+  compactStack: {
+    gap: 12,
+  },
+  compactHeader: {
+    gap: 14,
+  },
+  compactBrandBlock: {
+    gap: 5,
+    maxWidth: "58%",
+  },
+  compactHeading: {
+    fontSize: 21,
+    lineHeight: 1.02,
+  },
+  compactLabel: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    fontSize: 8,
+  },
+  compactMetaCard: {
+    width: 200,
+    padding: 12,
+    borderRadius: 14,
+    gap: 6,
+  },
+  compactInfoGrid: {
+    gap: 10,
+  },
+  compactInfoCard: {
+    padding: 12,
+    borderRadius: 12,
+    gap: 4,
+  },
+  compactCardTitle: {
+    fontSize: 10.5,
+  },
+  compactTableCell: {
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    fontSize: 8.6,
+  },
+  compactTableHeaderText: {
+    fontSize: 7.2,
+  },
+  compactTotalsCard: {
+    width: 230,
+    padding: 12,
+    borderRadius: 12,
+    gap: 6,
+  },
+  compactTotalPrimary: {
+    paddingTop: 8,
+    fontSize: 10.5,
+  },
+  compactNotesGrid: {
+    gap: 8,
+  },
+  compactNotesCard: {
+    padding: 10,
+    borderRadius: 10,
+    gap: 4,
+  },
+  compactFooter: {
+    paddingTop: 8,
+    gap: 3,
+  },
+  compactFooterBrand: {
+    fontSize: 10,
+  },
 });
 
 function getDocumentCopy(document: ClientDocumentWithRelations) {
@@ -230,9 +306,9 @@ function getDocumentCopy(document: ClientDocumentWithRelations) {
     return {
       label: "Invoice",
       emphasis: "Payment due",
-      heading: "Invoice for your confirmed event scope.",
+      heading: "Invoice for your approved event scope.",
       message:
-        "This invoice outlines the approved scope, current charges, and the amount due to keep production and event scheduling on track.",
+        "A concise billing summary for the approved scope, charges, and current balance due.",
       totalLabel: "Total due",
       balanceLabel: "Remaining balance",
       footer:
@@ -245,9 +321,9 @@ function getDocumentCopy(document: ClientDocumentWithRelations) {
     return {
       label: "Payment Receipt",
       emphasis: "Payment confirmed",
-      heading: "Thank you. Your payment has been received.",
+      heading: "Receipt for your recorded payment.",
       message:
-        "This receipt confirms your payment and keeps your event record clear as we continue planning the final details with you.",
+        "A clean payment confirmation showing the amount received, method, and any remaining balance.",
       totalLabel: "Amount received",
       balanceLabel: "Balance remaining",
       footer:
@@ -270,28 +346,20 @@ function getDocumentCopy(document: ClientDocumentWithRelations) {
   };
 }
 
-function NotesSection({
-  title,
-  value,
-}: {
-  title: string;
-  value: string | null | undefined;
-}) {
-  if (!value) return null;
-  return (
-    <View style={styles.notesCard}>
-      <Text style={styles.eyebrow}>{title}</Text>
-      <Text>{value}</Text>
-    </View>
-  );
-}
-
 export default function DocumentPdfFile({
   document,
 }: {
   document: ClientDocumentWithRelations;
 }) {
   const copy = getDocumentCopy(document);
+  const compact = document.document_type !== "quote";
+  const noteCards = [
+    { title: "What’s included", value: document.inclusions },
+    { title: "Exclusions / assumptions", value: document.exclusions },
+    { title: "Payment instructions", value: document.payment_instructions },
+    { title: "Terms", value: document.payment_terms },
+    { title: "Notes", value: document.notes },
+  ].filter((entry) => entry.value);
 
   return (
     <Document
@@ -301,17 +369,17 @@ export default function DocumentPdfFile({
       creator="Elel Events & Design"
       producer="Elel Events & Design"
     >
-      <Page size="A4" style={styles.page}>
-        <View style={styles.stack}>
-          <View style={styles.header}>
-            <View style={styles.brandBlock}>
+      <Page size="A4" style={[styles.page, compact ? styles.compactPage : null]}>
+        <View style={[styles.stack, compact ? styles.compactStack : null]}>
+          <View style={[styles.header, compact ? styles.compactHeader : null]}>
+            <View style={[styles.brandBlock, compact ? styles.compactBrandBlock : null]}>
               <Text style={styles.eyebrow}>Elel Events & Design</Text>
-              <Text style={styles.label}>{copy.label}</Text>
+              <Text style={[styles.label, compact ? styles.compactLabel : null]}>{copy.label}</Text>
               <Text style={styles.muted}>{copy.message}</Text>
-              <Text style={styles.heading}>{copy.heading}</Text>
+              <Text style={[styles.heading, compact ? styles.compactHeading : null]}>{copy.heading}</Text>
             </View>
 
-            <View style={styles.metaCard}>
+            <View style={[styles.metaCard, compact ? styles.compactMetaCard : null]}>
               <Text style={styles.status}>{document.status}</Text>
               <Text style={styles.muted}>{copy.emphasis}</Text>
               <View style={styles.metaRow}>
@@ -339,16 +407,20 @@ export default function DocumentPdfFile({
             </View>
           </View>
 
-          <View style={styles.infoGrid}>
-            <View style={styles.infoCard}>
+          <View style={[styles.infoGrid, compact ? styles.compactInfoGrid : null]}>
+            <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
               <Text style={styles.infoTitle}>Client</Text>
-              <Text style={styles.cardTitle}>{document.customer_name}</Text>
+              <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
+                {document.customer_name}
+              </Text>
               <Text>{document.customer_email || "—"}</Text>
               <Text>{document.customer_phone || "—"}</Text>
             </View>
-            <View style={styles.infoCard}>
+            <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
               <Text style={styles.infoTitle}>Event</Text>
-              <Text style={styles.cardTitle}>{document.event_type || "Event"}</Text>
+              <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
+                {document.event_type || "Event"}
+              </Text>
               <Text>{formatDocumentDate(document.event_date)}</Text>
               <Text>{document.venue_name || "Venue to be confirmed"}</Text>
               {document.venue_address ? <Text>{document.venue_address}</Text> : null}
@@ -358,19 +430,29 @@ export default function DocumentPdfFile({
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <View style={[styles.cell, styles.colItem]}>
-                <Text style={styles.tableHeaderText}>Item</Text>
+                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                  Item
+                </Text>
               </View>
               <View style={[styles.cell, styles.colDetails]}>
-                <Text style={styles.tableHeaderText}>Details</Text>
+                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                  Details
+                </Text>
               </View>
               <View style={[styles.cell, styles.colQty]}>
-                <Text style={styles.tableHeaderText}>Qty</Text>
+                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                  Qty
+                </Text>
               </View>
               <View style={[styles.cell, styles.colUnit]}>
-                <Text style={styles.tableHeaderText}>Unit</Text>
+                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                  Unit
+                </Text>
               </View>
               <View style={[styles.cell, styles.colTotal]}>
-                <Text style={styles.tableHeaderText}>Total</Text>
+                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                  Total
+                </Text>
               </View>
             </View>
 
@@ -382,19 +464,19 @@ export default function DocumentPdfFile({
                   index === document.line_items.length - 1 ? { borderBottomWidth: 0 } : null,
                 ]}
               >
-                <View style={[styles.cell, styles.colItem]}>
+                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colItem]}>
                   <Text>{item.title}</Text>
                 </View>
-                <View style={[styles.cell, styles.colDetails]}>
+                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colDetails]}>
                   <Text>{item.description || "—"}</Text>
                 </View>
-                <View style={[styles.cell, styles.colQty]}>
+                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colQty]}>
                   <Text>{String(item.quantity)}</Text>
                 </View>
-                <View style={[styles.cell, styles.colUnit]}>
+                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colUnit]}>
                   <Text>${formatMoney(item.unit_price)}</Text>
                 </View>
-                <View style={[styles.cell, styles.colTotal]}>
+                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colTotal]}>
                   <Text>${formatMoney(item.total_price)}</Text>
                 </View>
               </View>
@@ -402,7 +484,7 @@ export default function DocumentPdfFile({
           </View>
 
           <View style={styles.totalsWrap}>
-            <View style={styles.totalsCard}>
+            <View style={[styles.totalsCard, compact ? styles.compactTotalsCard : null]} wrap={false}>
               <View style={styles.totalRow}>
                 <Text>Subtotal</Text>
                 <Text>${formatMoney(document.subtotal)}</Text>
@@ -431,7 +513,13 @@ export default function DocumentPdfFile({
                   <Text>${formatMoney(document.tax_amount)}</Text>
                 </View>
               ) : null}
-              <View style={[styles.totalRow, styles.totalPrimary]}>
+              <View
+                style={[
+                  styles.totalRow,
+                  styles.totalPrimary,
+                  compact ? styles.compactTotalPrimary : null,
+                ]}
+              >
                 <Text>{copy.totalLabel}</Text>
                 <Text>${formatMoney(document.total_amount)}</Text>
               </View>
@@ -454,14 +542,18 @@ export default function DocumentPdfFile({
             </View>
           </View>
 
-          <View style={styles.notesGrid}>
-            <NotesSection title="What’s included" value={document.inclusions} />
-            <NotesSection title="Exclusions / assumptions" value={document.exclusions} />
-            <NotesSection title="Payment instructions" value={document.payment_instructions} />
-            <NotesSection title="Terms" value={document.payment_terms} />
-            <NotesSection title="Notes" value={document.notes} />
+          <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
+            {noteCards.map((entry) => (
+              <View
+                key={entry.title}
+                style={[styles.notesCard, compact ? styles.compactNotesCard : null]}
+              >
+                <Text style={styles.eyebrow}>{entry.title}</Text>
+                <Text>{entry.value}</Text>
+              </View>
+            ))}
             {document.payments.length ? (
-              <View style={styles.notesCard}>
+              <View style={[styles.notesCard, compact ? styles.compactNotesCard : null]}>
                 <Text style={styles.eyebrow}>Payments received</Text>
                 {document.payments.map((payment) => (
                   <View key={payment.id} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -473,8 +565,10 @@ export default function DocumentPdfFile({
             ) : null}
           </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerBrand}>Elel Events & Design</Text>
+          <View style={[styles.footer, compact ? styles.compactFooter : null]}>
+            <Text style={[styles.footerBrand, compact ? styles.compactFooterBrand : null]}>
+              Elel Events & Design
+            </Text>
             <Text style={styles.muted}>{copy.footer}</Text>
           </View>
         </View>
