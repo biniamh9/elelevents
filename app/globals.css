@@ -9773,6 +9773,27 @@ tbody tr:last-child td {
   font-weight: 700;
   letter-spacing: 0.03em;
 }
+.admin-inline-action-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 30px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 119, 72, 0.18);
+  background: rgba(37, 119, 72, 0.08);
+  color: #1f6c44;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.admin-inline-action-pill:hover {
+  background: rgba(37, 119, 72, 0.14);
+  border-color: rgba(37, 119, 72, 0.28);
+  color: #165634;
+}
 .admin-record-alert-copy {
   color: #9a4f17 !important;
   font-weight: 600;
@@ -9839,14 +9860,17 @@ tbody tr:last-child td {
   flex: none;
 }
 .admin-row-action-dropdown {
-  position: static;
-  z-index: auto;
-  width: 100%;
-  min-width: 0;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 40;
+  width: 300px;
+  min-width: 300px;
+  max-width: min(300px, calc(100vw - 32px));
   display: grid;
-  gap: 6px;
-  margin-top: 10px;
-  padding: 16px;
+  gap: 4px;
+  margin-top: 0;
+  padding: 12px;
   border-radius: 22px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, #fff, #fbf4ed);
@@ -9854,16 +9878,17 @@ tbody tr:last-child td {
 }
 .admin-row-action-group {
   display: grid;
-  gap: 6px;
-  padding-top: 4px;
+  gap: 2px;
+  padding-top: 2px;
 }
 .admin-row-action-group + .admin-row-action-group {
-  margin-top: 8px;
+  margin-top: 4px;
   border-top: 1px solid rgba(73, 49, 31, 0.08);
+  padding-top: 8px;
 }
 .admin-row-action-group-label {
   margin: 0;
-  padding: 0 4px;
+  padding: 0 8px 4px;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -9874,16 +9899,17 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
+  min-height: 40px;
+  padding: 9px 12px;
   border-radius: 14px;
   border: 0;
   background: transparent;
   color: var(--text-primary);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 0.96rem;
   font-weight: 600;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 .admin-row-action-item:hover {
@@ -9956,7 +9982,7 @@ tbody tr:last-child td {
   box-shadow: none;
   border-radius: 14px;
   min-height: 44px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   background: transparent;
   gap: 0;
 }
@@ -9967,7 +9993,16 @@ tbody tr:last-child td {
 .admin-workflow-action--menu strong {
   font-size: 0.98rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 1080px) {
+  .admin-row-action-dropdown {
+    width: 260px;
+    min-width: 260px;
+  }
 }
 .admin-timeline-action {
   border-radius: 18px;

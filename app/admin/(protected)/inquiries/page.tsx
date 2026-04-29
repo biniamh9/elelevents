@@ -1340,6 +1340,17 @@ export default async function AdminInquiriesPage({
                             <div className="admin-record-main">
                               <strong>{getPaymentState(contract)}</strong>
                               <span>{contract?.contract_status ? humanizeLabel(contract.contract_status) : "Contract not created"}</span>
+                              {invoiceMap.get(row.id) && Number(contract?.balance_due ?? 0) > 0 ? (
+                                <Link
+                                  href={buildDocumentDetailHref(invoiceMap.get(row.id)!.id, {
+                                    openPayment: true,
+                                    paymentMethod: "cash",
+                                  })}
+                                  className="admin-inline-action-pill"
+                                >
+                                  Record Cash Payment
+                                </Link>
+                              ) : null}
                             </div>
                           </td>
                           <td>{new Date(row.created_at).toLocaleDateString()}</td>
@@ -1448,6 +1459,17 @@ export default async function AdminInquiriesPage({
                       <p>
                         <span>Payment</span>
                         {getPaymentState(contract)}
+                        {invoiceMap.get(row.id) && Number(contract?.balance_due ?? 0) > 0 ? (
+                          <Link
+                            href={buildDocumentDetailHref(invoiceMap.get(row.id)!.id, {
+                              openPayment: true,
+                              paymentMethod: "cash",
+                            })}
+                            className="admin-inline-action-pill"
+                          >
+                            Record Cash Payment
+                          </Link>
+                        ) : null}
                       </p>
                       <p>
                         <span>Created</span>
