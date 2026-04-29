@@ -1297,7 +1297,7 @@ export default async function AdminInquiriesPage({
                           <td>
                             <div className="admin-record-status-stack">
                               <StatusBadge status={row.status ?? "new"} />
-                              <span className="admin-record-substatus">
+                              <span className="admin-record-substatus admin-record-substatus--compact">
                                 {needsQuoteRevision
                                   ? "Responded follow-up reply"
                                   : hasFollowUpInspiration
@@ -1315,7 +1315,7 @@ export default async function AdminInquiriesPage({
                             </div>
                           </td>
                           <td>
-                            <div className="admin-record-main">
+                            <div className="admin-record-main admin-record-main--payment">
                               <strong>{getPaymentState(contract)}</strong>
                               <span>{contract?.contract_status ? humanizeLabel(contract.contract_status) : "Contract not created"}</span>
                               {invoiceMap.get(row.id) && Number(contract?.balance_due ?? 0) > 0 ? (
