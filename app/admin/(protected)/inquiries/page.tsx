@@ -1235,7 +1235,7 @@ export default async function AdminInquiriesPage({
               <div>
                 <p className="eyebrow">Inquiry records</p>
                 <h3>Inquiry records</h3>
-                <p className="muted">Clients, filter, and edit individual requests without competing dashboard content above.</p>
+                <p className="muted">Clients, filter, and edit individual requests without completing dashboard or context above.</p>
               </div>
             </div>
 
@@ -1289,22 +1289,6 @@ export default async function AdminInquiriesPage({
                                 {row.first_name} {row.last_name}
                               </strong>
                               <span>{row.email}</span>
-                              <span>{row.phone}</span>
-                              {needsQuoteRevision ? (
-                                <span className="admin-inline-attention-chip">
-                                  Client requested quote changes
-                                </span>
-                              ) : null}
-                              {hasFollowUpInspiration ? (
-                                <span className="admin-inline-attention-chip">
-                                  Follow-up inspiration added
-                                </span>
-                              ) : null}
-                              {hasUnmatchedReplyCandidate ? (
-                                <span className="admin-inline-attention-chip">
-                                  Has unmatched reply candidate
-                                </span>
-                              ) : null}
                             </div>
                           </td>
                           <td>{row.event_type}</td>
@@ -1315,11 +1299,11 @@ export default async function AdminInquiriesPage({
                               <StatusBadge status={row.status ?? "new"} />
                               <span className="admin-record-substatus">
                                 {needsQuoteRevision
-                                  ? "Quote revision needed"
+                                  ? "Responded follow-up reply"
                                   : hasFollowUpInspiration
-                                    ? "Inspiration follow-up ready for review"
+                                    ? "Follow-up inspiration added"
                                   : hasUnmatchedReplyCandidate
-                                    ? "Reply review pending for this inquiry"
+                                    ? "Reply review pending"
                                   : `${humanizeBookingStage(row.booking_stage)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
                               </span>
                             </div>
@@ -1328,12 +1312,6 @@ export default async function AdminInquiriesPage({
                             <div className="admin-record-main">
                               <strong>${formatMoney(Number(row.estimated_price ?? 0))}</strong>
                               <span>{row.quote_response_status ? humanizeLabel(row.quote_response_status) : "Not sent"}</span>
-                              {needsQuoteRevision ? (
-                                <span className="admin-record-alert-copy">
-                                  Open the inquiry and revise the itemized quote.
-                                </span>
-                              ) : null}
-                              <span>{row.venue_name ?? "Venue not added"}</span>
                             </div>
                           </td>
                           <td>
