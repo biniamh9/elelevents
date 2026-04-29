@@ -24,6 +24,8 @@ export default function InquiryRecordActions({
   recordCashPaymentHref,
   unmatchedReplyCandidateCount = 0,
   unmatchedReplyReviewHref,
+  showPrimaryAction = true,
+  compactTrigger = false,
 }: {
   inquiryId: string;
   contractId?: string | null;
@@ -36,6 +38,8 @@ export default function InquiryRecordActions({
   recordCashPaymentHref?: string | null;
   unmatchedReplyCandidateCount?: number;
   unmatchedReplyReviewHref?: string;
+  showPrimaryAction?: boolean;
+  compactTrigger?: boolean;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -94,15 +98,17 @@ export default function InquiryRecordActions({
 
   return (
     <div className="admin-row-actions">
-      <AdminWorkflowAction
-        href={primaryAction.href}
-        className="admin-workflow-action--menu admin-row-action-primary"
-        tone={primaryAction.tone}
-        label={primaryAction.label}
-        showTone={false}
-        showDescription={false}
-        description={primaryAction.description}
-      />
+      {showPrimaryAction ? (
+        <AdminWorkflowAction
+          href={primaryAction.href}
+          className="admin-workflow-action--menu admin-row-action-primary"
+          tone={primaryAction.tone}
+          label={primaryAction.label}
+          showTone={false}
+          showDescription={false}
+          description={primaryAction.description}
+        />
+      ) : null}
       <details
         className="admin-row-action-menu"
         open={open}
@@ -110,7 +116,11 @@ export default function InquiryRecordActions({
           setOpen((event.currentTarget as HTMLDetailsElement).open)
         }
       >
-        <summary className="admin-row-action-trigger">
+        <summary
+          className={`admin-row-action-trigger${
+            compactTrigger ? " admin-row-action-trigger--text" : ""
+          }`}
+        >
           <span>Actions</span>
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path
@@ -125,6 +135,20 @@ export default function InquiryRecordActions({
         </summary>
 
         <div className="admin-row-action-dropdown">
+          {!showPrimaryAction ? (
+            <div className="admin-row-action-group">
+              <p className="admin-row-action-group-label">Recommended</p>
+              <AdminWorkflowAction
+                href={primaryAction.href}
+                className="admin-workflow-action--menu"
+                tone={primaryAction.tone}
+                label={primaryAction.label}
+                showTone={false}
+                showDescription={false}
+                description={primaryAction.description}
+              />
+            </div>
+          ) : null}
           {actionGroups.map((group) => (
             <div key={group.title} className="admin-row-action-group">
               <p className="admin-row-action-group-label">{group.title}</p>

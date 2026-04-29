@@ -1234,8 +1234,8 @@ export default async function AdminInquiriesPage({
             <div className="admin-panel-head">
               <div>
                 <p className="eyebrow">Inquiry records</p>
-                <h3>Manage the existing records</h3>
-                <p className="muted">Search, filter, and act on individual requests without competing dashboard content above the table.</p>
+                <h3>Inquiry records</h3>
+                <p className="muted">Clients, filter, and edit individual requests without competing dashboard content above.</p>
               </div>
             </div>
 
@@ -1374,6 +1374,8 @@ export default async function AdminInquiriesPage({
                               }
                               unmatchedReplyCandidateCount={unmatchedReplyCandidates.length}
                               unmatchedReplyReviewHref={unmatchedReplyReviewHref}
+                              showPrimaryAction={false}
+                              compactTrigger
                             />
                           </td>
                         </tr>

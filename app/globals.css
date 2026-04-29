@@ -9853,6 +9853,22 @@ tbody tr:last-child td {
   list-style: none;
   box-shadow: 0 10px 24px rgba(48, 24, 11, 0.06);
 }
+.admin-row-action-trigger--text {
+  justify-content: flex-end;
+  min-width: 0;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--brand-700);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+.admin-row-action-trigger--text:hover {
+  color: var(--brand-800);
+}
 .admin-row-action-trigger::-webkit-details-marker {
   display: none;
 }
@@ -9861,6 +9877,11 @@ tbody tr:last-child td {
   height: 18px;
   color: var(--text-secondary);
   flex: none;
+}
+.admin-row-action-trigger--text svg {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
 }
 .admin-row-action-dropdown {
   position: absolute;
