@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   buildDocumentDetailHref,
+  buildDocumentPdfHref,
   buildDocumentOutputHref,
   buildQuoteCreateHref,
 } from "@/lib/admin-navigation";
@@ -118,7 +119,7 @@ export default function DocumentsList({
                   <tr key={document.id}>
                     <td>
                       <div className="admin-record-main">
-                        <Link href={buildDocumentOutputHref(document.id)} style={{ fontWeight: 700 }}>
+                        <Link href={buildDocumentPdfHref(document.id)} style={{ fontWeight: 700 }} target="_blank" rel="noreferrer">
                           {document.document_number}
                         </Link>
                         <span>{document.venue_name || document.event_type || "Client document"}</span>
@@ -132,7 +133,12 @@ export default function DocumentsList({
                     <td>{formatDocumentDate(document.created_at)}</td>
                     <td>
                       <div className="admin-document-output-actions-cell">
-                        <Link href={buildDocumentOutputHref(document.id)} className="admin-table-text-action">
+                        <Link
+                          href={buildDocumentPdfHref(document.id)}
+                          className="admin-table-text-action"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Open
                         </Link>
                         <Link
@@ -147,9 +153,8 @@ export default function DocumentsList({
                           Print
                         </Link>
                         <Link
-                          href={buildDocumentOutputHref(document.id, {
-                            autoprint: true,
-                            intent: "download",
+                          href={buildDocumentPdfHref(document.id, {
+                            download: true,
                           })}
                           className="admin-table-text-action"
                           target="_blank"

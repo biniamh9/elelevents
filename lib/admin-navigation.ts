@@ -216,6 +216,20 @@ export function buildDocumentOutputHref(
   return query ? `/admin/document-output/${id}?${query}` : `/admin/document-output/${id}`;
 }
 
+export function buildDocumentPdfHref(
+  id: string,
+  options?: {
+    download?: boolean;
+  }
+) {
+  const params = new URLSearchParams();
+  if (options?.download) {
+    params.set("download", "1");
+  }
+  const query = params.toString();
+  return query ? `/api/admin/documents/${id}/pdf?${query}` : `/api/admin/documents/${id}/pdf`;
+}
+
 export type AdminDocumentType = "quote" | "invoice" | "receipt";
 
 export function buildRentalItemCreateHref() {

@@ -4,6 +4,7 @@ import { getDocumentById } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import AdminPageIntro from "@/components/admin/admin-page-intro";
 import {
+  buildDocumentPdfHref,
   buildDocumentOutputHref,
   buildDocumentsLibraryHref,
 } from "@/lib/admin-navigation";
@@ -39,15 +40,15 @@ export default async function DocumentDetailPage({
           Back to Documents
         </Link>
         <Link
-          href={buildDocumentOutputHref(document.id)}
+          href={buildDocumentPdfHref(document.id)}
           className="admin-topbar-pill"
           target="_blank"
           rel="noreferrer"
         >
-          Open PDF View
+          Open PDF
         </Link>
         <Link
-          href={buildDocumentOutputHref(document.id, { autoprint: true, intent: "download" })}
+          href={buildDocumentPdfHref(document.id, { download: true })}
           className="admin-topbar-pill"
           target="_blank"
           rel="noreferrer"

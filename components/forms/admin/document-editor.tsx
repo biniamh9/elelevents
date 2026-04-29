@@ -15,6 +15,7 @@ import {
 } from "@/lib/client-documents";
 import {
   buildDocumentOutputHref,
+  buildDocumentPdfHref,
 } from "@/lib/admin-navigation";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import DocumentActionBar from "@/components/forms/admin/document-action-bar";
@@ -307,12 +308,12 @@ export default function DocumentEditor({
             {document.id ? (
               <div className="admin-document-output-links">
                 <Link
-                  href={buildDocumentOutputHref(document.id)}
+                  href={buildDocumentPdfHref(document.id)}
                   className="btn secondary"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Open Document View
+                  Open PDF
                 </Link>
                 <Link
                   href={buildDocumentOutputHref(document.id, {
@@ -326,9 +327,8 @@ export default function DocumentEditor({
                   Print
                 </Link>
                 <Link
-                  href={buildDocumentOutputHref(document.id, {
-                    autoprint: true,
-                    intent: "download",
+                  href={buildDocumentPdfHref(document.id, {
+                    download: true,
                   })}
                   className="btn"
                   target="_blank"

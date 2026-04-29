@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { ClientDocumentWithRelations } from "@/lib/client-documents";
 import DocumentPreviewRenderer from "@/components/forms/admin/document-preview-renderer";
+import { buildDocumentPdfHref } from "@/lib/admin-navigation";
 
 export default function DocumentOutputView({
   document,
@@ -53,6 +54,14 @@ export default function DocumentOutputView({
           <Link href={editHref} className="admin-topbar-pill">
             Edit Document
           </Link>
+          <Link
+            href={buildDocumentPdfHref(document.id)}
+            className="btn secondary"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open PDF
+          </Link>
           <button
             type="button"
             className="btn secondary"
@@ -60,13 +69,14 @@ export default function DocumentOutputView({
           >
             Print
           </button>
-          <button
-            type="button"
+          <Link
+            href={buildDocumentPdfHref(document.id, { download: true })}
             className="btn"
-            onClick={() => window.print()}
+            target="_blank"
+            rel="noreferrer"
           >
             Download PDF
-          </button>
+          </Link>
         </div>
       </div>
 
