@@ -99,6 +99,8 @@ export default function InquiryRecordActions({
         className="admin-workflow-action--menu admin-row-action-primary"
         tone={primaryAction.tone}
         label={primaryAction.label}
+        showTone={false}
+        showDescription={false}
         description={primaryAction.description}
       />
       <details

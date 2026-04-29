@@ -9818,12 +9818,15 @@ tbody tr:last-child td {
 .admin-row-actions {
   position: relative;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   justify-items: stretch;
   width: 100%;
 }
 .admin-row-action-primary {
-  min-height: 64px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  align-items: center;
 }
 .admin-row-action-menu {
   position: relative;
@@ -9994,6 +9997,15 @@ tbody tr:last-child td {
   font-size: 0.98rem;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-row-action-primary strong {
+  display: block;
+  width: 100%;
+  font-size: 0.96rem;
+  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
