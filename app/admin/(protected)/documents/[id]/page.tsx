@@ -9,12 +9,15 @@ export const dynamic = "force-dynamic";
 
 export default async function DocumentDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ openPayment?: string; paymentMethod?: string }>;
 }) {
   await requireAdminPage("sales");
 
   const { id } = await params;
+  const query = await searchParams;
   const document = await getDocumentById(id);
 
   if (!document) {
@@ -33,7 +36,12 @@ export default async function DocumentDetailPage({
         </Link>
       </div>
 
-      <DocumentEditor initialDocument={document} mode="edit" />
+      <DocumentEditor
+        initialDocument={document}
+        mode="edit"
+        initialShowPaymentForm={query.openPayment === "1"}
+        initialPaymentMethod={query.paymentMethod || "bank_transfer"}
+      />
     </main>
   );
 }

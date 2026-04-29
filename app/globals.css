@@ -10571,6 +10571,33 @@ tbody tr:last-child td {
   flex-wrap: wrap;
   gap: 12px;
 }
+.contract-payment-actions {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(93, 39, 4, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+.contract-payment-actions-copy {
+  display: grid;
+  gap: 6px;
+}
+.contract-payment-actions-copy h4 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.admin-manual-intake-shell {
+  display: grid;
+  gap: 20px;
+}
+.admin-document-inline-actions--spread {
+  justify-content: space-between;
+  align-items: center;
+}
+.admin-manual-intake-note {
+  max-width: 760px;
+}
 .itemized-preview-shell {
   display: grid;
   gap: 24px;

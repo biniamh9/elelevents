@@ -459,6 +459,59 @@ export function getLeadProbability(lead: CrmLead) {
   return 0.2;
 }
 
+export function sortCrmLeadsByActionReadiness(
+  leads: CrmLead[],
+  options?: {
+    revisionLeadIds?: Set<string>;
+    unmatchedReplyCandidateCounts?: Record<string, number>;
+  }
+) {
+  const now = Date.now();
+  const stagePriority: Record<CrmStage, number> = {
+    new_inquiry: 5,
+    contacted: 6,
+    consultation_scheduled: 7,
+    consultation_completed: 4,
+    quote_sent: 3,
+    awaiting_deposit: 2,
+    booked: 8,
+    lost: 9,
+  };
+
+  function getDueTimestamp(value: string | null | undefined) {
+    if (!value) return Number.POSITIVE_INFINITY;
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : Number.POSITIVE_INFINITY;
+  }
+
+  function getPriority(lead: CrmLead) {
+    const dueTimestamp = getDueTimestamp(lead.nextActionDueAt);
+    const hasOverdueAction = dueTimestamp < now;
+    const needsRevision = options?.revisionLeadIds?.has(lead.id) ?? false;
+    const hasUnmatchedReply = (options?.unmatchedReplyCandidateCounts?.[lead.id] ?? 0) > 0;
+    const hasFollowUpInspiration = lead.hasFollowUpInspiration ?? false;
+
+    if (hasOverdueAction) return 0;
+    if (needsRevision) return 1;
+    if (hasUnmatchedReply) return 2;
+    if (hasFollowUpInspiration) return 3;
+    return stagePriority[lead.stage] ?? 10;
+  }
+
+  return [...leads].sort((a, b) => {
+    const priorityDiff = getPriority(a) - getPriority(b);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    const dueDiff = getDueTimestamp(a.nextActionDueAt) - getDueTimestamp(b.nextActionDueAt);
+    if (Number.isFinite(dueDiff) && dueDiff !== 0) return dueDiff;
+
+    const eventDiff = new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+    if (Number.isFinite(eventDiff) && eventDiff !== 0) return eventDiff;
+
+    return new Date(b.createdAt ?? b.lastContact).getTime() - new Date(a.createdAt ?? a.lastContact).getTime();
+  });
+}
+
 export function getPipelineValue(leads: CrmLead[]) {
   return leads
     .filter((lead) => lead.stage !== "lost")

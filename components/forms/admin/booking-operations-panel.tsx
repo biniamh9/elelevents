@@ -9,6 +9,9 @@ export default function BookingOperationsPanel({
   paymentStatus,
   remainingBalance,
   bookingStage,
+  recordCashPaymentHref,
+  openInvoicePaymentHref,
+  createInvoiceHref,
 }: {
   contractId: string;
   depositPaid: boolean;
@@ -16,6 +19,9 @@ export default function BookingOperationsPanel({
   paymentStatus: string;
   remainingBalance: number;
   bookingStage: string;
+  recordCashPaymentHref?: string | null;
+  openInvoicePaymentHref?: string | null;
+  createInvoiceHref?: string | null;
 }) {
   const [finalBalancePaid, setFinalBalancePaid] = useState(balancePaid);
   const [saving, setSaving] = useState(false);
@@ -96,6 +102,33 @@ export default function BookingOperationsPanel({
           />
           <span>Final payment received</span>
         </label>
+      </div>
+
+      <div className="contract-payment-actions">
+        <div className="contract-payment-actions-copy">
+          <p className="eyebrow">Payment entry</p>
+          <h4>Cash and offline payments</h4>
+          <p className="muted">
+            Record cash, check, Zelle, or transfer from the invoice payment entry so the balance updates and a receipt is created.
+          </p>
+        </div>
+        <div className="contract-email-actions">
+          {recordCashPaymentHref ? (
+            <a href={recordCashPaymentHref} className="btn">
+              Record Cash Payment
+            </a>
+          ) : null}
+          {openInvoicePaymentHref ? (
+            <a href={openInvoicePaymentHref} className="btn secondary">
+              Open Invoice Payment Entry
+            </a>
+          ) : null}
+          {!recordCashPaymentHref && createInvoiceHref ? (
+            <a href={createInvoiceHref} className="btn secondary">
+              Create Invoice First
+            </a>
+          ) : null}
+        </div>
       </div>
 
       <div className="contract-email-actions">

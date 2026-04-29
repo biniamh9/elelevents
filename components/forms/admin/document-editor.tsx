@@ -49,9 +49,13 @@ function normalizeLineItems(items: ClientDocumentLineItem[]) {
 export default function DocumentEditor({
   initialDocument,
   mode,
+  initialShowPaymentForm = false,
+  initialPaymentMethod = "bank_transfer",
 }: {
   initialDocument: EditableDocument;
   mode: "create" | "edit";
+  initialShowPaymentForm?: boolean;
+  initialPaymentMethod?: string;
 }) {
   const router = useRouter();
   const [document, setDocument] = useState<EditableDocument>({
@@ -60,7 +64,7 @@ export default function DocumentEditor({
   });
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(initialShowPaymentForm);
 
   const totals = useMemo(
     () =>
@@ -296,6 +300,7 @@ export default function DocumentEditor({
           {document.document_type === "invoice" && document.id && showPaymentForm ? (
             <PaymentRecordForm
               documentId={document.id}
+              initialPaymentMethod={initialPaymentMethod}
               onRecorded={() => router.refresh()}
             />
           ) : null}

@@ -26,6 +26,7 @@ import {
   getLostReasonMetrics,
   getPipelineStageCounts,
   getPipelineValue,
+  sortCrmLeadsByActionReadiness,
   getSourceMetrics,
   type CrmTask,
 } from "@/lib/crm-analytics";
@@ -125,8 +126,8 @@ export default async function AdminCrmAnalyticsPage({
         email: lead.email,
       }))
     );
-  const filteredLeads = filterCrmLeads(crmMetrics.leads, params);
-  const filteredLeadIds = new Set(filteredLeads.map((lead) => lead.id));
+  const baseFilteredLeads = filterCrmLeads(crmMetrics.leads, params);
+  const filteredLeadIds = new Set(baseFilteredLeads.map((lead) => lead.id));
   const filteredInteractions = crmMetrics.interactions.filter((item) =>
     filteredLeadIds.has(item.leadId)
   );
@@ -170,6 +171,10 @@ export default async function AdminCrmAnalyticsPage({
       }),
     ])
   );
+  const filteredLeads = sortCrmLeadsByActionReadiness(baseFilteredLeads, {
+    revisionLeadIds,
+    unmatchedReplyCandidateCounts,
+  });
   const totalBookedRevenue = getBookedRevenue(crmMetrics.leads);
   const totalPipelineValue = getPipelineValue(crmMetrics.leads);
   const forecastedRevenue = getForecastedRevenue(crmMetrics.leads);

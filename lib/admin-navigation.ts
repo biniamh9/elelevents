@@ -138,6 +138,10 @@ export function buildInquiryDetailHref(id: string) {
   return `/admin/inquiries/${id}`;
 }
 
+export function buildInquiryCreateHref() {
+  return "/admin/inquiries/new";
+}
+
 export function buildInquiryItemizedDraftHref(id: string) {
   return `/admin/inquiries/${id}/itemized-draft`;
 }
@@ -170,6 +174,24 @@ export function buildRentalRequestDetailHref(id: string) {
 
 export function buildRentalItemDetailHref(id: string) {
   return `/admin/rentals/${id}`;
+}
+
+export function buildDocumentDetailHref(
+  id: string,
+  options?: {
+    openPayment?: boolean;
+    paymentMethod?: string | null;
+  }
+) {
+  const params = new URLSearchParams();
+  if (options?.openPayment) {
+    params.set("openPayment", "1");
+  }
+  if (options?.paymentMethod) {
+    params.set("paymentMethod", options.paymentMethod);
+  }
+  const query = params.toString();
+  return query ? `/admin/documents/${id}?${query}` : `/admin/documents/${id}`;
 }
 
 export type AdminDocumentType = "quote" | "invoice" | "receipt";

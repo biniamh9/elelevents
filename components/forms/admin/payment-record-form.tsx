@@ -5,13 +5,15 @@ import { useState } from "react";
 export default function PaymentRecordForm({
   documentId,
   onRecorded,
+  initialPaymentMethod = "bank_transfer",
 }: {
   documentId: string;
   onRecorded?: () => void;
+  initialPaymentMethod?: string;
 }) {
   const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [paymentMethod, setPaymentMethod] = useState("bank_transfer");
+  const [paymentMethod, setPaymentMethod] = useState(initialPaymentMethod);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,6 +94,9 @@ export default function PaymentRecordForm({
             <option value="cash">Cash</option>
             <option value="check">Check</option>
           </select>
+          {paymentMethod === "cash" ? (
+            <p className="muted">Use notes for cash-handling details if no reference number applies.</p>
+          ) : null}
         </div>
         <div className="field">
           <label className="label">Reference Number</label>

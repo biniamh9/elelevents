@@ -90,6 +90,34 @@ function formatRelativeTimestamp(value: string | null | undefined) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function getInquiryReadinessPriority(input: {
+  status: string | null;
+  consultationStatus: string | null;
+  bookingStage: string | null;
+  quoteResponseStatus: string | null;
+  contractStatus?: string | null;
+  depositPaid?: boolean | null;
+  nextActionDueAt?: string | null;
+  hasFollowUpInspiration?: boolean;
+  hasUnmatchedReplyCandidate?: boolean;
+}) {
+  const now = Date.now();
+  const nextActionDueAt = input.nextActionDueAt ? new Date(input.nextActionDueAt).getTime() : Number.POSITIVE_INFINITY;
+
+  if (Number.isFinite(nextActionDueAt) && nextActionDueAt < now) return 0;
+  if (input.quoteResponseStatus === "changes_requested") return 1;
+  if (input.hasUnmatchedReplyCandidate) return 2;
+  if (input.hasFollowUpInspiration) return 3;
+  if ((input.contractStatus === "draft" || input.contractStatus === "sent") && !input.depositPaid) return 4;
+  if (input.status === "quoted") return 5;
+  if (input.consultationStatus === "completed") return 6;
+  if (input.consultationStatus === "scheduled" || input.consultationStatus === "requested") return 7;
+  if (input.status === "new") return 8;
+  if (input.status === "contacted") return 9;
+  if (input.status === "booked" || input.bookingStage === "reserved") return 11;
+  return 10;
+}
+
 function getPaymentState(contract: {
   deposit_paid?: boolean | null;
   balance_due?: number | null;
@@ -136,7 +164,7 @@ export default async function AdminInquiriesPage({
   const followUp = params.follow_up || "";
   const followUpFilterActive = followUp === "with_inspiration";
   const queryText = params.q?.trim() || "";
-  const sort = params.sort || "newest";
+  const sort = params.sort || "action_readiness";
   const page = normalizePage(params.page);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -189,10 +217,10 @@ export default async function AdminInquiriesPage({
   let query = supabaseAdmin
     .from("event_inquiries")
     .select(
-      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_details_json",
+      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_details_json, crm_next_action_due_at",
       { count: "exact" }
     )
-    .range(from, to);
+    ;
 
   if (status) {
     query = query.eq("status", status);
@@ -221,12 +249,15 @@ export default async function AdminInquiriesPage({
     query = query.order("event_date", { ascending: true, nullsFirst: false });
   } else if (sort === "oldest") {
     query = query.order("created_at", { ascending: true });
+  } else if (sort === "newest") {
+    query = query.order("created_at", { ascending: false });
   } else {
     query = query.order("created_at", { ascending: false });
   }
 
   const { data, error, count: filteredCount } = await query;
-  const inquiryIds = (data ?? []).map((item) => item.id);
+  let orderedRows = data ?? [];
+  const inquiryIds = orderedRows.map((item) => item.id);
   const unmatchedReplyCandidatesByInquiry = await getStrongUnmatchedReplyCandidatesByInquiry(
     (data ?? []).map((item) => ({
       id: item.id,
@@ -250,6 +281,61 @@ export default async function AdminInquiriesPage({
       };
 
   const contractMap = new Map((pageContracts ?? []).map((item) => [item.inquiry_id, item]));
+
+  if (sort === "action_readiness") {
+    orderedRows = [...orderedRows].sort((a, b) => {
+      const aFollowUp = inquiryFollowUpNeedsReview(
+        normalizeInquiryFollowUpDetails(a.follow_up_details_json)
+      );
+      const bFollowUp = inquiryFollowUpNeedsReview(
+        normalizeInquiryFollowUpDetails(b.follow_up_details_json)
+      );
+      const aUnmatched = (unmatchedReplyCandidatesByInquiry[a.id] ?? []).length > 0;
+      const bUnmatched = (unmatchedReplyCandidatesByInquiry[b.id] ?? []).length > 0;
+      const aContract = contractMap.get(a.id) ?? null;
+      const bContract = contractMap.get(b.id) ?? null;
+
+      const priorityDiff =
+        getInquiryReadinessPriority({
+          status: a.status,
+          consultationStatus: a.consultation_status,
+          bookingStage: a.booking_stage,
+          quoteResponseStatus: a.quote_response_status,
+          contractStatus: aContract?.contract_status ?? null,
+          depositPaid: aContract?.deposit_paid ?? null,
+          nextActionDueAt: a.crm_next_action_due_at,
+          hasFollowUpInspiration: aFollowUp,
+          hasUnmatchedReplyCandidate: aUnmatched,
+        }) -
+        getInquiryReadinessPriority({
+          status: b.status,
+          consultationStatus: b.consultation_status,
+          bookingStage: b.booking_stage,
+          quoteResponseStatus: b.quote_response_status,
+          contractStatus: bContract?.contract_status ?? null,
+          depositPaid: bContract?.deposit_paid ?? null,
+          nextActionDueAt: b.crm_next_action_due_at,
+          hasFollowUpInspiration: bFollowUp,
+          hasUnmatchedReplyCandidate: bUnmatched,
+        });
+
+      if (priorityDiff !== 0) return priorityDiff;
+
+      const aDue = a.crm_next_action_due_at ? new Date(a.crm_next_action_due_at).getTime() : Number.POSITIVE_INFINITY;
+      const bDue = b.crm_next_action_due_at ? new Date(b.crm_next_action_due_at).getTime() : Number.POSITIVE_INFINITY;
+      const dueDiff = aDue - bDue;
+      if (Number.isFinite(dueDiff) && dueDiff !== 0) return dueDiff;
+
+      const eventDiff =
+        (a.event_date ? new Date(a.event_date).getTime() : Number.POSITIVE_INFINITY) -
+        (b.event_date ? new Date(b.event_date).getTime() : Number.POSITIVE_INFINITY);
+      if (Number.isFinite(eventDiff) && eventDiff !== 0) return eventDiff;
+
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }
+
+  const pagedRows = orderedRows.slice(from, to + 1);
 
   const { count: totalCount } = await supabaseAdmin
     .from("event_inquiries")
@@ -1097,6 +1183,7 @@ export default async function AdminInquiriesPage({
               <div className="field">
                 <label className="label">Sort By</label>
                 <select name="sort" defaultValue={sort} className="input">
+                  <option value="action_readiness">Action readiness</option>
                   <option value="newest">Created date: newest</option>
                   <option value="oldest">Created date: oldest</option>
                   <option value="event_date">Event date</option>
@@ -1149,8 +1236,8 @@ export default async function AdminInquiriesPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {data?.length ? (
-                    data.map((row) => {
+                  {pagedRows.length ? (
+                    pagedRows.map((row) => {
                       const contract = contractMap.get(row.id) ?? null;
                       const needsQuoteRevision =
                         row.quote_response_status === "changes_requested";
@@ -1264,7 +1351,7 @@ export default async function AdminInquiriesPage({
             </div>
 
             <div className="admin-mobile-records">
-              {data?.map((row) => {
+              {pagedRows.map((row) => {
                 const contract = contractMap.get(row.id) ?? null;
                 const needsQuoteRevision =
                   row.quote_response_status === "changes_requested";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { canAccessModule, type AdminModule } from "@/lib/admin-access";
+import { buildInquiryCreateHref } from "@/lib/admin-navigation";
 
 type NavChild = {
   href: string;
@@ -189,7 +190,7 @@ export default function AdminSidebar({
         </div>
 
         <div className="admin-sidebar-section admin-sidebar-section--compact">
-          <Link href="/request" className="admin-create-link">
+          <Link href={buildInquiryCreateHref()} className="admin-create-link">
             <span>+</span>
             <strong>New request</strong>
           </Link>

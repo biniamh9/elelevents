@@ -1,5 +1,9 @@
 import Link from "next/link";
-import { buildContractsWorkspaceHref, buildInvoiceCreateHref } from "@/lib/admin-navigation";
+import {
+  buildContractsWorkspaceHref,
+  buildDocumentDetailHref,
+  buildInvoiceCreateHref,
+} from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractManagementForm from "@/components/forms/admin/contract-management-form";
 import ContractPreview from "@/components/forms/admin/contract-preview";
@@ -56,6 +60,14 @@ export default async function ContractDetailPage({
     .from("contract_payments")
     .select("payment_kind, status, paid_at")
     .eq("contract_id", contract.id);
+  const { data: relatedInvoices } = await supabaseAdmin
+    .from("client_documents")
+    .select("id, document_number, status")
+    .eq("contract_id", contract.id)
+    .eq("document_type", "invoice")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const relatedInvoice = relatedInvoices?.[0] ?? null;
   const balancePayment = (paymentRows ?? []).find((item) => item.payment_kind === "balance");
   const paymentSummary = getPaymentSummary({
     contractTotal: contract.contract_total,
@@ -264,6 +276,23 @@ export default async function ContractDetailPage({
             paymentStatus={paymentSummary.paymentStatus}
             remainingBalance={paymentSummary.remainingBalance}
             bookingStage={humanizeBookingStage(linkedInquiry?.booking_stage ?? "inquiry")}
+            recordCashPaymentHref={
+              relatedInvoice
+                ? buildDocumentDetailHref(relatedInvoice.id, {
+                    openPayment: true,
+                    paymentMethod: "cash",
+                  })
+                : null
+            }
+            openInvoicePaymentHref={
+              relatedInvoice
+                ? buildDocumentDetailHref(relatedInvoice.id, { openPayment: true })
+                : null
+            }
+            createInvoiceHref={buildInvoiceCreateHref({
+              contractId: contract.id,
+              inquiryId: contract.inquiry_id,
+            })}
           />
 
           <details className="card contract-preview-shell">
