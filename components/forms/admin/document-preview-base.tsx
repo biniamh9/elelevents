@@ -7,6 +7,16 @@ import {
 } from "@/lib/client-documents";
 import DocumentStatusBadge from "@/components/forms/admin/document-status-badge";
 
+function buildBillingSummaryRows(document: ClientDocumentRecord) {
+  return [
+    { label: "Included", value: document.inclusions },
+    { label: "Exclusions", value: document.exclusions },
+    { label: "Payment instructions", value: document.payment_instructions },
+    { label: "Terms", value: document.payment_terms },
+    { label: "Notes", value: document.notes },
+  ].filter((entry) => entry.value);
+}
+
 function PreviewTable({
   lineItems,
   compact = false,
@@ -81,6 +91,7 @@ export default function DocumentPreviewBase({
   density?: "editorial" | "compact";
 }) {
   const compact = density === "compact";
+  const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
 
   return (
     <section
@@ -160,31 +171,44 @@ export default function DocumentPreviewBase({
         </div>
 
         <div className="document-preview-notes">
-          {document.inclusions ? (
+          {compact && billingSummaryRows.length ? (
+            <div className="document-preview-billing-summary">
+              <p className="eyebrow">Billing summary</p>
+              <div className="document-preview-billing-summary-list">
+                {billingSummaryRows.map((entry) => (
+                  <div key={entry.label} className="document-preview-billing-summary-row">
+                    <strong>{entry.label}</strong>
+                    <p>{entry.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {!compact && document.inclusions ? (
             <div>
               <p className="eyebrow">What’s included</p>
               <p>{document.inclusions}</p>
             </div>
           ) : null}
-          {document.exclusions ? (
+          {!compact && document.exclusions ? (
             <div>
               <p className="eyebrow">Exclusions / assumptions</p>
               <p>{document.exclusions}</p>
             </div>
           ) : null}
-          {document.payment_instructions ? (
+          {!compact && document.payment_instructions ? (
             <div>
               <p className="eyebrow">Payment instructions</p>
               <p>{document.payment_instructions}</p>
             </div>
           ) : null}
-          {document.payment_terms ? (
+          {!compact && document.payment_terms ? (
             <div>
               <p className="eyebrow">Terms</p>
               <p>{document.payment_terms}</p>
             </div>
           ) : null}
-          {document.notes ? (
+          {!compact && document.notes ? (
             <div>
               <p className="eyebrow">Notes</p>
               <p>{document.notes}</p>

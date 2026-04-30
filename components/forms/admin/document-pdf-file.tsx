@@ -292,6 +292,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 4,
   },
+  compactSummaryRow: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+  },
+  compactSummaryLabel: {
+    fontSize: 7.4,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+    fontWeight: 700,
+    color: "#6d5d4f",
+  },
   compactFooter: {
     paddingTop: 8,
     gap: 3,
@@ -346,6 +358,16 @@ function getDocumentCopy(document: ClientDocumentWithRelations) {
   };
 }
 
+function buildBillingSummaryRows(document: ClientDocumentWithRelations) {
+  return [
+    { label: "Included", value: document.inclusions },
+    { label: "Exclusions", value: document.exclusions },
+    { label: "Payment instructions", value: document.payment_instructions },
+    { label: "Terms", value: document.payment_terms },
+    { label: "Notes", value: document.notes },
+  ].filter((entry) => entry.value);
+}
+
 export default function DocumentPdfFile({
   document,
 }: {
@@ -353,13 +375,16 @@ export default function DocumentPdfFile({
 }) {
   const copy = getDocumentCopy(document);
   const compact = document.document_type !== "quote";
-  const noteCards = [
-    { title: "What’s included", value: document.inclusions },
-    { title: "Exclusions / assumptions", value: document.exclusions },
-    { title: "Payment instructions", value: document.payment_instructions },
-    { title: "Terms", value: document.payment_terms },
-    { title: "Notes", value: document.notes },
-  ].filter((entry) => entry.value);
+  const noteCards = compact
+    ? []
+    : [
+        { title: "What’s included", value: document.inclusions },
+        { title: "Exclusions / assumptions", value: document.exclusions },
+        { title: "Payment instructions", value: document.payment_instructions },
+        { title: "Terms", value: document.payment_terms },
+        { title: "Notes", value: document.notes },
+      ].filter((entry) => entry.value);
+  const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
 
   return (
     <Document
@@ -543,6 +568,17 @@ export default function DocumentPdfFile({
           </View>
 
           <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
+            {compact && billingSummaryRows.length ? (
+              <View style={[styles.notesCard, styles.compactNotesCard]}>
+                <Text style={styles.eyebrow}>Billing summary</Text>
+                {billingSummaryRows.map((entry) => (
+                  <View key={entry.label} style={styles.compactSummaryRow}>
+                    <Text style={styles.compactSummaryLabel}>{entry.label}</Text>
+                    <Text>{entry.value}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
             {noteCards.map((entry) => (
               <View
                 key={entry.title}

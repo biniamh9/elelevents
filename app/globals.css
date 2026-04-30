@@ -15781,6 +15781,31 @@ tbody tr:last-child td {
   border-radius: 16px;
 }
 
+.document-preview-billing-summary-list {
+  display: grid;
+  gap: 8px;
+}
+
+.document-preview-billing-summary-row {
+  display: grid;
+  gap: 4px;
+}
+
+.document-preview-billing-summary-row strong {
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6f5a46;
+}
+
+.document-preview-page--compact .document-preview-billing-summary-row strong {
+  font-size: 0.76rem;
+}
+
+.document-preview-billing-summary-row p {
+  margin: 0;
+}
+
 .document-preview-page--quote .document-preview-notes > div {
   background: #fffaf4;
   border-color: rgba(188, 109, 51, 0.1);
