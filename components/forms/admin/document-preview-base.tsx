@@ -91,6 +91,7 @@ export default function DocumentPreviewBase({
   density?: "editorial" | "compact";
 }) {
   const compact = density === "compact";
+  const receiptCompact = compact && document.document_type === "receipt";
   const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
 
   return (
@@ -133,10 +134,12 @@ export default function DocumentPreviewBase({
         </div>
         <div className="document-preview-info-card">
           <p className="eyebrow">Event</p>
-          <strong>{document.event_type || "Event"}</strong>
+          <strong>{receiptCompact ? "Payment record" : document.event_type || "Event"}</strong>
           <p>{formatDocumentDate(document.event_date)}</p>
-          <p>{document.venue_name || "Venue to be confirmed"}</p>
-          {document.venue_address ? <p>{document.venue_address}</p> : null}
+          {!receiptCompact ? (
+            <p>{document.venue_name || "Venue to be confirmed"}</p>
+          ) : null}
+          {!receiptCompact && document.venue_address ? <p>{document.venue_address}</p> : null}
         </div>
       </div>
 

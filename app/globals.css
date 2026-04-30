@@ -15314,6 +15314,15 @@ tbody tr:last-child td {
   flex-wrap: wrap;
 }
 
+.admin-document-action-shell {
+  justify-self: end;
+}
+
+.admin-document-action-dropdown {
+  width: 220px;
+  min-width: 220px;
+}
+
 .admin-table-text-action {
   color: var(--brand-700);
   font-size: 0.9rem;

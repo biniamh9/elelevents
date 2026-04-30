@@ -110,7 +110,7 @@ export default function DocumentsList({
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Created</th>
-                <th>Output</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -132,40 +132,66 @@ export default function DocumentsList({
                     <td><DocumentStatusBadge status={document.status} /></td>
                     <td>{formatDocumentDate(document.created_at)}</td>
                     <td>
-                      <div className="admin-document-output-actions-cell">
-                        <Link
-                          href={buildDocumentPdfHref(document.id)}
-                          className="admin-table-text-action"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Open
-                        </Link>
-                        <Link
-                          href={buildDocumentOutputHref(document.id, {
-                            autoprint: true,
-                            intent: "print",
-                          })}
-                          className="admin-table-text-action"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Print
-                        </Link>
-                        <Link
-                          href={buildDocumentPdfHref(document.id, {
-                            download: true,
-                          })}
-                          className="admin-table-text-action"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Download PDF
-                        </Link>
-                        <Link href={buildDocumentDetailHref(document.id)} className="admin-table-text-action admin-table-text-action--muted">
-                          Edit
-                        </Link>
-                      </div>
+                      <details className="admin-row-action-shell admin-document-action-shell">
+                        <summary className="admin-row-action-trigger admin-row-action-trigger--text">
+                          <span>Actions</span>
+                          <svg viewBox="0 0 20 20" aria-hidden="true">
+                            <path
+                              d="m5 7 5 6 5-6"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </summary>
+
+                        <div className="admin-row-action-dropdown admin-document-action-dropdown">
+                          <div className="admin-row-action-group">
+                            <p className="admin-row-action-group-label">Output</p>
+                            <Link
+                              href={buildDocumentPdfHref(document.id)}
+                              className="admin-table-text-action"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Open PDF
+                            </Link>
+                            <Link
+                              href={buildDocumentOutputHref(document.id, {
+                                autoprint: true,
+                                intent: "print",
+                              })}
+                              className="admin-table-text-action"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Print
+                            </Link>
+                            <Link
+                              href={buildDocumentPdfHref(document.id, {
+                                download: true,
+                              })}
+                              className="admin-table-text-action"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Download PDF
+                            </Link>
+                          </div>
+
+                          <div className="admin-row-action-group">
+                            <p className="admin-row-action-group-label">Record</p>
+                            <Link
+                              href={buildDocumentDetailHref(document.id)}
+                              className="admin-table-text-action admin-table-text-action--muted"
+                            >
+                              Edit Document
+                            </Link>
+                          </div>
+                        </div>
+                      </details>
                     </td>
                   </tr>
                 ))

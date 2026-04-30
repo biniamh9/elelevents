@@ -375,6 +375,7 @@ export default function DocumentPdfFile({
 }) {
   const copy = getDocumentCopy(document);
   const compact = document.document_type !== "quote";
+  const receiptCompact = compact && document.document_type === "receipt";
   const noteCards = compact
     ? []
     : [
@@ -444,11 +445,15 @@ export default function DocumentPdfFile({
             <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
               <Text style={styles.infoTitle}>Event</Text>
               <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
-                {document.event_type || "Event"}
+                {receiptCompact ? "Payment record" : document.event_type || "Event"}
               </Text>
               <Text>{formatDocumentDate(document.event_date)}</Text>
-              <Text>{document.venue_name || "Venue to be confirmed"}</Text>
-              {document.venue_address ? <Text>{document.venue_address}</Text> : null}
+              {!receiptCompact ? (
+                <Text>{document.venue_name || "Venue to be confirmed"}</Text>
+              ) : null}
+              {!receiptCompact && document.venue_address ? (
+                <Text>{document.venue_address}</Text>
+              ) : null}
             </View>
           </View>
 
