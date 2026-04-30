@@ -5,16 +5,18 @@ import ReceiptPreview from "@/components/forms/admin/receipt-preview";
 
 export default function DocumentPreviewRenderer({
   document,
+  printCompact = false,
 }: {
   document: ClientDocumentWithRelations;
+  printCompact?: boolean;
 }) {
   if (document.document_type === "invoice") {
-    return <InvoicePreview document={document} />;
+    return <InvoicePreview document={document} printCompact={printCompact} />;
   }
 
   if (document.document_type === "receipt") {
-    return <ReceiptPreview document={document} />;
+    return <ReceiptPreview document={document} printCompact={printCompact} />;
   }
 
-  return <QuotePreview document={document} />;
+  return <QuotePreview document={document} printCompact={printCompact} />;
 }

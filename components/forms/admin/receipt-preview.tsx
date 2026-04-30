@@ -3,8 +3,10 @@ import DocumentPreviewBase from "@/components/forms/admin/document-preview-base"
 
 export default function ReceiptPreview({
   document,
+  printCompact = false,
 }: {
   document: ClientDocumentWithRelations;
+  printCompact?: boolean;
 }) {
   return (
     <DocumentPreviewBase
@@ -20,6 +22,7 @@ export default function ReceiptPreview({
       showDeposit={false}
       footerMessage="Thank you for trusting Elel Events & Design. Keep this receipt for your records and planning file."
       density="compact"
+      printCompact={printCompact}
     />
   );
 }

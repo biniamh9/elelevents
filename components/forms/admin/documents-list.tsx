@@ -162,6 +162,7 @@ export default function DocumentsList({
                               href={buildDocumentOutputHref(document.id, {
                                 autoprint: true,
                                 intent: "print",
+                                compact: true,
                               })}
                               className="admin-table-text-action"
                               target="_blank"
@@ -172,6 +173,7 @@ export default function DocumentsList({
                             <Link
                               href={buildDocumentPdfHref(document.id, {
                                 download: true,
+                                compact: true,
                               })}
                               className="admin-table-text-action"
                               target="_blank"

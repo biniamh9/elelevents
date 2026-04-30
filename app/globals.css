@@ -15315,6 +15315,8 @@ tbody tr:last-child td {
 }
 
 .admin-document-action-shell {
+  position: relative;
+  display: inline-flex;
   justify-self: end;
 }
 

@@ -48,7 +48,7 @@ export default async function DocumentDetailPage({
           Open PDF
         </Link>
         <Link
-          href={buildDocumentPdfHref(document.id, { download: true })}
+          href={buildDocumentPdfHref(document.id, { download: true, compact: true })}
           className="admin-topbar-pill"
           target="_blank"
           rel="noreferrer"

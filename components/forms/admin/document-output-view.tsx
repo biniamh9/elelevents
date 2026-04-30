@@ -12,12 +12,14 @@ export default function DocumentOutputView({
   indexHref,
   autoprint = false,
   intent = "view",
+  compact = false,
 }: {
   document: ClientDocumentWithRelations;
   editHref: string;
   indexHref: string;
   autoprint?: boolean;
   intent?: "view" | "print" | "download";
+  compact?: boolean;
 }) {
   const hasPrintedRef = useRef(false);
 
@@ -55,7 +57,7 @@ export default function DocumentOutputView({
             Edit Document
           </Link>
           <Link
-            href={buildDocumentPdfHref(document.id)}
+            href={buildDocumentPdfHref(document.id, compact ? { compact: true } : undefined)}
             className="btn secondary"
             target="_blank"
             rel="noreferrer"
@@ -70,7 +72,10 @@ export default function DocumentOutputView({
             Print
           </button>
           <Link
-            href={buildDocumentPdfHref(document.id, { download: true })}
+            href={buildDocumentPdfHref(document.id, {
+              download: true,
+              compact,
+            })}
             className="btn"
             target="_blank"
             rel="noreferrer"
@@ -81,7 +86,7 @@ export default function DocumentOutputView({
       </div>
 
       <div className="admin-document-output-sheet">
-        <DocumentPreviewRenderer document={document} />
+        <DocumentPreviewRenderer document={document} printCompact={compact} />
       </div>
     </main>
   );

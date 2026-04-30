@@ -3,8 +3,10 @@ import DocumentPreviewBase from "@/components/forms/admin/document-preview-base"
 
 export default function QuotePreview({
   document,
+  printCompact = false,
 }: {
   document: ClientDocumentWithRelations;
+  printCompact?: boolean;
 }) {
   return (
     <DocumentPreviewBase
@@ -18,6 +20,7 @@ export default function QuotePreview({
       totalLabel="Proposed total"
       balanceLabel="Estimated balance"
       footerMessage="Your event date is secured once the proposal is approved, the agreement is signed, and the deposit is received."
+      printCompact={printCompact}
       actionCopy={
         <div className="document-preview-cta-group">
           <span className="summary-chip">Accept Quote</span>

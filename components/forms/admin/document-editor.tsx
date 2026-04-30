@@ -319,6 +319,7 @@ export default function DocumentEditor({
                   href={buildDocumentOutputHref(document.id, {
                     autoprint: true,
                     intent: "print",
+                    compact: true,
                   })}
                   className="btn secondary"
                   target="_blank"
@@ -329,6 +330,7 @@ export default function DocumentEditor({
                 <Link
                   href={buildDocumentPdfHref(document.id, {
                     download: true,
+                    compact: true,
                   })}
                   className="btn"
                   target="_blank"

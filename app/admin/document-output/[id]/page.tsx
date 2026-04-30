@@ -14,7 +14,7 @@ export default async function AdminDocumentOutputPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ autoprint?: string; intent?: string }>;
+  searchParams: Promise<{ autoprint?: string; intent?: string; compact?: string }>;
 }) {
   await requireAdminPage("sales");
 
@@ -32,6 +32,7 @@ export default async function AdminDocumentOutputPage({
       editHref={buildDocumentDetailHref(document.id)}
       indexHref={buildDocumentsLibraryHref()}
       autoprint={query.autoprint === "1"}
+      compact={query.compact === "1"}
       intent={query.intent === "download" ? "download" : query.intent === "print" ? "print" : "view"}
     />
   );

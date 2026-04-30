@@ -75,6 +75,7 @@ export default function DocumentPreviewBase({
   showDeposit = true,
   actionCopy,
   density = "editorial",
+  printCompact = false,
 }: {
   document: ClientDocumentRecord;
   lineItems: ClientDocumentLineItem[];
@@ -89,9 +90,12 @@ export default function DocumentPreviewBase({
   showDeposit?: boolean;
   actionCopy?: React.ReactNode;
   density?: "editorial" | "compact";
+  printCompact?: boolean;
 }) {
-  const compact = density === "compact";
+  const compact = density === "compact" || printCompact;
   const receiptCompact = compact && document.document_type === "receipt";
+  const hideClientExtras = printCompact;
+  const hideVenueDetails = printCompact || receiptCompact;
   const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
 
   return (
@@ -130,16 +134,16 @@ export default function DocumentPreviewBase({
           <p className="eyebrow">Client</p>
           <strong>{document.customer_name}</strong>
           <p>{document.customer_email || "—"}</p>
-          <p>{document.customer_phone || "—"}</p>
+          {!hideClientExtras ? <p>{document.customer_phone || "—"}</p> : null}
         </div>
         <div className="document-preview-info-card">
           <p className="eyebrow">Event</p>
           <strong>{receiptCompact ? "Payment record" : document.event_type || "Event"}</strong>
           <p>{formatDocumentDate(document.event_date)}</p>
-          {!receiptCompact ? (
+          {!hideVenueDetails ? (
             <p>{document.venue_name || "Venue to be confirmed"}</p>
           ) : null}
-          {!receiptCompact && document.venue_address ? <p>{document.venue_address}</p> : null}
+          {!hideVenueDetails && document.venue_address ? <p>{document.venue_address}</p> : null}
         </div>
       </div>
 
@@ -176,7 +180,9 @@ export default function DocumentPreviewBase({
         <div className="document-preview-notes">
           {compact && billingSummaryRows.length ? (
             <div className="document-preview-billing-summary">
-              <p className="eyebrow">Billing summary</p>
+              <p className="eyebrow">
+                {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
+              </p>
               <div className="document-preview-billing-summary-list">
                 {billingSummaryRows.map((entry) => (
                   <div key={entry.label} className="document-preview-billing-summary-row">

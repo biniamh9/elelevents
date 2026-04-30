@@ -34,9 +34,10 @@ export async function GET(
 
   const url = new URL(request.url);
   const download = url.searchParams.get("download") === "1";
+  const compact = url.searchParams.get("compact") === "1";
   const filename = buildPdfFilename(document.document_number, document.document_type);
 
-  const pdfElement = createElement(DocumentPdfFile, { document }) as Parameters<
+  const pdfElement = createElement(DocumentPdfFile, { document, printCompact: compact }) as Parameters<
     typeof renderToBuffer
   >[0];
   const buffer = await renderToBuffer(pdfElement);

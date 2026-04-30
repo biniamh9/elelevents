@@ -203,6 +203,7 @@ export function buildDocumentOutputHref(
   options?: {
     autoprint?: boolean;
     intent?: "view" | "print" | "download";
+    compact?: boolean;
   }
 ) {
   const params = new URLSearchParams();
@@ -212,6 +213,9 @@ export function buildDocumentOutputHref(
   if (options?.intent && options.intent !== "view") {
     params.set("intent", options.intent);
   }
+  if (options?.compact) {
+    params.set("compact", "1");
+  }
   const query = params.toString();
   return query ? `/admin/document-output/${id}?${query}` : `/admin/document-output/${id}`;
 }
@@ -220,11 +224,15 @@ export function buildDocumentPdfHref(
   id: string,
   options?: {
     download?: boolean;
+    compact?: boolean;
   }
 ) {
   const params = new URLSearchParams();
   if (options?.download) {
     params.set("download", "1");
+  }
+  if (options?.compact) {
+    params.set("compact", "1");
   }
   const query = params.toString();
   return query ? `/api/admin/documents/${id}/pdf?${query}` : `/api/admin/documents/${id}/pdf`;

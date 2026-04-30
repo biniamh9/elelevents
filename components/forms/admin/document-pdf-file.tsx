@@ -370,12 +370,16 @@ function buildBillingSummaryRows(document: ClientDocumentWithRelations) {
 
 export default function DocumentPdfFile({
   document,
+  printCompact = false,
 }: {
   document: ClientDocumentWithRelations;
+  printCompact?: boolean;
 }) {
   const copy = getDocumentCopy(document);
-  const compact = document.document_type !== "quote";
+  const compact = document.document_type !== "quote" || printCompact;
   const receiptCompact = compact && document.document_type === "receipt";
+  const hideClientExtras = printCompact;
+  const hideVenueDetails = printCompact || receiptCompact;
   const noteCards = compact
     ? []
     : [
@@ -440,7 +444,7 @@ export default function DocumentPdfFile({
                 {document.customer_name}
               </Text>
               <Text>{document.customer_email || "—"}</Text>
-              <Text>{document.customer_phone || "—"}</Text>
+              {!hideClientExtras ? <Text>{document.customer_phone || "—"}</Text> : null}
             </View>
             <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
               <Text style={styles.infoTitle}>Event</Text>
@@ -448,10 +452,10 @@ export default function DocumentPdfFile({
                 {receiptCompact ? "Payment record" : document.event_type || "Event"}
               </Text>
               <Text>{formatDocumentDate(document.event_date)}</Text>
-              {!receiptCompact ? (
+              {!hideVenueDetails ? (
                 <Text>{document.venue_name || "Venue to be confirmed"}</Text>
               ) : null}
-              {!receiptCompact && document.venue_address ? (
+              {!hideVenueDetails && document.venue_address ? (
                 <Text>{document.venue_address}</Text>
               ) : null}
             </View>
@@ -575,7 +579,9 @@ export default function DocumentPdfFile({
           <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
             {compact && billingSummaryRows.length ? (
               <View style={[styles.notesCard, styles.compactNotesCard]}>
-                <Text style={styles.eyebrow}>Billing summary</Text>
+                <Text style={styles.eyebrow}>
+                  {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
+                </Text>
                 {billingSummaryRows.map((entry) => (
                   <View key={entry.label} style={styles.compactSummaryRow}>
                     <Text style={styles.compactSummaryLabel}>{entry.label}</Text>

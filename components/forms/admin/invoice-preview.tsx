@@ -3,8 +3,10 @@ import DocumentPreviewBase from "@/components/forms/admin/document-preview-base"
 
 export default function InvoicePreview({
   document,
+  printCompact = false,
 }: {
   document: ClientDocumentWithRelations;
+  printCompact?: boolean;
 }) {
   return (
     <DocumentPreviewBase
@@ -19,6 +21,7 @@ export default function InvoicePreview({
       balanceLabel="Remaining balance"
       footerMessage="Please reference the invoice number with your payment and contact Elel Events & Design if you need any billing clarification."
       density="compact"
+      printCompact={printCompact}
     />
   );
 }
