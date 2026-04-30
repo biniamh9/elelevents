@@ -17,6 +17,13 @@ function buildBillingSummaryRows(document: ClientDocumentRecord) {
   ].filter((entry) => entry.value);
 }
 
+function truncateDescription(value: string | null | undefined, maxLength = 56) {
+  if (!value) return "—";
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
 function getDocumentDensityLevel(lineItemCount: number) {
   if (lineItemCount >= 14) return "ultra";
   if (lineItemCount >= 9) return "dense";
@@ -31,14 +38,32 @@ function shouldHideOverflowSummaryBlock(input: {
   return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
 }
 
+function shouldCollapseMetaStrip(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
+function shouldUseInlineTotals(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
 function PreviewTable({
   lineItems,
   compact = false,
   densityLevel = "normal",
+  collapseDescriptions = false,
 }: {
   lineItems: ClientDocumentLineItem[];
   compact?: boolean;
   densityLevel?: "normal" | "dense" | "ultra";
+  collapseDescriptions?: boolean;
 }) {
   return (
     <table
@@ -74,7 +99,11 @@ function PreviewTable({
             <td>
               <strong>{item.title}</strong>
             </td>
-            <td>{item.description || "—"}</td>
+            <td className={collapseDescriptions ? "document-preview-table-detail--collapsed" : undefined}>
+              {collapseDescriptions
+                ? truncateDescription(item.description)
+                : item.description || "—"}
+            </td>
             <td className="document-preview-table-number">{item.quantity}</td>
             <td className="document-preview-table-number">${formatMoney(item.unit_price)}</td>
             <td className="document-preview-table-number">${formatMoney(item.total_price)}</td>
@@ -123,10 +152,34 @@ export default function DocumentPreviewBase({
     printCompact,
     lineItemCount: lineItems.length,
   });
+  const collapseMetaStrip = shouldCollapseMetaStrip({
+    densityLevel,
+    printCompact,
+    lineItemCount: lineItems.length,
+  });
+  const useInlineTotals = shouldUseInlineTotals({
+    densityLevel,
+    printCompact,
+    lineItemCount: lineItems.length,
+  });
+  const collapseLineItemDescriptions =
+    printCompact && densityLevel === "ultra" && lineItems.length >= 14;
   const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact;
-  const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
+  const billingSummaryRows = compact
+    ? [
+        ...buildBillingSummaryRows(document),
+        ...(!hideOverflowSummaryBlock && collapseLineItemDescriptions
+          ? lineItems
+              .filter((item) => item.description && item.description.trim().length > 0)
+              .map((item) => ({
+                label: item.title,
+                value: item.description,
+              }))
+          : []),
+      ]
+    : [];
 
   return (
     <section
@@ -165,33 +218,67 @@ export default function DocumentPreviewBase({
         </div>
       </header>
 
-      <div className="document-preview-info-grid">
-        <div className="document-preview-info-card">
-          <p className="eyebrow">Client</p>
-          <strong>{document.customer_name}</strong>
-          <p>{document.customer_email || "—"}</p>
-          {!hideClientExtras ? <p>{document.customer_phone || "—"}</p> : null}
-        </div>
-        <div className="document-preview-info-card">
-          <p className="eyebrow">Event</p>
-          <strong>{paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}</strong>
-          <p>{formatDocumentDate(document.event_date)}</p>
-          {document.guest_count != null ? <p>{document.guest_count} guests</p> : null}
-          {!hideVenueDetails ? (
-            <p>{document.venue_name || "Venue to be confirmed"}</p>
+      {collapseMetaStrip ? (
+        <div className="document-preview-meta-strip">
+          <div className="document-preview-meta-strip-row">
+            <span>Client</span>
+            <strong>{document.customer_name}</strong>
+          </div>
+          <div className="document-preview-meta-strip-row">
+            <span>Event</span>
+            <strong>{paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}</strong>
+          </div>
+          <div className="document-preview-meta-strip-row">
+            <span>Date</span>
+            <strong>{formatDocumentDate(document.event_date)}</strong>
+          </div>
+          {document.guest_count != null ? (
+            <div className="document-preview-meta-strip-row">
+              <span>Guests</span>
+              <strong>{document.guest_count}</strong>
+            </div>
           ) : null}
-          {!hideVenueDetails && document.venue_address ? <p>{document.venue_address}</p> : null}
+          {!hideVenueDetails && document.venue_name ? (
+            <div className="document-preview-meta-strip-row">
+              <span>Venue</span>
+              <strong>{document.venue_name}</strong>
+            </div>
+          ) : null}
         </div>
-      </div>
+      ) : (
+        <div className="document-preview-info-grid">
+          <div className="document-preview-info-card">
+            <p className="eyebrow">Client</p>
+            <strong>{document.customer_name}</strong>
+            <p>{document.customer_email || "—"}</p>
+            {!hideClientExtras ? <p>{document.customer_phone || "—"}</p> : null}
+          </div>
+          <div className="document-preview-info-card">
+            <p className="eyebrow">Event</p>
+            <strong>{paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}</strong>
+            <p>{formatDocumentDate(document.event_date)}</p>
+            {document.guest_count != null ? <p>{document.guest_count} guests</p> : null}
+            {!hideVenueDetails ? (
+              <p>{document.venue_name || "Venue to be confirmed"}</p>
+            ) : null}
+            {!hideVenueDetails && document.venue_address ? <p>{document.venue_address}</p> : null}
+          </div>
+        </div>
+      )}
 
       <div className="document-preview-sheet">
         <PreviewTable
           lineItems={lineItems}
           compact={compact}
           densityLevel={densityLevel}
+          collapseDescriptions={collapseLineItemDescriptions}
         />
 
-        <div className="document-preview-totals">
+        <div
+          className={`document-preview-totals${
+            useInlineTotals ? " document-preview-totals--inline" : ""
+          }`}
+        >
           <div><span>Subtotal</span><strong>${formatMoney(document.subtotal)}</strong></div>
           {document.delivery_fee > 0 ? (
             <div><span>Delivery fee</span><strong>${formatMoney(document.delivery_fee)}</strong></div>

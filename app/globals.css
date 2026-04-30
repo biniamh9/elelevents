@@ -15581,6 +15581,55 @@ tbody tr:last-child td {
   gap: 12px;
 }
 
+.document-preview-meta-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(121, 94, 61, 0.1);
+}
+
+.document-preview-meta-strip-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.document-preview-meta-strip-row span {
+  color: #6f5a46;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.document-preview-meta-strip-row strong {
+  font-size: 0.92rem;
+}
+
+.document-preview-page--ultra .document-preview-meta-strip {
+  gap: 8px 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.document-preview-page--invoice .document-preview-meta-strip {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 251, 0.96) 100%);
+  border-color: rgba(58, 76, 105, 0.14);
+}
+
+.document-preview-page--receipt .document-preview-meta-strip {
+  background: linear-gradient(180deg, rgba(252, 255, 252, 0.95) 0%, rgba(245, 250, 245, 0.95) 100%);
+  border-color: rgba(77, 123, 84, 0.14);
+}
+
+.document-preview-page--quote .document-preview-meta-strip {
+  background: linear-gradient(180deg, rgba(255, 252, 248, 0.94) 0%, rgba(255, 246, 236, 0.94) 100%);
+  border-color: rgba(188, 109, 51, 0.16);
+}
+
 .document-preview-info-card {
   display: grid;
   gap: 8px;
@@ -15726,6 +15775,12 @@ tbody tr:last-child td {
   color: #231b16;
 }
 
+.document-preview-table-detail--collapsed {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .document-preview-totals {
   width: min(100%, 360px);
   justify-self: end;
@@ -15768,6 +15823,27 @@ tbody tr:last-child td {
 .document-preview-page--receipt .document-preview-totals {
   background: linear-gradient(180deg, #f7fcf7 0%, #eef7ef 100%);
   border-color: rgba(77, 123, 84, 0.14);
+}
+
+.document-preview-totals--inline {
+  width: 100%;
+  justify-self: stretch;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.document-preview-totals--inline div {
+  gap: 10px;
+}
+
+.document-preview-totals--inline .document-preview-total-row {
+  padding-top: 6px;
+}
+
+.document-preview-totals--inline .document-preview-total-row strong {
+  font-size: 1.02rem;
 }
 
 .document-preview-totals div {

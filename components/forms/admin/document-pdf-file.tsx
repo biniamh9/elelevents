@@ -106,6 +106,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  metaStrip: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eadcc9",
+    backgroundColor: "#fff",
+  },
+  metaStripRow: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 5,
+    alignItems: "baseline",
+  },
+  metaStripLabel: {
+    fontSize: 7.6,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+    color: "#6d5d4f",
+    fontWeight: 700,
+  },
+  metaStripValue: {
+    fontSize: 8.2,
+    fontWeight: 700,
+  },
   infoCard: {
     flexGrow: 1,
     borderRadius: 14,
@@ -399,6 +428,28 @@ const styles = StyleSheet.create({
   ultraFooterBrand: {
     fontSize: 8.4,
   },
+  inlineTotalsWrap: {
+    justifyContent: "flex-start",
+  },
+  inlineTotalsCard: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  inlineTotalRow: {
+    width: "48%",
+    gap: 8,
+  },
+  inlineTotalPrimary: {
+    paddingTop: 4,
+    fontSize: 8.9,
+  },
 });
 
 function getDocumentCopy(document: ClientDocumentWithRelations) {
@@ -456,6 +507,13 @@ function buildBillingSummaryRows(document: ClientDocumentWithRelations) {
   ].filter((entry) => entry.value);
 }
 
+function truncateDescription(value: string | null | undefined, maxLength = 52) {
+  if (!value) return "—";
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
 function getPdfDensityLevel(lineItemCount: number) {
   if (lineItemCount >= 14) return "ultra";
   if (lineItemCount >= 9) return "dense";
@@ -463,6 +521,22 @@ function getPdfDensityLevel(lineItemCount: number) {
 }
 
 function shouldHideOverflowSummaryBlock(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
+function shouldCollapseMetaStrip(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
+function shouldUseInlineTotals(input: {
   densityLevel: "normal" | "dense" | "ultra";
   printCompact: boolean;
   lineItemCount: number;
@@ -485,6 +559,18 @@ export default function DocumentPdfFile({
     printCompact,
     lineItemCount: document.line_items.length,
   });
+  const collapseMetaStrip = shouldCollapseMetaStrip({
+    densityLevel,
+    printCompact,
+    lineItemCount: document.line_items.length,
+  });
+  const useInlineTotals = shouldUseInlineTotals({
+    densityLevel,
+    printCompact,
+    lineItemCount: document.line_items.length,
+  });
+  const collapseLineItemDescriptions =
+    printCompact && densityLevel === "ultra" && document.line_items.length >= 14;
   const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact;
@@ -497,7 +583,19 @@ export default function DocumentPdfFile({
         { title: "Terms", value: document.payment_terms },
         { title: "Notes", value: document.notes },
       ].filter((entry) => entry.value);
-  const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
+  const billingSummaryRows = compact
+    ? [
+        ...buildBillingSummaryRows(document),
+        ...(!hideOverflowSummaryBlock && collapseLineItemDescriptions
+          ? document.line_items
+              .filter((item) => item.description && item.description.trim().length > 0)
+              .map((item) => ({
+                label: item.title,
+                value: item.description,
+              }))
+          : []),
+      ]
+    : [];
 
   return (
     <Document
@@ -576,44 +674,77 @@ export default function DocumentPdfFile({
             </View>
           </View>
 
-          <View style={[styles.infoGrid, compact ? styles.compactInfoGrid : null]}>
-            <View
-              style={[
-                styles.infoCard,
-                compact ? styles.compactInfoCard : null,
-                densityLevel === "dense" ? styles.denseInfoCard : null,
-                densityLevel === "ultra" ? styles.ultraInfoCard : null,
-              ]}
-            >
-              <Text style={styles.infoTitle}>Client</Text>
-              <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
-                {document.customer_name}
-              </Text>
-              <Text>{document.customer_email || "—"}</Text>
-              {!hideClientExtras ? <Text>{document.customer_phone || "—"}</Text> : null}
-            </View>
-            <View
-              style={[
-                styles.infoCard,
-                compact ? styles.compactInfoCard : null,
-                densityLevel === "dense" ? styles.denseInfoCard : null,
-                densityLevel === "ultra" ? styles.ultraInfoCard : null,
-              ]}
-            >
-              <Text style={styles.infoTitle}>Event</Text>
-              <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
-                {paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}
-              </Text>
-              <Text>{formatDocumentDate(document.event_date)}</Text>
-              {document.guest_count != null ? <Text>{document.guest_count} guests</Text> : null}
-              {!hideVenueDetails ? (
-                <Text>{document.venue_name || "Venue to be confirmed"}</Text>
+          {collapseMetaStrip ? (
+            <View style={styles.metaStrip}>
+              <View style={styles.metaStripRow}>
+                <Text style={styles.metaStripLabel}>Client</Text>
+                <Text style={styles.metaStripValue}>{document.customer_name}</Text>
+              </View>
+              <View style={styles.metaStripRow}>
+                <Text style={styles.metaStripLabel}>Event</Text>
+                <Text style={styles.metaStripValue}>
+                  {paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}
+                </Text>
+              </View>
+              <View style={styles.metaStripRow}>
+                <Text style={styles.metaStripLabel}>Date</Text>
+                <Text style={styles.metaStripValue}>
+                  {formatDocumentDate(document.event_date)}
+                </Text>
+              </View>
+              {document.guest_count != null ? (
+                <View style={styles.metaStripRow}>
+                  <Text style={styles.metaStripLabel}>Guests</Text>
+                  <Text style={styles.metaStripValue}>{String(document.guest_count)}</Text>
+                </View>
               ) : null}
-              {!hideVenueDetails && document.venue_address ? (
-                <Text>{document.venue_address}</Text>
+              {!hideVenueDetails && document.venue_name ? (
+                <View style={styles.metaStripRow}>
+                  <Text style={styles.metaStripLabel}>Venue</Text>
+                  <Text style={styles.metaStripValue}>{document.venue_name}</Text>
+                </View>
               ) : null}
             </View>
-          </View>
+          ) : (
+            <View style={[styles.infoGrid, compact ? styles.compactInfoGrid : null]}>
+              <View
+                style={[
+                  styles.infoCard,
+                  compact ? styles.compactInfoCard : null,
+                  densityLevel === "dense" ? styles.denseInfoCard : null,
+                  densityLevel === "ultra" ? styles.ultraInfoCard : null,
+                ]}
+              >
+                <Text style={styles.infoTitle}>Client</Text>
+                <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
+                  {document.customer_name}
+                </Text>
+                <Text>{document.customer_email || "—"}</Text>
+                {!hideClientExtras ? <Text>{document.customer_phone || "—"}</Text> : null}
+              </View>
+              <View
+                style={[
+                  styles.infoCard,
+                  compact ? styles.compactInfoCard : null,
+                  densityLevel === "dense" ? styles.denseInfoCard : null,
+                  densityLevel === "ultra" ? styles.ultraInfoCard : null,
+                ]}
+              >
+                <Text style={styles.infoTitle}>Event</Text>
+                <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
+                  {paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}
+                </Text>
+                <Text>{formatDocumentDate(document.event_date)}</Text>
+                {document.guest_count != null ? <Text>{document.guest_count} guests</Text> : null}
+                {!hideVenueDetails ? (
+                  <Text>{document.venue_name || "Venue to be confirmed"}</Text>
+                ) : null}
+                {!hideVenueDetails && document.venue_address ? (
+                  <Text>{document.venue_address}</Text>
+                ) : null}
+              </View>
+            </View>
+          )}
 
           <View style={styles.table}>
             <View style={styles.tableHeader}>
@@ -707,7 +838,11 @@ export default function DocumentPdfFile({
                     styles.colDetails,
                   ]}
                 >
-                  <Text>{item.description || "—"}</Text>
+                  <Text>
+                    {collapseLineItemDescriptions
+                      ? truncateDescription(item.description)
+                      : item.description || "—"}
+                  </Text>
                 </View>
                 <View
                   style={[
@@ -746,40 +881,46 @@ export default function DocumentPdfFile({
             ))}
           </View>
 
-          <View style={styles.totalsWrap}>
+          <View
+            style={[
+              styles.totalsWrap,
+              useInlineTotals ? styles.inlineTotalsWrap : null,
+            ]}
+          >
             <View
               style={[
                 styles.totalsCard,
                 compact ? styles.compactTotalsCard : null,
                 densityLevel === "dense" ? styles.denseTotalsCard : null,
                 densityLevel === "ultra" ? styles.ultraTotalsCard : null,
+                useInlineTotals ? styles.inlineTotalsCard : null,
               ]}
               wrap={false}
             >
-              <View style={styles.totalRow}>
+              <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                 <Text>Subtotal</Text>
                 <Text>${formatMoney(document.subtotal)}</Text>
               </View>
               {document.delivery_fee > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Delivery fee</Text>
                   <Text>${formatMoney(document.delivery_fee)}</Text>
                 </View>
               ) : null}
               {document.setup_fee > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Setup fee</Text>
                   <Text>${formatMoney(document.setup_fee)}</Text>
                 </View>
               ) : null}
               {document.discount_amount > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Discount</Text>
                   <Text>-${formatMoney(document.discount_amount)}</Text>
                 </View>
               ) : null}
               {document.tax_amount > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Tax</Text>
                   <Text>${formatMoney(document.tax_amount)}</Text>
                 </View>
@@ -787,28 +928,30 @@ export default function DocumentPdfFile({
               <View
                 style={[
                   styles.totalRow,
+                  useInlineTotals ? styles.inlineTotalRow : null,
                   styles.totalPrimary,
                   compact ? styles.compactTotalPrimary : null,
                   densityLevel === "dense" ? styles.denseTotalPrimary : null,
                   densityLevel === "ultra" ? styles.ultraTotalPrimary : null,
+                  useInlineTotals ? styles.inlineTotalPrimary : null,
                 ]}
               >
                 <Text>{copy.totalLabel}</Text>
                 <Text>${formatMoney(document.total_amount)}</Text>
               </View>
               {copy.showDeposit && document.deposit_required > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Deposit required</Text>
                   <Text>${formatMoney(document.deposit_required)}</Text>
                 </View>
               ) : null}
               {document.amount_paid > 0 ? (
-                <View style={styles.totalRow}>
+                <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                   <Text>Amount paid</Text>
                   <Text>${formatMoney(document.amount_paid)}</Text>
                 </View>
               ) : null}
-              <View style={styles.totalRow}>
+              <View style={[styles.totalRow, useInlineTotals ? styles.inlineTotalRow : null]}>
                 <Text>{copy.balanceLabel}</Text>
                 <Text>${formatMoney(document.balance_due)}</Text>
               </View>
