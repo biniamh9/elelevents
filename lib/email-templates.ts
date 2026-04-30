@@ -487,33 +487,28 @@ Warm regards,
     eyebrow: "Payment Received",
     subject: "Payment received – Thank you",
     intro:
-      "We’ve received your payment successfully. Your event record has been updated and planning will continue on schedule.",
+      "We’ve received your payment successfully. This message serves as your clean payment confirmation.",
     body: `Hi {{customer_first_name}},
 
 We’ve received your payment successfully.
 
-Event: {{event_type}}
-Event Date: {{event_date}}
 Payment Received: {{payment_amount}}
 
-Thank you for completing your payment. Your event is now fully confirmed.
-
-We’re excited to bring your vision to life and will follow up if any final details are needed.
+Thank you for completing your payment. Your record has been updated accordingly.
 
 Warm regards,
 {{business_name}}
 `,
     summaryTitle: "Payment confirmation",
     summaryRows: [
-      { label: "Event", value: "{{event_type}}" },
-      { label: "Event date", value: "{{event_date}}" },
+      { label: "Reference", value: "{{event_type}}" },
       { label: "Payment received", value: "{{payment_amount}}" },
     ],
     secondarySections: [
       {
-        title: "Next steps",
+        title: "Receipt details",
         content:
-          "Your payment has been logged successfully. We will continue planning, production coordination, and final event preparation on schedule.",
+          "Keep this confirmation for your records. Reply to this email if you need an updated invoice, receipt copy, or billing clarification.",
       },
     ],
     footerNote:
@@ -523,33 +518,28 @@ Warm regards,
     eyebrow: "Deposit Received",
     subject: "Payment received – Thank you",
     intro:
-      "We’ve received your deposit successfully. Your date is now moving forward through our reserved planning workflow.",
+      "We’ve received your deposit successfully. This message serves as your deposit receipt and confirmation.",
     body: `Hi {{customer_first_name}},
 
 We’ve received your payment successfully.
 
-Event: {{event_type}}
-Event Date: {{event_date}}
 Deposit Received: {{payment_amount}}
 
-Thank you for completing your payment. Your date is now moving forward in our reserved planning workflow.
-
-We’re excited to bring your vision to life and will follow up if any final details are needed.
+Thank you for completing your deposit. Your record has been updated and your planning file continues moving forward.
 
 Warm regards,
 {{business_name}}
 `,
     summaryTitle: "Deposit confirmation",
     summaryRows: [
-      { label: "Event", value: "{{event_type}}" },
-      { label: "Event date", value: "{{event_date}}" },
+      { label: "Reference", value: "{{event_type}}" },
       { label: "Deposit received", value: "{{payment_amount}}" },
     ],
     secondarySections: [
       {
-        title: "Next steps",
+        title: "Receipt details",
         content:
-          "Your deposit has been logged and your event is moving forward in our reserved planning workflow. We will continue with scope refinement, scheduling, and production preparation.",
+          "Keep this deposit confirmation for your records. Reply if you need updated billing documentation or a copy of the remaining payment schedule.",
       },
     ],
     footerNote:

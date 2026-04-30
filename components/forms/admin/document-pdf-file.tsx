@@ -13,31 +13,31 @@ import {
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 40,
-    paddingBottom: 42,
-    paddingHorizontal: 40,
+    paddingTop: 30,
+    paddingBottom: 32,
+    paddingHorizontal: 30,
     backgroundColor: "#fffdf9",
     color: "#231b16",
-    fontSize: 10.5,
-    lineHeight: 1.45,
+    fontSize: 9.8,
+    lineHeight: 1.34,
   },
   stack: {
     display: "flex",
     flexDirection: "column",
-    gap: 18,
+    gap: 14,
   },
   header: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 18,
+    gap: 16,
   },
   brandBlock: {
     flexGrow: 1,
     maxWidth: "62%",
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: 6,
   },
   eyebrow: {
     fontSize: 9,
@@ -59,23 +59,23 @@ const styles = StyleSheet.create({
     color: "#8c5327",
   },
   heading: {
-    fontSize: 28,
-    lineHeight: 0.98,
+    fontSize: 24,
+    lineHeight: 1,
     fontWeight: 700,
   },
   muted: {
     color: "#6d5d4f",
   },
   metaCard: {
-    width: 220,
-    borderRadius: 18,
-    padding: 16,
+    width: 208,
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
     borderColor: "#e5d5c1",
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: 6,
   },
   status: {
     fontSize: 8.5,
@@ -104,18 +104,18 @@ const styles = StyleSheet.create({
   infoGrid: {
     display: "flex",
     flexDirection: "row",
-    gap: 14,
+    gap: 12,
   },
   infoCard: {
     flexGrow: 1,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
     borderColor: "#eadcc9",
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: "column",
-    gap: 6,
+    gap: 5,
   },
   infoTitle: {
     fontSize: 8.5,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   table: {
     borderWidth: 1,
     borderColor: "#eadcc9",
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: "hidden",
     backgroundColor: "#fff",
   },
@@ -149,9 +149,9 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f0e7dc",
   },
   cell: {
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    fontSize: 9.5,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    fontSize: 8.8,
   },
   colItem: { width: "22%" },
   colDetails: { width: "32%" },
@@ -171,15 +171,15 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   totalsCard: {
-    width: 260,
-    borderRadius: 16,
-    padding: 16,
+    width: 236,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
     borderColor: "#eadcc9",
     backgroundColor: "#fbf7f1",
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: 6,
   },
   totalRow: {
     display: "flex",
@@ -188,31 +188,31 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   totalPrimary: {
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: "#dbc9b5",
-    fontSize: 11.5,
+    fontSize: 10.5,
     fontWeight: 700,
   },
   notesGrid: {
     display: "flex",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: 10,
   },
   notesCard: {
     width: "48%",
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 12,
+    padding: 12,
     borderWidth: 1,
     borderColor: "#eadcc9",
     backgroundColor: "#fffdfa",
     display: "flex",
     flexDirection: "column",
-    gap: 6,
+    gap: 4,
   },
   footer: {
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: "#eadcc9",
     display: "flex",
@@ -224,11 +224,11 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   compactPage: {
-    paddingTop: 28,
-    paddingBottom: 30,
-    paddingHorizontal: 28,
-    fontSize: 9.5,
-    lineHeight: 1.32,
+    paddingTop: 24,
+    paddingBottom: 26,
+    paddingHorizontal: 24,
+    fontSize: 9.1,
+    lineHeight: 1.26,
   },
   compactStack: {
     gap: 12,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     maxWidth: "58%",
   },
   compactHeading: {
-    fontSize: 21,
+    fontSize: 18.5,
     lineHeight: 1.02,
   },
   compactLabel: {
@@ -250,45 +250,45 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
   compactMetaCard: {
-    width: 200,
-    padding: 12,
-    borderRadius: 14,
+    width: 184,
+    padding: 10,
+    borderRadius: 12,
     gap: 6,
   },
   compactInfoGrid: {
     gap: 10,
   },
   compactInfoCard: {
-    padding: 12,
+    padding: 10,
     borderRadius: 12,
     gap: 4,
   },
   compactCardTitle: {
-    fontSize: 10.5,
+    fontSize: 9.8,
   },
   compactTableCell: {
-    paddingVertical: 7,
-    paddingHorizontal: 8,
-    fontSize: 8.6,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    fontSize: 8,
   },
   compactTableHeaderText: {
     fontSize: 7.2,
   },
   compactTotalsCard: {
-    width: 230,
-    padding: 12,
+    width: 212,
+    padding: 10,
     borderRadius: 12,
-    gap: 6,
+    gap: 5,
   },
   compactTotalPrimary: {
-    paddingTop: 8,
-    fontSize: 10.5,
+    paddingTop: 6,
+    fontSize: 9.8,
   },
   compactNotesGrid: {
-    gap: 8,
+    gap: 6,
   },
   compactNotesCard: {
-    padding: 10,
+    padding: 9,
     borderRadius: 10,
     gap: 4,
   },
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   compactSummaryLabel: {
-    fontSize: 7.4,
+    fontSize: 7,
     textTransform: "uppercase",
     letterSpacing: 0.7,
     fontWeight: 700,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   compactFooterBrand: {
-    fontSize: 10,
+    fontSize: 9.2,
   },
 });
 
@@ -395,7 +395,7 @@ export default function DocumentPdfFile({
       creator="Elel Events & Design"
       producer="Elel Events & Design"
     >
-      <Page size="A4" style={[styles.page, compact ? styles.compactPage : null]}>
+      <Page size="LETTER" style={[styles.page, compact ? styles.compactPage : null]}>
         <View style={[styles.stack, compact ? styles.compactStack : null]}>
           <View style={[styles.header, compact ? styles.compactHeader : null]}>
             <View style={[styles.brandBlock, compact ? styles.compactBrandBlock : null]}>
