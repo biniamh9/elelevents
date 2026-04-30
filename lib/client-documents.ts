@@ -226,6 +226,7 @@ export function createBlankDocument(type: ClientDocumentType): ClientDocumentWit
     customer_phone: null,
     event_type: null,
     event_date: null,
+    guest_count: null,
     venue_name: null,
     venue_address: null,
     notes: null,

@@ -10,10 +10,14 @@ export default function ClientEventDetailsCard({
     customer_phone: string | null;
     event_type: string | null;
     event_date: string | null;
+    guest_count: number | null;
     venue_name: string | null;
     venue_address: string | null;
   };
-  onChange: (key: keyof typeof values, value: string | null) => void;
+  onChange: (
+    key: keyof typeof values,
+    value: string | number | null
+  ) => void;
 }) {
   return (
     <section className="card admin-document-section">
@@ -64,6 +68,21 @@ export default function ClientEventDetailsCard({
             type="date"
             value={values.event_date ?? ""}
             onChange={(event) => onChange("event_date", event.target.value || null)}
+          />
+        </div>
+        <div className="field">
+          <label className="label">Guest Count</label>
+          <input
+            className="input"
+            type="number"
+            min="0"
+            value={values.guest_count ?? ""}
+            onChange={(event) =>
+              onChange(
+                "guest_count",
+                event.target.value === "" ? null : Number(event.target.value)
+              )
+            }
           />
         </div>
         <div className="field">

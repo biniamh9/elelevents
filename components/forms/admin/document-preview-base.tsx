@@ -23,6 +23,14 @@ function getDocumentDensityLevel(lineItemCount: number) {
   return "normal";
 }
 
+function shouldHideOverflowSummaryBlock(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
 function PreviewTable({
   lineItems,
   compact = false,
@@ -110,6 +118,11 @@ export default function DocumentPreviewBase({
 }) {
   const compact = density === "compact" || printCompact;
   const densityLevel = getDocumentDensityLevel(lineItems.length);
+  const hideOverflowSummaryBlock = shouldHideOverflowSummaryBlock({
+    densityLevel,
+    printCompact,
+    lineItemCount: lineItems.length,
+  });
   const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact;
@@ -205,67 +218,69 @@ export default function DocumentPreviewBase({
           <div><span>{balanceLabel}</span><strong>${formatMoney(document.balance_due)}</strong></div>
         </div>
 
-        <div className="document-preview-notes">
-          {compact && billingSummaryRows.length ? (
-            <div className="document-preview-billing-summary">
-              <p className="eyebrow">
-                {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
-              </p>
-              <div className="document-preview-billing-summary-list">
-                {billingSummaryRows.map((entry) => (
-                  <div key={entry.label} className="document-preview-billing-summary-row">
-                    <strong>{entry.label}</strong>
-                    <p>{entry.value}</p>
-                  </div>
-                ))}
+        {!hideOverflowSummaryBlock ? (
+          <div className="document-preview-notes">
+            {compact && billingSummaryRows.length ? (
+              <div className="document-preview-billing-summary">
+                <p className="eyebrow">
+                  {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
+                </p>
+                <div className="document-preview-billing-summary-list">
+                  {billingSummaryRows.map((entry) => (
+                    <div key={entry.label} className="document-preview-billing-summary-row">
+                      <strong>{entry.label}</strong>
+                      <p>{entry.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : null}
-          {!compact && document.inclusions ? (
-            <div>
-              <p className="eyebrow">What’s included</p>
-              <p>{document.inclusions}</p>
-            </div>
-          ) : null}
-          {!compact && document.exclusions ? (
-            <div>
-              <p className="eyebrow">Exclusions / assumptions</p>
-              <p>{document.exclusions}</p>
-            </div>
-          ) : null}
-          {!compact && document.payment_instructions ? (
-            <div>
-              <p className="eyebrow">Payment instructions</p>
-              <p>{document.payment_instructions}</p>
-            </div>
-          ) : null}
-          {!compact && document.payment_terms ? (
-            <div>
-              <p className="eyebrow">Terms</p>
-              <p>{document.payment_terms}</p>
-            </div>
-          ) : null}
-          {!compact && document.notes ? (
-            <div>
-              <p className="eyebrow">Notes</p>
-              <p>{document.notes}</p>
-            </div>
-          ) : null}
-          {payments?.length ? (
-            <div>
-              <p className="eyebrow">Payments received</p>
-              <div className="document-preview-payments">
-                {payments.map((payment) => (
-                  <div key={payment.id}>
-                    <span>{formatDocumentDate(payment.payment_date)}</span>
-                    <strong>${formatMoney(payment.amount)}</strong>
-                    <p>{payment.payment_method || "Payment recorded"}</p>
-                  </div>
-                ))}
+            ) : null}
+            {!compact && document.inclusions ? (
+              <div>
+                <p className="eyebrow">What’s included</p>
+                <p>{document.inclusions}</p>
               </div>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+            {!compact && document.exclusions ? (
+              <div>
+                <p className="eyebrow">Exclusions / assumptions</p>
+                <p>{document.exclusions}</p>
+              </div>
+            ) : null}
+            {!compact && document.payment_instructions ? (
+              <div>
+                <p className="eyebrow">Payment instructions</p>
+                <p>{document.payment_instructions}</p>
+              </div>
+            ) : null}
+            {!compact && document.payment_terms ? (
+              <div>
+                <p className="eyebrow">Terms</p>
+                <p>{document.payment_terms}</p>
+              </div>
+            ) : null}
+            {!compact && document.notes ? (
+              <div>
+                <p className="eyebrow">Notes</p>
+                <p>{document.notes}</p>
+              </div>
+            ) : null}
+            {payments?.length ? (
+              <div>
+                <p className="eyebrow">Payments received</p>
+                <div className="document-preview-payments">
+                  {payments.map((payment) => (
+                    <div key={payment.id}>
+                      <span>{formatDocumentDate(payment.payment_date)}</span>
+                      <strong>${formatMoney(payment.amount)}</strong>
+                      <p>{payment.payment_method || "Payment recorded"}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {actionCopy ? <div className="document-preview-footer-callout">{actionCopy}</div> : null}

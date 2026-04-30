@@ -75,6 +75,10 @@ export async function POST(request: Request) {
       customer_phone: body.customer_phone || null,
       event_type: body.event_type || null,
       event_date: body.event_date || null,
+      guest_count:
+        body.guest_count == null || body.guest_count === ""
+          ? null
+          : Number(body.guest_count),
       venue_name: body.venue_name || null,
       venue_address: body.venue_address || null,
       notes: body.notes || null,

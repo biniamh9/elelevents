@@ -462,6 +462,14 @@ function getPdfDensityLevel(lineItemCount: number) {
   return "normal";
 }
 
+function shouldHideOverflowSummaryBlock(input: {
+  densityLevel: "normal" | "dense" | "ultra";
+  printCompact: boolean;
+  lineItemCount: number;
+}) {
+  return input.printCompact && input.densityLevel === "ultra" && input.lineItemCount >= 14;
+}
+
 export default function DocumentPdfFile({
   document,
   printCompact = false,
@@ -472,6 +480,11 @@ export default function DocumentPdfFile({
   const copy = getDocumentCopy(document);
   const compact = document.document_type !== "quote" || printCompact;
   const densityLevel = getPdfDensityLevel(document.line_items.length);
+  const hideOverflowSummaryBlock = shouldHideOverflowSummaryBlock({
+    densityLevel,
+    printCompact,
+    lineItemCount: document.line_items.length,
+  });
   const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact;
@@ -802,60 +815,62 @@ export default function DocumentPdfFile({
             </View>
           </View>
 
-          <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
-            {compact && billingSummaryRows.length ? (
-              <View
-                style={[
-                  styles.notesCard,
-                  styles.compactNotesCard,
-                  densityLevel === "dense" ? styles.denseNotesCard : null,
-                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
-                ]}
-              >
-                <Text style={styles.eyebrow}>
-                  {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
-                </Text>
-                {billingSummaryRows.map((entry) => (
-                  <View key={entry.label} style={styles.compactSummaryRow}>
-                    <Text style={styles.compactSummaryLabel}>{entry.label}</Text>
-                    <Text>{entry.value}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-            {noteCards.map((entry) => (
-              <View
-                key={entry.title}
-                style={[
-                  styles.notesCard,
-                  compact ? styles.compactNotesCard : null,
-                  densityLevel === "dense" ? styles.denseNotesCard : null,
-                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
-                ]}
-              >
-                <Text style={styles.eyebrow}>{entry.title}</Text>
-                <Text>{entry.value}</Text>
-              </View>
-            ))}
-            {document.payments.length ? (
-              <View
-                style={[
-                  styles.notesCard,
-                  compact ? styles.compactNotesCard : null,
-                  densityLevel === "dense" ? styles.denseNotesCard : null,
-                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
-                ]}
-              >
-                <Text style={styles.eyebrow}>Payments received</Text>
-                {document.payments.map((payment) => (
-                  <View key={payment.id} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    <Text>{formatDocumentDate(payment.payment_date)} · ${formatMoney(payment.amount)}</Text>
-                    <Text style={styles.muted}>{payment.payment_method || "Payment recorded"}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-          </View>
+          {!hideOverflowSummaryBlock ? (
+            <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
+              {compact && billingSummaryRows.length ? (
+                <View
+                  style={[
+                    styles.notesCard,
+                    styles.compactNotesCard,
+                    densityLevel === "dense" ? styles.denseNotesCard : null,
+                    densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                  ]}
+                >
+                  <Text style={styles.eyebrow}>
+                    {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
+                  </Text>
+                  {billingSummaryRows.map((entry) => (
+                    <View key={entry.label} style={styles.compactSummaryRow}>
+                      <Text style={styles.compactSummaryLabel}>{entry.label}</Text>
+                      <Text>{entry.value}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              {noteCards.map((entry) => (
+                <View
+                  key={entry.title}
+                  style={[
+                    styles.notesCard,
+                    compact ? styles.compactNotesCard : null,
+                    densityLevel === "dense" ? styles.denseNotesCard : null,
+                    densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                  ]}
+                >
+                  <Text style={styles.eyebrow}>{entry.title}</Text>
+                  <Text>{entry.value}</Text>
+                </View>
+              ))}
+              {document.payments.length ? (
+                <View
+                  style={[
+                    styles.notesCard,
+                    compact ? styles.compactNotesCard : null,
+                    densityLevel === "dense" ? styles.denseNotesCard : null,
+                    densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                  ]}
+                >
+                  <Text style={styles.eyebrow}>Payments received</Text>
+                  {document.payments.map((payment) => (
+                    <View key={payment.id} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      <Text>{formatDocumentDate(payment.payment_date)} · ${formatMoney(payment.amount)}</Text>
+                      <Text style={styles.muted}>{payment.payment_method || "Payment recorded"}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
 
           <View style={[styles.footer, compact ? styles.compactFooter : null]}>
             <Text

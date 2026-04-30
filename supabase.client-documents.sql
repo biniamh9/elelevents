@@ -23,6 +23,7 @@ create table if not exists client_documents (
   customer_phone text,
   event_type text,
   event_date date,
+  guest_count integer check (guest_count is null or guest_count >= 0),
   venue_name text,
   venue_address text,
   notes text,

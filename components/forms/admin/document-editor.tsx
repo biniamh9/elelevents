@@ -267,6 +267,7 @@ export default function DocumentEditor({
               customer_phone: document.customer_phone,
               event_type: document.event_type,
               event_date: document.event_date,
+              guest_count: document.guest_count ?? null,
               venue_name: document.venue_name,
               venue_address: document.venue_address,
             }}
