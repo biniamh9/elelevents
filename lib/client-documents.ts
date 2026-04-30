@@ -54,6 +54,7 @@ export type ClientDocumentRecord = {
   customer_phone: string | null;
   event_type: string | null;
   event_date: string | null;
+  guest_count?: number | null;
   venue_name: string | null;
   venue_address: string | null;
   notes: string | null;
@@ -90,6 +91,7 @@ export type DocumentSeedContext = {
     phone: string | null;
     event_type: string | null;
     event_date: string | null;
+    guest_count?: number | null;
     venue_name: string | null;
     venue_address: string | null;
   } | null;
@@ -100,6 +102,7 @@ export type DocumentSeedContext = {
     client_phone: string | null;
     event_type: string | null;
     event_date: string | null;
+    guest_count?: number | null;
     venue_name: string | null;
     venue_address: string | null;
     contract_total: number | null;
@@ -258,6 +261,7 @@ export function seedDocumentFromContext(
   const customerPhone = context.contract?.client_phone ?? context.inquiry?.phone ?? null;
   const eventType = context.contract?.event_type ?? context.inquiry?.event_type ?? null;
   const eventDate = context.contract?.event_date ?? context.inquiry?.event_date ?? null;
+  const guestCount = context.contract?.guest_count ?? context.inquiry?.guest_count ?? null;
   const venueName = context.contract?.venue_name ?? context.inquiry?.venue_name ?? null;
   const venueAddress = context.contract?.venue_address ?? context.inquiry?.venue_address ?? null;
 
@@ -388,6 +392,7 @@ export function seedDocumentFromContext(
     customer_phone: customerPhone,
     event_type: eventType,
     event_date: eventDate,
+    guest_count: guestCount,
     venue_name: venueName,
     venue_address: venueAddress,
     line_items: lineItems,

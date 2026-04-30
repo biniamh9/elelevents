@@ -110,9 +110,9 @@ export default function DocumentPreviewBase({
 }) {
   const compact = density === "compact" || printCompact;
   const densityLevel = getDocumentDensityLevel(lineItems.length);
-  const receiptCompact = compact && document.document_type === "receipt";
+  const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
-  const hideVenueDetails = printCompact || receiptCompact;
+  const hideVenueDetails = printCompact;
   const billingSummaryRows = compact ? buildBillingSummaryRows(document) : [];
 
   return (
@@ -161,8 +161,9 @@ export default function DocumentPreviewBase({
         </div>
         <div className="document-preview-info-card">
           <p className="eyebrow">Event</p>
-          <strong>{receiptCompact ? "Payment record" : document.event_type || "Event"}</strong>
+          <strong>{paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}</strong>
           <p>{formatDocumentDate(document.event_date)}</p>
+          {document.guest_count != null ? <p>{document.guest_count} guests</p> : null}
           {!hideVenueDetails ? (
             <p>{document.venue_name || "Venue to be confirmed"}</p>
           ) : null}

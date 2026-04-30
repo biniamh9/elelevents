@@ -472,9 +472,9 @@ export default function DocumentPdfFile({
   const copy = getDocumentCopy(document);
   const compact = document.document_type !== "quote" || printCompact;
   const densityLevel = getPdfDensityLevel(document.line_items.length);
-  const receiptCompact = compact && document.document_type === "receipt";
+  const paymentOnlyReceipt = printCompact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
-  const hideVenueDetails = printCompact || receiptCompact;
+  const hideVenueDetails = printCompact;
   const noteCards = compact
     ? []
     : [
@@ -589,9 +589,10 @@ export default function DocumentPdfFile({
             >
               <Text style={styles.infoTitle}>Event</Text>
               <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
-                {receiptCompact ? "Payment record" : document.event_type || "Event"}
+                {paymentOnlyReceipt ? "Payment record" : document.event_type || "Event"}
               </Text>
               <Text>{formatDocumentDate(document.event_date)}</Text>
+              {document.guest_count != null ? <Text>{document.guest_count} guests</Text> : null}
               {!hideVenueDetails ? (
                 <Text>{document.venue_name || "Venue to be confirmed"}</Text>
               ) : null}

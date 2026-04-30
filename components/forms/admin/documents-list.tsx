@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildDocumentDetailHref,
   buildDocumentPdfHref,
@@ -20,6 +20,29 @@ export default function DocumentsList({
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRootRef.current) return;
+      if (menuRootRef.current.contains(event.target as Node)) return;
+      setOpenMenuId(null);
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const filteredDocuments = useMemo(
     () =>
@@ -47,7 +70,7 @@ export default function DocumentsList({
   );
 
   return (
-    <div className="admin-record-section">
+    <div className="admin-record-section" ref={menuRootRef}>
       <div className="card admin-table-card admin-management-card">
         <div className="admin-panel-head">
           <div>
@@ -132,8 +155,18 @@ export default function DocumentsList({
                     <td><DocumentStatusBadge status={document.status} /></td>
                     <td>{formatDocumentDate(document.created_at)}</td>
                     <td>
-                      <details className="admin-row-action-shell admin-document-action-shell">
-                        <summary className="admin-row-action-trigger admin-row-action-trigger--text">
+                      <div className="admin-row-action-shell admin-document-action-shell">
+                        <button
+                          type="button"
+                          className="admin-row-action-trigger admin-row-action-trigger--text"
+                          onClick={() =>
+                            setOpenMenuId((current) =>
+                              current === document.id ? null : document.id
+                            )
+                          }
+                          aria-haspopup="menu"
+                          aria-expanded={openMenuId === document.id}
+                        >
                           <span>Actions</span>
                           <svg viewBox="0 0 20 20" aria-hidden="true">
                             <path
@@ -145,55 +178,61 @@ export default function DocumentsList({
                               strokeLinejoin="round"
                             />
                           </svg>
-                        </summary>
+                        </button>
 
-                        <div className="admin-row-action-dropdown admin-document-action-dropdown">
-                          <div className="admin-row-action-group">
-                            <p className="admin-row-action-group-label">Output</p>
-                            <Link
-                              href={buildDocumentPdfHref(document.id)}
-                              className="admin-table-text-action"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Open PDF
-                            </Link>
-                            <Link
-                              href={buildDocumentOutputHref(document.id, {
-                                autoprint: true,
-                                intent: "print",
-                                compact: true,
-                              })}
-                              className="admin-table-text-action"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Print
-                            </Link>
-                            <Link
-                              href={buildDocumentPdfHref(document.id, {
-                                download: true,
-                                compact: true,
-                              })}
-                              className="admin-table-text-action"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Download PDF
-                            </Link>
-                          </div>
+                        {openMenuId === document.id ? (
+                          <div className="admin-row-action-dropdown admin-document-action-dropdown">
+                            <div className="admin-row-action-group">
+                              <p className="admin-row-action-group-label">Output</p>
+                              <Link
+                                href={buildDocumentPdfHref(document.id)}
+                                className="admin-table-text-action"
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                Open PDF
+                              </Link>
+                              <Link
+                                href={buildDocumentOutputHref(document.id, {
+                                  autoprint: true,
+                                  intent: "print",
+                                  compact: true,
+                                })}
+                                className="admin-table-text-action"
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                Print
+                              </Link>
+                              <Link
+                                href={buildDocumentPdfHref(document.id, {
+                                  download: true,
+                                  compact: true,
+                                })}
+                                className="admin-table-text-action"
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                Download PDF
+                              </Link>
+                            </div>
 
-                          <div className="admin-row-action-group">
-                            <p className="admin-row-action-group-label">Record</p>
-                            <Link
-                              href={buildDocumentDetailHref(document.id)}
-                              className="admin-table-text-action admin-table-text-action--muted"
-                            >
-                              Edit Document
-                            </Link>
+                            <div className="admin-row-action-group">
+                              <p className="admin-row-action-group-label">Record</p>
+                              <Link
+                                href={buildDocumentDetailHref(document.id)}
+                                className="admin-table-text-action admin-table-text-action--muted"
+                                onClick={() => setOpenMenuId(null)}
+                              >
+                                Edit Document
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                      </details>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
