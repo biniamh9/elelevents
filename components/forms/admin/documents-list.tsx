@@ -138,7 +138,7 @@ export default function DocumentsList({
             </thead>
             <tbody>
               {filteredDocuments.length ? (
-                filteredDocuments.map((document) => (
+                filteredDocuments.map((document, index) => (
                   <tr key={document.id}>
                     <td>
                       <div className="admin-record-main">
@@ -181,7 +181,13 @@ export default function DocumentsList({
                         </button>
 
                         {openMenuId === document.id ? (
-                          <div className="admin-row-action-dropdown admin-document-action-dropdown">
+                          <div
+                            className={`admin-row-action-dropdown admin-document-action-dropdown${
+                              index >= filteredDocuments.length - 2
+                                ? " admin-row-action-dropdown--up"
+                                : ""
+                            }`}
+                          >
                             <div className="admin-row-action-group">
                               <p className="admin-row-action-group-label">Output</p>
                               <Link
