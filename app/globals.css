@@ -15413,6 +15413,14 @@ tbody tr:last-child td {
   padding: 28px;
 }
 
+.document-preview-page--dense {
+  gap: 18px;
+}
+
+.document-preview-page--ultra {
+  gap: 16px;
+}
+
 .document-preview-page--quote {
   background:
     linear-gradient(180deg, rgba(255, 248, 241, 0.98) 0%, rgba(252, 245, 236, 0.98) 100%);
@@ -15485,6 +15493,14 @@ tbody tr:last-child td {
 .document-preview-page--compact .document-preview-header h2 {
   font-size: 2.15rem;
   line-height: 1;
+}
+
+.document-preview-page--dense .document-preview-header h2 {
+  font-size: 2rem;
+}
+
+.document-preview-page--ultra .document-preview-header h2 {
+  font-size: 1.82rem;
 }
 
 .document-preview-meta-card {
@@ -15602,6 +15618,16 @@ tbody tr:last-child td {
   border-radius: 22px;
 }
 
+.document-preview-page--dense .document-preview-sheet {
+  gap: 16px;
+  padding: 20px;
+}
+
+.document-preview-page--ultra .document-preview-sheet {
+  gap: 14px;
+  padding: 18px;
+}
+
 .document-preview-page--quote .document-preview-sheet {
   box-shadow: 0 20px 46px rgba(92, 60, 26, 0.1);
 }
@@ -15636,6 +15662,22 @@ tbody tr:last-child td {
 
 .document-preview-table--compact th {
   font-size: 0.73rem;
+}
+
+.document-preview-table--dense th,
+.document-preview-table--dense td {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.document-preview-table--ultra th,
+.document-preview-table--ultra td {
+  padding: 7px 8px;
+  font-size: 0.88rem;
+}
+
+.document-preview-table--ultra th {
+  font-size: 0.7rem;
 }
 
 .document-preview-table th {
@@ -15700,6 +15742,17 @@ tbody tr:last-child td {
   gap: 9px;
   padding: 18px;
   border-radius: 18px;
+}
+
+.document-preview-page--dense .document-preview-totals {
+  gap: 8px;
+  padding: 16px;
+}
+
+.document-preview-page--ultra .document-preview-totals {
+  width: min(100%, 300px);
+  gap: 6px;
+  padding: 14px;
 }
 
 .document-preview-page--quote .document-preview-totals {
@@ -15772,6 +15825,14 @@ tbody tr:last-child td {
   gap: 12px;
 }
 
+.document-preview-page--dense .document-preview-notes {
+  gap: 10px;
+}
+
+.document-preview-page--ultra .document-preview-notes {
+  gap: 8px;
+}
+
 .document-preview-notes p {
   margin: 0;
   line-height: 1.7;
@@ -15790,6 +15851,15 @@ tbody tr:last-child td {
   gap: 8px;
   padding: 16px;
   border-radius: 16px;
+}
+
+.document-preview-page--dense .document-preview-notes > div {
+  padding: 14px;
+}
+
+.document-preview-page--ultra .document-preview-notes > div {
+  gap: 6px;
+  padding: 12px;
 }
 
 .document-preview-billing-summary-list {

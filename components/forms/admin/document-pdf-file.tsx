@@ -311,6 +311,94 @@ const styles = StyleSheet.create({
   compactFooterBrand: {
     fontSize: 9.2,
   },
+  densePage: {
+    paddingTop: 22,
+    paddingBottom: 24,
+    paddingHorizontal: 22,
+  },
+  ultraPage: {
+    paddingTop: 18,
+    paddingBottom: 20,
+    paddingHorizontal: 18,
+  },
+  denseStack: {
+    gap: 10,
+  },
+  ultraStack: {
+    gap: 8,
+  },
+  denseHeading: {
+    fontSize: 17,
+  },
+  ultraHeading: {
+    fontSize: 15.5,
+  },
+  denseMetaCard: {
+    width: 174,
+    padding: 9,
+    gap: 5,
+  },
+  ultraMetaCard: {
+    width: 164,
+    padding: 8,
+    gap: 4,
+  },
+  denseInfoCard: {
+    padding: 9,
+    gap: 3,
+  },
+  ultraInfoCard: {
+    padding: 8,
+    gap: 3,
+  },
+  denseTableCell: {
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    fontSize: 7.6,
+  },
+  ultraTableCell: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    fontSize: 7.1,
+  },
+  denseTableHeaderText: {
+    fontSize: 6.8,
+  },
+  ultraTableHeaderText: {
+    fontSize: 6.4,
+  },
+  denseTotalsCard: {
+    width: 200,
+    padding: 9,
+    gap: 4,
+  },
+  ultraTotalsCard: {
+    width: 188,
+    padding: 8,
+    gap: 4,
+  },
+  denseTotalPrimary: {
+    paddingTop: 5,
+    fontSize: 9.1,
+  },
+  ultraTotalPrimary: {
+    paddingTop: 4,
+    fontSize: 8.6,
+  },
+  denseNotesCard: {
+    padding: 8,
+    gap: 3,
+  },
+  ultraNotesCard: {
+    padding: 7,
+    gap: 3,
+  },
+  denseFooterBrand: {
+    fontSize: 8.8,
+  },
+  ultraFooterBrand: {
+    fontSize: 8.4,
+  },
 });
 
 function getDocumentCopy(document: ClientDocumentWithRelations) {
@@ -368,6 +456,12 @@ function buildBillingSummaryRows(document: ClientDocumentWithRelations) {
   ].filter((entry) => entry.value);
 }
 
+function getPdfDensityLevel(lineItemCount: number) {
+  if (lineItemCount >= 14) return "ultra";
+  if (lineItemCount >= 9) return "dense";
+  return "normal";
+}
+
 export default function DocumentPdfFile({
   document,
   printCompact = false,
@@ -377,6 +471,7 @@ export default function DocumentPdfFile({
 }) {
   const copy = getDocumentCopy(document);
   const compact = document.document_type !== "quote" || printCompact;
+  const densityLevel = getPdfDensityLevel(document.line_items.length);
   const receiptCompact = compact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact || receiptCompact;
@@ -399,17 +494,48 @@ export default function DocumentPdfFile({
       creator="Elel Events & Design"
       producer="Elel Events & Design"
     >
-      <Page size="LETTER" style={[styles.page, compact ? styles.compactPage : null]}>
-        <View style={[styles.stack, compact ? styles.compactStack : null]}>
+      <Page
+        size="LETTER"
+        style={[
+          styles.page,
+          compact ? styles.compactPage : null,
+          densityLevel === "dense" ? styles.densePage : null,
+          densityLevel === "ultra" ? styles.ultraPage : null,
+        ]}
+      >
+        <View
+          style={[
+            styles.stack,
+            compact ? styles.compactStack : null,
+            densityLevel === "dense" ? styles.denseStack : null,
+            densityLevel === "ultra" ? styles.ultraStack : null,
+          ]}
+        >
           <View style={[styles.header, compact ? styles.compactHeader : null]}>
             <View style={[styles.brandBlock, compact ? styles.compactBrandBlock : null]}>
               <Text style={styles.eyebrow}>Elel Events & Design</Text>
               <Text style={[styles.label, compact ? styles.compactLabel : null]}>{copy.label}</Text>
               <Text style={styles.muted}>{copy.message}</Text>
-              <Text style={[styles.heading, compact ? styles.compactHeading : null]}>{copy.heading}</Text>
+              <Text
+                style={[
+                  styles.heading,
+                  compact ? styles.compactHeading : null,
+                  densityLevel === "dense" ? styles.denseHeading : null,
+                  densityLevel === "ultra" ? styles.ultraHeading : null,
+                ]}
+              >
+                {copy.heading}
+              </Text>
             </View>
 
-            <View style={[styles.metaCard, compact ? styles.compactMetaCard : null]}>
+            <View
+              style={[
+                styles.metaCard,
+                compact ? styles.compactMetaCard : null,
+                densityLevel === "dense" ? styles.denseMetaCard : null,
+                densityLevel === "ultra" ? styles.ultraMetaCard : null,
+              ]}
+            >
               <Text style={styles.status}>{document.status}</Text>
               <Text style={styles.muted}>{copy.emphasis}</Text>
               <View style={styles.metaRow}>
@@ -438,7 +564,14 @@ export default function DocumentPdfFile({
           </View>
 
           <View style={[styles.infoGrid, compact ? styles.compactInfoGrid : null]}>
-            <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
+            <View
+              style={[
+                styles.infoCard,
+                compact ? styles.compactInfoCard : null,
+                densityLevel === "dense" ? styles.denseInfoCard : null,
+                densityLevel === "ultra" ? styles.ultraInfoCard : null,
+              ]}
+            >
               <Text style={styles.infoTitle}>Client</Text>
               <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
                 {document.customer_name}
@@ -446,7 +579,14 @@ export default function DocumentPdfFile({
               <Text>{document.customer_email || "—"}</Text>
               {!hideClientExtras ? <Text>{document.customer_phone || "—"}</Text> : null}
             </View>
-            <View style={[styles.infoCard, compact ? styles.compactInfoCard : null]}>
+            <View
+              style={[
+                styles.infoCard,
+                compact ? styles.compactInfoCard : null,
+                densityLevel === "dense" ? styles.denseInfoCard : null,
+                densityLevel === "ultra" ? styles.ultraInfoCard : null,
+              ]}
+            >
               <Text style={styles.infoTitle}>Event</Text>
               <Text style={[styles.cardTitle, compact ? styles.compactCardTitle : null]}>
                 {receiptCompact ? "Payment record" : document.event_type || "Event"}
@@ -464,27 +604,62 @@ export default function DocumentPdfFile({
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <View style={[styles.cell, styles.colItem]}>
-                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                <Text
+                  style={[
+                    styles.tableHeaderText,
+                    compact ? styles.compactTableHeaderText : null,
+                    densityLevel === "dense" ? styles.denseTableHeaderText : null,
+                    densityLevel === "ultra" ? styles.ultraTableHeaderText : null,
+                  ]}
+                >
                   Item
                 </Text>
               </View>
               <View style={[styles.cell, styles.colDetails]}>
-                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                <Text
+                  style={[
+                    styles.tableHeaderText,
+                    compact ? styles.compactTableHeaderText : null,
+                    densityLevel === "dense" ? styles.denseTableHeaderText : null,
+                    densityLevel === "ultra" ? styles.ultraTableHeaderText : null,
+                  ]}
+                >
                   Details
                 </Text>
               </View>
               <View style={[styles.cell, styles.colQty]}>
-                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                <Text
+                  style={[
+                    styles.tableHeaderText,
+                    compact ? styles.compactTableHeaderText : null,
+                    densityLevel === "dense" ? styles.denseTableHeaderText : null,
+                    densityLevel === "ultra" ? styles.ultraTableHeaderText : null,
+                  ]}
+                >
                   Qty
                 </Text>
               </View>
               <View style={[styles.cell, styles.colUnit]}>
-                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                <Text
+                  style={[
+                    styles.tableHeaderText,
+                    compact ? styles.compactTableHeaderText : null,
+                    densityLevel === "dense" ? styles.denseTableHeaderText : null,
+                    densityLevel === "ultra" ? styles.ultraTableHeaderText : null,
+                  ]}
+                >
                   Unit
                 </Text>
               </View>
               <View style={[styles.cell, styles.colTotal]}>
-                <Text style={[styles.tableHeaderText, compact ? styles.compactTableHeaderText : null]}>
+                <Text
+                  style={[
+                    styles.tableHeaderText,
+                    compact ? styles.compactTableHeaderText : null,
+                    densityLevel === "dense" ? styles.denseTableHeaderText : null,
+                    densityLevel === "ultra" ? styles.ultraTableHeaderText : null,
+                  ]}
+                >
                   Total
                 </Text>
               </View>
@@ -498,19 +673,59 @@ export default function DocumentPdfFile({
                   index === document.line_items.length - 1 ? { borderBottomWidth: 0 } : null,
                 ]}
               >
-                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colItem]}>
+                <View
+                  style={[
+                    styles.cell,
+                    compact ? styles.compactTableCell : null,
+                    densityLevel === "dense" ? styles.denseTableCell : null,
+                    densityLevel === "ultra" ? styles.ultraTableCell : null,
+                    styles.colItem,
+                  ]}
+                >
                   <Text>{item.title}</Text>
                 </View>
-                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colDetails]}>
+                <View
+                  style={[
+                    styles.cell,
+                    compact ? styles.compactTableCell : null,
+                    densityLevel === "dense" ? styles.denseTableCell : null,
+                    densityLevel === "ultra" ? styles.ultraTableCell : null,
+                    styles.colDetails,
+                  ]}
+                >
                   <Text>{item.description || "—"}</Text>
                 </View>
-                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colQty]}>
+                <View
+                  style={[
+                    styles.cell,
+                    compact ? styles.compactTableCell : null,
+                    densityLevel === "dense" ? styles.denseTableCell : null,
+                    densityLevel === "ultra" ? styles.ultraTableCell : null,
+                    styles.colQty,
+                  ]}
+                >
                   <Text>{String(item.quantity)}</Text>
                 </View>
-                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colUnit]}>
+                <View
+                  style={[
+                    styles.cell,
+                    compact ? styles.compactTableCell : null,
+                    densityLevel === "dense" ? styles.denseTableCell : null,
+                    densityLevel === "ultra" ? styles.ultraTableCell : null,
+                    styles.colUnit,
+                  ]}
+                >
                   <Text>${formatMoney(item.unit_price)}</Text>
                 </View>
-                <View style={[styles.cell, compact ? styles.compactTableCell : null, styles.colTotal]}>
+                <View
+                  style={[
+                    styles.cell,
+                    compact ? styles.compactTableCell : null,
+                    densityLevel === "dense" ? styles.denseTableCell : null,
+                    densityLevel === "ultra" ? styles.ultraTableCell : null,
+                    styles.colTotal,
+                  ]}
+                >
                   <Text>${formatMoney(item.total_price)}</Text>
                 </View>
               </View>
@@ -518,7 +733,15 @@ export default function DocumentPdfFile({
           </View>
 
           <View style={styles.totalsWrap}>
-            <View style={[styles.totalsCard, compact ? styles.compactTotalsCard : null]} wrap={false}>
+            <View
+              style={[
+                styles.totalsCard,
+                compact ? styles.compactTotalsCard : null,
+                densityLevel === "dense" ? styles.denseTotalsCard : null,
+                densityLevel === "ultra" ? styles.ultraTotalsCard : null,
+              ]}
+              wrap={false}
+            >
               <View style={styles.totalRow}>
                 <Text>Subtotal</Text>
                 <Text>${formatMoney(document.subtotal)}</Text>
@@ -552,6 +775,8 @@ export default function DocumentPdfFile({
                   styles.totalRow,
                   styles.totalPrimary,
                   compact ? styles.compactTotalPrimary : null,
+                  densityLevel === "dense" ? styles.denseTotalPrimary : null,
+                  densityLevel === "ultra" ? styles.ultraTotalPrimary : null,
                 ]}
               >
                 <Text>{copy.totalLabel}</Text>
@@ -578,7 +803,14 @@ export default function DocumentPdfFile({
 
           <View style={[styles.notesGrid, compact ? styles.compactNotesGrid : null]}>
             {compact && billingSummaryRows.length ? (
-              <View style={[styles.notesCard, styles.compactNotesCard]}>
+              <View
+                style={[
+                  styles.notesCard,
+                  styles.compactNotesCard,
+                  densityLevel === "dense" ? styles.denseNotesCard : null,
+                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                ]}
+              >
                 <Text style={styles.eyebrow}>
                   {document.document_type === "quote" ? "Summary notes" : "Billing summary"}
                 </Text>
@@ -593,14 +825,26 @@ export default function DocumentPdfFile({
             {noteCards.map((entry) => (
               <View
                 key={entry.title}
-                style={[styles.notesCard, compact ? styles.compactNotesCard : null]}
+                style={[
+                  styles.notesCard,
+                  compact ? styles.compactNotesCard : null,
+                  densityLevel === "dense" ? styles.denseNotesCard : null,
+                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                ]}
               >
                 <Text style={styles.eyebrow}>{entry.title}</Text>
                 <Text>{entry.value}</Text>
               </View>
             ))}
             {document.payments.length ? (
-              <View style={[styles.notesCard, compact ? styles.compactNotesCard : null]}>
+              <View
+                style={[
+                  styles.notesCard,
+                  compact ? styles.compactNotesCard : null,
+                  densityLevel === "dense" ? styles.denseNotesCard : null,
+                  densityLevel === "ultra" ? styles.ultraNotesCard : null,
+                ]}
+              >
                 <Text style={styles.eyebrow}>Payments received</Text>
                 {document.payments.map((payment) => (
                   <View key={payment.id} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -613,7 +857,14 @@ export default function DocumentPdfFile({
           </View>
 
           <View style={[styles.footer, compact ? styles.compactFooter : null]}>
-            <Text style={[styles.footerBrand, compact ? styles.compactFooterBrand : null]}>
+            <Text
+              style={[
+                styles.footerBrand,
+                compact ? styles.compactFooterBrand : null,
+                densityLevel === "dense" ? styles.denseFooterBrand : null,
+                densityLevel === "ultra" ? styles.ultraFooterBrand : null,
+              ]}
+            >
               Elel Events & Design
             </Text>
             <Text style={styles.muted}>{copy.footer}</Text>

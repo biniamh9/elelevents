@@ -17,16 +17,32 @@ function buildBillingSummaryRows(document: ClientDocumentRecord) {
   ].filter((entry) => entry.value);
 }
 
+function getDocumentDensityLevel(lineItemCount: number) {
+  if (lineItemCount >= 14) return "ultra";
+  if (lineItemCount >= 9) return "dense";
+  return "normal";
+}
+
 function PreviewTable({
   lineItems,
   compact = false,
+  densityLevel = "normal",
 }: {
   lineItems: ClientDocumentLineItem[];
   compact?: boolean;
+  densityLevel?: "normal" | "dense" | "ultra";
 }) {
   return (
     <table
-      className={`document-preview-table${compact ? " document-preview-table--compact" : ""}`}
+      className={`document-preview-table${
+        compact ? " document-preview-table--compact" : ""
+      }${
+        densityLevel === "dense"
+          ? " document-preview-table--dense"
+          : densityLevel === "ultra"
+            ? " document-preview-table--ultra"
+            : ""
+      }`}
     >
       <colgroup>
         <col className="document-preview-table-col-item" />
@@ -93,6 +109,7 @@ export default function DocumentPreviewBase({
   printCompact?: boolean;
 }) {
   const compact = density === "compact" || printCompact;
+  const densityLevel = getDocumentDensityLevel(lineItems.length);
   const receiptCompact = compact && document.document_type === "receipt";
   const hideClientExtras = printCompact;
   const hideVenueDetails = printCompact || receiptCompact;
@@ -102,6 +119,12 @@ export default function DocumentPreviewBase({
     <section
       className={`document-preview-page document-preview-page--${document.document_type}${
         compact ? " document-preview-page--compact" : ""
+      }${
+        densityLevel === "dense"
+          ? " document-preview-page--dense"
+          : densityLevel === "ultra"
+            ? " document-preview-page--ultra"
+            : ""
       }`}
     >
       <header className="document-preview-header">
@@ -148,7 +171,11 @@ export default function DocumentPreviewBase({
       </div>
 
       <div className="document-preview-sheet">
-        <PreviewTable lineItems={lineItems} compact={compact} />
+        <PreviewTable
+          lineItems={lineItems}
+          compact={compact}
+          densityLevel={densityLevel}
+        />
 
         <div className="document-preview-totals">
           <div><span>Subtotal</span><strong>${formatMoney(document.subtotal)}</strong></div>
