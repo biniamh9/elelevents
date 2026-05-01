@@ -54,6 +54,8 @@ export default function AdminPortalActionMenu({
       return;
     }
 
+    let frame = 0;
+
     function updatePosition() {
       const trigger = triggerRef.current;
       if (!trigger) {
@@ -89,13 +91,15 @@ export default function AdminPortalActionMenu({
     }
 
     updatePosition();
+    frame = window.requestAnimationFrame(updatePosition);
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [open]);
+  }, [open, children]);
 
   const triggerClasses = [
     "admin-row-action-trigger",
@@ -141,12 +145,16 @@ export default function AdminPortalActionMenu({
         </svg>
       </button>
 
-      {open && position
+      {open
         ? createPortal(
             <div
               ref={dropdownRef}
               className={dropdownClasses}
-              style={{ top: position.top, left: position.left }}
+              style={{
+                top: position?.top ?? -9999,
+                left: position?.left ?? -9999,
+                visibility: position ? "visible" : "hidden",
+              }}
             >
               {renderedChildren}
             </div>,

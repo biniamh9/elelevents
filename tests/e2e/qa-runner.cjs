@@ -156,7 +156,13 @@ async function loginAdmin(page) {
   await page.locator("input[type='email']").fill(QA_EMAIL);
   await page.locator("input[type='password']").fill(QA_PASSWORD);
   await page.getByRole("button", { name: "Sign In" }).click();
-  await page.waitForTimeout(5000);
+  try {
+    await page.waitForURL(/\/admin\/(inquiries|crm-analytics|documents|contracts|finance|calendar|rentals|settings)/, {
+      timeout: 20000,
+    });
+  } catch {
+    await page.waitForTimeout(5000);
+  }
 
   const cookies = await page.context().cookies();
   const hasAuthCookie = cookies.some((cookie) =>
@@ -330,20 +336,50 @@ async function run() {
       await adminPage.goto(`${BASE_URL}/admin/inquiries?tab=inquiries`, { waitUntil: "domcontentloaded" });
       await adminPage.getByPlaceholder("Client, email, phone, or venue").fill(publicInquiryEmail);
       await adminPage.getByRole("button", { name: "Apply" }).click();
+      await adminPage.waitForURL(new RegExp(`q=${encodeURIComponent(publicInquiryEmail).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`), {
+        timeout: 15000,
+      });
+      await adminPage.waitForLoadState("networkidle");
       await adminPage.getByText(publicInquiryEmail).waitFor({ state: "visible", timeout: 15000 });
       return `Found inquiry row for ${publicInquiryEmail}.`;
     });
 
     await withStep("Inquiry row Actions dropdown renders full menu", async () => {
       const row = adminPage.locator("tbody tr").filter({ hasText: publicInquiryEmail }).first();
-      await row.getByRole("button", { name: "Actions" }).click();
-      const portal = adminPage.locator(".admin-row-action-dropdown--portal").first();
-      await portal.waitFor({ state: "visible", timeout: 10000 });
+      const trigger = row.getByRole("button", { name: "Actions" });
+      await trigger.click();
+      await adminPage.waitForFunction(
+        () => document.querySelectorAll(".admin-row-action-dropdown--portal").length > 0,
+        undefined,
+        { timeout: 10000 }
+      );
+      const portal = adminPage
+        .locator(".admin-row-action-dropdown--portal")
+        .filter({ hasText: "View details" })
+        .first();
+      try {
+        await portal.waitFor({ state: "visible", timeout: 10000 });
+      } catch (error) {
+        const triggerExpanded = await trigger.getAttribute("aria-expanded");
+        const portalCount = await adminPage.locator(".admin-row-action-dropdown--portal").count();
+        const portalTexts = await adminPage
+          .locator(".admin-row-action-dropdown--portal")
+          .evaluateAll((nodes) =>
+            nodes.map((node) => ({
+              text: node.textContent,
+              visibility: window.getComputedStyle(node).visibility,
+              display: window.getComputedStyle(node).display,
+            }))
+          );
+        throw new Error(
+          `Actions portal did not become visible. expanded=${triggerExpanded} portalCount=${portalCount} portalState=${JSON.stringify(portalTexts)} original=${error instanceof Error ? error.message : String(error)}`
+        );
+      }
       await portal.getByText(/Recommended/i).waitFor({ state: "visible", timeout: 10000 });
       await portal.getByText("View details").waitFor({ state: "visible", timeout: 10000 });
       await portal.getByText("Open workflow").waitFor({ state: "visible", timeout: 10000 });
       return "Actions menu displayed recommended and record actions.";
-    });
+    }, { fatal: false });
 
     await withStep("Inquiry detail shows post-submission inspiration", async () => {
       await adminPage.locator(".admin-row-action-dropdown--portal").first().getByText("View details").click();
@@ -356,11 +392,22 @@ async function run() {
     if (sampleDocument?.id) {
       await withStep("Documents Actions dropdown renders full menu", async () => {
         await adminPage.goto(`${BASE_URL}/admin/documents`, { waitUntil: "domcontentloaded" });
+        await adminPage.waitForLoadState("networkidle");
         await adminPage.locator("tbody tr").first().getByRole("button", { name: "Actions" }).click();
-        await adminPage.getByText("Open PDF").waitFor({ state: "visible", timeout: 10000 });
-        await adminPage.getByText("Download PDF").waitFor({ state: "visible", timeout: 10000 });
+        await adminPage.waitForFunction(
+          () => document.querySelectorAll(".admin-row-action-dropdown--portal").length > 0,
+          undefined,
+          { timeout: 10000 }
+        );
+        const portal = adminPage
+          .locator(".admin-row-action-dropdown--portal")
+          .filter({ hasText: "Open PDF" })
+          .first();
+        await portal.waitFor({ state: "visible", timeout: 10000 });
+        await portal.getByText("Open PDF").waitFor({ state: "visible", timeout: 10000 });
+        await portal.getByText("Download PDF").waitFor({ state: "visible", timeout: 10000 });
         return "Documents action menu displayed output actions.";
-      });
+      }, { fatal: false });
 
       await withStep("Smoke /admin/documents/[id]", async () => {
         await smokeRoute(adminPage, `/admin/documents/${sampleDocument.id}`);

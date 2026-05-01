@@ -1,161 +1,161 @@
 [
   {
-    "testedAt": "2026-05-01T14:14:06.209Z",
+    "testedAt": "2026-05-01T19:09:21.487Z",
     "type": "sample-query",
     "name": "Sample event_inquiries",
     "result": "PASS",
-    "detail": "{\"id\":\"15e76c6f-8345-4c40-a05e-e95c3c0f2589\"}"
+    "detail": "{\"id\":\"25fc2bda-cc10-45e3-8f07-ae0a529d3738\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:06.408Z",
+    "testedAt": "2026-05-01T19:09:21.698Z",
     "type": "sample-query",
     "name": "Sample contracts",
     "result": "PASS",
     "detail": "{\"id\":\"e17ed38d-10dd-4d71-a940-414265e86c38\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:06.580Z",
+    "testedAt": "2026-05-01T19:09:21.837Z",
     "type": "sample-query",
     "name": "Sample client_documents",
     "result": "PASS",
     "detail": "{\"id\":\"b8636832-b8b4-4b86-97b6-ba17bf84bce7\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:06.688Z",
+    "testedAt": "2026-05-01T19:09:21.948Z",
     "type": "sample-query",
     "name": "Sample rental_items",
     "result": "PASS",
     "detail": "{\"id\":\"9a822d72-be6e-4faf-a7e6-e10fb54d8c60\",\"slug\":\"royal-chair\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:06.774Z",
+    "testedAt": "2026-05-01T19:09:22.062Z",
     "type": "sample-query",
     "name": "Sample rental_quote_requests",
     "result": "PASS",
     "detail": "{\"id\":\"306a2b65-6296-4332-9ed2-589c01110384\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:06.886Z",
+    "testedAt": "2026-05-01T19:09:22.163Z",
     "type": "sample-query",
     "name": "Sample gallery_items",
     "result": "PASS",
     "detail": "{\"id\":\"bec630bb-20cb-44be-ae0d-36f9993d51b9\"}"
   },
   {
-    "testedAt": "2026-05-01T14:14:10.617Z",
+    "testedAt": "2026-05-01T19:09:28.447Z",
     "type": "step",
     "name": "Homepage loads",
     "result": "PASS",
     "detail": "Homepage rendered and main CTA visible."
   },
   {
-    "testedAt": "2026-05-01T14:14:12.560Z",
+    "testedAt": "2026-05-01T19:09:32.973Z",
     "type": "step",
     "name": "Smoke /about",
     "result": "PASS",
     "detail": "/about loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:12.999Z",
+    "testedAt": "2026-05-01T19:09:34.148Z",
     "type": "step",
     "name": "Smoke /services",
     "result": "PASS",
     "detail": "/services loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:13.188Z",
+    "testedAt": "2026-05-01T19:09:35.185Z",
     "type": "step",
     "name": "Smoke /gallery",
     "result": "PASS",
     "detail": "/gallery loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:13.624Z",
+    "testedAt": "2026-05-01T19:09:36.835Z",
     "type": "step",
     "name": "Smoke /contact",
     "result": "PASS",
     "detail": "/contact loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:14.057Z",
+    "testedAt": "2026-05-01T19:09:37.682Z",
     "type": "step",
     "name": "Smoke /packages",
     "result": "PASS",
     "detail": "/packages loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:14.200Z",
+    "testedAt": "2026-05-01T19:09:39.311Z",
     "type": "step",
     "name": "Smoke /rentals",
     "result": "PASS",
     "detail": "/rentals loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:14.358Z",
+    "testedAt": "2026-05-01T19:09:39.903Z",
     "type": "step",
     "name": "Smoke /vendors",
     "result": "PASS",
     "detail": "/vendors loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:14.441Z",
+    "testedAt": "2026-05-01T19:09:40.996Z",
     "type": "step",
     "name": "Smoke /request",
     "result": "PASS",
     "detail": "/request loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:14.827Z",
+    "testedAt": "2026-05-01T19:09:41.848Z",
     "type": "step",
     "name": "Smoke /gallery/[id]",
     "result": "PASS",
     "detail": "Gallery detail bec630bb-20cb-44be-ae0d-36f9993d51b9 loaded."
   },
   {
-    "testedAt": "2026-05-01T14:14:15.299Z",
+    "testedAt": "2026-05-01T19:09:42.797Z",
     "type": "step",
     "name": "Smoke /rentals/[slug]",
     "result": "PASS",
     "detail": "Rental detail royal-chair loaded."
   },
   {
-    "testedAt": "2026-05-01T14:14:18.987Z",
+    "testedAt": "2026-05-01T19:09:47.044Z",
     "type": "step",
     "name": "Request form validates single-name submission",
     "result": "PASS",
     "detail": "Single-name validation message appeared."
   },
   {
-    "testedAt": "2026-05-01T14:14:23.504Z",
+    "testedAt": "2026-05-01T19:09:54.366Z",
     "type": "step",
     "name": "Public inquiry submits successfully",
     "result": "PASS",
-    "detail": "Redirected to follow-up page: http://127.0.0.1:3000/request/follow-up?inquiry=a080e2a7-14e2-433b-a936-01dfa3b5f870&email=qa%2B1777644845821%40elelevents.local&name=QA+Browser"
+    "detail": "Redirected to follow-up page: http://127.0.0.1:3000/request/follow-up?inquiry=094e082b-02ad-44f4-b3d2-640ba54a0054&email=qa%2B1777662561199%40elelevents.local&name=QA+Browser"
   },
   {
-    "testedAt": "2026-05-01T14:14:25.970Z",
+    "testedAt": "2026-05-01T19:09:58.840Z",
     "type": "step",
     "name": "Follow-up inspiration submission succeeds",
     "result": "PASS",
     "detail": "Follow-up saved confirmation appeared."
   },
   {
-    "testedAt": "2026-05-01T14:14:26.145Z",
+    "testedAt": "2026-05-01T19:10:03.259Z",
     "type": "step",
     "name": "Supabase inquiry record exists",
     "result": "PASS",
     "detail": {
-      "id": "a080e2a7-14e2-433b-a936-01dfa3b5f870",
-      "email": "qa+1777644845821@elelevents.local",
+      "id": "094e082b-02ad-44f4-b3d2-640ba54a0054",
+      "email": "qa+1777662561199@elelevents.local",
       "first_name": "QA",
       "last_name": "Browser",
       "event_type": "Wedding",
       "follow_up_details_json": {
         "note": "Client added additional inspiration after the initial availability request.",
         "reviewed_at": null,
-        "submitted_at": "2026-05-01T14:14:25.499Z",
+        "submitted_at": "2026-05-01T19:09:58.014Z",
         "uploaded_urls": [
-          "https://hlcohonotwytmkkvsxiu.supabase.co/storage/v1/object/public/vision-boards/1777644864691-2e2f1944-2f79-4097-bcc8-d2a7eddef4e9.png"
+          "https://hlcohonotwytmkkvsxiu.supabase.co/storage/v1/object/public/vision-boards/1777662596684-fda49c57-4f55-49d6-9a2b-00808625ebe9.png"
         ],
         "selected_styles": [
           "Modern"
@@ -165,105 +165,182 @@
           "https://www.instagram.com/example-post"
         ]
       },
-      "created_at": "2026-05-01T14:14:22.56779+00:00"
+      "created_at": "2026-05-01T19:09:53.676618+00:00"
     }
   },
   {
-    "testedAt": "2026-05-01T14:14:26.145Z",
+    "testedAt": "2026-05-01T19:10:03.259Z",
     "type": "browser-log",
     "name": "Browser logs: public flow",
     "result": "PASS",
     "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"
   },
   {
-    "testedAt": "2026-05-01T14:14:32.338Z",
+    "testedAt": "2026-05-01T19:10:15.315Z",
     "type": "step",
     "name": "Admin login form redirects into app",
-    "result": "FAIL",
-    "detail": "Session cookie was set, but the UI remained on /admin/login instead of redirecting into admin."
+    "result": "PASS",
+    "detail": "Redirected to http://127.0.0.1:3000/admin/inquiries?tab=inquiries"
   },
   {
-    "testedAt": "2026-05-01T14:14:44.998Z",
+    "testedAt": "2026-05-01T19:10:21.604Z",
     "type": "step",
     "name": "Admin session can open inquiries workspace",
     "result": "PASS",
     "detail": "Authenticated session reached inquiries workspace."
   },
   {
-    "testedAt": "2026-05-01T14:14:50.199Z",
+    "testedAt": "2026-05-01T19:10:26.598Z",
     "type": "step",
     "name": "Smoke /admin/inquiries?tab=overview",
     "result": "PASS",
     "detail": "/admin/inquiries?tab=overview loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:54.714Z",
+    "testedAt": "2026-05-01T19:10:33.122Z",
     "type": "step",
     "name": "Smoke /admin/inquiries?tab=inquiries",
     "result": "PASS",
     "detail": "/admin/inquiries?tab=inquiries loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:14:58.237Z",
+    "testedAt": "2026-05-01T19:10:36.578Z",
     "type": "step",
     "name": "Smoke /admin/crm-analytics?tab=leads",
-    "result": "FAIL",
-    "detail": "/admin/crm-analytics?tab=leads returned HTTP 500"
+    "result": "PASS",
+    "detail": "/admin/crm-analytics?tab=leads loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:00.089Z",
+    "testedAt": "2026-05-01T19:10:38.763Z",
     "type": "step",
     "name": "Smoke /admin/documents",
     "result": "PASS",
     "detail": "/admin/documents loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:02.770Z",
+    "testedAt": "2026-05-01T19:10:41.486Z",
     "type": "step",
     "name": "Smoke /admin/contracts",
     "result": "PASS",
     "detail": "/admin/contracts loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:08.996Z",
+    "testedAt": "2026-05-01T19:10:45.261Z",
     "type": "step",
     "name": "Smoke /admin/finance",
     "result": "PASS",
     "detail": "/admin/finance loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:10.262Z",
+    "testedAt": "2026-05-01T19:10:46.412Z",
     "type": "step",
     "name": "Smoke /admin/calendar",
-    "result": "FAIL",
-    "detail": "page.goto: net::ERR_ABORTED at http://127.0.0.1:3000/admin/calendar\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3000/admin/calendar\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    "result": "PASS",
+    "detail": "/admin/calendar loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:11.843Z",
+    "testedAt": "2026-05-01T19:10:48.002Z",
     "type": "step",
     "name": "Smoke /admin/rentals",
     "result": "PASS",
     "detail": "/admin/rentals loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:13.002Z",
+    "testedAt": "2026-05-01T19:10:49.432Z",
     "type": "step",
     "name": "Smoke /admin/settings",
     "result": "PASS",
     "detail": "/admin/settings loaded successfully."
   },
   {
-    "testedAt": "2026-05-01T14:15:23.168Z",
+    "testedAt": "2026-05-01T19:11:03.234Z",
     "type": "step",
     "name": "Inquiry search finds submitted record",
     "result": "PASS",
-    "detail": "Found inquiry row for qa+1777644845821@elelevents.local."
+    "detail": "Found inquiry row for qa+1777662561199@elelevents.local."
   },
   {
-    "testedAt": "2026-05-01T14:15:33.283Z",
+    "testedAt": "2026-05-01T19:11:03.346Z",
     "type": "step",
     "name": "Inquiry row Actions dropdown renders full menu",
+    "result": "PASS",
+    "detail": "Actions menu displayed recommended and record actions."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:08.184Z",
+    "type": "step",
+    "name": "Inquiry detail shows post-submission inspiration",
+    "result": "PASS",
+    "detail": "Inquiry detail 094e082b-02ad-44f4-b3d2-640ba54a0054 rendered follow-up inspiration."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:10.687Z",
+    "type": "step",
+    "name": "Documents Actions dropdown renders full menu",
+    "result": "PASS",
+    "detail": "Documents action menu displayed output actions."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:13.303Z",
+    "type": "step",
+    "name": "Smoke /admin/documents/[id]",
+    "result": "PASS",
+    "detail": "Document detail b8636832-b8b4-4b86-97b6-ba17bf84bce7 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:20.660Z",
+    "type": "step",
+    "name": "Smoke /admin/document-output/[id]",
+    "result": "PASS",
+    "detail": "Document output b8636832-b8b4-4b86-97b6-ba17bf84bce7 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:22.749Z",
+    "type": "step",
+    "name": "Smoke /admin/inquiries/[id]",
+    "result": "PASS",
+    "detail": "Inquiry detail 25fc2bda-cc10-45e3-8f07-ae0a529d3738 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:25.896Z",
+    "type": "step",
+    "name": "Smoke /admin/inquiries/[id]/itemized-draft",
+    "result": "PASS",
+    "detail": "Inquiry itemized draft 25fc2bda-cc10-45e3-8f07-ae0a529d3738 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:32.110Z",
+    "type": "step",
+    "name": "Smoke /admin/crm-analytics/[leadId]",
+    "result": "PASS",
+    "detail": "CRM lead detail 25fc2bda-cc10-45e3-8f07-ae0a529d3738 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:37.440Z",
+    "type": "step",
+    "name": "Smoke /admin/contracts/[id]",
+    "result": "PASS",
+    "detail": "Contract detail e17ed38d-10dd-4d71-a940-414265e86c38 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:42.253Z",
+    "type": "step",
+    "name": "Smoke /admin/rentals/[id]",
+    "result": "PASS",
+    "detail": "Rental detail 9a822d72-be6e-4faf-a7e6-e10fb54d8c60 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T19:11:44.552Z",
+    "type": "step",
+    "name": "Smoke /admin/rentals/requests/[id]",
     "result": "FAIL",
-    "detail": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Recommended') to be visible\u001b[22m\n"
+    "detail": "No response returned for /admin/rentals/requests/306a2b65-6296-4332-9ed2-589c01110384"
+  },
+  {
+    "testedAt": "2026-05-01T19:11:44.552Z",
+    "type": "browser-log",
+    "name": "Browser logs: admin flow",
+    "result": "FAIL",
+    "detail": "{\n  \"consoleErrors\": [\n    \"In HTML, %s cannot be a descendant of <%s>.\\nThis will cause a hydration error.%s <form> form \\n\\n  ...\\n    <RenderFromTemplateContext>\\n      <ScrollAndFocusHandler segmentPath={[...]}>\\n        <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>\\n          <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>\\n            <LoadingBoundary name=\\\"9a822d72-b...\\\" loading={null}>\\n              <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>\\n                <RedirectBoundary>\\n                  <RedirectErrorBoundary router={{...}}>\\n                    <InnerLayoutRouter url=\\\"/admin/ren...\\\" tree={[...]} params={{id:\\\"9a822d...\\\"}} ...>\\n                      <SegmentViewNode type=\\\"page\\\" pagePath=\\\"admin/(pro...\\\">\\n                        <SegmentTrieNode>\\n                        <AdminRentalDetailPage>\\n                          <main className=\\\"admin-page...\\\">\\n                            <div>\\n                            <RentalItemForm item={{id:\\\"9a822d...\\\", ...}} depositRecords={[...]}>\\n>                             <form className=\\\"rental-editor-shell\\\" onSubmit={function handleSubmit}>\\n                                <div className=\\\"rental-edi...\\\">\\n                                  <div>\\n                                  <div>\\n                                  <div>\\n                                  <div>\\n                                  <div>\\n                                  <div>\\n                                  <div>\\n                                  <RentalDepositTracking rentalItemId=\\\"9a822d72-b...\\\" initialRecords={[...]}>\\n                                    <div className=\\\"card admin...\\\">\\n                                      <AdminSectionHeader>\\n                                      <div className=\\\"admin-stack\\\">\\n                                        <p>\\n>                                       <form className=\\\"admin-stack\\\" onSubmit={function handleSubmit}>\\n                                  ...\\n                                ...\\n                      ...\\n                    ...\\n          ...\\n\",\n    \"<%s> cannot contain a nested %s.\\nSee this log for the ancestor stack trace. form <form>\"\n  ],\n  \"pageErrors\": [\n    \"Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\\n\\n  ...\\n    <AdminLayout>\\n      <div className=\\\"container ...\\\">\\n        <Suspense>\\n        <div className=\\\"admin-main\\\">\\n          <Suspense fallback={<div>}>\\n            <AdminWorkspaceHeader>\\n              <div className=\\\"admin-topbar\\\">\\n                <div>\\n                <div className=\\\"admin-topb...\\\">\\n                  <AdminNotificationBell>\\n                    <AdminNotificationBellClient initialItems={[...]} initialUnreadCount={24}>\\n                      ...\\n                        <div className=\\\"admin-noti...\\\">\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" tone=\\\"internal\\\" ...>\\n                            <LinkComponent href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" onClick={function onClick}>\\n                              <a className=\\\"admin-work...\\\" ref={function} onClick={function onClick} ...>\\n                                <span>\\n                                <strong>\\n                                <span className=\\\"admin-workflow-action-description\\\">\\n+                                 Quote request submitted from website · 6m ago\\n-                                 Quote request submitted from website · 5m ago\\n                          ...\\n                  ...\\n          ...\\n\",\n    \"Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\\n\\n  ...\\n    <AdminLayout>\\n      <div className=\\\"container ...\\\">\\n        <Suspense>\\n        <div className=\\\"admin-main\\\">\\n          <Suspense fallback={<div>}>\\n            <AdminWorkspaceHeader>\\n              <div className=\\\"admin-topbar\\\">\\n                <div>\\n                <div className=\\\"admin-topb...\\\">\\n                  <AdminNotificationBell>\\n                    <AdminNotificationBellClient initialItems={[...]} initialUnreadCount={24}>\\n                      ...\\n                        <div className=\\\"admin-noti...\\\">\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" tone=\\\"internal\\\" ...>\\n                            <LinkComponent href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" onClick={function onClick}>\\n                              <a className=\\\"admin-work...\\\" ref={function} onClick={function onClick} ...>\\n                                <span>\\n                                <strong>\\n                                <span className=\\\"admin-workflow-action-description\\\">\\n+                                 Quote request submitted from website · 12m ago\\n-                                 Quote request submitted from website · 11m ago\\n                          ...\\n                  ...\\n          ...\\n\",\n    \"Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\\n\\n  ...\\n    <AdminLayout>\\n      <div className=\\\"container ...\\\">\\n        <Suspense>\\n        <div className=\\\"admin-main\\\">\\n          <Suspense fallback={<div>}>\\n            <AdminWorkspaceHeader>\\n              <div className=\\\"admin-topbar\\\">\\n                <div>\\n                <div className=\\\"admin-topb...\\\">\\n                  <AdminNotificationBell>\\n                    <AdminNotificationBellClient initialItems={[...]} initialUnreadCount={24}>\\n                      ...\\n                        <div className=\\\"admin-noti...\\\">\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" tone=\\\"internal\\\" ...>\\n                            <LinkComponent href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" onClick={function onClick}>\\n                              <a className=\\\"admin-work...\\\" ref={function} onClick={function onClick} ...>\\n                                <span>\\n                                <strong>\\n                                <span className=\\\"admin-workflow-action-description\\\">\\n+                                 Quote request submitted from website · 22m ago\\n-                                 Quote request submitted from website · 21m ago\\n                          ...\\n                  ...\\n          ...\\n\",\n    \"Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\\n\\n  ...\\n    <AdminLayout>\\n      <div className=\\\"container ...\\\">\\n        <Suspense>\\n        <div className=\\\"admin-main\\\">\\n          <Suspense fallback={<div>}>\\n            <AdminWorkspaceHeader>\\n              <div className=\\\"admin-topbar\\\">\\n                <div>\\n                <div className=\\\"admin-topb...\\\">\\n                  <AdminNotificationBell>\\n                    <AdminNotificationBellClient initialItems={[...]} initialUnreadCount={24}>\\n                      ...\\n                        <div className=\\\"admin-noti...\\\">\\n                          <AdminWorkflowAction>\\n                          <AdminWorkflowAction href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" tone=\\\"internal\\\" ...>\\n                            <LinkComponent href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" onClick={function onClick}>\\n                              <a className=\\\"admin-work...\\\" ref={function} onClick={function onClick} ...>\\n                                <span>\\n                                <strong>\\n                                <span className=\\\"admin-workflow-action-description\\\">\\n+                                 Quote request submitted from website · 7m ago\\n-                                 Quote request submitted from website · 6m ago\\n                          ...\\n                  ...\\n          ...\\n\",\n    \"Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\\n\\n  ...\\n    <AdminLayout>\\n      <div className=\\\"container ...\\\">\\n        <Suspense>\\n        <div className=\\\"admin-main\\\">\\n          <Suspense fallback={<div>}>\\n            <AdminWorkspaceHeader>\\n              <div className=\\\"admin-topbar\\\">\\n                <div>\\n                <div className=\\\"admin-topb...\\\">\\n                  <AdminNotificationBell>\\n                    <AdminNotificationBellClient initialItems={[...]} initialUnreadCount={24}>\\n                      ...\\n                        <div className=\\\"admin-noti...\\\">\\n                          <AdminWorkflowAction href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" tone=\\\"internal\\\" ...>\\n                            <LinkComponent href=\\\"/admin/inq...\\\" className=\\\"admin-work...\\\" onClick={function onClick}>\\n                              <a className=\\\"admin-work...\\\" ref={function} onClick={function onClick} ...>\\n                                <span>\\n                                <strong>\\n                                <span className=\\\"admin-workflow-action-description\\\">\\n+                                 Quote request submitted from website · 2m ago\\n-                                 Quote request submitted from website · 1m ago\\n                          ...\\n                  ...\\n          ...\\n\",\n    \"Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:\\n\\n- A server/client branch `if (typeof window !== 'undefined')`.\\n- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.\\n- Date formatting in a user's locale which doesn't match the server.\\n- External changing data without sending a snapshot of it along with the HTML.\\n- Invalid HTML tag nesting.\\n\\nIt can also happen if the client has a browser extension installed which messes with the HTML before React loaded.\\n\\nhttps://react.dev/link/hydration-mismatch\"\n  ],\n  \"requestFailures\": []\n}"
   }
 ]

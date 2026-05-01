@@ -1,7 +1,5 @@
 import Link from "next/link";
-import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
-import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
-import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
+import CrmLeadRowActions from "@/components/admin/crm-lead-row-actions";
 import { buildCrmLeadsHref, buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
@@ -382,51 +380,11 @@ export default function CrmLeadsTable({
                     </td>
                     <td>{lead.owner}</td>
                     <td className="admin-record-cell-actions">
-                      <AdminPortalActionMenu>
-                        {(closeMenu) => (
-                          <>
-                          {getCrmLeadWorkflowActionGroups(lead).map((group) => (
-                            <div key={`${lead.id}-${group.title}`} className="admin-row-action-group">
-                              <p className="admin-row-action-group-label">{group.title}</p>
-                              {group.actions.map((action) => (
-                                <AdminWorkflowAction
-                                  key={`${lead.id}-${group.title}-${action.label}`}
-                                  href={action.href}
-                                  className="admin-workflow-action--menu"
-                                  tone={group.title === "Current step" ? "internal" : "record"}
-                                  label={action.label}
-                                  onClick={closeMenu}
-                                  description={
-                                    group.title === "Current step"
-                                      ? "Open the next working step for this lead."
-                                      : group.title === "Lead record"
-                                        ? "Open the lead record or add internal context."
-                                        : "Open the next related workflow area for this lead."
-                                  }
-                                />
-                              ))}
-                            </div>
-                          ))}
-                          {hasUnmatchedReplyCandidate ? (
-                            <div className="admin-row-action-group">
-                              <p className="admin-row-action-group-label">Reply review</p>
-                              <AdminWorkflowAction
-                                href={unmatchedReplyReviewHref}
-                                className="admin-workflow-action--menu"
-                                tone="email"
-                                onClick={closeMenu}
-                                label={
-                                  unmatchedReplyCandidateCount === 1
-                                    ? "Review unmatched reply candidate"
-                                    : `Review ${unmatchedReplyCandidateCount} unmatched reply candidates`
-                                }
-                                description="Open the safe review queue and attach the inbound reply only if this is the correct opportunity."
-                              />
-                            </div>
-                          ) : null}
-                          </>
-                        )}
-                      </AdminPortalActionMenu>
+                      <CrmLeadRowActions
+                        lead={lead}
+                        unmatchedReplyCandidateCount={unmatchedReplyCandidateCount}
+                        unmatchedReplyReviewHref={unmatchedReplyReviewHref}
+                      />
                     </td>
                   </tr>
                 );
