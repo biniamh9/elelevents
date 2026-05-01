@@ -18,6 +18,7 @@ import {
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
+import { getLiveCrmMetrics } from "@/lib/crm-live";
 
 export const dynamic = "force-dynamic";
 
@@ -422,12 +423,6 @@ export default async function AdminInquiriesPage({
   const followUpInspirationCount =
     unresolvedFollowUpIds.length;
 
-  const { count: rentalRequestsThisMonth } = await supabaseAdmin
-    .from("rental_quote_requests")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", startOfMonth)
-    .lt("created_at", startOfNextMonth);
-
   const { data: pipelineRows } = await supabaseAdmin
     .from("event_inquiries")
     .select("estimated_price, status, booking_stage, consultation_status")
@@ -435,6 +430,8 @@ export default async function AdminInquiriesPage({
 
   const pipelineValue =
     pipelineRows?.reduce((sum, row) => sum + Number(row.estimated_price ?? 0), 0) ?? 0;
+  const contactedCount =
+    pipelineRows?.filter((row) => row.status === "contacted").length ?? 0;
 
   const { count: inquiriesThisMonth } = await supabaseAdmin
     .from("event_inquiries")
@@ -543,6 +540,19 @@ export default async function AdminInquiriesPage({
     .order("created_at", { ascending: false })
     .limit(8);
 
+  const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
+  const responseSamples = crmMetrics.leads.filter(
+    (lead) => lead.firstResponseHours !== null && lead.firstResponseHours !== undefined
+  );
+  const averageResponseHours = responseSamples.length
+    ? Number(
+        (
+          responseSamples.reduce((sum, lead) => sum + Number(lead.firstResponseHours ?? 0), 0) /
+          responseSamples.length
+        ).toFixed(1)
+      )
+    : null;
+
   const { data: pipelineBoardRows } = await supabaseAdmin
     .from("event_inquiries")
     .select("id, first_name, last_name, event_type, event_date, status, consultation_status, booking_stage, consultation_at, created_at")
@@ -602,59 +612,34 @@ export default async function AdminInquiriesPage({
 
   const reportCards = [
     {
-      label: "New Inquiries",
-      value: String(pendingCount ?? 0),
-      note: `${buildShare(pendingCount, totalCount)}% of all requests`,
-      tone: "amber",
-      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
+      label: "Total Active",
+      value: String((pendingCount ?? 0) + (contactedCount ?? 0) + (quotedCount ?? 0) + (reservedCount ?? 0)),
+      note: "Inquiries in progress",
+      tone: "neutral",
+      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
     },
     {
-      label: "Consultations Scheduled",
-      value: String(scheduledConsultationCount ?? 0),
-      note: "Meetings currently on the calendar",
-      tone: "violet",
-      href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
-    },
-    {
-      label: "Pending Quotes",
-      value: String(quotedCount ?? 0),
-      note: "Waiting on client movement",
+      label: "Pipeline Value",
+      value: `$${formatMoney(pipelineValue)}`,
+      note: "Estimated revenue",
       tone: "blue",
-      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" }),
+      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
     },
     {
-      label: "Booked Events",
-      value: String(reservedCount ?? 0),
-      note: `${bookedCount ?? 0} booked • ${conversionRate.toFixed(1)}% conversion`,
+      label: "Conversion",
+      value: `${conversionRate.toFixed(0)}%`,
+      note: "Quote to booking",
       tone: "green",
       href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
     },
     {
-      label: "Booked Revenue",
-      value: `$${formatMoney(bookedRevenueThisMonth)}`,
-      note: `Outstanding balances: ${outstandingFinalPayments ?? 0}`,
-      tone: "red",
-      href: buildContractsWorkspaceHref({ queue: "deposit_pending" }),
+      label: "Avg Response",
+      value: averageResponseHours !== null ? `${averageResponseHours}h` : "—",
+      note: "Time to first contact",
+      tone: "amber",
+      href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
     },
   ];
-
-  const currentMonthRentalIntake = rentalRequestsThisMonth ?? 0;
-  const currentMonthInquiryIntake = inquiriesThisMonth ?? 0;
-  const combinedIntakeThisMonth = currentMonthInquiryIntake + currentMonthRentalIntake;
-  const rentalIntakeShare =
-    combinedIntakeThisMonth > 0 ? Math.round((currentMonthRentalIntake / combinedIntakeThisMonth) * 100) : 0;
-  const shouldHighlightRentalIntake =
-    currentMonthRentalIntake >= 3 || rentalIntakeShare >= 15;
-
-  if (shouldHighlightRentalIntake) {
-    reportCards.splice(3, 0, {
-      label: "Rental Requests",
-      value: String(currentMonthRentalIntake),
-      note: `${rentalIntakeShare}% of this month's total intake`,
-      tone: "amber",
-      href: buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextStatus: "requested" }),
-    });
-  }
 
   const attentionItems = [
     {
@@ -835,55 +820,46 @@ export default async function AdminInquiriesPage({
           <h1>{tabHeadingMap[activeTab].title}</h1>
           <p>{tabHeadingMap[activeTab].description}</p>
         </div>
-        <div className="admin-page-head-aside">
-          <span className="admin-head-pill">Showing {filteredCount ?? 0}</span>
-          <span className="admin-head-pill">Pipeline ${formatMoney(pipelineValue)}</span>
-          <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
-        </div>
       </header>
 
-      <section className="admin-reference-summary-shell">
-        <p className="admin-reference-summary-lead">
-          Keep intake, pipeline review, consultations, and live inquiry management in one structured workspace so the next move is visible without jumping between disconnected tabs
-        </p>
-      </section>
-
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
-        <Link
-          href={buildInquiryWorkspaceHref({ tab: "overview", state: inquiryWorkspaceState })}
-          className={`admin-workspace-tab${activeTab === "overview" ? " is-active" : ""}`}
-        >
-          Overview
-        </Link>
-        <Link
-          href={buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState })}
-          className={`admin-workspace-tab${activeTab === "pipeline" ? " is-active" : ""}`}
-        >
-          Pipeline
-        </Link>
-        <Link
-          href={buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })}
-          className={`admin-workspace-tab${activeTab === "schedule" ? " is-active" : ""}`}
-        >
-          Schedule
-        </Link>
-        <Link
-          href={buildInquiryWorkspaceHref({
-            tab: "inquiries",
-            state: inquiryWorkspaceState,
-            nextStatus: status,
-            nextFollowUp: followUp || undefined,
-            preservePage: true,
-          })}
-          className={`admin-workspace-tab${activeTab === "inquiries" ? " is-active" : ""}`}
-        >
-          Inquiries
-        </Link>
-      </div>
+      {activeTab === "overview" ? null : (
+        <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
+          <Link
+            href={buildInquiryWorkspaceHref({ tab: "overview", state: inquiryWorkspaceState })}
+            className="admin-workspace-tab"
+          >
+            Overview
+          </Link>
+          <Link
+            href={buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState })}
+            className={`admin-workspace-tab${activeTab === "pipeline" ? " is-active" : ""}`}
+          >
+            Pipeline
+          </Link>
+          <Link
+            href={buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })}
+            className={`admin-workspace-tab${activeTab === "schedule" ? " is-active" : ""}`}
+          >
+            Schedule
+          </Link>
+          <Link
+            href={buildInquiryWorkspaceHref({
+              tab: "inquiries",
+              state: inquiryWorkspaceState,
+              nextStatus: status,
+              nextFollowUp: followUp || undefined,
+              preservePage: true,
+            })}
+            className={`admin-workspace-tab${activeTab === "inquiries" ? " is-active" : ""}`}
+          >
+            Inquiries
+          </Link>
+        </div>
+      )}
 
       {activeTab === "overview" ? (
         <>
-          <section className="card admin-panel admin-panel--wide admin-section-card">
+          <section className="card admin-panel admin-panel--wide admin-section-card admin-overview-hero-shell">
             <div className="admin-panel-head">
               <div>
                 <p className="eyebrow">Operating lane</p>
@@ -938,22 +914,22 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
-          <section className="admin-mini-report admin-mini-report--compact">
-            <div className="admin-kpi-grid">
+          <section className="admin-reference-kpi-strip admin-overview-kpi-strip">
+            <div className="admin-kpi-grid admin-reference-kpi-grid admin-overview-kpi-grid">
               {reportCards.map((card) => (
                 card.href ? (
                   <Link
                     key={card.label}
                     href={card.href}
-                    className={`card metric-card metric-card--${card.tone} admin-kpi-link-card`}
+                    className={`card metric-card admin-reference-kpi-card admin-kpi-link-card`}
                   >
-                    <p className="muted">{card.label}</p>
+                    <p className="muted admin-reference-kpi-label">{card.label}</p>
                     <strong>{card.value}</strong>
                     <span>{card.note}</span>
                   </Link>
                 ) : (
-                  <div key={card.label} className={`card metric-card metric-card--${card.tone}`}>
-                    <p className="muted">{card.label}</p>
+                  <div key={card.label} className="card metric-card admin-reference-kpi-card">
+                    <p className="muted admin-reference-kpi-label">{card.label}</p>
                     <strong>{card.value}</strong>
                     <span>{card.note}</span>
                   </div>
@@ -962,12 +938,43 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
+          <section className="card admin-panel admin-panel--wide admin-section-card admin-overview-actions-shell">
+            <div className="admin-panel-head">
+              <div>
+                <p className="eyebrow">Recommended next actions</p>
+                <h3>Priority follow-up</h3>
+                <p className="muted">Focus the team on the next blocking moves instead of scanning multiple modules.</p>
+              </div>
+            </div>
+
+            {attentionItems.length ? (
+              <div className="admin-overview-actions-list">
+                {attentionItems.map((item, index) => (
+                  <Link key={item.title} href={item.href} className="admin-overview-action-row">
+                    <span className="admin-overview-action-index">{index + 1}</span>
+                    <div className="admin-overview-action-copy">
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                      <span>{item.cta} →</span>
+                    </div>
+                    <small>{item.count}</small>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="admin-alert-card admin-alert-card--success">
+                <strong>Operations look clear</strong>
+                <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
+              </div>
+            )}
+          </section>
+
           <section className="admin-dashboard-row admin-dashboard-row--overview-clean">
             <div className="card admin-panel admin-section-card">
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Needs attention</p>
-                  <h3>Priority follow-up</h3>
+                  <h3>Operations queue</h3>
                 </div>
               </div>
 

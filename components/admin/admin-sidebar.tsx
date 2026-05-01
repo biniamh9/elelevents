@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { canAccessModule, type AdminModule } from "@/lib/admin-access";
 import { buildInquiryCreateHref } from "@/lib/admin-navigation";
 
@@ -121,6 +124,30 @@ function Chevron() {
   );
 }
 
+function isHrefActive(
+  href: string,
+  pathname: string,
+  searchParams: ReturnType<typeof useSearchParams>
+) {
+  const [hrefPath, hrefQuery] = href.split("?");
+  if (hrefPath !== pathname) {
+    return false;
+  }
+
+  if (!hrefQuery) {
+    return true;
+  }
+
+  const targetParams = new URLSearchParams(hrefQuery);
+  for (const [key, value] of targetParams.entries()) {
+    if (searchParams.get(key) !== value) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export default function AdminSidebar({
   userEmail: _userEmail,
   userRole,
@@ -130,6 +157,8 @@ export default function AdminSidebar({
   userRole: string | null | undefined;
   allowedModules: string[] | null | undefined;
 }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const visibleSections = navSections.filter((section) =>
     canAccessModule(userRole, allowedModules, section.module)
   );
@@ -145,14 +174,22 @@ export default function AdminSidebar({
         <div className="admin-sidebar-section">
           <nav className="admin-nav admin-nav--stacked" aria-label="Admin navigation">
             {visibleSections.map((section) => {
+              const childLinks = section.children ?? [];
+              const hasActiveChild = childLinks.some((child) =>
+                isHrefActive(child.href, pathname, searchParams)
+              );
+              const isActiveLink = section.href
+                ? isHrefActive(section.href, pathname, searchParams)
+                : false;
+
               if (section.children?.length) {
                 return (
                   <details
                     key={section.id}
                     className="admin-nav-group-card"
-                    open={section.defaultOpen}
+                    open={hasActiveChild || section.defaultOpen}
                   >
-                    <summary className="admin-nav-group-head">
+                    <summary className={`admin-nav-group-head${hasActiveChild ? " is-active" : ""}`}>
                       <div>
                         <strong>{section.label}</strong>
                         <span>{section.description}</span>
@@ -165,7 +202,7 @@ export default function AdminSidebar({
                         <Link
                           key={child.href}
                           href={child.href}
-                          className="admin-nav-subnav-link"
+                          className={`admin-nav-subnav-link${isHrefActive(child.href, pathname, searchParams) ? " is-active" : ""}`}
                         >
                           {child.label}
                         </Link>
@@ -179,7 +216,7 @@ export default function AdminSidebar({
                 <Link
                   key={section.id}
                   href={section.href || "#"}
-                  className="admin-nav-card-link"
+                  className={`admin-nav-card-link${isActiveLink ? " is-active" : ""}`}
                 >
                   <strong>{section.label}</strong>
                   <span>{section.description}</span>
