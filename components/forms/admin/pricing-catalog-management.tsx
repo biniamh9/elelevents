@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingCatalogItem } from "@/lib/admin-pricing";
 import { formatCatalogLabel } from "@/lib/admin-pricing";
+import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
 import AdminActionRow from "@/components/admin/admin-action-row";
 import AdminEmptyState from "@/components/admin/admin-empty-state";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
@@ -22,7 +23,6 @@ function PricingRecordActions({
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
-  const [open, setOpen] = useState(false);
 
   async function handleDelete() {
     const confirmed = window.confirm(
@@ -47,41 +47,21 @@ function PricingRecordActions({
       return;
     }
 
-    setOpen(false);
     onDeleted(item.id);
     router.refresh();
   }
 
   return (
     <div className="admin-row-actions">
-      <details
-        className="admin-row-action-menu"
-        open={open}
-        onToggle={(event) =>
-          setOpen((event.currentTarget as HTMLDetailsElement).open)
-        }
-      >
-        <summary className="admin-row-action-trigger">
-          <span>Actions</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path
-              d="m5 7 5 6 5-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </summary>
-
-        <div className="admin-row-action-dropdown">
+      <AdminPortalActionMenu>
+        {(closeMenu) => (
+          <>
           <button
             type="button"
             className="admin-row-action-item"
             onClick={() => {
               onView();
-              setOpen(false);
+              closeMenu();
             }}
           >
             View
@@ -91,7 +71,7 @@ function PricingRecordActions({
             className="admin-row-action-item"
             onClick={() => {
               onEdit();
-              setOpen(false);
+              closeMenu();
             }}
           >
             Edit
@@ -99,13 +79,17 @@ function PricingRecordActions({
           <button
             type="button"
             className="admin-row-action-item admin-row-action-item--danger"
-            onClick={handleDelete}
+            onClick={async () => {
+              closeMenu();
+              await handleDelete();
+            }}
             disabled={deleting}
           >
             {deleting ? "Deleting..." : "Delete"}
           </button>
-        </div>
-      </details>
+          </>
+        )}
+      </AdminPortalActionMenu>
       {message ? <p className="error">{message}</p> : null}
     </div>
   );

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
+import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
 import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
 import { buildCrmLeadsHref, buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
@@ -381,21 +382,9 @@ export default function CrmLeadsTable({
                     </td>
                     <td>{lead.owner}</td>
                     <td className="admin-record-cell-actions">
-                      <details className="admin-row-action-menu">
-                        <summary className="admin-row-action-trigger">
-                          <span>Actions</span>
-                          <svg viewBox="0 0 20 20" aria-hidden="true">
-                            <path
-                              d="m5 7 5 6 5-6"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </summary>
-                        <div className="admin-row-action-dropdown">
+                      <AdminPortalActionMenu>
+                        {(closeMenu) => (
+                          <>
                           {getCrmLeadWorkflowActionGroups(lead).map((group) => (
                             <div key={`${lead.id}-${group.title}`} className="admin-row-action-group">
                               <p className="admin-row-action-group-label">{group.title}</p>
@@ -406,6 +395,7 @@ export default function CrmLeadsTable({
                                   className="admin-workflow-action--menu"
                                   tone={group.title === "Current step" ? "internal" : "record"}
                                   label={action.label}
+                                  onClick={closeMenu}
                                   description={
                                     group.title === "Current step"
                                       ? "Open the next working step for this lead."
@@ -424,6 +414,7 @@ export default function CrmLeadsTable({
                                 href={unmatchedReplyReviewHref}
                                 className="admin-workflow-action--menu"
                                 tone="email"
+                                onClick={closeMenu}
                                 label={
                                   unmatchedReplyCandidateCount === 1
                                     ? "Review unmatched reply candidate"
@@ -433,8 +424,9 @@ export default function CrmLeadsTable({
                               />
                             </div>
                           ) : null}
-                        </div>
-                      </details>
+                          </>
+                        )}
+                      </AdminPortalActionMenu>
                     </td>
                   </tr>
                 );

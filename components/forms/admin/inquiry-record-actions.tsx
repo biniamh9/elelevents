@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import {
   buildInquiryItemizedDraftHref,
@@ -44,7 +45,6 @@ export default function InquiryRecordActions({
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
-  const [open, setOpen] = useState(false);
   const actionGroups = getInquiryWorkflowActionGroups({
     inquiryId,
     contractId,
@@ -92,7 +92,6 @@ export default function InquiryRecordActions({
       return;
     }
 
-    setOpen(false);
     router.refresh();
   }
 
@@ -109,32 +108,9 @@ export default function InquiryRecordActions({
           description={primaryAction.description}
         />
       ) : null}
-      <details
-        className="admin-row-action-menu"
-        open={open}
-        onToggle={(event) =>
-          setOpen((event.currentTarget as HTMLDetailsElement).open)
-        }
-      >
-        <summary
-          className={`admin-row-action-trigger${
-            compactTrigger ? " admin-row-action-trigger--text" : ""
-          }`}
-        >
-          <span>Actions</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path
-              d="m5 7 5 6 5-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </summary>
-
-        <div className="admin-row-action-dropdown">
+      <AdminPortalActionMenu compactTrigger={compactTrigger}>
+        {(closeMenu) => (
+          <>
           {!showPrimaryAction ? (
             <div className="admin-row-action-group">
               <p className="admin-row-action-group-label">Recommended</p>
@@ -146,6 +122,7 @@ export default function InquiryRecordActions({
                 showTone={false}
                 showDescription={false}
                 description={primaryAction.description}
+                onClick={closeMenu}
               />
             </div>
           ) : null}
@@ -161,6 +138,7 @@ export default function InquiryRecordActions({
                   label={action.label}
                   showTone={false}
                   showDescription={false}
+                  onClick={closeMenu}
                   description={
                     group.title === "Current step"
                       ? "Open the next working area for this inquiry."
@@ -181,6 +159,7 @@ export default function InquiryRecordActions({
                 tone="email"
                 showTone={false}
                 showDescription={false}
+                onClick={closeMenu}
                 label={
                   unmatchedReplyCandidateCount === 1
                     ? "Review unmatched reply candidate"
@@ -195,6 +174,7 @@ export default function InquiryRecordActions({
               tone="internal"
               showTone={false}
               showDescription={false}
+              onClick={closeMenu}
               label="Itemized Draft"
               description="Open the internal itemized quote preview for revision work."
             />
@@ -205,6 +185,7 @@ export default function InquiryRecordActions({
                 tone="record"
                 showTone={false}
                 showDescription={false}
+                onClick={closeMenu}
                 label="Record Cash Payment"
                 description="Open the invoice payment entry with cash preselected so balances and receipts update immediately."
               />
@@ -213,13 +194,17 @@ export default function InquiryRecordActions({
           <button
             type="button"
             className="admin-row-action-item admin-row-action-item--danger"
-            onClick={handleDelete}
+            onClick={async () => {
+              closeMenu();
+              await handleDelete();
+            }}
             disabled={deleting}
           >
             {deleting ? "Deleting..." : "Delete"}
           </button>
-        </div>
-      </details>
+          </>
+        )}
+      </AdminPortalActionMenu>
       {message ? <p className="error">{message}</p> : null}
     </div>
   );

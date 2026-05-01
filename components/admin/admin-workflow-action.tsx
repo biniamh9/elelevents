@@ -34,8 +34,10 @@ export default function AdminWorkflowAction({
     `admin-workflow-action admin-workflow-action--${tone} ${className}`.trim();
 
   if (href) {
+    const linkProps = buttonProps as AnchorHTMLAttributes<HTMLAnchorElement>;
+
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} className={classes} {...linkProps}>
         {showTone ? (
           <span className="admin-workflow-action-tone">{toneLabels[tone]}</span>
         ) : null}

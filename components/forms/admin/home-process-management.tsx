@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { HomeProcessStep } from "@/lib/home-process";
+import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
 
 function HomeProcessRowActions({
   item,
@@ -13,38 +14,17 @@ function HomeProcessRowActions({
   onView: () => void;
   onEdit: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="admin-row-actions">
-      <details
-        className="admin-row-action-menu"
-        open={open}
-        onToggle={(event) =>
-          setOpen((event.currentTarget as HTMLDetailsElement).open)
-        }
-      >
-        <summary className="admin-row-action-trigger">
-          <span>Actions</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path
-              d="m5 7 5 6 5-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </summary>
-
-        <div className="admin-row-action-dropdown">
+      <AdminPortalActionMenu>
+        {(closeMenu) => (
+          <>
           <button
             type="button"
             className="admin-row-action-item"
             onClick={() => {
               onView();
-              setOpen(false);
+              closeMenu();
             }}
           >
             View
@@ -54,13 +34,14 @@ function HomeProcessRowActions({
             className="admin-row-action-item"
             onClick={() => {
               onEdit();
-              setOpen(false);
+              closeMenu();
             }}
           >
             Edit
           </button>
-        </div>
-      </details>
+          </>
+        )}
+      </AdminPortalActionMenu>
     </div>
   );
 }

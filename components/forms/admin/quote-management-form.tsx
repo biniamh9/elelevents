@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import AdminPortalActionMenu from "@/components/admin/admin-portal-action-menu";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { buildInquiryItemizedDraftHref } from "@/lib/admin-navigation";
 import {
@@ -23,24 +24,13 @@ function QuoteActionMenu({
   children: React.ReactNode;
 }) {
   return (
-    <details className="admin-row-action-menu admin-quote-action-menu">
-      <summary className="admin-row-action-trigger admin-quote-action-trigger">
-        <span>{label}</span>
-        <svg viewBox="0 0 20 20" aria-hidden="true">
-          <path
-            d="m5 7 5 6 5-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </summary>
-      <div className="admin-row-action-dropdown admin-quote-action-dropdown">
-        {children}
-      </div>
-    </details>
+    <AdminPortalActionMenu
+      triggerLabel={label}
+      triggerClassName="admin-quote-action-trigger"
+      dropdownClassName="admin-quote-action-dropdown"
+    >
+      {children}
+    </AdminPortalActionMenu>
   );
 }
 
