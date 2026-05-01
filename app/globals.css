@@ -8728,15 +8728,15 @@ tbody tr:last-child td {
   color: var(--muted);
 }
 .admin-overview-kpi-strip {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .admin-overview-hero-shell {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .admin-overview-actions-shell {
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .admin-overview-actions-list {
@@ -8838,8 +8838,8 @@ tbody tr:last-child td {
 .admin-dashboard-row {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 16px;
   align-items: start;
 }
 .admin-dashboard-row > * {
@@ -19443,17 +19443,19 @@ tbody tr:last-child td {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
+  align-items: start;
 }
 
 .admin-workflow-lane-column {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-content: start;
-  padding: 22px 20px;
+  padding: 18px 18px;
   border-radius: 22px;
   border: 1px solid rgba(73, 49, 31, 0.08);
   background: #fff;
   min-width: 0;
+  align-self: start;
 }
 
 .admin-workflow-lane-head {
@@ -19464,10 +19466,10 @@ tbody tr:last-child td {
 }
 
 .admin-workflow-lane-head p {
-  margin-top: 10px;
+  margin-top: 6px;
   color: rgba(73, 62, 50, 0.72);
-  font-size: 0.98rem;
-  line-height: 1.5;
+  font-size: 0.94rem;
+  line-height: 1.4;
 }
 
 .admin-workflow-lane-head strong {
@@ -19478,7 +19480,7 @@ tbody tr:last-child td {
 
 .admin-workflow-lane-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .admin-workflow-lane-item {
@@ -19548,7 +19550,7 @@ tbody tr:last-child td {
 
 .admin-workflow-lane-item--empty {
   cursor: default;
-  min-height: 172px;
+  min-height: 120px;
   align-content: center;
   text-align: center;
 }
