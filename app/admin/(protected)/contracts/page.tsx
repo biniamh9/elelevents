@@ -7,7 +7,6 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import ContractStatusBadge from "@/components/forms/admin/contract-status-badge";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
-import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { requireAdminPage } from "@/lib/auth/admin";
 
@@ -106,17 +105,23 @@ export default async function ContractsPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <AdminPageIntro
-        title="Contracts"
-        description="Track draft agreements, sent envelopes, signed contracts, and deposit progress."
-        aside={
-          <>
-            <span className="admin-head-pill">Total: {totalContracts ?? 0}</span>
-            <span className="admin-head-pill">Signed: {signedCount ?? 0}</span>
-            <span className="admin-head-pill">Deposits paid: {depositPaidCount ?? 0}</span>
-          </>
-        }
-      />
+      <header className="admin-page-header admin-page-header--reference">
+        <div>
+          <h1>Contracts</h1>
+          <p>Track draft agreements, sent envelopes, signed contracts, and deposit progress.</p>
+        </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Total {totalContracts ?? 0}</span>
+          <span className="admin-head-pill">Signed {signedCount ?? 0}</span>
+          <span className="admin-head-pill">Deposits paid {depositPaidCount ?? 0}</span>
+        </div>
+      </header>
+
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep agreements, signature state, and deposit confirmation in one structured workflow so booking readiness is visible at a glance
+        </p>
+      </section>
 
       <AdminMetricStrip
         items={[
@@ -128,7 +133,7 @@ export default async function ContractsPage({
         ]}
       />
 
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline">
+      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
         <Link href={buildContractsWorkspaceHref({ queue: "all" })} className={`admin-workspace-tab${queue === "all" ? " is-active" : ""}`}>
           All
         </Link>
@@ -197,8 +202,23 @@ export default async function ContractsPage({
 
       {error ? <p className="error">Failed to load contracts: {error.message}</p> : null}
 
-      <div className="card admin-table-card admin-records-table-card">
-        <AdminSectionHeader eyebrow="Contract Table" title="All contracts" />
+      <div className="card admin-table-card admin-records-table-card admin-reference-records-shell">
+        <AdminSectionHeader
+          eyebrow="Contract table"
+          title="All contracts"
+          description="Review agreement status, signature state, event timing, and deposit readiness from one records table."
+        />
+        <div className="admin-reference-head-pills">
+          <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+            Showing {filteredContracts.length} contracts
+          </span>
+          <span className="admin-reference-head-pill">Draft</span>
+          <span className="admin-reference-head-pill">{draftCount ?? 0}</span>
+          <span className="admin-reference-head-pill">Sent</span>
+          <span className="admin-reference-head-pill">{sentCount ?? 0}</span>
+          <span className="admin-reference-head-pill">Deposit pending</span>
+          <span className="admin-reference-head-pill">{depositPendingCount ?? 0}</span>
+        </div>
 
       <div className="admin-record-table-shell">
         <table className="admin-records-table">

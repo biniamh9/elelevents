@@ -10,7 +10,6 @@ import CrmLeadsTable from "@/components/admin/crm-leads-table";
 import CrmReportFilters from "@/components/admin/crm-report-filters";
 import CrmTeamPerformanceTable from "@/components/admin/crm-team-performance-table";
 import CrmUpcomingEventsPanel from "@/components/admin/crm-upcoming-events-panel";
-import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { buildWorkflowColumnsFromCrmLeads } from "@/lib/admin-workflow-lane";
 import { buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
@@ -266,24 +265,31 @@ export default async function AdminCrmAnalyticsPage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <AdminPageIntro
-        title="CRM & Analytics"
-        description="Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum."
-      />
-
-      <div className="admin-workspace-actions admin-workspace-actions--page">
-          <a href={exportHref} className="admin-topbar-pill">
+      <header className="admin-page-header admin-page-header--reference">
+        <div>
+          <h1>CRM &amp; Analytics</h1>
+          <p>Track customer relationships, pipeline movement, conversion health, sales forecasting, and booking momentum.</p>
+        </div>
+        <div className="admin-page-head-aside">
+          <a href={exportHref} className="admin-head-pill">
             Export report
           </a>
-          <Link href="/admin/crm-analytics?tab=leads" className="admin-topbar-pill">
+          <Link href="/admin/crm-analytics?tab=leads" className="admin-head-pill">
             Add interaction
           </Link>
-          <Link href="/admin/crm-analytics?tab=tasks" className="btn">
+          <Link href="/admin/crm-analytics?tab=tasks" className="admin-head-pill">
             Create task
           </Link>
-      </div>
+        </div>
+      </header>
 
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline">
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep lead health, follow-up pressure, sales forecasting, revenue signals, and relationship history inside one polished operating workspace instead of splitting the view across separate tools
+        </p>
+      </section>
+
+      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
         <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "dashboard" ? " is-active" : ""}`}>Dashboard</Link>
         <Link href="/admin/crm-analytics?tab=reports" className={`admin-workspace-tab${activeTab === "reports" ? " is-active" : ""}`}>Reports</Link>
         <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads</Link>

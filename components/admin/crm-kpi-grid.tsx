@@ -7,11 +7,11 @@ type KPI = {
 
 export default function CrmKpiGrid({ items }: { items: KPI[] }) {
   return (
-    <section className="admin-mini-report admin-mini-report--compact crm-kpi-shell">
-      <div className="admin-kpi-grid crm-kpi-grid">
+    <section className="admin-reference-kpi-strip crm-kpi-shell">
+      <div className="admin-kpi-grid admin-reference-kpi-grid crm-kpi-grid">
         {items.map((item) => (
-          <div key={item.label} className={`card metric-card metric-card--${item.tone ?? "neutral"}`}>
-            <p className="muted">{item.label}</p>
+          <div key={item.label} className={`admin-reference-kpi-card metric-card metric-card--${item.tone ?? "neutral"}`}>
+            <p className="admin-reference-kpi-label">{item.label}</p>
             <strong>{item.value}</strong>
             <span>{item.detail}</span>
           </div>

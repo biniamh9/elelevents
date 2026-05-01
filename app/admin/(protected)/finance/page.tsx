@@ -1,7 +1,6 @@
 import Link from "next/link";
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminEmptyState from "@/components/admin/admin-empty-state";
-import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import ExpenseManagement from "@/components/forms/admin/expense-management";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -27,12 +26,20 @@ export default async function AdminFinancePage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <AdminPageIntro
-        title="Finance"
-        description="Review actual cash movement, collected deposits, receipts, outstanding balances, and expense tracking in one accounting-focused workspace."
-      />
+      <header className="admin-page-header admin-page-header--reference">
+        <div>
+          <h1>Finance</h1>
+          <p>Review actual cash movement, collected deposits, receipts, outstanding balances, and expense tracking.</p>
+        </div>
+      </header>
 
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline">
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep income, receipts, deposits, balances, and expenses in one accounting-focused workspace without mixing forecast with actual cash
+        </p>
+      </section>
+
+      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
         <Link href="/admin/finance" className={`admin-workspace-tab${tab === "overview" ? " is-active" : ""}`}>
           Overview
         </Link>
@@ -75,11 +82,22 @@ export default async function AdminFinancePage({
 
       {tab === "overview" ? (
         <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-          <section className="card admin-section-card">
+          <section className="card admin-section-card admin-reference-records-shell">
             <AdminSectionHeader
               title="Finance overview"
               description="Use this workspace to consolidate actual payments, receipts, deposits, balances, and operating expenses."
             />
+            <div className="admin-reference-head-pills">
+              <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+                Recorded income {currencyFormatter.format(finance.recordedIncome)}
+              </span>
+              <span className="admin-reference-head-pill">Outstanding deposits</span>
+              <span className="admin-reference-head-pill">
+                {currencyFormatter.format(finance.outstandingDeposits)}
+              </span>
+              <span className="admin-reference-head-pill">Paid receipts</span>
+              <span className="admin-reference-head-pill">{finance.paidReceipts}</span>
+            </div>
             <div className="admin-placeholder-list">
               <div>
                 <strong>Actual money in</strong>
@@ -158,11 +176,24 @@ export default async function AdminFinancePage({
       ) : null}
 
       {tab === "income" ? (
-        <section className="card admin-section-card">
+        <section className="card admin-section-card admin-reference-records-shell">
           <AdminSectionHeader
             title="Income ledger"
             description="Review payments, due dates, and receipt status from the live contract payment records."
           />
+          <div className="admin-reference-head-pills">
+            <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+              Showing {finance.payments.length} payments
+            </span>
+            <span className="admin-reference-head-pill">Outstanding balances</span>
+            <span className="admin-reference-head-pill">
+              {currencyFormatter.format(finance.outstandingBalances)}
+            </span>
+            <span className="admin-reference-head-pill">Tracked expenses</span>
+            <span className="admin-reference-head-pill">
+              {currencyFormatter.format(finance.trackedExpenses)}
+            </span>
+          </div>
           {finance.payments.length ? (
             <div className="admin-record-table-shell">
               <table className="admin-records-table">

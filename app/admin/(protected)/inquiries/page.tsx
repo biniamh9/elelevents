@@ -830,18 +830,55 @@ export default async function AdminInquiriesPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <div className="admin-page-header">
+      <header className="admin-page-header admin-page-header--reference">
         <div>
           <h1>{tabHeadingMap[activeTab].title}</h1>
           <p>{tabHeadingMap[activeTab].description}</p>
         </div>
-        {activeTab !== "overview" ? (
-          <div className="admin-page-head-aside">
-            <span className="admin-head-pill">Showing: {filteredCount ?? 0}</span>
-            <span className="admin-head-pill">Pipeline: ${formatMoney(pipelineValue)}</span>
-            <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
-          </div>
-        ) : null}
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">Showing {filteredCount ?? 0}</span>
+          <span className="admin-head-pill">Pipeline ${formatMoney(pipelineValue)}</span>
+          <span className="admin-head-pill">{conversionRate.toFixed(1)}% conversion</span>
+        </div>
+      </header>
+
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep intake, pipeline review, consultations, and live inquiry management in one structured workspace so the next move is visible without jumping between disconnected tabs
+        </p>
+      </section>
+
+      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
+        <Link
+          href={buildInquiryWorkspaceHref({ tab: "overview", state: inquiryWorkspaceState })}
+          className={`admin-workspace-tab${activeTab === "overview" ? " is-active" : ""}`}
+        >
+          Overview
+        </Link>
+        <Link
+          href={buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState })}
+          className={`admin-workspace-tab${activeTab === "pipeline" ? " is-active" : ""}`}
+        >
+          Pipeline
+        </Link>
+        <Link
+          href={buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })}
+          className={`admin-workspace-tab${activeTab === "schedule" ? " is-active" : ""}`}
+        >
+          Schedule
+        </Link>
+        <Link
+          href={buildInquiryWorkspaceHref({
+            tab: "inquiries",
+            state: inquiryWorkspaceState,
+            nextStatus: status,
+            nextFollowUp: followUp || undefined,
+            preservePage: true,
+          })}
+          className={`admin-workspace-tab${activeTab === "inquiries" ? " is-active" : ""}`}
+        >
+          Inquiries
+        </Link>
       </div>
 
       {activeTab === "overview" ? (
@@ -1147,11 +1184,23 @@ export default async function AdminInquiriesPage({
       {activeTab === "inquiries" ? (
         <>
           <div className="admin-workspace-subheader">
-            <form method="GET" className="admin-filters admin-filters--records admin-filters--sticky">
+            <form method="GET" className="admin-filters admin-filters--records admin-filters--sticky admin-reference-records-shell">
               <input type="hidden" name="tab" value="inquiries" />
-              <div className="admin-inline-actions admin-inline-actions--filters">
-                <span className="admin-head-pill">Follow-up pending: {unresolvedFollowUpIds.length}</span>
-                <span className="admin-head-pill">Reviewed: {reviewedFollowUpCount}</span>
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Inquiry records</p>
+                  <h3>Inquiry records</h3>
+                  <p className="muted">Search and filter the inquiry system without losing visibility into request status, event type, or follow-up review.</p>
+                </div>
+              </div>
+              <div className="admin-reference-head-pills">
+                <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+                  Showing {filteredCount ?? 0} inquiries
+                </span>
+                <span className="admin-reference-head-pill">Follow-up pending</span>
+                <span className="admin-reference-head-pill">{unresolvedFollowUpIds.length}</span>
+                <span className="admin-reference-head-pill">Reviewed</span>
+                <span className="admin-reference-head-pill">{reviewedFollowUpCount}</span>
                 <Link
                   href={followUpFilterHref}
                   className={`admin-head-pill${followUpFilterActive ? " admin-head-pill--active" : ""}`}
@@ -1167,7 +1216,7 @@ export default async function AdminInquiriesPage({
                   </Link>
                 ) : null}
               </div>
-              <div className="field">
+              <div className="field admin-reference-filter-group">
                 <label className="label">Search</label>
                 <input
                   name="q"
@@ -1176,47 +1225,49 @@ export default async function AdminInquiriesPage({
                   placeholder="Client, email, phone, or venue"
                 />
               </div>
+              <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
+                <div className="field admin-reference-filter-group">
+                  <label className="label">Status</label>
+                  <select name="status" defaultValue={status} className="input">
+                    <option value="">All</option>
+                    {statuses.map((item) => (
+                      <option key={item} value={item}>
+                        {humanizeLabel(item)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="field">
-                <label className="label">Status</label>
-                <select name="status" defaultValue={status} className="input">
-                  <option value="">All</option>
-                  {statuses.map((item) => (
-                    <option key={item} value={item}>
-                      {humanizeLabel(item)}
-                    </option>
-                  ))}
-                </select>
+                <div className="field admin-reference-filter-group">
+                  <label className="label">Event Type</label>
+                  <select name="event_type" defaultValue={eventType} className="input">
+                    <option value="">All</option>
+                    {eventTypes.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+              <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
+                <div className="field admin-reference-filter-group">
+                  <label className="label">Sort By</label>
+                  <select name="sort" defaultValue={sort} className="input">
+                    <option value="action_readiness">Action readiness</option>
+                    <option value="newest">Created date: newest</option>
+                    <option value="oldest">Created date: oldest</option>
+                    <option value="event_date">Event date</option>
+                  </select>
+                </div>
 
-              <div className="field">
-                <label className="label">Event Type</label>
-                <select name="event_type" defaultValue={eventType} className="input">
-                  <option value="">All</option>
-                  {eventTypes.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label className="label">Sort By</label>
-                <select name="sort" defaultValue={sort} className="input">
-                  <option value="action_readiness">Action readiness</option>
-                  <option value="newest">Created date: newest</option>
-                  <option value="oldest">Created date: oldest</option>
-                  <option value="event_date">Event date</option>
-                </select>
-              </div>
-
-              <div className={`field${followUpFilterActive ? " admin-filter-field--active" : ""}`}>
-                <label className="label">Follow-up</label>
-                <select name="follow_up" defaultValue={followUp} className="input">
-                  <option value="">All</option>
-                  <option value="with_inspiration">Has follow-up inspiration</option>
-                </select>
+                <div className={`field admin-reference-filter-group${followUpFilterActive ? " admin-filter-field--active" : ""}`}>
+                  <label className="label">Follow-up</label>
+                  <select name="follow_up" defaultValue={followUp} className="input">
+                    <option value="">All</option>
+                    <option value="with_inspiration">Has follow-up inspiration</option>
+                  </select>
+                </div>
               </div>
 
               <div className="admin-filter-actions">
@@ -1233,9 +1284,9 @@ export default async function AdminInquiriesPage({
           <div className="card admin-table-card admin-records-table-card">
             <div className="admin-panel-head">
               <div>
-                <p className="eyebrow">Inquiry records</p>
-                <h3>Inquiry records</h3>
-                <p className="muted">Clients, filter, and edit individual requests without completing dashboard or context above.</p>
+                <p className="eyebrow">Request table</p>
+                <h3>Clients, quotes, and payments</h3>
+                <p className="muted">Review inquiry state, quote progress, and payment readiness from one clean records table.</p>
               </div>
             </div>
 

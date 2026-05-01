@@ -10,7 +10,7 @@ export default function AdminPageIntro({
   aside?: ReactNode;
 }) {
   return (
-    <div className="admin-page-header">
+    <div className="admin-page-header admin-page-header--reference">
       <div>
         <h1>{title}</h1>
         <p>{description}</p>
