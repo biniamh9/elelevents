@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export default function AdminPortalActionMenu({
@@ -23,7 +23,7 @@ export default function AdminPortalActionMenu({
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) {
       return;
     }
@@ -53,8 +53,6 @@ export default function AdminPortalActionMenu({
     if (!open) {
       return;
     }
-
-    let frame = 0;
 
     function updatePosition() {
       const trigger = triggerRef.current;
@@ -91,7 +89,7 @@ export default function AdminPortalActionMenu({
     }
 
     updatePosition();
-    frame = window.requestAnimationFrame(updatePosition);
+    const frame = window.requestAnimationFrame(updatePosition);
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
     return () => {

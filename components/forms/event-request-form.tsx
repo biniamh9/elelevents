@@ -1,60 +1,64 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
-import type { GalleryItem } from "@/lib/gallery";
-import type { SiteSocialLinks } from "@/lib/social-links";
-import type { PublicVendorRecommendation } from "@/lib/vendors";
 
 const EVENT_TYPE_OPTIONS = ["Wedding", "Engagement", "Birthday", "Corporate", "Other"] as const;
 
-const GUEST_COUNT_OPTIONS = [
-  { label: "0–50", value: "0-50", numericValue: 25 },
-  { label: "50–100", value: "50-100", numericValue: 75 },
-  { label: "100–150", value: "100-150", numericValue: 125 },
-  { label: "150+", value: "150+", numericValue: 175 },
+const SERVICE_OPTIONS = [
+  "Full Event Decoration",
+  "Head Table / Sweetheart Table",
+  "Backdrop Design",
+  "Centerpieces",
+  "Ceiling Draping",
+  "Chair Rental",
+  "Table Setup",
+  "Floral Design",
+  "Custom Package",
 ] as const;
 
 const BUDGET_RANGE_OPTIONS = [
-  "Under $3,000",
-  "$3,000–$5,000",
-  "$5,000–$8,000",
-  "$8,000–$12,000",
-  "$12,000+",
+  "I’m still exploring",
+  "Under $1,000",
+  "$1,000 – $2,500",
+  "$2,500 – $5,000",
+  "$5,000+",
+  "Prefer to discuss during consultation",
 ] as const;
 
-type EventRequestFormProps = {
-  vendors?: PublicVendorRecommendation[];
-  portfolioItems?: GalleryItem[];
-  socialLinks?: SiteSocialLinks;
-  initialInquiryNote?: string;
-  initialServices?: string[];
-  rentalInquiryMode?: "single" | "shortlist" | null;
-};
+const CONSULTATION_PREFERENCE_OPTIONS = [
+  "Phone Call",
+  "Video Call",
+  "In-Person Meeting",
+  "Text First",
+] as const;
 
 type RequestFormState = {
-  fullName: string;
-  phone: string;
-  email: string;
   eventType: string;
+  guestCount: string;
   eventDate: string;
-  guestCountRange: string;
-  vision: string;
+  services: string[];
   budgetRange: string;
+  consultationPreference: string;
+  name: string;
+  email: string;
+  phone: string;
 };
 
+type RequestFormErrors = Partial<Record<keyof RequestFormState | "services", string>>;
+
 const INITIAL_STATE: RequestFormState = {
-  fullName: "",
-  phone: "",
-  email: "",
   eventType: EVENT_TYPE_OPTIONS[0],
+  guestCount: "",
   eventDate: "",
-  guestCountRange: "",
-  vision: "",
+  services: [],
   budgetRange: "",
+  consultationPreference: "",
+  name: "",
+  email: "",
+  phone: "",
 };
 
 function splitFullName(fullName: string) {
@@ -78,80 +82,137 @@ function splitFullName(fullName: string) {
 
 function buildAdditionalInfo({
   budgetRange,
-  guestCountRange,
-  initialInquiryNote,
+  consultationPreference,
 }: {
   budgetRange: string;
-  guestCountRange: string;
-  initialInquiryNote?: string;
+  consultationPreference: string;
 }) {
-  const notes = [
+  const lines = [
     budgetRange ? `Budget range: ${budgetRange}` : null,
-    guestCountRange ? `Guest count range: ${guestCountRange}` : null,
-    initialInquiryNote ?? null,
+    consultationPreference ? `Consultation preference: ${consultationPreference}` : null,
   ].filter(Boolean);
 
-  return notes.length ? notes.join("\n") : null;
+  return lines.length ? lines.join("\n") : null;
 }
 
-function getGuestCountNumericValue(range: string) {
-  return GUEST_COUNT_OPTIONS.find((option) => option.value === range)?.numericValue ?? null;
-}
-
-export default function EventRequestForm({
-  initialInquiryNote,
-  initialServices,
-}: EventRequestFormProps) {
+export default function EventRequestForm() {
   const router = useRouter();
   const [form, setForm] = useState<RequestFormState>(INITIAL_STATE);
+  const [errors, setErrors] = useState<RequestFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const helperNote = useMemo(
-    () =>
-      initialInquiryNote
-        ? "We captured your selected service context. Use the note box only for the vision you want us to understand first."
-        : "Keep it simple. We only need enough to confirm availability and understand the direction of your event.",
-    [initialInquiryNote]
-  );
-
-  function updateField<Key extends keyof RequestFormState>(key: Key, value: RequestFormState[Key]) {
+  function updateField<Key extends keyof RequestFormState>(
+    key: Key,
+    value: RequestFormState[Key]
+  ) {
     setForm((current) => ({
       ...current,
       [key]: value,
     }));
+    setErrors((current) => ({
+      ...current,
+      [key]: undefined,
+    }));
+  }
+
+  function toggleService(service: string) {
+    setForm((current) => {
+      const nextServices = current.services.includes(service)
+        ? current.services.filter((item) => item !== service)
+        : [...current.services, service];
+
+      return {
+        ...current,
+        services: nextServices,
+      };
+    });
+    setErrors((current) => ({
+      ...current,
+      services: undefined,
+    }));
+  }
+
+  function validate() {
+    const nextErrors: RequestFormErrors = {};
+    const guestCountNumber = Number(form.guestCount);
+
+    if (!form.eventType.trim()) {
+      nextErrors.eventType = "Please choose your event type.";
+    }
+
+    if (!form.guestCount.trim()) {
+      nextErrors.guestCount = "Please enter the estimated number of guests.";
+    } else if (!Number.isFinite(guestCountNumber) || guestCountNumber < 1) {
+      nextErrors.guestCount = "Guest count must be at least 1.";
+    }
+
+    if (!form.budgetRange.trim()) {
+      nextErrors.budgetRange = "Please select a budget range.";
+    }
+
+    if (!form.consultationPreference.trim()) {
+      nextErrors.consultationPreference = "Please select a consultation preference.";
+    }
+
+    if (!form.name.trim()) {
+      nextErrors.name = "Please enter your name.";
+    } else {
+      const { firstName, lastName } = splitFullName(form.name);
+      if (!firstName || !lastName) {
+        nextErrors.name = "Please enter your full name.";
+      }
+    }
+
+    if (!form.email.trim()) {
+      nextErrors.email = "Please enter your email address.";
+    }
+
+    if (!form.phone.trim()) {
+      nextErrors.phone = "Please enter your phone number.";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSubmitting(true);
     setError(null);
 
-    const { firstName, lastName } = splitFullName(form.fullName);
-    const normalizedEmail = form.email.trim().toLowerCase();
-
-    if (!firstName || !lastName) {
-      setSubmitting(false);
-      setError("Please enter your full name.");
+    if (!validate()) {
       return;
     }
 
+    setSubmitting(true);
+
+    const { firstName, lastName } = splitFullName(form.name);
+    const normalizedEmail = form.email.trim().toLowerCase();
+    const guestCount = Number(form.guestCount);
+
     try {
       const payload = {
-        firstName,
-        lastName,
+        event_type: form.eventType,
+        guest_count: guestCount,
+        services: form.services,
+        budget_range: form.budgetRange,
+        consultation_preference: form.consultationPreference,
+        name: form.name.trim(),
         email: normalizedEmail,
         phone: form.phone.trim(),
+        event_date: form.eventDate || null,
+        firstName,
+        lastName,
         eventType: form.eventType,
+        guestCount,
+        budgetRange: form.budgetRange,
+        consultationPreference: form.consultationPreference,
         eventDate: form.eventDate || null,
-        guestCount: getGuestCountNumericValue(form.guestCountRange),
-        services: initialServices ?? [],
-        inspirationNotes: form.vision.trim(),
         additionalInfo: buildAdditionalInfo({
           budgetRange: form.budgetRange,
-          guestCountRange: form.guestCountRange,
-          initialInquiryNote,
+          consultationPreference: form.consultationPreference,
         }),
+        inspirationNotes: null,
         venueName: null,
         venueStatus: null,
         indoorOutdoor: null,
@@ -161,7 +222,7 @@ export default function EventRequestForm({
         decorSelections: [],
         requestedVendorCategories: [],
         vendorRequestNotes: null,
-        preferredContactMethod: "phone",
+        preferredContactMethod: form.consultationPreference,
         consultationPreferenceDate: null,
         consultationPreferenceTime: null,
         consultationVideoPlatform: null,
@@ -186,7 +247,7 @@ export default function EventRequestForm({
       const params = new URLSearchParams({
         inquiry: data.inserted.id,
         email: normalizedEmail,
-        name: form.fullName.trim(),
+        name: form.name.trim(),
       });
 
       router.push(`/request/follow-up?${params.toString()}`);
@@ -197,66 +258,36 @@ export default function EventRequestForm({
           : "Something went wrong while sending your request."
       );
       setSubmitting(false);
+      return;
     }
   }
 
   return (
     <section className="request-flow-shell" data-reveal>
-      <Card className="request-form-card" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
+      <Card
+        className="request-form-card"
+        data-reveal-child
+        style={{ ["--reveal-delay" as string]: "0ms" }}
+      >
         <div className="request-form-header">
           <div>
             <p className="eyebrow">Availability Request</p>
-            <h2>Start with the essentials.</h2>
+            <h2>Tell us the essentials.</h2>
           </div>
-          <p className="muted">{helperNote}</p>
+          <p className="muted">
+            Keep this first step simple. We only need the basics to understand your event and
+            prepare the right consultation.
+          </p>
         </div>
 
-        <form className="request-form" onSubmit={handleSubmit}>
+        <form className="request-form" onSubmit={handleSubmit} noValidate>
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 1</span>
-              <h3>Contact Information</h3>
-            </div>
-            <div className="request-form-grid request-form-grid--three">
-              <label className="request-field">
-                <span>Full Name</span>
-                <input
-                  type="text"
-                  value={form.fullName}
-                  onChange={(event) => updateField("fullName", event.target.value)}
-                  placeholder="Your full name"
-                  required
-                />
-              </label>
-              <label className="request-field">
-                <span>Phone Number</span>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) => updateField("phone", event.target.value)}
-                  placeholder="(555) 555-5555"
-                  required
-                />
-              </label>
-              <label className="request-field">
-                <span>Email Address</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(event) => updateField("email", event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="request-form-section">
-            <div className="request-form-section-copy">
-              <span>Section 2</span>
               <h3>Event Details</h3>
             </div>
-            <div className="request-form-grid request-form-grid--three">
+
+            <div className="request-form-grid request-form-grid--event">
               <label className="request-field">
                 <span>Event Type</span>
                 <select
@@ -270,6 +301,26 @@ export default function EventRequestForm({
                     </option>
                   ))}
                 </select>
+                {errors.eventType ? <small className="request-field-error">{errors.eventType}</small> : null}
+              </label>
+
+              <label className="request-field">
+                <span>Number of Guests</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  placeholder="Estimated guest count"
+                  value={form.guestCount}
+                  onChange={(event) => updateField("guestCount", event.target.value)}
+                  required
+                />
+                <small className="request-field-helper">
+                  An estimate is perfectly fine — we’ll help you refine details during consultation.
+                </small>
+                {errors.guestCount ? (
+                  <small className="request-field-error">{errors.guestCount}</small>
+                ) : null}
               </label>
 
               <label className="request-field">
@@ -280,80 +331,145 @@ export default function EventRequestForm({
                   onChange={(event) => updateField("eventDate", event.target.value)}
                 />
               </label>
+            </div>
+          </div>
 
-              <label className="request-field">
-                <span>Estimated Guest Count</span>
-                <select
-                  value={form.guestCountRange}
-                  onChange={(event) => updateField("guestCountRange", event.target.value)}
-                >
-                  <option value="">Select a range</option>
-                  {GUEST_COUNT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div className="request-form-section">
+            <div className="request-form-section-copy">
+              <span>Section 2</span>
+              <h3>Services Needed</h3>
+            </div>
+
+            <div className="request-option-grid" role="group" aria-label="Services Needed">
+              {SERVICE_OPTIONS.map((option) => {
+                const selected = form.services.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`request-select-card${selected ? " is-selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => toggleService(option)}
+                  >
+                    <span>{option}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 3</span>
-              <h3>Vision</h3>
+              <h3>Budget Range</h3>
             </div>
-            <label className="request-field request-field--full">
-              <span>Tell us about your event vision</span>
-              <textarea
-                value={form.vision}
-                onChange={(event) => updateField("vision", event.target.value)}
-                placeholder="Share your ideas, style, colors, or anything you have in mind…"
-                rows={6}
-              />
-            </label>
+
+            <div className="request-option-grid" role="group" aria-label="Budget Range">
+              {BUDGET_RANGE_OPTIONS.map((option) => {
+                const selected = form.budgetRange === option;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`request-select-card${selected ? " is-selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => updateField("budgetRange", option)}
+                  >
+                    <span>{option}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.budgetRange ? (
+              <p className="request-form-error request-form-error--inline">{errors.budgetRange}</p>
+            ) : null}
           </div>
 
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 4</span>
-              <h3>Optional</h3>
+              <h3>Consultation Preference</h3>
             </div>
-            <div className="request-form-grid request-form-grid--two">
+
+            <div className="request-option-grid" role="group" aria-label="Consultation Preference">
+              {CONSULTATION_PREFERENCE_OPTIONS.map((option) => {
+                const selected = form.consultationPreference === option;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`request-select-card${selected ? " is-selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => updateField("consultationPreference", option)}
+                  >
+                    <span>{option}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.consultationPreference ? (
+              <p className="request-form-error request-form-error--inline">
+                {errors.consultationPreference}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="request-form-section">
+            <div className="request-form-section-copy">
+              <span>Section 5</span>
+              <h3>Contact Info</h3>
+            </div>
+
+            <div className="request-form-grid request-form-grid--contact">
               <label className="request-field">
-                <span>Budget Range</span>
-                <select
-                  value={form.budgetRange}
-                  onChange={(event) => updateField("budgetRange", event.target.value)}
-                >
-                  <option value="">Select a range</option>
-                  {BUDGET_RANGE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                <span>Name</span>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(event) => updateField("name", event.target.value)}
+                  placeholder="Your full name"
+                  required
+                />
+                {errors.name ? <small className="request-field-error">{errors.name}</small> : null}
               </label>
-              <div className="request-form-side-note">
-                <p className="eyebrow">What happens next</p>
-                <p>
-                  Once you send this, we take you to a follow-up page where you can upload inspiration
-                  images or share Pinterest and Instagram references.
-                </p>
-              </div>
+
+              <label className="request-field">
+                <span>Email</span>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => updateField("email", event.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+                {errors.email ? <small className="request-field-error">{errors.email}</small> : null}
+              </label>
+
+              <label className="request-field">
+                <span>Phone</span>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) => updateField("phone", event.target.value)}
+                  placeholder="(555) 555-5555"
+                  required
+                />
+                {errors.phone ? <small className="request-field-error">{errors.phone}</small> : null}
+              </label>
             </div>
           </div>
 
           {error ? <p className="request-form-error">{error}</p> : null}
 
-          <div className="request-form-actions">
+          <div className="request-form-actions request-form-actions--stacked">
             <div className="request-form-trust">
-              <strong>Simple first step.</strong>
-              <span>We only ask for what we need to confirm fit and availability.</span>
+              <strong>After you submit, our team will review your request and contact you to design your event.</strong>
             </div>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Sending..." : "Check Availability"}
-            </Button>
+            <div className="request-form-button-row">
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Sending..." : "Check Availability"}
+              </Button>
+            </div>
           </div>
         </form>
       </Card>

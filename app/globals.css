@@ -304,13 +304,13 @@ a:focus-visible {
 
 .request-form {
   display: grid;
-  gap: 28px;
+  gap: 32px;
 }
 
 .request-form-section {
   display: grid;
-  gap: 18px;
-  padding-top: 26px;
+  gap: 20px;
+  padding-top: 28px;
   border-top: 1px solid rgba(93, 39, 4, 0.1);
 }
 
@@ -339,16 +339,24 @@ a:focus-visible {
 
 .request-form-grid {
   display: grid;
-  gap: 20px;
+  gap: 20px 24px;
 }
 
 .request-form-grid--three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.request-form-grid--event {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .request-form-grid--two {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
   align-items: start;
+}
+
+.request-form-grid--contact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .request-field,
@@ -362,6 +370,22 @@ a:focus-visible {
   font-size: 0.96rem;
   font-weight: 600;
   color: #3b3028;
+}
+
+.request-field-helper,
+.request-field-error {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.request-field-helper {
+  color: var(--muted);
+}
+
+.request-field-error {
+  color: #b42318;
+  font-weight: 600;
 }
 
 .request-field input,
@@ -400,6 +424,56 @@ a:focus-visible {
 
 .request-field--full {
   grid-column: 1 / -1;
+}
+
+.request-option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.request-select-card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 64px;
+  padding: 18px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(93, 39, 4, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: #3b3028;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 240ms var(--lux-ease),
+    box-shadow 240ms var(--lux-ease),
+    transform 240ms var(--lux-ease),
+    background 240ms var(--lux-ease),
+    color 240ms var(--lux-ease);
+}
+
+.request-select-card:hover,
+.request-select-card:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(208, 161, 95, 0.78);
+  box-shadow:
+    0 0 0 4px rgba(208, 161, 95, 0.12),
+    0 12px 26px rgba(48, 24, 11, 0.08);
+  outline: none;
+}
+
+.request-select-card.is-selected {
+  border-color: rgba(225, 121, 38, 0.86);
+  background: rgba(255, 244, 234, 0.98);
+  color: var(--accent-dark);
+  box-shadow:
+    0 0 0 4px rgba(225, 121, 38, 0.1),
+    0 14px 28px rgba(48, 24, 11, 0.08);
 }
 
 .request-form-side-note,
@@ -501,7 +575,7 @@ a:focus-visible {
 }
 
 .request-form-actions--stacked {
-  justify-content: center;
+  align-items: flex-start;
 }
 
 .request-form-button-row {
@@ -514,7 +588,7 @@ a:focus-visible {
 .request-form-trust {
   display: grid;
   gap: 6px;
-  max-width: 440px;
+  max-width: 640px;
 }
 
 .request-form-trust strong,
@@ -530,6 +604,10 @@ a:focus-visible {
   margin: 0;
   color: #b42318;
   font-weight: 600;
+}
+
+.request-form-error--inline {
+  margin-top: -8px;
 }
 
 .request-inline-link {
@@ -555,6 +633,9 @@ a:focus-visible {
 @media (max-width: 980px) {
   .request-form-grid--three,
   .request-form-grid--two,
+  .request-form-grid--event,
+  .request-form-grid--contact,
+  .request-option-grid,
   .request-reassurance-grid {
     grid-template-columns: 1fr;
   }
@@ -590,6 +671,12 @@ a:focus-visible {
   .request-field textarea,
   .request-field select {
     min-height: 56px;
+  }
+
+  .request-select-card {
+    min-height: 60px;
+    padding: 16px;
+    border-radius: 18px;
   }
 }
 .nav-links a.is-active,

@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation";
 import { buildInquiryDetailHref } from "@/lib/admin-navigation";
 
 const EVENT_TYPE_OPTIONS = ["Wedding", "Engagement", "Birthday", "Corporate", "Other"] as const;
-const GUEST_COUNT_OPTIONS = [
-  { label: "0–50", value: "0-50", numericValue: 25 },
-  { label: "50–100", value: "50-100", numericValue: 75 },
-  { label: "100–150", value: "100-150", numericValue: 125 },
-  { label: "150+", value: "150+", numericValue: 175 },
-] as const;
 const BUDGET_RANGE_OPTIONS = [
   "",
   "Under $3,000",
@@ -26,7 +20,7 @@ type ManualInquiryFormState = {
   email: string;
   eventType: string;
   eventDate: string;
-  guestCountRange: string;
+  guestCount: string;
   vision: string;
   budgetRange: string;
   intakeNotes: string;
@@ -38,7 +32,7 @@ const INITIAL_STATE: ManualInquiryFormState = {
   email: "",
   eventType: EVENT_TYPE_OPTIONS[0],
   eventDate: "",
-  guestCountRange: "",
+  guestCount: "",
   vision: "",
   budgetRange: "",
   intakeNotes: "",
@@ -63,23 +57,19 @@ function splitFullName(fullName: string) {
   };
 }
 
-function getGuestCountNumericValue(range: string) {
-  return GUEST_COUNT_OPTIONS.find((option) => option.value === range)?.numericValue ?? null;
-}
-
 function buildAdditionalInfo({
   budgetRange,
-  guestCountRange,
+  guestCount,
   intakeNotes,
 }: {
   budgetRange: string;
-  guestCountRange: string;
+  guestCount: string;
   intakeNotes: string;
 }) {
   const lines = [
     "Manual admin intake.",
     budgetRange ? `Budget range: ${budgetRange}` : null,
-    guestCountRange ? `Guest count range: ${guestCountRange}` : null,
+    guestCount ? `Guest count: ${guestCount}` : null,
     intakeNotes.trim() ? `Admin notes: ${intakeNotes.trim()}` : null,
   ].filter(Boolean);
 
@@ -113,6 +103,14 @@ export default function ManualInquiryForm() {
       return;
     }
 
+    const guestCount = Number(form.guestCount);
+
+    if (!Number.isFinite(guestCount) || guestCount < 1) {
+      setSubmitting(false);
+      setError("Enter a guest count of at least 1.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/admin/inquiries", {
         method: "POST",
@@ -124,12 +122,12 @@ export default function ManualInquiryForm() {
           phone: form.phone.trim(),
           eventType: form.eventType,
           eventDate: form.eventDate || null,
-          guestCount: getGuestCountNumericValue(form.guestCountRange),
+          guestCount,
           services: [],
           inspirationNotes: form.vision.trim() || null,
           additionalInfo: buildAdditionalInfo({
             budgetRange: form.budgetRange,
-            guestCountRange: form.guestCountRange,
+            guestCount: form.guestCount,
             intakeNotes: form.intakeNotes,
           }),
           referralSource: "manual_admin_entry",
@@ -222,18 +220,14 @@ export default function ManualInquiryForm() {
           </div>
           <div className="field">
             <label className="label">Estimated Guest Count</label>
-            <select
+            <input
               className="input"
-              value={form.guestCountRange}
-              onChange={(event) => updateField("guestCountRange", event.target.value)}
-            >
-              <option value="">Select a range</option>
-              {GUEST_COUNT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              type="number"
+              min={1}
+              value={form.guestCount}
+              onChange={(event) => updateField("guestCount", event.target.value)}
+              required
+            />
           </div>
           <div className="field">
             <label className="label">Budget Range</label>

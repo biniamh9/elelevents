@@ -142,10 +142,15 @@ export default function AdminNotificationBellClient({
   const pathname = usePathname();
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const [items, setItems] = useState(initialItems);
+  const [hydrated, setHydrated] = useState(false);
   const unreadCount = useMemo(
     () => items.filter((item) => !item.is_read).length || initialUnreadCount,
     [items, initialUnreadCount]
   );
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (detailsRef.current) {
@@ -226,6 +231,9 @@ export default function AdminNotificationBellClient({
                   : item.summary && item.summary !== summary
                     ? item.summary
                     : "Open details";
+              const description = hydrated
+                ? `${detail} · ${timeAgo(item.created_at)}`
+                : detail;
 
               return (
                 <AdminWorkflowAction
@@ -234,7 +242,7 @@ export default function AdminNotificationBellClient({
                   className={`admin-workflow-action--menu admin-notification-item${item.is_read ? "" : " is-unread"}`}
                   tone={notificationTone(item)}
                   label={summary}
-                  description={`${detail} · ${timeAgo(item.created_at)}`}
+                  description={description}
                   onClick={() => {
                     if (detailsRef.current) {
                       detailsRef.current.open = false;

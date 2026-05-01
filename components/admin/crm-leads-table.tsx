@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import CrmLeadRowActions from "@/components/admin/crm-lead-row-actions";
 import { buildCrmLeadsHref, buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", {
     month: "numeric",
     day: "numeric",
     year: "numeric",

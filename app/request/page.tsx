@@ -11,7 +11,7 @@ export default function RequestPage() {
       <ImmersivePageHero
         eyebrow="Check Availability"
         title="Start with the essentials and we’ll take it from there."
-        description="Share your contact details, event type, date, guest count, and a short description of your vision. The more detailed inspiration can come after submission."
+        description="Share your event type, guest count, services needed, budget range, consultation preference, and contact details. The more detailed inspiration can come after submission."
         imageUrl="/hero1.jpeg"
         imageAlt="Luxury ballroom event styling"
         tags={["Fast inquiry", "Minimal intake", "Luxury event design"]}
@@ -21,7 +21,7 @@ export default function RequestPage() {
               <span>01</span>
               <div>
                 <strong>Tell us the basics</strong>
-                <p className="muted">Name, contact details, event date, guest count, and what you are planning.</p>
+                <p className="muted">Event type, guest count, event date, services needed, and the best way to reach you.</p>
               </div>
             </div>
             <div className="booking-note">
