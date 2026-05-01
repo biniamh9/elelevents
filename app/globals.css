@@ -8759,28 +8759,42 @@ tbody tr:last-child td {
 }
 .admin-overview-kpi-strip {
   margin-bottom: 16px;
-  min-height: auto;
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 .admin-overview-hero-shell {
   margin-bottom: 16px;
-  min-height: auto;
-  height: auto;
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
   align-content: start;
 }
 
 .admin-overview-actions-shell {
   margin-bottom: 16px;
-  min-height: auto;
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 .admin-overview-hero-shell.admin-panel--wide,
 .admin-overview-actions-shell.admin-panel--wide {
-  min-height: auto;
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 .admin-overview-hero-shell .admin-workflow-lane {
+  min-height: 0 !important;
+  height: auto !important;
   grid-auto-rows: min-content;
+}
+
+.admin-overview-hero-shell .admin-workflow-lane-column,
+.admin-overview-hero-shell .admin-workflow-lane-list,
+.admin-overview-actions-shell .admin-overview-actions-list {
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 .admin-overview-actions-list {
