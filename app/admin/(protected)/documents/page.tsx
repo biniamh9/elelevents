@@ -1,7 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import DocumentsList from "@/components/forms/admin/documents-list";
-import AdminMetricStrip from "@/components/admin/admin-metric-strip";
-import AdminPageIntro from "@/components/admin/admin-page-intro";
 import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
@@ -32,19 +30,39 @@ export default async function DocumentsPage() {
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <AdminPageIntro
-        title="Client documents"
-        description="Keep quotes, invoices, and receipts in one polished workflow so client-facing financial communication stays clear and consistent."
-      />
+      <header className="admin-page-header admin-documents-header">
+        <h1>Documents</h1>
+        <p>Quotes, invoices, and receipts</p>
+      </header>
 
-      <AdminMetricStrip
-        items={[
-          { label: "Total documents", value: totalCount ?? 0, note: "All quotes, invoices, and receipts" },
-          { label: "Quotes", value: quoteCount ?? 0, note: "Proposal-stage client documents", tone: "violet" },
-          { label: "Invoices", value: invoiceCount ?? 0, note: "Payment requests in progress", tone: "amber" },
-          { label: "Receipts", value: receiptCount ?? 0, note: "Confirmed client payments", tone: "green" },
-        ]}
-      />
+      <section className="admin-documents-summary-shell">
+        <p className="admin-documents-summary-lead">
+          Keep quotes, invoices, and receipts in one polished workflow as client-facing financial communication stays clear and schedulable
+        </p>
+
+        <div className="admin-documents-kpi-grid">
+          <article className="card admin-documents-kpi-card">
+            <span>Total documents</span>
+            <strong>{totalCount ?? 0}</strong>
+            <p>All quotes, invoices, and receipts</p>
+          </article>
+          <article className="card admin-documents-kpi-card">
+            <span>Quotes</span>
+            <strong>{quoteCount ?? 0}</strong>
+            <p>Proposal-stage client documents</p>
+          </article>
+          <article className="card admin-documents-kpi-card">
+            <span>Invoices</span>
+            <strong>{invoiceCount ?? 0}</strong>
+            <p>Payment requests in progress</p>
+          </article>
+          <article className="card admin-documents-kpi-card">
+            <span>Receipts</span>
+            <strong>{receiptCount ?? 0}</strong>
+            <p>Confirmed client payments</p>
+          </article>
+        </div>
+      </section>
 
       {error ? (
         <div className="card">
