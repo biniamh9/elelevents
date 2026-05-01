@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   buildDocumentDetailHref,
   buildDocumentPdfHref,
@@ -21,12 +22,21 @@ export default function DocumentsList({
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [openMenuDirection, setOpenMenuDirection] = useState<"down" | "up">("down");
+  const [openMenuStyle, setOpenMenuStyle] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const menuRootRef = useRef<HTMLDivElement | null>(null);
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
-      if (!menuRootRef.current) return;
-      if (menuRootRef.current.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (menuRootRef.current?.contains(target)) return;
+      const openDropdown = openMenuId ? dropdownRefs.current[openMenuId] : null;
+      if (openDropdown?.contains(target)) return;
       setOpenMenuId(null);
     }
 
@@ -42,7 +52,80 @@ export default function DocumentsList({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, []);
+  }, [openMenuId]);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    const trigger = triggerRefs.current[openMenuId];
+    const dropdown = dropdownRefs.current[openMenuId];
+    if (!trigger || !dropdown) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    const requiredHeight = dropdownRect.height + 16;
+    const nextDirection =
+      spaceBelow < requiredHeight && spaceAbove > spaceBelow ? "up" : "down";
+    const dropdownWidth = dropdownRect.width || 300;
+    const viewportPadding = 16;
+    const left = Math.max(
+      viewportPadding,
+      Math.min(triggerRect.right - dropdownWidth, window.innerWidth - dropdownWidth - viewportPadding)
+    );
+    const top =
+      nextDirection === "up"
+        ? triggerRect.top - dropdownRect.height - 10
+        : triggerRect.bottom + 10;
+
+    setOpenMenuDirection(nextDirection);
+    setOpenMenuStyle({
+      top: Math.max(12, top),
+      left,
+    });
+  }, [openMenuId]);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    function updatePosition() {
+      const trigger = triggerRefs.current[openMenuId];
+      const dropdown = dropdownRefs.current[openMenuId];
+      if (!trigger || !dropdown) return;
+
+      const triggerRect = trigger.getBoundingClientRect();
+      const dropdownRect = dropdown.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+      const requiredHeight = dropdownRect.height + 16;
+      const nextDirection =
+        spaceBelow < requiredHeight && spaceAbove > spaceBelow ? "up" : "down";
+      const dropdownWidth = dropdownRect.width || 300;
+      const viewportPadding = 16;
+      const left = Math.max(
+        viewportPadding,
+        Math.min(triggerRect.right - dropdownWidth, window.innerWidth - dropdownWidth - viewportPadding)
+      );
+      const top =
+        nextDirection === "up"
+          ? triggerRect.top - dropdownRect.height - 10
+          : triggerRect.bottom + 10;
+
+      setOpenMenuDirection(nextDirection);
+      setOpenMenuStyle({
+        top: Math.max(12, top),
+        left,
+      });
+    }
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [openMenuId]);
 
   const filteredDocuments = useMemo(
     () =>
@@ -138,7 +221,7 @@ export default function DocumentsList({
             </thead>
             <tbody>
               {filteredDocuments.length ? (
-                filteredDocuments.map((document, index) => (
+                filteredDocuments.map((document) => (
                   <tr key={document.id}>
                     <td>
                       <div className="admin-record-main">
@@ -159,6 +242,9 @@ export default function DocumentsList({
                         <button
                           type="button"
                           className="admin-row-action-trigger admin-row-action-trigger--text"
+                          ref={(node) => {
+                            triggerRefs.current[document.id] = node;
+                          }}
                           onClick={() =>
                             setOpenMenuId((current) =>
                               current === document.id ? null : document.id
@@ -180,64 +266,74 @@ export default function DocumentsList({
                           </svg>
                         </button>
 
-                        {openMenuId === document.id ? (
-                          <div
-                            className={`admin-row-action-dropdown admin-document-action-dropdown${
-                              index >= filteredDocuments.length - 2
-                                ? " admin-row-action-dropdown--up"
-                                : ""
-                            }`}
-                          >
-                            <div className="admin-row-action-group">
-                              <p className="admin-row-action-group-label">Output</p>
-                              <Link
-                                href={buildDocumentPdfHref(document.id)}
-                                className="admin-table-text-action"
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setOpenMenuId(null)}
+                        {openMenuId === document.id && openMenuStyle
+                          ? createPortal(
+                              <div
+                                ref={(node) => {
+                                  dropdownRefs.current[document.id] = node;
+                                }}
+                                className={`admin-row-action-dropdown admin-row-action-dropdown--portal admin-document-action-dropdown${
+                                  openMenuDirection === "up"
+                                    ? " admin-row-action-dropdown--up"
+                                    : ""
+                                }`}
+                                style={{
+                                  top: `${openMenuStyle.top}px`,
+                                  left: `${openMenuStyle.left}px`,
+                                }}
                               >
-                                Open PDF
-                              </Link>
-                              <Link
-                                href={buildDocumentOutputHref(document.id, {
-                                  autoprint: true,
-                                  intent: "print",
-                                  compact: true,
-                                })}
-                                className="admin-table-text-action"
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                Print
-                              </Link>
-                              <Link
-                                href={buildDocumentPdfHref(document.id, {
-                                  download: true,
-                                  compact: true,
-                                })}
-                                className="admin-table-text-action"
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                Download PDF
-                              </Link>
-                            </div>
+                                <div className="admin-row-action-group">
+                                  <p className="admin-row-action-group-label">Output</p>
+                                  <Link
+                                    href={buildDocumentPdfHref(document.id)}
+                                    className="admin-table-text-action"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={() => setOpenMenuId(null)}
+                                  >
+                                    Open PDF
+                                  </Link>
+                                  <Link
+                                    href={buildDocumentOutputHref(document.id, {
+                                      autoprint: true,
+                                      intent: "print",
+                                      compact: true,
+                                    })}
+                                    className="admin-table-text-action"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={() => setOpenMenuId(null)}
+                                  >
+                                    Print
+                                  </Link>
+                                  <Link
+                                    href={buildDocumentPdfHref(document.id, {
+                                      download: true,
+                                      compact: true,
+                                    })}
+                                    className="admin-table-text-action"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={() => setOpenMenuId(null)}
+                                  >
+                                    Download PDF
+                                  </Link>
+                                </div>
 
-                            <div className="admin-row-action-group">
-                              <p className="admin-row-action-group-label">Record</p>
-                              <Link
-                                href={buildDocumentDetailHref(document.id)}
-                                className="admin-table-text-action admin-table-text-action--muted"
-                                onClick={() => setOpenMenuId(null)}
-                              >
-                                Edit Document
-                              </Link>
-                            </div>
-                          </div>
-                        ) : null}
+                                <div className="admin-row-action-group">
+                                  <p className="admin-row-action-group-label">Record</p>
+                                  <Link
+                                    href={buildDocumentDetailHref(document.id)}
+                                    className="admin-table-text-action admin-table-text-action--muted"
+                                    onClick={() => setOpenMenuId(null)}
+                                  >
+                                    Edit Document
+                                  </Link>
+                                </div>
+                              </div>,
+                              globalThis.document.body
+                            )
+                          : null}
                       </div>
                     </td>
                   </tr>
