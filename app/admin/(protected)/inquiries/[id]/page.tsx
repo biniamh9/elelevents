@@ -73,6 +73,17 @@ function removeLabeledSections(source: string | null | undefined, labels: string
   return normalized || null;
 }
 
+function extractFirstLabeledSection(source: string | null | undefined, labels: string[]) {
+  for (const label of labels) {
+    const value = extractLabeledSection(source, label);
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 type WorkflowStepKey =
   | "intake"
   | "consultation"
@@ -465,6 +476,13 @@ export default async function InquiryDetailPage({
     workflowHref: buildInquiryDetailHref(inquiry.id),
     contractHref: linkedContract?.id ? buildContractDetailHref(linkedContract.id) : null,
   }).slice(0, 24);
+  const investmentRange =
+    extractFirstLabeledSection(inquiry.additional_info, ["Investment range", "Budget range"]) ??
+    "—";
+  const consultationPreference =
+    extractLabeledSection(inquiry.additional_info, "Consultation preference") ??
+    inquiry.preferred_contact_method ??
+    "—";
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -501,6 +519,8 @@ export default async function InquiryDetailPage({
             <span className="summary-chip">Booking: {humanizeBookingStage(bookingStage)}</span>
             <span className="summary-chip">Quote: ${Number(inquiry.estimated_price ?? 0).toLocaleString()}</span>
             <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
+            <span className="summary-chip">Investment range: {investmentRange}</span>
+            <span className="summary-chip">Consultation preference: {consultationPreference}</span>
             <span className="summary-chip">Consultation: {inquiry.consultation_status ?? "not_scheduled"}</span>
             <span className="summary-chip">Owner: {inquiry.crm_owner?.trim() || "Unassigned"}</span>
             <span className="summary-chip">Next action: {inquiry.crm_next_action?.trim() || "Not set"}</span>
@@ -854,7 +874,7 @@ export default async function InquiryDetailPage({
           <p><strong>Name:</strong> {inquiry.first_name} {inquiry.last_name}</p>
           <p><strong>Email:</strong> {inquiry.email}</p>
           <p><strong>Phone:</strong> {inquiry.phone}</p>
-          <p><strong>Preferred Contact:</strong> {inquiry.preferred_contact_method ?? "—"}</p>
+          <p><strong>Consultation Preference:</strong> {consultationPreference}</p>
           <p><strong>Requested Consultation Day:</strong> {inquiry.consultation_request_date ?? "—"}</p>
           <p><strong>Requested Consultation Time:</strong> {inquiry.consultation_request_time ?? "—"}</p>
           <p><strong>Video Platform:</strong> {inquiry.consultation_video_platform ?? "—"}</p>
@@ -867,6 +887,7 @@ export default async function InquiryDetailPage({
           <p><strong>Event Type:</strong> {inquiry.event_type}</p>
           <p><strong>Event Date:</strong> {inquiry.event_date ?? "—"}</p>
           <p><strong>Guest Count:</strong> {inquiry.guest_count ?? "—"}</p>
+          <p><strong>Investment Range:</strong> {investmentRange}</p>
           <p><strong>Venue Name:</strong> {inquiry.venue_name ?? "—"}</p>
           <p><strong>Venue Status:</strong> {inquiry.venue_status ?? "—"}</p>
           <p><strong>Indoor / Outdoor:</strong> {inquiry.indoor_outdoor ?? "—"}</p>

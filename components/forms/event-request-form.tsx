@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
@@ -20,20 +20,24 @@ const SERVICE_OPTIONS = [
 ] as const;
 
 const BUDGET_RANGE_OPTIONS = [
-  "I’m still exploring",
-  "Under $1,000",
-  "$1,000 – $2,500",
+  "Less than $2,500",
   "$2,500 – $5,000",
-  "$5,000+",
-  "Prefer to discuss during consultation",
+  "$5,000 – $8,000",
+  "$8,000 – $12,000",
+  "Above $12,000",
 ] as const;
 
 const CONSULTATION_PREFERENCE_OPTIONS = [
   "Phone Call",
   "Video Call",
   "In-Person Meeting",
-  "Text First",
+  "Text First (WhatsApp / SMS)",
 ] as const;
+
+const DISABLED_BUDGET_OPTIONS = new Set([
+  "Less than $2,500",
+  "$2,500 – $5,000",
+]);
 
 type RequestFormState = {
   eventType: string;
@@ -88,12 +92,90 @@ function buildAdditionalInfo({
   consultationPreference: string;
 }) {
   const lines = [
-    budgetRange ? `Budget range: ${budgetRange}` : null,
+    budgetRange ? `Investment range: ${budgetRange}` : null,
     consultationPreference ? `Consultation preference: ${consultationPreference}` : null,
   ].filter(Boolean);
 
   return lines.length ? lines.join("\n") : null;
 }
+
+function InvestmentIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 3.5 13.9 8l4.9.4-3.7 3.2 1.2 4.8L12 14.1 7.7 16.4l1.2-4.8-3.7-3.2L10.1 8 12 3.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function PhoneIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M7.3 4.5h2.5l1.2 4-1.7 1.7a15.4 15.4 0 0 0 4.5 4.5l1.7-1.7 4 1.2v2.5a1.5 1.5 0 0 1-1.7 1.5A16.3 16.3 0 0 1 5.8 6.2 1.5 1.5 0 0 1 7.3 4.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function VideoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M4.5 7.5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-9Zm12 3.2 3-2v6.6l-3-2V10.7Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MapPinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 20s5-4.8 5-9a5 5 0 1 0-10 0c0 4.2 5 9 5 9Zm0-7.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MessageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M6 6.5h12A1.5 1.5 0 0 1 19.5 8v7A1.5 1.5 0 0 1 18 16.5H10l-4 3V8A1.5 1.5 0 0 1 7.5 6.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const CONSULTATION_ICON_MAP = {
+  "Phone Call": PhoneIcon,
+  "Video Call": VideoIcon,
+  "In-Person Meeting": MapPinIcon,
+  "Text First (WhatsApp / SMS)": MessageIcon,
+} as const;
 
 export default function EventRequestForm() {
   const router = useRouter();
@@ -101,11 +183,49 @@ export default function EventRequestForm() {
   const [errors, setErrors] = useState<RequestFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [budgetMessage, setBudgetMessage] = useState<string | null>(null);
+
+  const guestCountNumber = Number(form.guestCount);
+  const isLargeGuestCount = Number.isFinite(guestCountNumber) && guestCountNumber > 300;
+  const disabledBudgetOptions = useMemo(
+    () => (isLargeGuestCount ? DISABLED_BUDGET_OPTIONS : new Set<string>()),
+    [isLargeGuestCount]
+  );
 
   function updateField<Key extends keyof RequestFormState>(
     key: Key,
     value: RequestFormState[Key]
   ) {
+    if (key === "guestCount") {
+      const nextGuestCount = Number(value);
+      const nextIsLargeGuestCount = Number.isFinite(nextGuestCount) && nextGuestCount > 300;
+
+      setForm((current) => {
+        const shouldClearBudget =
+          nextIsLargeGuestCount && DISABLED_BUDGET_OPTIONS.has(current.budgetRange);
+
+        return {
+          ...current,
+          guestCount: value as RequestFormState["guestCount"],
+          budgetRange: shouldClearBudget ? "" : current.budgetRange,
+        };
+      });
+      setErrors((current) => ({
+        ...current,
+        guestCount: undefined,
+        budgetRange:
+          nextIsLargeGuestCount && DISABLED_BUDGET_OPTIONS.has(form.budgetRange)
+            ? undefined
+            : current.budgetRange,
+      }));
+      setBudgetMessage(
+        nextIsLargeGuestCount && DISABLED_BUDGET_OPTIONS.has(form.budgetRange)
+          ? "We cleared the previously selected investment range because events over 300 guests need a higher starting range."
+          : null
+      );
+      return;
+    }
+
     setForm((current) => ({
       ...current,
       [key]: value,
@@ -114,6 +234,9 @@ export default function EventRequestForm() {
       ...current,
       [key]: undefined,
     }));
+    if (key === "budgetRange") {
+      setBudgetMessage(null);
+    }
   }
 
   function toggleService(service: string) {
@@ -148,7 +271,10 @@ export default function EventRequestForm() {
     }
 
     if (!form.budgetRange.trim()) {
-      nextErrors.budgetRange = "Please select a budget range.";
+      nextErrors.budgetRange = "Please select your investment range.";
+    } else if (guestCountNumber > 300 && DISABLED_BUDGET_OPTIONS.has(form.budgetRange)) {
+      nextErrors.budgetRange =
+        "For events over 300 guests, please choose a higher investment range.";
     }
 
     if (!form.consultationPreference.trim()) {
@@ -361,25 +487,51 @@ export default function EventRequestForm() {
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 3</span>
-              <h3>Budget Range</h3>
+              <h3>Investment Range</h3>
+              <p className="request-section-helper">
+                Every event is unique. Tell us your investment range so we can create a proposal
+                tailored to your vision.
+              </p>
             </div>
 
-            <div className="request-option-grid" role="group" aria-label="Budget Range">
+            <div
+              className="request-option-grid request-option-grid--investment"
+              role="group"
+              aria-label="Investment Range"
+            >
               {BUDGET_RANGE_OPTIONS.map((option) => {
                 const selected = form.budgetRange === option;
+                const disabled = disabledBudgetOptions.has(option);
                 return (
                   <button
                     key={option}
                     type="button"
-                    className={`request-select-card${selected ? " is-selected" : ""}`}
+                    className={`request-select-card request-select-card--investment${selected ? " is-selected" : ""}${disabled ? " is-disabled" : ""}`}
                     aria-pressed={selected}
+                    disabled={disabled}
                     onClick={() => updateField("budgetRange", option)}
                   >
-                    <span>{option}</span>
+                    {selected ? <span className="request-select-card-check">✓</span> : null}
+                    <span className="request-select-card-icon" aria-hidden="true">
+                      <InvestmentIcon />
+                    </span>
+                    <strong>{option}</strong>
+                    {disabled ? (
+                      <small>Not recommended for 300+ guests</small>
+                    ) : null}
                   </button>
                 );
               })}
             </div>
+            {isLargeGuestCount ? (
+              <p className="request-field-helper request-card-helper">
+                For events over 300 guests, we recommend a higher investment range to support full
+                decor, staffing, setup, and event complexity.
+              </p>
+            ) : null}
+            {budgetMessage ? (
+              <p className="request-field-helper request-card-helper">{budgetMessage}</p>
+            ) : null}
             {errors.budgetRange ? (
               <p className="request-form-error request-form-error--inline">{errors.budgetRange}</p>
             ) : null}
@@ -391,22 +543,34 @@ export default function EventRequestForm() {
               <h3>Consultation Preference</h3>
             </div>
 
-            <div className="request-option-grid" role="group" aria-label="Consultation Preference">
+            <div
+              className="request-option-grid request-option-grid--consultation"
+              role="group"
+              aria-label="Consultation Preference"
+            >
               {CONSULTATION_PREFERENCE_OPTIONS.map((option) => {
                 const selected = form.consultationPreference === option;
+                const Icon = CONSULTATION_ICON_MAP[option];
                 return (
                   <button
                     key={option}
                     type="button"
-                    className={`request-select-card${selected ? " is-selected" : ""}`}
+                    className={`request-select-card request-select-card--consultation${selected ? " is-selected" : ""}`}
                     aria-pressed={selected}
                     onClick={() => updateField("consultationPreference", option)}
                   >
-                    <span>{option}</span>
+                    {selected ? <span className="request-select-card-check">✓</span> : null}
+                    <span className="request-select-card-icon request-select-card-icon--consultation" aria-hidden="true">
+                      <Icon />
+                    </span>
+                    <strong>{option}</strong>
                   </button>
                 );
               })}
             </div>
+            <p className="request-field-helper request-card-helper">
+              We’ll reach out to confirm the best time and mode that works for you.
+            </p>
             {errors.consultationPreference ? (
               <p className="request-form-error request-form-error--inline">
                 {errors.consultationPreference}

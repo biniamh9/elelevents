@@ -337,6 +337,13 @@ a:focus-visible {
   font-size: clamp(1.5rem, 2.6vw, 2.05rem);
 }
 
+.request-section-helper {
+  margin: 0;
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .request-form-grid {
   display: grid;
   gap: 20px 24px;
@@ -432,10 +439,19 @@ a:focus-visible {
   gap: 16px;
 }
 
+.request-option-grid--investment {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.request-option-grid--consultation {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .request-select-card {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
   width: 100%;
   min-height: 64px;
   padding: 18px 18px;
@@ -447,7 +463,7 @@ a:focus-visible {
   font: inherit;
   font-size: 0.98rem;
   font-weight: 600;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition:
     border-color 240ms var(--lux-ease),
@@ -474,6 +490,100 @@ a:focus-visible {
   box-shadow:
     0 0 0 4px rgba(225, 121, 38, 0.1),
     0 14px 28px rgba(48, 24, 11, 0.08);
+}
+
+.request-select-card strong,
+.request-select-card small,
+.request-select-card span {
+  display: block;
+}
+
+.request-select-card strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.request-select-card small {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(93, 39, 4, 0.62);
+}
+
+.request-select-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 10px;
+  color: #c79b56;
+}
+
+.request-select-card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.request-select-card-icon--consultation {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  background: rgba(199, 155, 86, 0.12);
+}
+
+.request-select-card-check {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(225, 121, 38, 0.12);
+  color: var(--accent-dark);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.request-select-card--investment {
+  min-height: 164px;
+  padding: 22px 18px 20px;
+}
+
+.request-select-card--investment strong {
+  font-size: 1.06rem;
+}
+
+.request-select-card--consultation {
+  min-height: 150px;
+  padding: 22px 18px 20px;
+}
+
+.request-select-card.is-disabled,
+.request-select-card:disabled {
+  opacity: 0.46;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.request-select-card.is-disabled:hover,
+.request-select-card:disabled:hover,
+.request-select-card.is-disabled:focus-visible,
+.request-select-card:disabled:focus-visible {
+  border-color: rgba(93, 39, 4, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: none;
+  outline: none;
+}
+
+.request-card-helper {
+  margin: 0;
 }
 
 .request-form-side-note,
@@ -635,9 +745,17 @@ a:focus-visible {
   .request-form-grid--two,
   .request-form-grid--event,
   .request-form-grid--contact,
-  .request-option-grid,
   .request-reassurance-grid {
     grid-template-columns: 1fr;
+  }
+
+  .request-option-grid--investment {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .request-option-grid--consultation,
+  .request-option-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .request-form-actions {
@@ -677,6 +795,17 @@ a:focus-visible {
     min-height: 60px;
     padding: 16px;
     border-radius: 18px;
+  }
+
+  .request-option-grid--investment,
+  .request-option-grid--consultation,
+  .request-option-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .request-select-card--investment,
+  .request-select-card--consultation {
+    min-height: 132px;
   }
 }
 .nav-links a.is-active,

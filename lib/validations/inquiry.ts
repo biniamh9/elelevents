@@ -39,8 +39,16 @@ function normalizeInquiryInput(input: unknown) {
     normalized.preferredContactMethod = record.consultation_preference;
   }
 
+  if (record.consultation_preference != null && record.consultationPreference == null) {
+    normalized.consultationPreference = record.consultation_preference;
+  }
+
+  if (record.budget_range != null && record.budgetRange == null) {
+    normalized.budgetRange = record.budget_range;
+  }
+
   if (record.budget_range != null && record.additionalInfo == null) {
-    normalized.additionalInfo = `Budget range: ${record.budget_range}`;
+    normalized.additionalInfo = `Investment range: ${record.budget_range}`;
   }
 
   return normalized;
@@ -110,31 +118,66 @@ const decorSelectionSchema = z.object({
   designerLed: z.boolean().optional().default(false),
 });
 
-export const inquirySchema = z.preprocess(normalizeInquiryInput, z.object({
-  firstName: z.string().min(2),
-  lastName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(7),
-  eventType: z.string().min(2),
-  eventDate: optionalDate,
-  guestCount: requiredPositiveNumber,
-  venueName: optionalText,
-  venueStatus: optionalText,
-  services: z.array(z.string()).default([]),
-  indoorOutdoor: optionalText,
-  colorsTheme: optionalText,
-  inspirationNotes: optionalText,
-  visionBoardUrls: z.array(z.string().url()).optional().default([]),
-  selectedDecorCategories: z.array(z.string()).optional().default([]),
-  decorSelections: z.array(decorSelectionSchema).optional().default([]),
-  additionalInfo: optionalText,
-  requestedVendorCategories: z.array(z.string()).optional().default([]),
-  vendorRequestNotes: optionalText,
-  preferredContactMethod: optionalText,
-  consultationPreferenceDate: optionalDate,
-  consultationPreferenceTime: optionalText,
-  consultationVideoPlatform: optionalText,
-  referralSource: optionalText,
-  needsDeliverySetup: z.boolean().optional().default(false),
-  estimatedPrice: z.number().optional().nullable()
-}));
+export const inquirySchema = z.preprocess(
+  normalizeInquiryInput,
+  z
+    .object({
+      firstName: z.string().min(2),
+      lastName: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().min(7),
+      eventType: z.string().min(2),
+      eventDate: optionalDate,
+      guestCount: requiredPositiveNumber,
+      venueName: optionalText,
+      venueStatus: optionalText,
+      services: z.array(z.string()).default([]),
+      indoorOutdoor: optionalText,
+      colorsTheme: optionalText,
+      inspirationNotes: optionalText,
+      visionBoardUrls: z.array(z.string().url()).optional().default([]),
+      selectedDecorCategories: z.array(z.string()).optional().default([]),
+      decorSelections: z.array(decorSelectionSchema).optional().default([]),
+      additionalInfo: optionalText,
+      budgetRange: optionalText,
+      requestedVendorCategories: z.array(z.string()).optional().default([]),
+      vendorRequestNotes: optionalText,
+      preferredContactMethod: optionalText,
+      consultationPreference: optionalText,
+      consultationPreferenceDate: optionalDate,
+      consultationPreferenceTime: optionalText,
+      consultationVideoPlatform: optionalText,
+      referralSource: optionalText,
+      needsDeliverySetup: z.boolean().optional().default(false),
+      estimatedPrice: z.number().optional().nullable(),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.budgetRange?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["budgetRange"],
+          message: "Please select your investment range.",
+        });
+      }
+
+      if (!data.consultationPreference?.trim() && !data.preferredContactMethod?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["consultationPreference"],
+          message: "Please select a consultation preference.",
+        });
+      }
+
+      if (
+        data.guestCount > 300 &&
+        (data.budgetRange === "Less than $2,500" || data.budgetRange === "$2,500 – $5,000")
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["budgetRange"],
+          message:
+            "For events over 300 guests, please choose a higher investment range.",
+        });
+      }
+    })
+);
