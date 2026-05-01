@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function AdminLoginForm() {
-  const router = useRouter();
   const supabase = createSupabaseBrowserClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,8 +27,7 @@ export default function AdminLoginForm() {
       return;
     }
 
-    router.push("/admin/inquiries");
-    router.refresh();
+    window.location.assign("/admin/inquiries?tab=inquiries");
   }
 
   return (

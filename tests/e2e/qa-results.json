@@ -1,0 +1,269 @@
+[
+  {
+    "testedAt": "2026-05-01T14:14:06.209Z",
+    "type": "sample-query",
+    "name": "Sample event_inquiries",
+    "result": "PASS",
+    "detail": "{\"id\":\"15e76c6f-8345-4c40-a05e-e95c3c0f2589\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:06.408Z",
+    "type": "sample-query",
+    "name": "Sample contracts",
+    "result": "PASS",
+    "detail": "{\"id\":\"e17ed38d-10dd-4d71-a940-414265e86c38\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:06.580Z",
+    "type": "sample-query",
+    "name": "Sample client_documents",
+    "result": "PASS",
+    "detail": "{\"id\":\"b8636832-b8b4-4b86-97b6-ba17bf84bce7\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:06.688Z",
+    "type": "sample-query",
+    "name": "Sample rental_items",
+    "result": "PASS",
+    "detail": "{\"id\":\"9a822d72-be6e-4faf-a7e6-e10fb54d8c60\",\"slug\":\"royal-chair\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:06.774Z",
+    "type": "sample-query",
+    "name": "Sample rental_quote_requests",
+    "result": "PASS",
+    "detail": "{\"id\":\"306a2b65-6296-4332-9ed2-589c01110384\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:06.886Z",
+    "type": "sample-query",
+    "name": "Sample gallery_items",
+    "result": "PASS",
+    "detail": "{\"id\":\"bec630bb-20cb-44be-ae0d-36f9993d51b9\"}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:10.617Z",
+    "type": "step",
+    "name": "Homepage loads",
+    "result": "PASS",
+    "detail": "Homepage rendered and main CTA visible."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:12.560Z",
+    "type": "step",
+    "name": "Smoke /about",
+    "result": "PASS",
+    "detail": "/about loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:12.999Z",
+    "type": "step",
+    "name": "Smoke /services",
+    "result": "PASS",
+    "detail": "/services loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:13.188Z",
+    "type": "step",
+    "name": "Smoke /gallery",
+    "result": "PASS",
+    "detail": "/gallery loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:13.624Z",
+    "type": "step",
+    "name": "Smoke /contact",
+    "result": "PASS",
+    "detail": "/contact loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:14.057Z",
+    "type": "step",
+    "name": "Smoke /packages",
+    "result": "PASS",
+    "detail": "/packages loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:14.200Z",
+    "type": "step",
+    "name": "Smoke /rentals",
+    "result": "PASS",
+    "detail": "/rentals loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:14.358Z",
+    "type": "step",
+    "name": "Smoke /vendors",
+    "result": "PASS",
+    "detail": "/vendors loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:14.441Z",
+    "type": "step",
+    "name": "Smoke /request",
+    "result": "PASS",
+    "detail": "/request loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:14.827Z",
+    "type": "step",
+    "name": "Smoke /gallery/[id]",
+    "result": "PASS",
+    "detail": "Gallery detail bec630bb-20cb-44be-ae0d-36f9993d51b9 loaded."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:15.299Z",
+    "type": "step",
+    "name": "Smoke /rentals/[slug]",
+    "result": "PASS",
+    "detail": "Rental detail royal-chair loaded."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:18.987Z",
+    "type": "step",
+    "name": "Request form validates single-name submission",
+    "result": "PASS",
+    "detail": "Single-name validation message appeared."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:23.504Z",
+    "type": "step",
+    "name": "Public inquiry submits successfully",
+    "result": "PASS",
+    "detail": "Redirected to follow-up page: http://127.0.0.1:3000/request/follow-up?inquiry=a080e2a7-14e2-433b-a936-01dfa3b5f870&email=qa%2B1777644845821%40elelevents.local&name=QA+Browser"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:25.970Z",
+    "type": "step",
+    "name": "Follow-up inspiration submission succeeds",
+    "result": "PASS",
+    "detail": "Follow-up saved confirmation appeared."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:26.145Z",
+    "type": "step",
+    "name": "Supabase inquiry record exists",
+    "result": "PASS",
+    "detail": {
+      "id": "a080e2a7-14e2-433b-a936-01dfa3b5f870",
+      "email": "qa+1777644845821@elelevents.local",
+      "first_name": "QA",
+      "last_name": "Browser",
+      "event_type": "Wedding",
+      "follow_up_details_json": {
+        "note": "Client added additional inspiration after the initial availability request.",
+        "reviewed_at": null,
+        "submitted_at": "2026-05-01T14:14:25.499Z",
+        "uploaded_urls": [
+          "https://hlcohonotwytmkkvsxiu.supabase.co/storage/v1/object/public/vision-boards/1777644864691-2e2f1944-2f79-4097-bcc8-d2a7eddef4e9.png"
+        ],
+        "selected_styles": [
+          "Modern"
+        ],
+        "inspiration_links": [
+          "https://www.pinterest.com/example-board",
+          "https://www.instagram.com/example-post"
+        ]
+      },
+      "created_at": "2026-05-01T14:14:22.56779+00:00"
+    }
+  },
+  {
+    "testedAt": "2026-05-01T14:14:26.145Z",
+    "type": "browser-log",
+    "name": "Browser logs: public flow",
+    "result": "PASS",
+    "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"
+  },
+  {
+    "testedAt": "2026-05-01T14:14:32.338Z",
+    "type": "step",
+    "name": "Admin login form redirects into app",
+    "result": "FAIL",
+    "detail": "Session cookie was set, but the UI remained on /admin/login instead of redirecting into admin."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:44.998Z",
+    "type": "step",
+    "name": "Admin session can open inquiries workspace",
+    "result": "PASS",
+    "detail": "Authenticated session reached inquiries workspace."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:50.199Z",
+    "type": "step",
+    "name": "Smoke /admin/inquiries?tab=overview",
+    "result": "PASS",
+    "detail": "/admin/inquiries?tab=overview loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:54.714Z",
+    "type": "step",
+    "name": "Smoke /admin/inquiries?tab=inquiries",
+    "result": "PASS",
+    "detail": "/admin/inquiries?tab=inquiries loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:14:58.237Z",
+    "type": "step",
+    "name": "Smoke /admin/crm-analytics?tab=leads",
+    "result": "FAIL",
+    "detail": "/admin/crm-analytics?tab=leads returned HTTP 500"
+  },
+  {
+    "testedAt": "2026-05-01T14:15:00.089Z",
+    "type": "step",
+    "name": "Smoke /admin/documents",
+    "result": "PASS",
+    "detail": "/admin/documents loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:02.770Z",
+    "type": "step",
+    "name": "Smoke /admin/contracts",
+    "result": "PASS",
+    "detail": "/admin/contracts loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:08.996Z",
+    "type": "step",
+    "name": "Smoke /admin/finance",
+    "result": "PASS",
+    "detail": "/admin/finance loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:10.262Z",
+    "type": "step",
+    "name": "Smoke /admin/calendar",
+    "result": "FAIL",
+    "detail": "page.goto: net::ERR_ABORTED at http://127.0.0.1:3000/admin/calendar\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:3000/admin/calendar\", waiting until \"domcontentloaded\"\u001b[22m\n"
+  },
+  {
+    "testedAt": "2026-05-01T14:15:11.843Z",
+    "type": "step",
+    "name": "Smoke /admin/rentals",
+    "result": "PASS",
+    "detail": "/admin/rentals loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:13.002Z",
+    "type": "step",
+    "name": "Smoke /admin/settings",
+    "result": "PASS",
+    "detail": "/admin/settings loaded successfully."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:23.168Z",
+    "type": "step",
+    "name": "Inquiry search finds submitted record",
+    "result": "PASS",
+    "detail": "Found inquiry row for qa+1777644845821@elelevents.local."
+  },
+  {
+    "testedAt": "2026-05-01T14:15:33.283Z",
+    "type": "step",
+    "name": "Inquiry row Actions dropdown renders full menu",
+    "result": "FAIL",
+    "detail": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Recommended') to be visible\u001b[22m\n"
+  }
+]
