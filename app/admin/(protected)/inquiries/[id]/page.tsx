@@ -467,20 +467,30 @@ export default async function InquiryDetailPage({
   }).slice(0, 24);
 
   return (
-    <main className="container section">
-      <div style={{ marginBottom: "20px" }}>
-        <Link href={buildInquiryWorkspaceHref({ tab: "inquiries" })} className="btn secondary">
-          ← Back to Inquiries
-        </Link>
-      </div>
+    <main className="admin-page section admin-page--workspace">
+      <header className="admin-page-header admin-page-header--reference">
+        <div>
+          <h1>{inquiry.first_name} {inquiry.last_name}</h1>
+          <p>Review the client, event scope, and next sales action in one place.</p>
+        </div>
+        <div className="admin-page-head-aside">
+          <Link href={buildInquiryWorkspaceHref({ tab: "inquiries" })} className="admin-head-pill">
+            Back to Inquiries
+          </Link>
+          <Link href={buildCrmLeadDetailHref(inquiry.id)} className="admin-head-pill">
+            Open CRM record
+          </Link>
+        </div>
+      </header>
 
-      <h2>Inquiry CRM View</h2>
-      <p className="lead">
-        Review the client, event scope, and next sales action in one place.
-      </p>
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep inquiry qualification, consultation movement, quote state, contract readiness, follow-up context, and customer visual direction in one structured lead record
+        </p>
+      </section>
 
       <div className="crm-overview">
-        <div className="crm-hero-card card">
+        <div className="crm-hero-card card admin-reference-records-shell">
           <p className="eyebrow">Lead summary</p>
           <h3>{inquiry.first_name} {inquiry.last_name}</h3>
           <p className="muted">
@@ -512,7 +522,7 @@ export default async function InquiryDetailPage({
           </div>
         </div>
 
-        <div className="crm-timeline card">
+        <div className="crm-timeline card admin-reference-records-shell">
           <p className="eyebrow">Current workflow</p>
           <div className="timeline-row neutral">
             <strong>Workflow stage</strong>
@@ -565,7 +575,7 @@ export default async function InquiryDetailPage({
         </div>
 
         <div className="admin-workflow-shell">
-          <div className="card admin-workflow-summary">
+          <div className="card admin-workflow-summary admin-reference-records-shell">
             <p className="eyebrow">Current step</p>
             <h3>{workflow.nextActionTitle}</h3>
             <p className="muted">{workflow.nextActionDetail}</p>
@@ -606,7 +616,7 @@ export default async function InquiryDetailPage({
             </div>
           </div>
 
-          <div className="card admin-workflow-track">
+          <div className="card admin-workflow-track admin-reference-records-shell">
             {workflow.steps.map((step, index) => (
               <div
                 key={step.key}

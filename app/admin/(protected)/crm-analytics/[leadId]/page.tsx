@@ -150,25 +150,41 @@ export default async function AdminCrmLeadDetailPage({
 
   return (
     <main className="admin-page section admin-page--workspace">
-      <div className="admin-page-head">
+      <header className="admin-page-header admin-page-header--reference">
         <div>
-          <p className="eyebrow">CRM &amp; Analytics</p>
           <h1>{lead.clientName}</h1>
-          <p className="lead">{lead.eventType} at {lead.venue} · {formatDate(lead.eventDate)}</p>
+          <p>{lead.eventType} at {lead.venue} · {formatDate(lead.eventDate)}</p>
         </div>
         <div className="admin-page-head-aside">
-          <Link href="/admin/crm-analytics" className="admin-topbar-pill">Back to CRM</Link>
-          <Link href={buildQuoteCreateHref({ inquiryId: leadId })} className="btn">Create quote</Link>
+          <Link href="/admin/crm-analytics" className="admin-head-pill">Back to CRM</Link>
+          <Link href={buildQuoteCreateHref({ inquiryId: leadId })} className="admin-head-pill">Create quote</Link>
         </div>
-      </div>
+      </header>
+
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep the active opportunity, customer context, ownership, follow-up pressure, reply review, and account history in one structured lead record
+        </p>
+      </section>
 
       <div className="admin-dashboard-row">
-        <section className="card admin-section-card admin-panel admin-panel--wide">
+        <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Customer info</p>
               <h3>Relationship overview</h3>
             </div>
+          </div>
+          <div className="admin-reference-head-pills">
+            <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+              {CRM_STAGE_LABELS[lead.stage]}
+            </span>
+            <span className="admin-reference-head-pill">Owner</span>
+            <span className="admin-reference-head-pill">{lead.owner}</span>
+            <span className="admin-reference-head-pill">Lead score</span>
+            <span className="admin-reference-head-pill">{lead.leadScore ?? "Not set"}</span>
+            <span className="admin-reference-head-pill">Next action</span>
+            <span className="admin-reference-head-pill">{lead.nextAction || "Not set"}</span>
           </div>
           <div className="booking-final-summary-grid">
             <div><small>Email</small><span>{lead.email}</span></div>
@@ -224,7 +240,7 @@ export default async function AdminCrmLeadDetailPage({
           </div>
         </section>
 
-        <aside className="card admin-section-card admin-panel">
+        <aside className="card admin-section-card admin-panel admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">CRM operations</p>
@@ -243,7 +259,7 @@ export default async function AdminCrmLeadDetailPage({
           ) : null}
         </aside>
 
-        <aside className="card admin-section-card admin-panel">
+        <aside className="card admin-section-card admin-panel admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Follow-up tasks</p>
@@ -274,7 +290,7 @@ export default async function AdminCrmLeadDetailPage({
       />
 
       {hasUnmatchedReplyCandidate ? (
-        <section className="card admin-section-card admin-panel">
+        <section className="card admin-section-card admin-panel admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Reply review</p>
@@ -306,7 +322,7 @@ export default async function AdminCrmLeadDetailPage({
         </section>
       ) : null}
 
-      <section className="card admin-section-card admin-panel">
+      <section className="card admin-section-card admin-panel admin-reference-records-shell">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Client account history</p>

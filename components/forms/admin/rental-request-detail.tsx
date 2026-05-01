@@ -54,7 +54,7 @@ export default function RentalRequestDetail({
 
   return (
     <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-      <section className="card admin-section-card">
+      <section className="card admin-section-card admin-reference-records-shell">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Rental request</p>
@@ -62,6 +62,18 @@ export default function RentalRequestDetail({
             <p className="muted">{request.email} • {request.phone}</p>
           </div>
           <StatusBadge status={status} />
+        </div>
+
+        <div className="admin-reference-head-pills">
+          <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+            {request.occasion_label ?? "Rental quote request"}
+          </span>
+          <span className="admin-reference-head-pill">Event date</span>
+          <span className="admin-reference-head-pill">{request.event_date ?? "Pending"}</span>
+          <span className="admin-reference-head-pill">Guest count</span>
+          <span className="admin-reference-head-pill">{request.guest_count ?? "—"}</span>
+          <span className="admin-reference-head-pill">Estimated total</span>
+          <span className="admin-reference-head-pill">{formatMoney(request.estimated_total)}</span>
         </div>
 
         <div className="admin-mini-metrics admin-mini-metrics--plain">
@@ -143,7 +155,7 @@ export default function RentalRequestDetail({
         ) : null}
       </section>
 
-      <aside className="card admin-section-card">
+      <aside className="card admin-section-card admin-reference-records-shell">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Pipeline action</p>

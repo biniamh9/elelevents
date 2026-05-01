@@ -248,6 +248,29 @@ export default function DocumentEditor({
         busy={saving}
       />
 
+      <section className="card admin-table-card admin-management-card admin-reference-records-shell admin-document-editor-shell">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Document editor</p>
+            <h3>Build the client-facing record</h3>
+            <p className="muted">
+              Keep header details, relationship context, pricing scope, notes, and output controls in one structured editing workflow.
+            </p>
+          </div>
+        </div>
+        <div className="admin-reference-head-pills">
+          <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+            {documentTypeLabels[document.document_type]}
+          </span>
+          <span className="admin-reference-head-pill">Status</span>
+          <span className="admin-reference-head-pill">{document.status.replaceAll("_", " ")}</span>
+          <span className="admin-reference-head-pill">Items</span>
+          <span className="admin-reference-head-pill">{document.line_items.length}</span>
+          <span className="admin-reference-head-pill">Total</span>
+          <span className="admin-reference-head-pill">${formatMoney(totals.totalAmount)}</span>
+        </div>
+      </section>
+
       <div className="admin-document-grid-layout">
         <div className="admin-document-main">
           <DocumentHeaderFields

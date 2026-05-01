@@ -39,17 +39,22 @@ export default async function AdminFinancePage({
         </p>
       </section>
 
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
-        <Link href="/admin/finance" className={`admin-workspace-tab${tab === "overview" ? " is-active" : ""}`}>
-          Overview
-        </Link>
-        <Link href="/admin/finance?tab=income" className={`admin-workspace-tab${tab === "income" ? " is-active" : ""}`}>
-          Income
-        </Link>
-        <Link href="/admin/finance?tab=expenses" className={`admin-workspace-tab${tab === "expenses" ? " is-active" : ""}`}>
-          Expenses
-        </Link>
-      </div>
+      <section className="card admin-table-card admin-management-card admin-reference-records-shell">
+        <div className="admin-reference-filter-group">
+          <p>View</p>
+          <div className="admin-documents-chip-row">
+            <Link href="/admin/finance" className={`admin-documents-chip${tab === "overview" ? " is-active" : ""}`}>
+              Overview
+            </Link>
+            <Link href="/admin/finance?tab=income" className={`admin-documents-chip${tab === "income" ? " is-active" : ""}`}>
+              Income
+            </Link>
+            <Link href="/admin/finance?tab=expenses" className={`admin-documents-chip${tab === "expenses" ? " is-active" : ""}`}>
+              Expenses
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <AdminMetricStrip
         items={[

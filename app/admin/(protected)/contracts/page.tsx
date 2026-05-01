@@ -133,26 +133,31 @@ export default async function ContractsPage({
         ]}
       />
 
-      <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
-        <Link href={buildContractsWorkspaceHref({ queue: "all" })} className={`admin-workspace-tab${queue === "all" ? " is-active" : ""}`}>
-          All
-        </Link>
-        <Link href={buildContractsWorkspaceHref({ queue: "unsigned" })} className={`admin-workspace-tab${queue === "unsigned" ? " is-active" : ""}`}>
-          Unsigned
-        </Link>
-        <Link href={buildContractsWorkspaceHref({ queue: "draft" })} className={`admin-workspace-tab${queue === "draft" ? " is-active" : ""}`}>
-          Draft
-        </Link>
-        <Link href={buildContractsWorkspaceHref({ queue: "sent" })} className={`admin-workspace-tab${queue === "sent" ? " is-active" : ""}`}>
-          Sent
-        </Link>
-        <Link href={buildContractsWorkspaceHref({ queue: "signed" })} className={`admin-workspace-tab${queue === "signed" ? " is-active" : ""}`}>
-          Signed
-        </Link>
-        <Link href={buildContractsWorkspaceHref({ queue: "deposit_pending" })} className={`admin-workspace-tab${queue === "deposit_pending" ? " is-active" : ""}`}>
-          Deposit pending
-        </Link>
-      </div>
+      <section className="card admin-table-card admin-management-card admin-reference-records-shell">
+        <div className="admin-reference-filter-group">
+          <p>Queue</p>
+          <div className="admin-documents-chip-row">
+            <Link href={buildContractsWorkspaceHref({ queue: "all" })} className={`admin-documents-chip${queue === "all" ? " is-active" : ""}`}>
+              All
+            </Link>
+            <Link href={buildContractsWorkspaceHref({ queue: "unsigned" })} className={`admin-documents-chip${queue === "unsigned" ? " is-active" : ""}`}>
+              Unsigned
+            </Link>
+            <Link href={buildContractsWorkspaceHref({ queue: "draft" })} className={`admin-documents-chip${queue === "draft" ? " is-active" : ""}`}>
+              Draft
+            </Link>
+            <Link href={buildContractsWorkspaceHref({ queue: "sent" })} className={`admin-documents-chip${queue === "sent" ? " is-active" : ""}`}>
+              Sent
+            </Link>
+            <Link href={buildContractsWorkspaceHref({ queue: "signed" })} className={`admin-documents-chip${queue === "signed" ? " is-active" : ""}`}>
+              Signed
+            </Link>
+            <Link href={buildContractsWorkspaceHref({ queue: "deposit_pending" })} className={`admin-documents-chip${queue === "deposit_pending" ? " is-active" : ""}`}>
+              Deposit pending
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="admin-board-shell">
         <AdminSectionHeader

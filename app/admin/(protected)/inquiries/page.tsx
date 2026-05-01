@@ -1186,6 +1186,10 @@ export default async function AdminInquiriesPage({
           <div className="admin-workspace-subheader">
             <form method="GET" className="admin-filters admin-filters--records admin-filters--sticky admin-reference-records-shell">
               <input type="hidden" name="tab" value="inquiries" />
+              <input type="hidden" name="status" value={status} />
+              <input type="hidden" name="event_type" value={eventType} />
+              <input type="hidden" name="sort" value={sort} />
+              <input type="hidden" name="follow_up" value={followUp} />
               <div className="admin-panel-head">
                 <div>
                   <p className="eyebrow">Inquiry records</p>
@@ -1228,45 +1232,132 @@ export default async function AdminInquiriesPage({
               <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
                 <div className="field admin-reference-filter-group">
                   <label className="label">Status</label>
-                  <select name="status" defaultValue={status} className="input">
-                    <option value="">All</option>
+                  <div className="admin-documents-chip-row">
+                    <Link
+                      href={buildInquiryWorkspaceHref({
+                        tab: "inquiries",
+                        state: inquiryWorkspaceState,
+                        nextStatus: "",
+                        nextEventType: eventType,
+                        nextFollowUp: followUp || undefined,
+                        nextSort: sort,
+                      })}
+                      className={`admin-documents-chip${!status ? " is-active" : ""}`}
+                    >
+                      All
+                    </Link>
                     {statuses.map((item) => (
-                      <option key={item} value={item}>
+                      <Link
+                        key={item}
+                        href={buildInquiryWorkspaceHref({
+                          tab: "inquiries",
+                          state: inquiryWorkspaceState,
+                          nextStatus: item,
+                          nextEventType: eventType,
+                          nextFollowUp: followUp || undefined,
+                          nextSort: sort,
+                        })}
+                        className={`admin-documents-chip${status === item ? " is-active" : ""}`}
+                      >
                         {humanizeLabel(item)}
-                      </option>
+                      </Link>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 <div className="field admin-reference-filter-group">
                   <label className="label">Event Type</label>
-                  <select name="event_type" defaultValue={eventType} className="input">
-                    <option value="">All</option>
+                  <div className="admin-documents-chip-row">
+                    <Link
+                      href={buildInquiryWorkspaceHref({
+                        tab: "inquiries",
+                        state: inquiryWorkspaceState,
+                        nextStatus: status,
+                        nextEventType: "",
+                        nextFollowUp: followUp || undefined,
+                        nextSort: sort,
+                      })}
+                      className={`admin-documents-chip${!eventType ? " is-active" : ""}`}
+                    >
+                      All
+                    </Link>
                     {eventTypes.map((item) => (
-                      <option key={item} value={item}>
+                      <Link
+                        key={item}
+                        href={buildInquiryWorkspaceHref({
+                          tab: "inquiries",
+                          state: inquiryWorkspaceState,
+                          nextStatus: status,
+                          nextEventType: item,
+                          nextFollowUp: followUp || undefined,
+                          nextSort: sort,
+                        })}
+                        className={`admin-documents-chip${eventType === item ? " is-active" : ""}`}
+                      >
                         {item}
-                      </option>
+                      </Link>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
               <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
                 <div className="field admin-reference-filter-group">
                   <label className="label">Sort By</label>
-                  <select name="sort" defaultValue={sort} className="input">
-                    <option value="action_readiness">Action readiness</option>
-                    <option value="newest">Created date: newest</option>
-                    <option value="oldest">Created date: oldest</option>
-                    <option value="event_date">Event date</option>
-                  </select>
+                  <div className="admin-documents-chip-row">
+                    {[
+                      { value: "action_readiness", label: "Action readiness" },
+                      { value: "newest", label: "Newest" },
+                      { value: "oldest", label: "Oldest" },
+                      { value: "event_date", label: "Event date" },
+                    ].map((option) => (
+                      <Link
+                        key={option.value}
+                        href={buildInquiryWorkspaceHref({
+                          tab: "inquiries",
+                          state: inquiryWorkspaceState,
+                          nextStatus: status,
+                          nextEventType: eventType,
+                          nextFollowUp: followUp || undefined,
+                          nextSort: option.value,
+                        })}
+                        className={`admin-documents-chip${sort === option.value ? " is-active" : ""}`}
+                      >
+                        {option.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
 
                 <div className={`field admin-reference-filter-group${followUpFilterActive ? " admin-filter-field--active" : ""}`}>
                   <label className="label">Follow-up</label>
-                  <select name="follow_up" defaultValue={followUp} className="input">
-                    <option value="">All</option>
-                    <option value="with_inspiration">Has follow-up inspiration</option>
-                  </select>
+                  <div className="admin-documents-chip-row">
+                    <Link
+                      href={buildInquiryWorkspaceHref({
+                        tab: "inquiries",
+                        state: inquiryWorkspaceState,
+                        nextStatus: status,
+                        nextEventType: eventType,
+                        nextFollowUp: "",
+                        nextSort: sort,
+                      })}
+                      className={`admin-documents-chip${!followUp ? " is-active" : ""}`}
+                    >
+                      All
+                    </Link>
+                    <Link
+                      href={buildInquiryWorkspaceHref({
+                        tab: "inquiries",
+                        state: inquiryWorkspaceState,
+                        nextStatus: status,
+                        nextEventType: eventType,
+                        nextFollowUp: "with_inspiration",
+                        nextSort: sort,
+                      })}
+                      className={`admin-documents-chip${followUp === "with_inspiration" ? " is-active" : ""}`}
+                    >
+                      Has follow-up inspiration
+                    </Link>
+                  </div>
                 </div>
               </div>
 

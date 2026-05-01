@@ -7,7 +7,6 @@ import {
 import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import { buildInquiryDetailHref } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import AdminPageIntro from "@/components/admin/admin-page-intro";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import { requireAdminPage } from "@/lib/auth/admin";
 
@@ -153,47 +152,63 @@ export default async function AdminCalendarPage({
 
   return (
     <main className="section admin-page admin-page--workspace">
-      <AdminPageIntro
-        title="Calendar"
-        description="See event dates on a real monthly calendar and spot reserved days immediately."
-        aside={
-          <>
+      <header className="admin-page-header admin-page-header--reference">
+        <div>
+          <h1>Calendar</h1>
+          <p>See event dates on a real monthly calendar and spot reserved days, booking pressure, and schedule risk immediately.</p>
+        </div>
+        <div className="admin-page-head-aside">
+          <span className="admin-head-pill">
+            {monthAnchor.toLocaleString(undefined, { month: "long", year: "numeric" })}
+          </span>
+          <Link href={`/admin/calendar?month=${formatMonthParam(todayMonth)}`} className="admin-head-pill">
+            This Month
+          </Link>
+        </div>
+      </header>
+
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep consultation timing, reserved dates, monthly booking load, and event scheduling pressure in one calendar-first workspace instead of splitting it across separate lists
+        </p>
+      </section>
+
+      <section className="card admin-table-card admin-management-card admin-reference-records-shell">
+        <div className="admin-reference-filter-group">
+          <p>View</p>
+          <div className="admin-documents-chip-row">
             <Link
               href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=calendar`}
-              className={`admin-topbar-pill${view === "calendar" ? " is-active" : ""}`}
+              className={`admin-documents-chip${view === "calendar" ? " is-active" : ""}`}
             >
-              Calendar View
+              Calendar view
             </Link>
             <Link
               href={`/admin/calendar?month=${formatMonthParam(monthAnchor)}&view=list`}
-              className={`admin-topbar-pill${view === "list" ? " is-active" : ""}`}
+              className={`admin-documents-chip${view === "list" ? " is-active" : ""}`}
             >
-              List View
+              List view
+            </Link>
+          </div>
+        </div>
+        <div className="admin-reference-filter-group">
+          <p>Month navigation</p>
+          <div className="admin-documents-chip-row">
+            <Link
+              href={`/admin/calendar?month=${formatMonthParam(previousMonth)}&view=${view}`}
+              className="admin-documents-chip"
+            >
+              Previous month
             </Link>
             <Link
-              href={`/admin/calendar?month=${formatMonthParam(previousMonth)}`}
-              className="admin-topbar-pill"
+              href={`/admin/calendar?month=${formatMonthParam(nextMonth)}&view=${view}`}
+              className="admin-documents-chip"
             >
-              Previous Month
+              Next month
             </Link>
-            <span className="admin-head-pill">
-              {monthAnchor.toLocaleString(undefined, { month: "long", year: "numeric" })}
-            </span>
-            <Link
-              href={`/admin/calendar?month=${formatMonthParam(nextMonth)}`}
-              className="admin-topbar-pill"
-            >
-              Next Month
-            </Link>
-            <Link
-              href={`/admin/calendar?month=${formatMonthParam(todayMonth)}`}
-              className="admin-topbar-pill"
-            >
-              This Month
-            </Link>
-          </>
-        }
-      />
+          </div>
+        </div>
+      </section>
 
       <AdminMetricStrip
         items={[

@@ -1,6 +1,7 @@
+import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import { getCrmLeadWorkflowActionGroups } from "@/lib/admin-workflow-lane";
-import { buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
+import { buildCrmLeadsHref, buildUnmatchedReplyReviewHref } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS, type CrmLead, type LeadSource } from "@/lib/crm-analytics";
 
 function formatDate(value: string) {
@@ -60,6 +61,28 @@ export default function CrmLeadsTable({
   const owners = [...new Set(leads.map((lead) => lead.owner))];
   const sources = [...new Set(leads.map((lead) => lead.source))] as LeadSource[];
   const followUpFilterActive = filters.followUp === "with_inspiration";
+  const crmLeadsState = {
+    q: filters.q,
+    stage: filters.stage,
+    eventType: filters.eventType,
+    source: filters.source,
+    owner: filters.owner,
+    nextAction: filters.nextAction,
+    dateRange: filters.dateRange,
+    followUp: filters.followUp,
+  };
+  const nextActionOptions = [
+    { value: "", label: "All" },
+    { value: "set", label: "Has next action" },
+    { value: "overdue", label: "Action overdue" },
+    { value: "none", label: "Not set" },
+  ];
+  const dateRangeOptions = [
+    { value: "", label: "All dates" },
+    { value: "30", label: "Next 30 days" },
+    { value: "60", label: "Next 60 days" },
+    { value: "90", label: "Next 90 days" },
+  ];
 
   return (
     <section className="admin-record-section crm-leads-section">
@@ -108,6 +131,13 @@ export default function CrmLeadsTable({
           action="/admin/crm-analytics"
         >
           <input type="hidden" name="tab" value="leads" />
+          <input type="hidden" name="stage" value={filters.stage ?? ""} />
+          <input type="hidden" name="eventType" value={filters.eventType ?? ""} />
+          <input type="hidden" name="source" value={filters.source ?? ""} />
+          <input type="hidden" name="owner" value={filters.owner ?? ""} />
+          <input type="hidden" name="nextAction" value={filters.nextAction ?? ""} />
+          <input type="hidden" name="dateRange" value={filters.dateRange ?? ""} />
+          <input type="hidden" name="followUp" value={filters.followUp ?? ""} />
 
           <label className="admin-reference-filter-group" style={{ gridColumn: "1 / -1" }}>
             <p>Search</p>
@@ -115,74 +145,120 @@ export default function CrmLeadsTable({
           </label>
 
           <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
-            <label className="admin-reference-filter-group">
+            <div className="admin-reference-filter-group">
               <p>Stage</p>
-              <select name="stage" defaultValue={filters.stage ?? ""}>
-                <option value="">All</option>
+              <div className="admin-documents-chip-row">
+                <Link
+                  href={buildCrmLeadsHref({ state: crmLeadsState, nextStage: "" })}
+                  className={`admin-documents-chip${!filters.stage ? " is-active" : ""}`}
+                >
+                  All
+                </Link>
                 {Object.entries(CRM_STAGE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+                  <Link
+                    key={value}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextStage: value })}
+                    className={`admin-documents-chip${filters.stage === value ? " is-active" : ""}`}
+                  >
                     {label}
-                  </option>
+                  </Link>
                 ))}
-              </select>
-            </label>
-            <label className="admin-reference-filter-group">
+              </div>
+            </div>
+            <div className="admin-reference-filter-group">
               <p>Event type</p>
-              <select name="eventType" defaultValue={filters.eventType ?? ""}>
-                <option value="">All</option>
+              <div className="admin-documents-chip-row">
+                <Link
+                  href={buildCrmLeadsHref({ state: crmLeadsState, nextEventType: "" })}
+                  className={`admin-documents-chip${!filters.eventType ? " is-active" : ""}`}
+                >
+                  All
+                </Link>
                 {eventTypes.map((value) => (
-                  <option key={value} value={value}>
+                  <Link
+                    key={value}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextEventType: value })}
+                    className={`admin-documents-chip${filters.eventType === value ? " is-active" : ""}`}
+                  >
                     {value}
-                  </option>
+                  </Link>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
           </div>
 
           <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
-            <label className="admin-reference-filter-group">
+            <div className="admin-reference-filter-group">
               <p>Source</p>
-              <select name="source" defaultValue={filters.source ?? ""}>
-                <option value="">All</option>
+              <div className="admin-documents-chip-row">
+                <Link
+                  href={buildCrmLeadsHref({ state: crmLeadsState, nextSource: "" })}
+                  className={`admin-documents-chip${!filters.source ? " is-active" : ""}`}
+                >
+                  All
+                </Link>
                 {sources.map((value) => (
-                  <option key={value} value={value}>
+                  <Link
+                    key={value}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextSource: value })}
+                    className={`admin-documents-chip${filters.source === value ? " is-active" : ""}`}
+                  >
                     {value}
-                  </option>
+                  </Link>
                 ))}
-              </select>
-            </label>
-            <label className="admin-reference-filter-group">
+              </div>
+            </div>
+            <div className="admin-reference-filter-group">
               <p>Owner</p>
-              <select name="owner" defaultValue={filters.owner ?? ""}>
-                <option value="">All</option>
+              <div className="admin-documents-chip-row">
+                <Link
+                  href={buildCrmLeadsHref({ state: crmLeadsState, nextOwner: "" })}
+                  className={`admin-documents-chip${!filters.owner ? " is-active" : ""}`}
+                >
+                  All
+                </Link>
                 {owners.map((value) => (
-                  <option key={value} value={value}>
+                  <Link
+                    key={value}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextOwner: value })}
+                    className={`admin-documents-chip${filters.owner === value ? " is-active" : ""}`}
+                  >
                     {value}
-                  </option>
+                  </Link>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
           </div>
 
           <div className="admin-reference-filter-split" style={{ gridColumn: "1 / -1" }}>
-            <label className="admin-reference-filter-group">
+            <div className="admin-reference-filter-group">
               <p>Next action</p>
-              <select name="nextAction" defaultValue={filters.nextAction ?? ""}>
-                <option value="">All</option>
-                <option value="set">Has next action</option>
-                <option value="overdue">Action overdue</option>
-                <option value="none">Not set</option>
-              </select>
-            </label>
-            <label className="admin-reference-filter-group">
+              <div className="admin-documents-chip-row">
+                {nextActionOptions.map((option) => (
+                  <Link
+                    key={option.value || "all"}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextAction: option.value })}
+                    className={`admin-documents-chip${(filters.nextAction ?? "") === option.value ? " is-active" : ""}`}
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="admin-reference-filter-group">
               <p>Date range</p>
-              <select name="dateRange" defaultValue={filters.dateRange ?? ""}>
-                <option value="">All dates</option>
-                <option value="30">Next 30 days</option>
-                <option value="60">Next 60 days</option>
-                <option value="90">Next 90 days</option>
-              </select>
-            </label>
+              <div className="admin-documents-chip-row">
+                {dateRangeOptions.map((option) => (
+                  <Link
+                    key={option.value || "all"}
+                    href={buildCrmLeadsHref({ state: crmLeadsState, nextDateRange: option.value })}
+                    className={`admin-documents-chip${(filters.dateRange ?? "") === option.value ? " is-active" : ""}`}
+                  >
+                    {option.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
 
           <label
@@ -190,10 +266,20 @@ export default function CrmLeadsTable({
             style={{ gridColumn: "1 / -1" }}
           >
             <p>Follow-up</p>
-            <select name="followUp" defaultValue={filters.followUp ?? ""}>
-              <option value="">All</option>
-              <option value="with_inspiration">Has follow-up inspiration</option>
-            </select>
+            <div className="admin-documents-chip-row">
+              <Link
+                href={buildCrmLeadsHref({ state: crmLeadsState, nextFollowUp: "" })}
+                className={`admin-documents-chip${!filters.followUp ? " is-active" : ""}`}
+              >
+                All
+              </Link>
+              <Link
+                href={buildCrmLeadsHref({ state: crmLeadsState, nextFollowUp: "with_inspiration" })}
+                className={`admin-documents-chip${filters.followUp === "with_inspiration" ? " is-active" : ""}`}
+              >
+                Has follow-up inspiration
+              </Link>
+            </div>
           </label>
 
           <button type="submit" className="btn secondary">

@@ -22,15 +22,29 @@ export default function RentalManagement({
   }
 
   const totalBaseValue = items.reduce((sum, item) => sum + item.base_rental_price, 0);
+  const activeCount = items.filter((item) => item.active).length;
+  const featuredCount = items.filter((item) => item.featured).length;
 
   return (
-    <div className="card admin-table-card admin-records-table-card">
+    <section className="admin-record-section">
+    <div className="card admin-table-card admin-records-table-card admin-reference-records-shell">
       <AdminSectionHeader
         eyebrow="Rental Inventory"
         title="Manage rental items"
         description="Open an item to edit pricing, images, refundable deposit defaults, and post-rental deposit tracking."
         actions={<Link href={buildRentalItemCreateHref()} className="btn">New rental item</Link>}
       />
+      <div className="admin-reference-head-pills">
+        <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+          Showing {items.length} items
+        </span>
+        <span className="admin-reference-head-pill">Active</span>
+        <span className="admin-reference-head-pill">{activeCount}</span>
+        <span className="admin-reference-head-pill">Featured</span>
+        <span className="admin-reference-head-pill">{featuredCount}</span>
+        <span className="admin-reference-head-pill">Base value</span>
+        <span className="admin-reference-head-pill">{formatMoney(totalBaseValue)}</span>
+      </div>
 
       <div className="admin-record-table-shell">
         <table className="admin-records-table">
@@ -97,5 +111,6 @@ export default function RentalManagement({
         {items.length} items listed. Combined starting rental value is {formatMoney(totalBaseValue)}.
       </p>
     </div>
+    </section>
   );
 }

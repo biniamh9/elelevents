@@ -49,7 +49,7 @@ export default function DocumentLineItemsTable({
   }
 
   return (
-    <section className="card admin-document-section">
+    <section className="card admin-document-section admin-reference-records-shell">
       <div className="admin-document-section-head">
         <div>
           <p className="eyebrow">Line Items</p>

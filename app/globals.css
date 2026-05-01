@@ -6903,13 +6903,13 @@ tbody tr:last-child td {
 .booking-final-summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 .booking-final-summary-grid div {
   display: grid;
-  gap: 6px;
-  padding: 16px;
-  border-radius: 18px;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.74);
   border: 1px solid rgba(93, 39, 4, 0.06);
 }
@@ -6922,7 +6922,7 @@ tbody tr:last-child td {
   text-transform: uppercase;
 }
 .booking-final-summary-grid span {
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -7428,10 +7428,19 @@ tbody tr:last-child td {
 .vision-board-item--admin {
   display: block;
 }
-.crm-overview { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-bottom: 24px; }
+.crm-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: start;
+}
+.crm-overview > * {
+  min-width: 0;
+}
 .crm-hero-card { background: linear-gradient(135deg, #ffffff 0%, #fff2f6 100%); }
-.crm-hero-card h3 { margin: 0 0 8px; font-size: 2rem; color: #fff; }
-.crm-timeline { display: grid; gap: 12px; align-content: start; }
+.crm-hero-card h3 { margin: 0 0 6px; font-size: 1.82rem; line-height: 1.04; color: #fff; }
+.crm-timeline { display: grid; gap: 10px; align-content: start; }
 .admin-visual-review-board {
   display: grid;
   gap: 18px;
@@ -7639,9 +7648,15 @@ tbody tr:last-child td {
 .contract-preview-item { padding: 14px 16px; border: 1px solid var(--border); border-radius: 18px; background: #fffdfd; }
 .contract-preview-item strong { display: block; margin-bottom: 6px; }
 .contract-preview-item p { margin: 0; color: var(--muted); line-height: 1.6; }
-.contract-workspace { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
-.contract-sidebar { display: grid; gap: 18px; }
-.contract-main { display: grid; gap: 24px; min-width: 0; }
+.contract-workspace { display: grid; grid-template-columns: 332px minmax(0, 1fr); gap: 16px; align-items: start; }
+.contract-sidebar {
+  display: grid;
+  gap: 16px;
+  position: sticky;
+  top: calc(var(--site-header-height) + 24px);
+  align-self: start;
+}
+.contract-main { display: grid; gap: 16px; min-width: 0; }
 .contract-editor-card {
   padding: 24px;
 }
@@ -7655,7 +7670,7 @@ tbody tr:last-child td {
   margin-top: 18px;
 }
 .contract-sticky-card { position: static; }
-.contract-meta-list { display: grid; gap: 8px; margin-top: 18px; }
+.contract-meta-list { display: grid; gap: 6px; margin-top: 14px; }
 .contract-meta-list p { margin: 0; }
 .contract-alert-list {
   display: grid;
@@ -7668,7 +7683,7 @@ tbody tr:last-child td {
   background: rgba(var(--accent-rgb), 0.08);
   border: 1px solid rgba(var(--accent-rgb), 0.15);
 }
-.contract-preview-shell { padding: 24px; }
+.contract-preview-shell { padding: 20px; }
 .contract-preview-toggle {
   cursor: pointer;
   font-weight: 700;
@@ -15647,6 +15662,30 @@ tbody tr:last-child td {
   gap: 10px;
 }
 
+.admin-document-editor-shell {
+  margin-bottom: 0;
+}
+
+.admin-document-builder .admin-document-section,
+.admin-document-builder .admin-document-summary {
+  padding: 28px;
+  border-radius: 24px;
+}
+
+.admin-document-builder .admin-document-section-head {
+  margin-bottom: 16px;
+}
+
+.admin-document-builder .admin-document-section-head h3 {
+  font-size: 1.18rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.admin-document-builder .admin-document-section-head .muted {
+  max-width: none;
+}
+
 .admin-documents-chip-group {
   display: grid;
   gap: 12px;
@@ -19069,7 +19108,7 @@ tbody tr:last-child td {
 
 .admin-workflow-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.92fr);
   gap: 16px;
 }
 
@@ -19085,22 +19124,22 @@ tbody tr:last-child td {
 .admin-workflow-summary,
 .admin-workflow-track,
 .admin-workflow-action-card {
-  padding: 20px;
+  padding: 18px;
 }
 
 .admin-workflow-track {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-content: start;
 }
 
 .admin-workflow-step {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
   align-items: start;
-  padding: 12px 14px;
-  border-radius: 16px;
+  padding: 10px 12px;
+  border-radius: 14px;
   border: 1px solid rgba(73, 49, 31, 0.08);
   background: #fff;
 }
@@ -19108,8 +19147,8 @@ tbody tr:last-child td {
 .admin-workflow-step-index {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   font-weight: 700;
   background: rgba(73, 49, 31, 0.08);
@@ -19157,9 +19196,9 @@ tbody tr:last-child td {
 
 .admin-workflow-summary-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
-  margin: 18px 0 4px;
+  margin: 16px 0 2px;
 }
 
 .admin-workflow-action-head {
@@ -19175,6 +19214,52 @@ tbody tr:last-child td {
 
 .admin-workflow-action-card .booking-lifecycle-panel {
   margin-top: 0;
+}
+
+.admin-page--workspace .crm-overview,
+.admin-page--workspace .contract-workspace,
+.admin-page--workspace .admin-workflow-shell {
+  margin-bottom: 16px;
+}
+
+.admin-page--workspace .crm-hero-card.admin-reference-records-shell,
+.admin-page--workspace .crm-timeline.admin-reference-records-shell,
+.admin-page--workspace .admin-workflow-summary.admin-reference-records-shell,
+.admin-page--workspace .admin-workflow-track.admin-reference-records-shell,
+.admin-page--workspace .contract-sticky-card.admin-reference-records-shell,
+.admin-page--workspace .contract-editor-card.admin-reference-records-shell {
+  padding: 24px;
+}
+
+.admin-page--workspace .crm-timeline .timeline-row,
+.admin-page--workspace .contract-sticky-card .timeline-row {
+  padding: 10px 0;
+}
+
+.admin-page--workspace .crm-timeline .timeline-row strong,
+.admin-page--workspace .contract-sticky-card .timeline-row strong {
+  font-size: 0.95rem;
+}
+
+.admin-page--workspace .crm-timeline .timeline-row span,
+.admin-page--workspace .contract-sticky-card .timeline-row span {
+  font-size: 0.92rem;
+}
+
+.admin-page--workspace .crm-hero-card .summary-pills,
+.admin-page--workspace .admin-workflow-summary .summary-pills,
+.admin-page--workspace .contract-sticky-card .summary-pills {
+  gap: 8px;
+}
+
+.admin-page--workspace .admin-workflow-summary > h3,
+.admin-page--workspace .contract-editor-card > h3 {
+  margin-bottom: 6px;
+}
+
+.admin-page--workspace .admin-workflow-summary > .muted,
+.admin-page--workspace .contract-editor-card > .muted {
+  max-width: none;
 }
 
 @media (max-width: 1280px) {

@@ -33,7 +33,7 @@ export default function DocumentHeaderFields({
   ) => void;
 }) {
   return (
-    <section className="card admin-document-section">
+    <section className="card admin-document-section admin-reference-records-shell">
       <div className="admin-document-section-head">
         <div>
           <p className="eyebrow">Document Header</p>

@@ -13,13 +13,17 @@ export function buildInquiryWorkspaceHref({
   tab,
   state,
   nextStatus,
+  nextEventType,
   nextFollowUp,
+  nextSort,
   preservePage = false,
 }: {
   tab: InquiryWorkspaceTab;
   state?: InquiryWorkspaceState;
   nextStatus?: string;
+  nextEventType?: string;
   nextFollowUp?: string;
+  nextSort?: string;
   preservePage?: boolean;
 }) {
   const params = new URLSearchParams();
@@ -27,8 +31,10 @@ export function buildInquiryWorkspaceHref({
 
   if (tab === "inquiries") {
     if (state?.q) params.set("q", state.q);
-    if (state?.eventType) params.set("event_type", state.eventType);
-    if (state?.sort) params.set("sort", state.sort);
+    const eventType = nextEventType !== undefined ? nextEventType : state?.eventType;
+    const sort = nextSort !== undefined ? nextSort : state?.sort;
+    if (eventType) params.set("event_type", eventType);
+    if (sort) params.set("sort", sort);
     if (nextStatus) params.set("status", nextStatus);
     if (nextFollowUp) params.set("follow_up", nextFollowUp);
 
@@ -56,25 +62,40 @@ export type CrmLeadsState = {
 
 export function buildCrmLeadsHref({
   state,
+  nextStage,
+  nextEventType,
+  nextSource,
+  nextOwner,
   nextFollowUp,
   nextAction,
+  nextDateRange,
 }: {
   state?: CrmLeadsState;
+  nextStage?: string;
+  nextEventType?: string;
+  nextSource?: string;
+  nextOwner?: string;
   nextFollowUp?: string;
   nextAction?: string;
+  nextDateRange?: string;
 }) {
   const params = new URLSearchParams();
   params.set("tab", "leads");
   if (state?.q) params.set("q", state.q);
-  if (state?.stage) params.set("stage", state.stage);
-  if (state?.eventType) params.set("eventType", state.eventType);
-  if (state?.source) params.set("source", state.source);
-  if (state?.owner) params.set("owner", state.owner);
-  if (nextAction ?? state?.nextAction) {
-    params.set("nextAction", nextAction ?? state?.nextAction ?? "");
-  }
-  if (state?.dateRange) params.set("dateRange", state.dateRange);
-  if (nextFollowUp) params.set("followUp", nextFollowUp);
+  const stage = nextStage !== undefined ? nextStage : state?.stage;
+  const eventType = nextEventType !== undefined ? nextEventType : state?.eventType;
+  const source = nextSource !== undefined ? nextSource : state?.source;
+  const owner = nextOwner !== undefined ? nextOwner : state?.owner;
+  const nextActionValue = nextAction !== undefined ? nextAction : state?.nextAction;
+  const dateRange = nextDateRange !== undefined ? nextDateRange : state?.dateRange;
+  const followUp = nextFollowUp !== undefined ? nextFollowUp : state?.followUp;
+  if (stage) params.set("stage", stage);
+  if (eventType) params.set("eventType", eventType);
+  if (source) params.set("source", source);
+  if (owner) params.set("owner", owner);
+  if (nextActionValue) params.set("nextAction", nextActionValue);
+  if (dateRange) params.set("dateRange", dateRange);
+  if (followUp) params.set("followUp", followUp);
   return `/admin/crm-analytics?${params.toString()}`;
 }
 

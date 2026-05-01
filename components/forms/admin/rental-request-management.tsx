@@ -27,12 +27,30 @@ export default function RentalRequestManagement({
   }
 
   return (
-    <div className="card admin-table-card admin-records-table-card">
+    <section className="admin-record-section">
+    <div className="card admin-table-card admin-records-table-card admin-reference-records-shell">
       <AdminSectionHeader
         eyebrow="Rental requests"
         title="Review rental pipeline intake"
         description="These are rental-specific requests, separate from the event design inquiry pipeline."
       />
+      <div className="admin-reference-head-pills">
+        <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+          Showing {requests.length} requests
+        </span>
+        <span className="admin-reference-head-pill">Requested</span>
+        <span className="admin-reference-head-pill">
+          {requests.filter((request) => request.status === "requested").length}
+        </span>
+        <span className="admin-reference-head-pill">Quoted</span>
+        <span className="admin-reference-head-pill">
+          {requests.filter((request) => request.status === "quoted").length}
+        </span>
+        <span className="admin-reference-head-pill">Reserved</span>
+        <span className="admin-reference-head-pill">
+          {requests.filter((request) => request.status === "reserved").length}
+        </span>
+      </div>
 
       <div className="admin-record-table-shell">
         <table className="admin-records-table">
@@ -82,5 +100,6 @@ export default function RentalRequestManagement({
         </table>
       </div>
     </div>
+    </section>
   );
 }

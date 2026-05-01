@@ -230,6 +230,7 @@ export default async function AdminCrmAnalyticsPage({
   });
   const clearFollowUpFilterHref = buildCrmLeadsHref({
     state: crmLeadsState,
+    nextFollowUp: "",
   });
 
   const kpis = [

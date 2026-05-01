@@ -18,7 +18,7 @@ export default function DocumentNotesSection({
   onChange: (key: keyof typeof values, value: string | null) => void;
 }) {
   return (
-    <section className="card admin-document-section">
+    <section className="card admin-document-section admin-reference-records-shell">
       <div className="admin-document-section-head">
         <div>
           <p className="eyebrow">Notes & Terms</p>

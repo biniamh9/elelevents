@@ -41,7 +41,7 @@ export default function PricingSummaryCard({
   });
 
   return (
-    <aside className="card admin-document-summary admin-document-summary--pricing">
+    <aside className="card admin-document-summary admin-document-summary--pricing admin-reference-records-shell">
       <div className="admin-document-section-head">
         <div>
           <p className="eyebrow">Pricing Summary</p>

@@ -140,31 +140,30 @@ export default async function ContractDetailPage({
   ];
 
   return (
-    <main className="container section">
-      <div className="contract-page-header">
+    <main className="admin-page section admin-page--workspace">
+      <header className="admin-page-header admin-page-header--reference">
         <div>
-          <Link href={buildContractsWorkspaceHref({ queue: "all" })} className="btn secondary">
-            ← Back to Contracts
-          </Link>
-          <p className="eyebrow" style={{ marginTop: "18px" }}>
-            Contract workspace
-          </p>
-          <div className="contract-title-row">
-            <h2>{contract.client_name}</h2>
-            <ContractStatusBadge status={contract.contract_status ?? "draft"} />
-          </div>
-          <p className="lead">
+          <h1>{contract.client_name}</h1>
+          <p>
             Keep the contract, payment, and signing state in one place without
             forcing the user to scroll through a wall of fields.
           </p>
         </div>
-        <div className="contract-header-meta card">
-          <p><strong>Event:</strong> {contract.event_type ?? "—"}</p>
-          <p><strong>Date:</strong> {contract.event_date ?? "—"}</p>
-          <p><strong>Venue:</strong> {contract.venue_name ?? "—"}</p>
-          <p><strong>Coverage:</strong> {coverageLabel || "Not defined"}</p>
+        <div className="admin-page-head-aside">
+          <Link href={buildContractsWorkspaceHref({ queue: "all" })} className="admin-head-pill">
+            Back to Contracts
+          </Link>
+          <span className="admin-head-pill">
+            {humanizeLabel(contract.contract_status ?? "draft")}
+          </span>
         </div>
-      </div>
+      </header>
+
+      <section className="admin-reference-summary-shell">
+        <p className="admin-reference-summary-lead">
+          Keep the agreement record, signature progress, payment readiness, booked-event operations, and draft preview in one structured contract workspace
+        </p>
+      </section>
 
       <div className="contract-kpi-grid">
         {overviewCards.map((item) => (
@@ -178,7 +177,7 @@ export default async function ContractDetailPage({
 
       <div className="contract-workspace">
         <aside className="contract-sidebar">
-          <div className="crm-hero-card card contract-sticky-card">
+          <div className="crm-hero-card card contract-sticky-card admin-reference-records-shell">
             <p className="eyebrow">Core deal</p>
             <h3>{contract.client_name}</h3>
             <p className="muted">
@@ -203,7 +202,7 @@ export default async function ContractDetailPage({
             </div>
           </div>
 
-          <div className="crm-timeline card contract-sticky-card">
+          <div className="crm-timeline card contract-sticky-card admin-reference-records-shell">
             <p className="eyebrow">Timeline</p>
             {timeline.map((item) => (
               <div key={item.label} className={`timeline-row ${item.tone}`}>
@@ -213,7 +212,7 @@ export default async function ContractDetailPage({
             ))}
           </div>
 
-          <div className="card contract-sticky-card">
+          <div className="card contract-sticky-card admin-reference-records-shell">
             <p className="eyebrow">Needs attention</p>
             <div className="contract-alert-list">
               {warnings.length ? (
@@ -230,7 +229,7 @@ export default async function ContractDetailPage({
             </div>
           </div>
 
-          <div className="card contract-sticky-card">
+          <div className="card contract-sticky-card admin-reference-records-shell">
             <p className="eyebrow">Quick context</p>
             <p><strong>Coverage:</strong> {coverageLabel || "—"}</p>
             <p><strong>Envelope:</strong> {contract.docusign_envelope_id ?? "Not sent yet"}</p>
@@ -260,7 +259,7 @@ export default async function ContractDetailPage({
         </aside>
 
         <div className="contract-main">
-          <div className="card contract-editor-card">
+          <div className="card contract-editor-card admin-reference-records-shell">
             <h3>Edit Contract</h3>
             <p className="muted">
               Work one section at a time. Save, send, and sync from the same
