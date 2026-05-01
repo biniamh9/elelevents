@@ -8381,16 +8381,46 @@ tbody tr:last-child td {
   background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,236,226,0.92));
 }
 .admin-topbar-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
   padding: 12px 16px;
   border-radius: 999px;
   background: rgba(73,49,31,0.04);
   border: 1px solid rgba(73, 49, 31, 0.1);
   color: var(--text);
+  font-weight: 700;
 }
 .admin-topbar-pill.is-active {
   background: rgba(var(--accent-rgb), 0.12);
   border-color: rgba(var(--accent-rgb), 0.24);
   color: var(--accent-dark);
+}
+.admin-topbar-pill--intake {
+  background: rgba(225, 124, 35, 0.1);
+  border-color: rgba(225, 124, 35, 0.22);
+  color: #b25b1f;
+}
+.admin-topbar-pill--consultation {
+  background: rgba(100, 116, 255, 0.1);
+  border-color: rgba(100, 116, 255, 0.22);
+  color: #4c57d5;
+}
+.admin-topbar-pill--quote {
+  background: rgba(0, 132, 255, 0.1);
+  border-color: rgba(0, 132, 255, 0.22);
+  color: #1668bd;
+}
+.admin-topbar-pill--contract {
+  background: rgba(29, 124, 71, 0.1);
+  border-color: rgba(29, 124, 71, 0.22);
+  color: #1d7c47;
+}
+.admin-topbar-pill--handoff {
+  background: rgba(120, 86, 255, 0.1);
+  border-color: rgba(120, 86, 255, 0.22);
+  color: #6850c8;
 }
 .admin-page { padding-top: 18px; }
 .admin-page .section-heading,
@@ -19554,8 +19584,40 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.admin-workflow-lane-next-action--intake strong {
+  color: #b25b1f;
+}
+
+.admin-workflow-lane-next-action--consultation strong {
+  color: #4c57d5;
+}
+
+.admin-workflow-lane-next-action--quote strong {
+  color: #1668bd;
+}
+
+.admin-workflow-lane-next-action--contract strong {
+  color: #1d7c47;
+}
+
+.admin-workflow-lane-next-action--handoff strong {
+  color: #6850c8;
+}
+
 .admin-workflow-lane-next-action:hover strong {
   color: #bb611f;
+}
+.admin-workflow-lane-next-action--consultation:hover strong {
+  color: #3f48b5;
+}
+.admin-workflow-lane-next-action--quote:hover strong {
+  color: #0f58a1;
+}
+.admin-workflow-lane-next-action--contract:hover strong {
+  color: #17643b;
+}
+.admin-workflow-lane-next-action--handoff:hover strong {
+  color: #5742af;
 }
 .admin-workflow-lane-item--attention {
   border-color: rgba(225, 124, 35, 0.24);

@@ -890,7 +890,7 @@ export default async function AdminInquiriesPage({
                           {item.primaryAction ? (
                             <Link
                               href={item.primaryAction.href}
-                              className="admin-workflow-lane-next-action"
+                              className={`admin-workflow-lane-next-action admin-workflow-lane-next-action--${column.key}`}
                             >
                               <span>Do next</span>
                               <strong>{item.primaryAction.label}</strong>
@@ -906,7 +906,10 @@ export default async function AdminInquiriesPage({
                     )}
                   </div>
 
-                  <Link href={column.href} className="admin-topbar-pill">
+                  <Link
+                    href={column.href}
+                    className={`admin-topbar-pill admin-topbar-pill--${column.key}`}
+                  >
                     Open {column.label}
                   </Link>
                 </div>
