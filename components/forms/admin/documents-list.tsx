@@ -58,17 +58,18 @@ export default function DocumentsList({
     if (!openMenuId) return;
 
     const trigger = triggerRefs.current[openMenuId];
-    const dropdown = dropdownRefs.current[openMenuId];
-    if (!trigger || !dropdown) return;
+    if (!trigger) return;
 
     const triggerRect = trigger.getBoundingClientRect();
-    const dropdownRect = dropdown.getBoundingClientRect();
+    const dropdown = dropdownRefs.current[openMenuId];
+    const dropdownRect = dropdown?.getBoundingClientRect();
     const spaceBelow = window.innerHeight - triggerRect.bottom;
     const spaceAbove = triggerRect.top;
-    const requiredHeight = dropdownRect.height + 16;
+    const estimatedHeight = dropdownRect?.height ?? 220;
+    const requiredHeight = estimatedHeight + 16;
     const nextDirection =
       spaceBelow < requiredHeight && spaceAbove > spaceBelow ? "up" : "down";
-    const dropdownWidth = dropdownRect.width || 300;
+    const dropdownWidth = dropdownRect?.width ?? 300;
     const viewportPadding = 16;
     const left = Math.max(
       viewportPadding,
@@ -76,7 +77,7 @@ export default function DocumentsList({
     );
     const top =
       nextDirection === "up"
-        ? triggerRect.top - dropdownRect.height - 10
+        ? triggerRect.top - estimatedHeight - 10
         : triggerRect.bottom + 10;
 
     setOpenMenuDirection(nextDirection);
@@ -91,17 +92,18 @@ export default function DocumentsList({
 
     function updatePosition() {
       const trigger = triggerRefs.current[openMenuId];
-      const dropdown = dropdownRefs.current[openMenuId];
-      if (!trigger || !dropdown) return;
+      if (!trigger) return;
 
       const triggerRect = trigger.getBoundingClientRect();
-      const dropdownRect = dropdown.getBoundingClientRect();
+      const dropdown = dropdownRefs.current[openMenuId];
+      const dropdownRect = dropdown?.getBoundingClientRect();
       const spaceBelow = window.innerHeight - triggerRect.bottom;
       const spaceAbove = triggerRect.top;
-      const requiredHeight = dropdownRect.height + 16;
+      const estimatedHeight = dropdownRect?.height ?? 220;
+      const requiredHeight = estimatedHeight + 16;
       const nextDirection =
         spaceBelow < requiredHeight && spaceAbove > spaceBelow ? "up" : "down";
-      const dropdownWidth = dropdownRect.width || 300;
+      const dropdownWidth = dropdownRect?.width ?? 300;
       const viewportPadding = 16;
       const left = Math.max(
         viewportPadding,
@@ -109,7 +111,7 @@ export default function DocumentsList({
       );
       const top =
         nextDirection === "up"
-          ? triggerRect.top - dropdownRect.height - 10
+          ? triggerRect.top - estimatedHeight - 10
           : triggerRect.bottom + 10;
 
       setOpenMenuDirection(nextDirection);
