@@ -10255,11 +10255,19 @@ tbody tr:last-child td {
 
 .admin-row-action-dropdown--portal {
   position: fixed;
+  right: auto;
+  bottom: auto;
+  z-index: 1000;
 }
 
 .admin-row-action-dropdown--up {
   top: auto;
   bottom: calc(100% + 10px);
+}
+
+.admin-row-action-dropdown--portal.admin-row-action-dropdown--up {
+  top: unset;
+  bottom: auto;
 }
 .admin-page--workspace .admin-filters--records {
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(170px, 0.9fr));
