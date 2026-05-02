@@ -243,8 +243,11 @@ export default async function AdminFinancePage({
         <section className="admin-section-card">
           <ExpenseManagement
             initialExpenses={finance.expenses}
+            initialRecurringExpenses={finance.recurringExpenses}
             expenseTrackingAvailable={finance.expenseTrackingAvailable}
             expenseTrackingMessage={finance.expenseTrackingMessage}
+            recurringExpenseTrackingAvailable={finance.recurringExpenseTrackingAvailable}
+            recurringExpenseTrackingMessage={finance.recurringExpenseTrackingMessage}
           />
         </section>
       ) : null}

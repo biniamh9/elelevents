@@ -1,3 +1,4 @@
+import { syncRecurringExpenses } from "@/lib/finance-recurring";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export type FinanceOverview = {
@@ -30,15 +31,33 @@ export type FinanceOverview = {
     status: string;
     payment_method: string | null;
     notes: string | null;
+    generated_from_recurring_id?: string | null;
   }>;
+  recurringExpenses: Array<{
+    id: string;
+    category: string;
+    vendor_name: string | null;
+    description: string;
+    amount: number;
+    status: string;
+    payment_method: string | null;
+    notes: string | null;
+    frequency: "monthly";
+    day_of_month: number;
+    starts_on: string;
+    ends_on: string | null;
+    is_active: boolean;
+  }>;
+  recurringExpenseTrackingAvailable: boolean;
+  recurringExpenseTrackingMessage: string | null;
 };
-
 function isMissingRelationError(error: { code?: string | null; message?: string | null } | null) {
   return error?.code === "42P01" || error?.message?.toLowerCase().includes("relation") && error.message.toLowerCase().includes("does not exist");
 }
 
 export async function getFinanceOverview(): Promise<FinanceOverview> {
-  const [{ data: payments, error: paymentsError }, { data: expenses, error: expensesError }, { data: contracts, error: contractsError }] =
+  const recurringSync = await syncRecurringExpenses(supabaseAdmin);
+  const [{ data: payments, error: paymentsError }, expensesQuery, { data: contracts, error: contractsError }] =
     await Promise.all([
       supabaseAdmin
         .from("contract_payments")
@@ -46,7 +65,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
         .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("finance_expenses")
-        .select("id, expense_date, category, vendor_name, description, amount, status, payment_method, notes")
+        .select("id, expense_date, category, vendor_name, description, amount, status, payment_method, notes, generated_from_recurring_id")
         .order("expense_date", { ascending: false }),
       supabaseAdmin
         .from("contracts")
@@ -56,6 +75,21 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
   if (paymentsError) {
     throw new Error(paymentsError.message);
   }
+  let expenses = expensesQuery.data;
+  let expensesError = expensesQuery.error;
+
+  if (expensesError && isMissingRelationError(expensesError)) {
+    const fallbackExpenses = await supabaseAdmin
+      .from("finance_expenses")
+      .select("id, expense_date, category, vendor_name, description, amount, status, payment_method, notes")
+      .order("expense_date", { ascending: false });
+    expenses = fallbackExpenses.data?.map((item: any) => ({
+      ...item,
+      generated_from_recurring_id: null,
+    }));
+    expensesError = fallbackExpenses.error;
+  }
+
   if (expensesError && !isMissingRelationError(expensesError)) {
     throw new Error(expensesError.message);
   }
@@ -85,6 +119,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     status: item.status,
     payment_method: item.payment_method,
     notes: item.notes,
+    generated_from_recurring_id: item.generated_from_recurring_id ?? null,
   }));
 
   const recordedIncome = normalizedPayments
@@ -120,5 +155,8 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     expenseTrackingMessage,
     payments: normalizedPayments,
     expenses: normalizedExpenses,
+    recurringExpenses: recurringSync.templates,
+    recurringExpenseTrackingAvailable: recurringSync.configured,
+    recurringExpenseTrackingMessage: recurringSync.message,
   };
 }
