@@ -39,7 +39,7 @@ export async function syncInquiryWorkflowStage(
   supabase: SupabaseClient,
   input: SyncInquiryWorkflowStageInput
 ) {
-  const [{ data: inquiry, error: inquiryError }, { data: contract, error: contractError }] =
+  const [{ data: inquiry, error: inquiryError }, { data: contractRows, error: contractError }] =
     await Promise.all([
       supabase
         .from("event_inquiries")
@@ -53,8 +53,7 @@ export async function syncInquiryWorkflowStage(
         .select("contract_status, deposit_paid")
         .eq("inquiry_id", input.inquiryId)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle<ContractWorkflowSnapshot>(),
+        .limit(1),
     ]);
 
   if (inquiryError || !inquiry) {
@@ -64,6 +63,8 @@ export async function syncInquiryWorkflowStage(
   if (contractError) {
     throw new Error(contractError.message);
   }
+
+  const contract = (contractRows?.[0] as ContractWorkflowSnapshot | undefined) ?? null;
 
   const nextWorkflowStage = deriveWorkflowStage({
     bookingStage: inquiry.booking_stage,

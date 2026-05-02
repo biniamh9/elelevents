@@ -1,0 +1,38 @@
+[
+  {
+    "testedAt": "2026-05-02T04:42:34.044Z",
+    "step": "Admin login",
+    "result": "PASS",
+    "detail": "http://127.0.0.1:3001/admin/inquiries?tab=inquiries"
+  },
+  {
+    "testedAt": "2026-05-02T04:42:43.954Z",
+    "step": "Finance can record deposit",
+    "result": "PASS",
+    "detail": "Finance action marked deposit paid."
+  },
+  {
+    "testedAt": "2026-05-02T04:42:56.434Z",
+    "step": "Contract detail reflects paid deposit",
+    "result": "PASS",
+    "detail": "Contract detail shows paid deposit state."
+  },
+  {
+    "testedAt": "2026-05-02T04:43:03.748Z",
+    "step": "Contract detail can reopen deposit",
+    "result": "PASS",
+    "detail": "Contract action reopened deposit."
+  },
+  {
+    "testedAt": "2026-05-02T04:43:05.583Z",
+    "step": "Contract detail can record deposit again",
+    "result": "PASS",
+    "detail": "Contract action recorded deposit again."
+  },
+  {
+    "testedAt": "2026-05-02T04:43:05.583Z",
+    "step": "Browser console/network",
+    "result": "PASS",
+    "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"
+  }
+]

@@ -12,6 +12,7 @@ export type FinanceOverview = {
   expenseTrackingMessage: string | null;
   payments: Array<{
     id: string;
+    contract_id: string | null;
     client_name: string;
     event_type: string | null;
     event_date: string | null;
@@ -61,7 +62,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     await Promise.all([
       supabaseAdmin
         .from("contract_payments")
-        .select("id, payment_kind, amount, due_date, paid_at, status, contract:contracts(client_name,event_type,event_date)")
+        .select("id, contract_id, payment_kind, amount, due_date, paid_at, status, contract:contracts(id,client_name,event_type,event_date)")
         .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("finance_expenses")
@@ -99,6 +100,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
 
   const normalizedPayments = (payments ?? []).map((item: any) => ({
     id: item.id,
+    contract_id: item.contract_id ?? (Array.isArray(item.contract) ? item.contract[0]?.id ?? null : item.contract?.id ?? null),
     client_name: Array.isArray(item.contract) ? item.contract[0]?.client_name ?? "Unknown client" : item.contract?.client_name ?? "Unknown client",
     event_type: Array.isArray(item.contract) ? item.contract[0]?.event_type ?? null : item.contract?.event_type ?? null,
     event_date: Array.isArray(item.contract) ? item.contract[0]?.event_date ?? null : item.contract?.event_date ?? null,

@@ -270,6 +270,7 @@ export default async function ContractDetailPage({
 
           <BookingOperationsPanel
             contractId={contract.id}
+            depositAmount={Number(contract.deposit_amount ?? 0)}
             depositPaid={Boolean(contract.deposit_paid)}
             balancePaid={balancePayment?.status === "paid"}
             paymentStatus={paymentSummary.paymentStatus}

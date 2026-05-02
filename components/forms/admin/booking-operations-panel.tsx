@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function BookingOperationsPanel({
   contractId,
+  depositAmount,
   depositPaid,
   balancePaid,
   paymentStatus,
@@ -14,6 +15,7 @@ export default function BookingOperationsPanel({
   createInvoiceHref,
 }: {
   contractId: string;
+  depositAmount: number;
   depositPaid: boolean;
   balancePaid: boolean;
   paymentStatus: string;
@@ -24,6 +26,7 @@ export default function BookingOperationsPanel({
   createInvoiceHref?: string | null;
 }) {
   const [finalBalancePaid, setFinalBalancePaid] = useState(balancePaid);
+  const [depositReceived, setDepositReceived] = useState(depositPaid);
   const [saving, setSaving] = useState(false);
   const [sendingType, setSendingType] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -47,6 +50,27 @@ export default function BookingOperationsPanel({
 
     setFinalBalancePaid(nextValue);
     setMessage("Payment tracking updated.");
+  }
+
+  async function updateDepositPaid(nextValue: boolean) {
+    setSaving(true);
+    setMessage("");
+
+    const res = await fetch(`/api/admin/contracts/${contractId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deposit_paid: nextValue }),
+    });
+    const data = await res.json();
+    setSaving(false);
+
+    if (!res.ok) {
+      setMessage(data.error || "Failed to update deposit.");
+      return;
+    }
+
+    setDepositReceived(nextValue);
+    setMessage(nextValue ? "Deposit recorded." : "Deposit reopened.");
   }
 
   async function sendEmail(type: string) {
@@ -84,7 +108,7 @@ export default function BookingOperationsPanel({
         </div>
         <div className="contract-operations-metric">
           <span>Deposit</span>
-          <strong>{depositPaid ? "Paid" : "Pending"}</strong>
+          <strong>{depositReceived ? "Paid" : "Pending"}</strong>
         </div>
         <div className="contract-operations-metric">
           <span>Remaining balance</span>
@@ -96,6 +120,15 @@ export default function BookingOperationsPanel({
         <label className="checkline">
           <input
             type="checkbox"
+            checked={depositReceived}
+            onChange={(e) => updateDepositPaid(e.target.checked)}
+            disabled={saving}
+          />
+          <span>Deposit received</span>
+        </label>
+        <label className="checkline">
+          <input
+            type="checkbox"
             checked={finalBalancePaid}
             onChange={(e) => updateBalancePaid(e.target.checked)}
             disabled={saving}
@@ -103,6 +136,34 @@ export default function BookingOperationsPanel({
           <span>Final payment received</span>
         </label>
       </div>
+
+      <div className="contract-email-actions">
+        {!depositReceived ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => updateDepositPaid(true)}
+            disabled={saving || depositAmount <= 0}
+          >
+            {saving ? "Saving..." : "Record Deposit"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => updateDepositPaid(false)}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Reopen Deposit"}
+          </button>
+        )}
+      </div>
+
+      {!depositReceived && depositAmount <= 0 ? (
+        <p className="admin-finance-payment-actions-message">
+          Set the deposit amount first, then record the deposit.
+        </p>
+      ) : null}
 
       <div className="contract-payment-actions">
         <div className="contract-payment-actions-copy">

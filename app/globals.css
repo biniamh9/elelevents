@@ -11308,6 +11308,25 @@ tbody tr:last-child td {
   flex-wrap: wrap;
   gap: 12px;
 }
+.admin-finance-payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.admin-finance-payment-actions .btn,
+.admin-finance-payment-actions .btn.secondary {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+}
+.admin-finance-payment-actions-message {
+  margin: 0;
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
 .contract-payment-actions {
   display: grid;
   gap: 14px;

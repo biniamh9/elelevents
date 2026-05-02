@@ -3,7 +3,9 @@ import AdminMetricStrip from "@/components/admin/admin-metric-strip";
 import AdminEmptyState from "@/components/admin/admin-empty-state";
 import AdminSectionHeader from "@/components/admin/admin-section-header";
 import ExpenseManagement from "@/components/forms/admin/expense-management";
+import FinancePaymentActions from "@/components/forms/admin/finance-payment-actions";
 import { requireAdminPage } from "@/lib/auth/admin";
+import { buildContractDetailHref } from "@/lib/admin-navigation";
 import { getFinanceOverview } from "@/lib/finance";
 
 export const dynamic = "force-dynamic";
@@ -129,6 +131,7 @@ export default async function AdminFinancePage({
                     <th>Paid</th>
                     <th>Amount</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,11 +148,20 @@ export default async function AdminFinancePage({
                         <td>{payment.paid_at ?? "—"}</td>
                         <td>{currencyFormatter.format(payment.amount)}</td>
                         <td>{payment.status}</td>
+                        <td>
+                          <FinancePaymentActions
+                            contractId={payment.contract_id}
+                            contractHref={payment.contract_id ? buildContractDetailHref(payment.contract_id) : null}
+                            paymentKind={payment.payment_kind}
+                            status={payment.status}
+                            amount={payment.amount}
+                          />
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7}>No income records have been created yet.</td>
+                      <td colSpan={8}>No income records have been created yet.</td>
                     </tr>
                   )}
                 </tbody>
@@ -212,6 +224,7 @@ export default async function AdminFinancePage({
                     <th>Paid at</th>
                     <th>Amount</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,6 +238,15 @@ export default async function AdminFinancePage({
                       <td>{payment.paid_at ?? "—"}</td>
                       <td>{currencyFormatter.format(payment.amount)}</td>
                       <td>{payment.status}</td>
+                      <td>
+                        <FinancePaymentActions
+                          contractId={payment.contract_id}
+                          contractHref={payment.contract_id ? buildContractDetailHref(payment.contract_id) : null}
+                          paymentKind={payment.payment_kind}
+                          status={payment.status}
+                          amount={payment.amount}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

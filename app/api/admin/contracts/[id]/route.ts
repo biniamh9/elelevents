@@ -94,6 +94,16 @@ export async function PATCH(
 
     let depositPaid = contract.deposit_paid;
     if (typeof body.deposit_paid === "boolean") {
+      const nextDepositAmount = Number(
+        updates.deposit_amount ?? contract.deposit_amount ?? 0
+      );
+      if (body.deposit_paid && nextDepositAmount <= 0) {
+        return NextResponse.json(
+          { error: "Set a valid deposit amount before recording the deposit." },
+          { status: 400 }
+        );
+      }
+
       depositPaid = body.deposit_paid;
       updates.deposit_paid = depositPaid;
       updates.deposit_paid_at = depositPaid
@@ -107,6 +117,14 @@ export async function PATCH(
 
     let balancePaid = false;
     if (typeof body.balance_paid === "boolean") {
+      const nextBalanceDue = Number(updates.balance_due ?? contract.balance_due ?? 0);
+      if (body.balance_paid && nextBalanceDue <= 0) {
+        return NextResponse.json(
+          { error: "There is no remaining balance to record." },
+          { status: 400 }
+        );
+      }
+
       balancePaid = body.balance_paid;
     }
 
