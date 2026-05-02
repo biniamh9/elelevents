@@ -7,7 +7,7 @@ import {
   CRM_OWNER_SUGGESTIONS,
 } from "@/lib/crm-options";
 
-const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
+const statuses = ["new", "contacted", "quoted", "booked", "closed_lost", "archived"];
 
 function toLocalInputValue(value: string | null) {
   if (!value) return "";

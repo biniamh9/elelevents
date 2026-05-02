@@ -22,47 +22,57 @@ type NavSection = {
 
 const navSections: NavSection[] = [
   {
-    id: "homepage",
-    label: "Homepage now",
-    description: "Review for Flow",
-    module: "content",
-    href: "/admin/flow",
-  },
-  {
-    id: "overview",
-    label: "Overview",
-    description: "Business operations",
+    id: "dashboard",
+    label: "Dashboard",
+    description: "Business summary",
     module: "overview",
     defaultOpen: true,
     children: [
       { href: "/admin/inquiries", label: "Overview" },
-      { href: "/admin/inquiries?tab=pipeline", label: "Pipeline" },
-      { href: "/admin/inquiries?tab=schedule", label: "Schedule" },
-      { href: "/admin/inquiries?tab=inquiries", label: "Inquiries" },
     ],
   },
   {
     id: "crm",
-    label: "CRM & Analytics",
-    description: "Relationships and performance",
+    label: "CRM",
+    description: "Leads and follow-up",
     module: "crm",
     children: [
-      { href: "/admin/crm-analytics", label: "Dashboard" },
-      { href: "/admin/crm-analytics?tab=reports", label: "Reports" },
-      { href: "/admin/crm-analytics?tab=leads", label: "Leads" },
+      { href: "/admin/crm-analytics", label: "Pipeline" },
+      { href: "/admin/crm-analytics?tab=leads", label: "Leads / Inquiries" },
       { href: "/admin/crm-analytics?tab=customers", label: "Customers" },
-      { href: "/admin/crm-analytics?tab=revenue", label: "Revenue signals" },
       { href: "/admin/crm-analytics?tab=tasks", label: "Tasks" },
+    ],
+  },
+  {
+    id: "events",
+    label: "Events",
+    description: "Projects and schedule",
+    module: "operations",
+    children: [
+      { href: "/admin/inquiries?tab=schedule", label: "Events / Projects" },
+      { href: "/admin/calendar", label: "Calendar" },
+      { href: "/admin/vendors", label: "Vendors" },
     ],
   },
   {
     id: "sales",
     label: "Sales",
-    description: "Quotes, contracts, pricing",
+    description: "Documents and contracts",
     module: "sales",
     children: [
-      { href: "/admin/documents", label: "Documents" },
+      { href: "/admin/documents?type=quote", label: "Quotes" },
+      { href: "/admin/documents?type=invoice", label: "Invoices" },
+      { href: "/admin/documents?type=receipt", label: "Receipts" },
       { href: "/admin/contracts", label: "Contracts" },
+      { href: "/admin/finance?tab=income", label: "Payments" },
+    ],
+  },
+  {
+    id: "rentals",
+    label: "Rentals",
+    description: "Requests and inventory",
+    module: "sales",
+    children: [
       { href: "/admin/rentals", label: "Rental Requests" },
       { href: "/admin/rentals?tab=inventory", label: "Rental Inventory" },
       { href: "/admin/packages", label: "Packages" },
@@ -70,30 +80,9 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    id: "finance",
-    label: "Finance",
-    description: "Income, expenses, payments",
-    module: "finance",
-    children: [
-      { href: "/admin/finance", label: "Overview" },
-      { href: "/admin/finance?tab=income", label: "Income" },
-      { href: "/admin/finance?tab=expenses", label: "Expenses" },
-    ],
-  },
-  {
-    id: "operations",
-    label: "Operations",
-    description: "Calendar and partners",
-    module: "operations",
-    children: [
-      { href: "/admin/calendar", label: "Calendar" },
-      { href: "/admin/vendors", label: "Vendors" },
-    ],
-  },
-  {
     id: "content",
     label: "Content",
-    description: "Homepage and public touchpoints",
+    description: "Homepage and media",
     module: "content",
     children: [
       { href: "/admin/flow", label: "Homepage Flow" },
@@ -229,7 +218,7 @@ export default function AdminSidebar({
         <div className="admin-sidebar-section admin-sidebar-section--compact">
           <Link href={buildInquiryCreateHref()} className="admin-create-link">
             <span>+</span>
-            <strong>New request</strong>
+            <strong>Add Inquiry</strong>
           </Link>
         </div>
 

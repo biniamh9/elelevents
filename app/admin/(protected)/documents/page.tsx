@@ -4,8 +4,13 @@ import { requireAdminPage } from "@/lib/auth/admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function DocumentsPage() {
+export default async function DocumentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string; status?: string }>;
+}) {
   await requireAdminPage("sales");
+  const params = await searchParams;
 
   const { data: documents, error } = await supabaseAdmin
     .from("client_documents")
@@ -71,7 +76,11 @@ export default async function DocumentsPage() {
           </p>
         </div>
       ) : (
-        <DocumentsList documents={documents ?? []} />
+        <DocumentsList
+          documents={documents ?? []}
+          initialTypeFilter={params.type}
+          initialStatusFilter={params.status}
+        />
       )}
     </main>
   );

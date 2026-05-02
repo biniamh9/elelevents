@@ -10029,6 +10029,7 @@ tbody tr:last-child td {
 .admin-status-badge--cancelled { background: #ef4444; }
 .admin-status-badge--booked { background: #16a34a; }
 .admin-status-badge--closed_lost { background: #ef4444; }
+.admin-status-badge--archived { background: #64748b; }
 .admin-record-substatus {
   color: var(--muted);
   line-height: 1.45;

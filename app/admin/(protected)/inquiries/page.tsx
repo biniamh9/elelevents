@@ -8,7 +8,6 @@ import {
   buildRentalWorkspaceHref,
   buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
-import { buildWorkflowColumnsFromInquiries } from "@/lib/admin-workflow-lane";
 import { humanizeBookingStage } from "@/lib/booking-lifecycle";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import {
@@ -226,6 +225,8 @@ export default async function AdminInquiriesPage({
 
   if (status) {
     query = query.eq("status", status);
+  } else {
+    query = query.neq("status", "archived");
   }
 
   if (eventType) {
@@ -361,7 +362,8 @@ export default async function AdminInquiriesPage({
 
   const { count: totalCount } = await supabaseAdmin
     .from("event_inquiries")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .neq("status", "archived");
 
   const { count: pendingCount } = await supabaseAdmin
     .from("event_inquiries")
@@ -436,6 +438,7 @@ export default async function AdminInquiriesPage({
   const { count: inquiriesThisMonth } = await supabaseAdmin
     .from("event_inquiries")
     .select("*", { count: "exact", head: true })
+    .neq("status", "archived")
     .gte("created_at", startOfMonth)
     .lt("created_at", startOfNextMonth);
 
@@ -470,11 +473,33 @@ export default async function AdminInquiriesPage({
   const { data: upcomingConsultations } = await supabaseAdmin
     .from("event_inquiries")
     .select("id, first_name, last_name, event_type, event_date, consultation_at, consultation_type, consultation_location")
+    .neq("status", "archived")
     .not("consultation_at", "is", null)
     .gte("consultation_at", tomorrow.toISOString())
     .lt("consultation_at", upcomingWindow.toISOString())
     .order("consultation_at", { ascending: true })
     .limit(6);
+
+  const weekWindow = new Date(tomorrow);
+  weekWindow.setDate(weekWindow.getDate() + 7);
+
+  const { count: upcomingEventsThisWeekCount } = await supabaseAdmin
+    .from("event_inquiries")
+    .select("*", { count: "exact", head: true })
+    .neq("status", "archived")
+    .gte("event_date", tomorrow.toISOString().split("T")[0])
+    .lt("event_date", weekWindow.toISOString().split("T")[0])
+    .in("status", ["booked"]);
+
+  const activeLeadCount =
+    (pendingCount ?? 0) + (quotedCount ?? 0) + (contactedCount ?? 0) + (underReviewCount ?? 0);
+  const consultationsTodayCount =
+    (upcomingConsultations ?? []).filter((item) => {
+      if (!item.consultation_at) return false;
+      return new Date(item.consultation_at).toDateString() === tomorrow.toDateString();
+    }).length;
+  const pendingFollowUpsCount =
+    (pendingCount ?? 0) + followUpInspirationCount + unmatchedReplyCounts.pending_review;
 
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     .toISOString()
@@ -486,6 +511,7 @@ export default async function AdminInquiriesPage({
   const { data: monthEvents } = await supabaseAdmin
     .from("event_inquiries")
     .select("event_date")
+    .neq("status", "archived")
     .gte("event_date", currentMonthStart)
     .lt("event_date", currentMonthEnd)
     .order("event_date", { ascending: true });
@@ -559,46 +585,7 @@ export default async function AdminInquiriesPage({
     .order("created_at", { ascending: false })
     .limit(60);
 
-  const pipelineInquiryIds = (pipelineBoardRows ?? []).map((row) => row.id);
-  const { data: pipelineContracts } = pipelineInquiryIds.length
-    ? await supabaseAdmin
-        .from("contracts")
-        .select("inquiry_id, contract_status, deposit_paid")
-        .in("inquiry_id", pipelineInquiryIds)
-    : {
-        data: [] as Array<{
-          inquiry_id: string;
-          contract_status: string | null;
-          deposit_paid: boolean | null;
-        }>,
-      };
-
-  const pipelineContractMap = new Map(
-    (pipelineContracts ?? []).map((item) => [item.inquiry_id, item])
-  );
-  const workflowColumns = buildWorkflowColumnsFromInquiries(
-    (pipelineBoardRows ?? []).map((row) => ({
-      ...row,
-      quote_response_status: null,
-      completed_at: null,
-      contract_status: pipelineContractMap.get(row.id)?.contract_status ?? null,
-      deposit_paid: pipelineContractMap.get(row.id)?.deposit_paid ?? null,
-    }))
-  ).map((column) => ({
-    ...column,
-    href:
-      column.key === "intake"
-        ? buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" })
-        : column.key === "consultation"
-          ? buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })
-          : column.key === "quote"
-            ? buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" })
-            : column.key === "handoff"
-              ? buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState })
-              : column.href,
-  }));
-
-  const statuses = ["new", "contacted", "quoted", "booked", "closed_lost"];
+  const statuses = ["new", "contacted", "quoted", "booked", "closed_lost", "archived"];
   const eventTypes = [
     "Wedding",
     "Traditional (Melsi)",
@@ -612,32 +599,53 @@ export default async function AdminInquiriesPage({
 
   const reportCards = [
     {
-      label: "Total Active",
-      value: String((pendingCount ?? 0) + (contactedCount ?? 0) + (quotedCount ?? 0) + (reservedCount ?? 0)),
-      note: "Inquiries in progress",
-      tone: "neutral",
-      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
-    },
-    {
-      label: "Pipeline Value",
-      value: `$${formatMoney(pipelineValue)}`,
-      note: "Estimated revenue",
-      tone: "blue",
-      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
-    },
-    {
-      label: "Conversion",
-      value: `${conversionRate.toFixed(0)}%`,
-      note: "Quote to booking",
-      tone: "green",
-      href: buildInquiryWorkspaceHref({ tab: "pipeline", state: inquiryWorkspaceState }),
-    },
-    {
-      label: "Avg Response",
-      value: averageResponseHours !== null ? `${averageResponseHours}h` : "—",
-      note: "Time to first contact",
+      label: "New inquiries",
+      value: String(pendingCount ?? 0),
+      note: "Need first response",
       tone: "amber",
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
+    },
+    {
+      label: "Active leads",
+      value: String(activeLeadCount),
+      note: "Still moving through CRM",
+      tone: "blue",
+      href: "/admin/crm-analytics?tab=leads",
+    },
+    {
+      label: "Booked events",
+      value: String(bookedCount ?? 0),
+      note: "Confirmed work on calendar",
+      tone: "green",
       href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
+    },
+    {
+      label: "Pending quotes",
+      value: String(quotedCount ?? 0),
+      note: "Awaiting client movement",
+      tone: "violet",
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" }),
+    },
+    {
+      label: "Pending payments",
+      value: String(outstandingFinalPayments ?? 0),
+      note: "Open balances still due",
+      tone: "red",
+      href: buildContractsWorkspaceHref({ queue: "deposit_pending" }),
+    },
+    {
+      label: "Upcoming events",
+      value: String(upcomingEventsThisWeekCount ?? 0),
+      note: "Booked this week",
+      tone: "blue",
+      href: "/admin/calendar",
+    },
+    {
+      label: "Revenue this month",
+      value: `$${formatMoney(bookedRevenueThisMonth)}`,
+      note: "Booked this month",
+      tone: "green",
+      href: "/admin/finance",
     },
   ];
 
@@ -797,7 +805,7 @@ export default async function AdminInquiriesPage({
   const tabHeadingMap: Record<WorkspaceTab, { title: string; description: string }> = {
     overview: {
       title: "Overview",
-      description: "Recent activity, business indicators, and the clearest next moves for the team.",
+      description: "High-level business summary, current priorities, recent activity, and quick actions.",
     },
     pipeline: {
       title: "Pipeline",
@@ -862,58 +870,26 @@ export default async function AdminInquiriesPage({
           <section className="card admin-panel admin-panel--wide admin-section-card admin-overview-hero-shell">
             <div className="admin-panel-head">
               <div>
-                <p className="eyebrow">Operating lane</p>
-                <h3>Work requests through one shared sequence</h3>
-                <p className="muted">New requests move from Intake to Consultation, Quote, Contract, and then Handoff.</p>
+                <p className="eyebrow">CRM preview</p>
+                <h3>Pipeline stays in one source of truth</h3>
+                <p className="muted">Use Overview for priorities and activity, then jump into CRM Pipeline for stage movement and conversion tracking.</p>
               </div>
             </div>
 
-            <div className="admin-workflow-lane">
-              {workflowColumns.map((column) => (
-                <div key={column.key} className="admin-workflow-lane-column">
-                  <div className="admin-workflow-lane-head">
-                    <div>
-                      <span className="eyebrow">{column.label}</span>
-                      <p>{column.description}</p>
-                    </div>
-                    <strong>{column.count}</strong>
-                  </div>
-
-                  <div className="admin-workflow-lane-list">
-                    {column.items.length ? (
-                      column.items.map((item) => (
-                        <div key={item.id} className="admin-workflow-lane-item">
-                          <Link href={item.href} className="admin-workflow-lane-item-link">
-                            <strong>{item.title}</strong>
-                            <span>{item.subtitle}</span>
-                          </Link>
-                          {item.primaryAction ? (
-                            <Link
-                              href={item.primaryAction.href}
-                              className={`admin-workflow-lane-next-action admin-workflow-lane-next-action--${column.key}`}
-                            >
-                              <span>Do next</span>
-                              <strong>{item.primaryAction.label}</strong>
-                            </Link>
-                          ) : null}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="admin-workflow-lane-item admin-workflow-lane-item--empty">
-                        <strong>No items here</strong>
-                        <span>This stage is currently clear.</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <Link
-                    href={column.href}
-                    className={`admin-topbar-pill admin-topbar-pill--${column.key}`}
-                  >
-                    Open {column.label}
-                  </Link>
-                </div>
+            <div className="admin-reference-head-pills">
+              {pipelineSnapshot.map((item) => (
+                <span key={item.label} className="admin-reference-head-pill">
+                  {item.label}: {item.count}
+                </span>
               ))}
+            </div>
+            <div className="admin-inline-actions">
+              <Link href="/admin/crm-analytics" className="admin-head-pill admin-head-pill--active">
+                Open CRM Pipeline
+              </Link>
+              <Link href="/admin/crm-analytics?tab=leads" className="admin-head-pill">
+                Open leads
+              </Link>
             </div>
           </section>
 
@@ -941,34 +917,82 @@ export default async function AdminInquiriesPage({
             </div>
           </section>
 
+          <section className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <section className="card admin-panel admin-section-card admin-reference-records-shell">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Today / This week</p>
+                  <h3>Immediate priorities</h3>
+                  <p className="muted">Focus only on the items that change the next seven days.</p>
+                </div>
+              </div>
+              <div className="admin-placeholder-list">
+                <div>
+                  <strong>Consultations today</strong>
+                  <span>{consultationsTodayCount} scheduled for today.</span>
+                </div>
+                <div>
+                  <strong>Events this week</strong>
+                  <span>{upcomingEventsThisWeekCount ?? 0} booked event{(upcomingEventsThisWeekCount ?? 0) === 1 ? "" : "s"} this week.</span>
+                </div>
+                <div>
+                  <strong>Payments due</strong>
+                  <span>{outstandingFinalPayments ?? 0} open contract balance{(outstandingFinalPayments ?? 0) === 1 ? "" : "s"}.</span>
+                </div>
+                <div>
+                  <strong>Contracts awaiting signature</strong>
+                  <span>{unsignedContractsCount ?? 0} contract{(unsignedContractsCount ?? 0) === 1 ? "" : "s"} still unsigned.</span>
+                </div>
+                <div>
+                  <strong>Pending follow-ups</strong>
+                  <span>{pendingFollowUpsCount} active follow-up item{pendingFollowUpsCount === 1 ? "" : "s"} need attention.</span>
+                </div>
+              </div>
+            </section>
+
+            <section className="card admin-panel admin-section-card admin-reference-records-shell">
+              <div className="admin-panel-head">
+                <div>
+                  <p className="eyebrow">Quick actions</p>
+                  <h3>Start work fast</h3>
+                  <p className="muted">Open the most common creation paths without scanning the whole portal.</p>
+                </div>
+              </div>
+              <div className="admin-documents-chip-row">
+                <Link href="/admin/inquiries/new" className="admin-documents-chip is-active">Add Inquiry</Link>
+                <Link href="/admin/crm-analytics?tab=customers" className="admin-documents-chip">Add Customer</Link>
+                <Link href="/admin/documents/new?type=quote" className="admin-documents-chip">Create Quote</Link>
+                <Link href="/admin/documents/new?type=invoice" className="admin-documents-chip">Create Invoice</Link>
+                <Link href="/admin/rentals/new" className="admin-documents-chip">Add Rental Item</Link>
+              </div>
+            </section>
+          </section>
+
           <section className="card admin-panel admin-panel--wide admin-section-card admin-overview-actions-shell">
             <div className="admin-panel-head">
               <div>
-                <p className="eyebrow">Recommended next actions</p>
-                <h3>Priority follow-up</h3>
-                <p className="muted">Focus the team on the next blocking moves instead of scanning multiple modules.</p>
+                <p className="eyebrow">Recent activity</p>
+                <h3>What changed most recently</h3>
+                <p className="muted">
+                  {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
+                </p>
               </div>
             </div>
 
-            {attentionItems.length ? (
-              <div className="admin-overview-actions-list">
-                {attentionItems.map((item, index) => (
-                  <Link key={item.title} href={item.href} className="admin-overview-action-row">
-                    <span className="admin-overview-action-index">{index + 1}</span>
-                    <div className="admin-overview-action-copy">
-                      <strong>{item.title}</strong>
-                      <p>{item.detail}</p>
-                      <span>{item.cta} →</span>
+            {recentActivity?.length ? (
+              <div className="admin-activity-list">
+                {recentActivity.map((entry) => (
+                  <div key={entry.id} className="admin-activity-item">
+                    <div>
+                      <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
+                      <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
                     </div>
-                    <small>{item.count}</small>
-                  </Link>
+                    <span>{formatRelativeTimestamp(entry.created_at)}</span>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="admin-alert-card admin-alert-card--success">
-                <strong>Operations look clear</strong>
-                <p>No urgent follow-up, contract, payment, or calendar issues are blocking the workflow right now.</p>
-              </div>
+              <p className="muted">No recent activity has been logged yet.</p>
             )}
           </section>
 
@@ -1008,60 +1032,34 @@ export default async function AdminInquiriesPage({
             <div className="card admin-panel admin-section-card admin-panel--performance">
               <div className="admin-panel-head">
                 <div>
-                  <p className="eyebrow">Performance</p>
-                  <h3>Conversion snapshot</h3>
-                  <p className="muted">Compare business indicators for the current month.</p>
+                  <p className="eyebrow">CRM handoff</p>
+                  <h3>Pipeline and revenue context</h3>
+                  <p className="muted">Keep forecast in CRM and actual cash in Finance without duplicating the same view twice.</p>
                 </div>
               </div>
 
               <div className="admin-list">
                 <div className="admin-list-item">
                   <strong>Pipeline value</strong>
-                  <span>${formatMoney(pipelineValue)}</span>
+                  <span>${formatMoney(pipelineValue)} forecast</span>
                 </div>
                 <div className="admin-list-item">
                   <strong>Conversion rate</strong>
-                  <span>{conversionRate.toFixed(1)}% this month</span>
+                  <span>{conversionRate.toFixed(1)}% inquiry to booked</span>
                 </div>
                 <div className="admin-list-item">
-                  <strong>Booked revenue</strong>
+                  <strong>Booked revenue this month</strong>
                   <span>${formatMoney(bookedRevenueThisMonth)}</span>
                 </div>
                 <div className="admin-list-item">
-                  <strong>Outstanding payments</strong>
-                  <span>{outstandingFinalPayments ?? 0} contract balances still open</span>
+                  <strong>Average response</strong>
+                  <span>{averageResponseHours !== null ? `${averageResponseHours}h` : "—"} to first contact</span>
                 </div>
               </div>
-            </div>
-          </section>
-
-          <section className="card admin-panel admin-panel--wide admin-section-card">
-            <div className="admin-panel-head">
-              <div>
-                <p className="eyebrow">Recent activity</p>
-                <h3>What changed most recently</h3>
-                <p className="muted">
-                  {recentActivity?.length ?? 0} rolling items across inquiry, document, contract, and payment updates.
-                </p>
+              <div className="admin-inline-actions">
+                <Link href="/admin/crm-analytics" className="admin-head-pill">Open CRM pipeline</Link>
+                <Link href="/admin/finance" className="admin-head-pill">Open finance</Link>
               </div>
-            </div>
-
-            <div className="admin-activity-panel">
-              {recentActivity?.length ? (
-                <div className="admin-activity-list">
-                  {recentActivity.map((entry) => (
-                    <div key={entry.id} className="admin-activity-item">
-                      <div>
-                        <strong>{entry.summary || humanizeLabel(entry.action)}</strong>
-                        <p>{humanizeLabel(entry.entity_type)} • {humanizeLabel(entry.action)}</p>
-                      </div>
-                      <span>{formatRelativeTimestamp(entry.created_at)}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="muted">No recent activity has been logged yet.</p>
-              )}
             </div>
           </section>
         </>

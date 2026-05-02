@@ -44,6 +44,7 @@ export default function InquiryRecordActions({
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [archiving, setArchiving] = useState(false);
   const [message, setMessage] = useState("");
   const actionGroups = getInquiryWorkflowActionGroups({
     inquiryId,
@@ -87,8 +88,36 @@ export default function InquiryRecordActions({
     const data = await res.json();
     setDeleting(false);
 
-    if (!res.ok) {
+    if (!res.ok || data?.success === false) {
       setMessage(data.error || "Failed to delete inquiry.");
+      return;
+    }
+
+    router.refresh();
+  }
+
+  async function handleArchive() {
+    const confirmed = window.confirm(
+      "Archive this inquiry? It will be hidden from active CRM views but all history will be kept."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setArchiving(true);
+    setMessage("");
+
+    const res = await fetch(`/api/admin/inquiries/${inquiryId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "archived" }),
+    });
+    const data = await res.json();
+    setArchiving(false);
+
+    if (!res.ok) {
+      setMessage(data.error || "Failed to archive inquiry.");
       return;
     }
 
@@ -190,13 +219,28 @@ export default function InquiryRecordActions({
                 description="Open the invoice payment entry with cash preselected so balances and receipts update immediately."
               />
             ) : null}
+            <button
+              type="button"
+              className="admin-row-action-item"
+              onClick={() => {
+                closeMenu();
+                window.setTimeout(() => {
+                  void handleArchive();
+                }, 0);
+              }}
+              disabled={archiving}
+            >
+              {archiving ? "Archiving..." : "Archive"}
+            </button>
           </div>
           <button
             type="button"
             className="admin-row-action-item admin-row-action-item--danger"
-            onClick={async () => {
+            onClick={() => {
               closeMenu();
-              await handleDelete();
+              window.setTimeout(() => {
+                void handleDelete();
+              }, 0);
             }}
             disabled={deleting}
           >

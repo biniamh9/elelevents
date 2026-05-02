@@ -597,6 +597,8 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
 
   if (options.inquiryId) {
     inquiryQuery = inquiryQuery.eq("id", options.inquiryId);
+  } else {
+    inquiryQuery = inquiryQuery.neq("status", "archived");
   }
 
   const { data: inquiries, error: inquiryError } = await inquiryQuery;

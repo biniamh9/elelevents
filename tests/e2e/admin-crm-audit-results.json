@@ -1,0 +1,68 @@
+[
+  {
+    "testedAt": "2026-05-02T03:43:59.868Z",
+    "step": "Admin login",
+    "result": "PASS",
+    "detail": "http://127.0.0.1:3001/admin/inquiries?tab=inquiries"
+  },
+  {
+    "testedAt": "2026-05-02T03:44:07.620Z",
+    "step": "Overview loads",
+    "result": "PASS",
+    "detail": "Overview loaded with CRM preview."
+  },
+  {
+    "testedAt": "2026-05-02T03:44:10.454Z",
+    "step": "Sidebar CRM pipeline route",
+    "result": "PASS",
+    "detail": "CRM pipeline loaded."
+  },
+  {
+    "testedAt": "2026-05-02T03:44:24.242Z",
+    "step": "CRM leads tab",
+    "result": "PASS",
+    "detail": "http://127.0.0.1:3001/admin/crm-analytics/fdcf868a-7bc9-41b4-9ad6-89efae05e1bb"
+  },
+  {
+    "testedAt": "2026-05-02T03:44:26.940Z",
+    "step": "Sales filtered quote view",
+    "result": "PASS",
+    "detail": "Documents quote filter route loaded."
+  },
+  {
+    "testedAt": "2026-05-02T03:44:44.249Z",
+    "step": "Archive inquiry from actions menu",
+    "result": "PASS",
+    "detail": "Archive action persisted status=archived."
+  },
+  {
+    "testedAt": "2026-05-02T03:44:52.910Z",
+    "step": "Archived inquiry hidden by default",
+    "result": "PASS",
+    "detail": "Archived inquiry was hidden from default list."
+  },
+  {
+    "testedAt": "2026-05-02T03:45:10.663Z",
+    "step": "Archived inquiry can be filtered back in",
+    "result": "PASS",
+    "detail": "Archived inquiry visible in archived filter."
+  },
+  {
+    "testedAt": "2026-05-02T03:45:23.535Z",
+    "step": "Hard delete is blocked when related records exist",
+    "result": "PASS",
+    "detail": "Delete was blocked with related-record warning."
+  },
+  {
+    "testedAt": "2026-05-02T03:45:45.298Z",
+    "step": "Sidebar route smoke",
+    "result": "PASS",
+    "detail": "Sidebar routes returned successful responses."
+  },
+  {
+    "testedAt": "2026-05-02T03:45:45.298Z",
+    "step": "Browser console/network",
+    "result": "PASS",
+    "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"
+  }
+]

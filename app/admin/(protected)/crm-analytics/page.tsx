@@ -43,7 +43,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Tab = "dashboard" | "reports" | "leads" | "customers" | "revenue" | "tasks";
+type Tab = "pipeline" | "reports" | "leads" | "customers" | "revenue" | "tasks";
 
 function formatMoney(value: number) {
   return `$${value.toLocaleString()}`;
@@ -109,9 +109,12 @@ export default async function AdminCrmAnalyticsPage({
   await requireAdminPage("crm");
 
   const params = await searchParams;
-  const activeTab: Tab = ["dashboard", "reports", "leads", "customers", "revenue", "tasks"].includes(params.tab ?? "")
-    ? (params.tab as Tab)
-    : "dashboard";
+  const requestedTab = params.tab === "dashboard" ? "pipeline" : params.tab;
+  const activeTab: Tab = ["pipeline", "reports", "leads", "customers", "revenue", "tasks"].includes(
+    requestedTab ?? ""
+  )
+    ? (requestedTab as Tab)
+    : "pipeline";
 
   const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
   const pendingUnmatchedReplies = await getUnmatchedInboundReplies({
@@ -275,8 +278,8 @@ export default async function AdminCrmAnalyticsPage({
           <a href={exportHref} className="admin-head-pill">
             Export report
           </a>
-          <Link href="/admin/crm-analytics?tab=leads" className="admin-head-pill">
-            Add interaction
+          <Link href="/admin/inquiries/new" className="admin-head-pill">
+            Add inquiry
           </Link>
           <Link href="/admin/crm-analytics?tab=tasks" className="admin-head-pill">
             Create task
@@ -291,7 +294,7 @@ export default async function AdminCrmAnalyticsPage({
       </section>
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
-        <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "dashboard" ? " is-active" : ""}`}>Dashboard</Link>
+        <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "pipeline" ? " is-active" : ""}`}>Pipeline</Link>
         <Link href="/admin/crm-analytics?tab=reports" className={`admin-workspace-tab${activeTab === "reports" ? " is-active" : ""}`}>Reports</Link>
         <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads</Link>
         <Link href="/admin/crm-analytics?tab=customers" className={`admin-workspace-tab${activeTab === "customers" ? " is-active" : ""}`}>Customers</Link>
@@ -301,7 +304,7 @@ export default async function AdminCrmAnalyticsPage({
 
       <CrmKpiGrid items={kpis} />
 
-      {activeTab === "dashboard" ? (
+      {activeTab === "pipeline" ? (
         <>
           <section className="card admin-section-card admin-panel admin-panel--wide">
             <AdminSectionHeader

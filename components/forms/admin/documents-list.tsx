@@ -15,12 +15,16 @@ import DocumentStatusBadge from "@/components/forms/admin/document-status-badge"
 
 export default function DocumentsList({
   documents,
+  initialTypeFilter,
+  initialStatusFilter,
 }: {
   documents: ClientDocumentRecord[];
+  initialTypeFilter?: string;
+  initialStatusFilter?: string;
 }) {
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState(initialTypeFilter || "all");
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter || "all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [openMenuDirection, setOpenMenuDirection] = useState<"down" | "up">("down");
   const [openMenuStyle, setOpenMenuStyle] = useState<{

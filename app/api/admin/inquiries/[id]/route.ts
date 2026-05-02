@@ -18,6 +18,7 @@ const allowedStatuses = [
   "quoted",
   "booked",
   "closed_lost",
+  "archived",
 ];
 
 const allowedConsultationStatuses = [
@@ -463,6 +464,57 @@ export async function DELETE(
 
     if (fetchError || !existing) {
       return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+    }
+
+    const [
+      { count: contractCount, error: contractError },
+      { count: documentCount, error: documentError },
+      { count: interactionCount, error: interactionError },
+      { count: workflowCount, error: workflowError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("contracts")
+        .select("*", { count: "exact", head: true })
+        .eq("inquiry_id", id),
+      supabaseAdmin
+        .from("client_documents")
+        .select("*", { count: "exact", head: true })
+        .eq("inquiry_id", id),
+      supabaseAdmin
+        .from("customer_interactions")
+        .select("*", { count: "exact", head: true })
+        .eq("inquiry_id", id),
+      supabaseAdmin
+        .from("workflow_transitions")
+        .select("*", { count: "exact", head: true })
+        .eq("inquiry_id", id),
+    ]);
+
+    const relatedRecordCheckError =
+      contractError || documentError || interactionError || workflowError;
+
+    if (relatedRecordCheckError) {
+      return NextResponse.json(
+        { error: relatedRecordCheckError.message || "Failed to verify related records." },
+        { status: 500 }
+      );
+    }
+
+    if (
+      (contractCount ?? 0) > 0 ||
+      (documentCount ?? 0) > 0 ||
+      (interactionCount ?? 0) > 0 ||
+      (workflowCount ?? 0) > 0
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          blocked: true,
+          error:
+            "This customer has related records. Archive instead, or remove linked records first.",
+        },
+        { status: 200 }
+      );
     }
 
     const { error } = await supabaseAdmin
