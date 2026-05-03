@@ -1,5 +1,6 @@
 import { getGalleryItems } from "@/lib/gallery";
 import GalleryBrowser from "@/components/gallery/gallery-browser";
+import CinematicHomeMotion from "@/components/site/cinematic-home-motion";
 import PageCTA from "@/components/site/page-cta";
 import Card from "@/components/ui/card";
 
@@ -10,6 +11,7 @@ export default async function GalleryPage() {
 
   return (
     <main className="container section public-page-shell public-page-shell--gallery">
+      <CinematicHomeMotion />
       <section className="gallery-page-band" data-reveal>
         <div className="page-hero-copy gallery-page-head" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
           <p className="eyebrow">Portfolio</p>
