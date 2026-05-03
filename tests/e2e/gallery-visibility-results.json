@@ -1,0 +1,14 @@
+{
+  "baseUrl": "http://127.0.0.1:3001",
+  "result": {
+    "title": "Elel Events",
+    "galleryItems": 48,
+    "visibleGalleryItems": 48,
+    "sectionOpacity": "1",
+    "bodyText": "ElelEvents\nPortfolio\nServices\nRentals\nProcess\nAbout\nContact\nStart Planning\n\nPORTFOLIO\n\nBrowse rooms, focal points, and details that can shape your event vision.\n\nBrowse by event type, open images full-screen, and save the rooms, focal points, and styling details that feel closest to your celebration.\n\nUse this page for inspiration\n\nLook for rooms, tables, backdrops, and details that match the mood you want, then reference those ideas when you book your consultation.\n\nAll\nWedding Reception\nTraditional Melsi\nBridal Party\nBuffet Table\nBirthday\nBridal Shower\n\n48 images\n\nOPEN FULL SCREEN\nCenterpiece\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nGuest Table\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nHead Table\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nHead Table\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nHead Table\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nHead Table\nWedding Reception\nView Experience\nOPEN FULL SCREEN\nBackdrape\nWedding Reception\nView Exp"
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "screenshot": "/Users/biniamhaile/Desktop/Files/elel-events-corrected-styled/tests/e2e/gallery-visibility.png"
+}

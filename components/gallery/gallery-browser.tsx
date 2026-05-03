@@ -147,8 +147,8 @@ export default function GalleryBrowser({
 
   return (
     <>
-      <section className="gallery-browser-shell" data-reveal>
-        <div className="gallery-toolbar" data-reveal-child style={{ ["--reveal-delay" as string]: "0ms" }}>
+      <section className="gallery-browser-shell">
+        <div className="gallery-toolbar">
           <div className="option-pills">
             {categories.map((category) => (
               <button
@@ -171,8 +171,6 @@ export default function GalleryBrowser({
             <article
               key={item.id}
               className="gallery-item gallery-item-button"
-              data-reveal-child
-              style={{ ["--reveal-delay" as string]: `${80 + (index % 6) * 70}ms` }}
             >
               <button
                 type="button"
