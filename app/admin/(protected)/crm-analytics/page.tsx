@@ -56,6 +56,17 @@ function formatDate(value: string) {
   });
 }
 
+function formatDateOrFallback(value?: string | null) {
+  if (!value) return "Date not set";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Date not set";
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function getTaskPriority(task: Pick<CrmTask, "status" | "title" | "entityType">) {
   if (task.entityType === "unmatched_reply") return 0;
   if (task.entityType === "rental_request") return 0;
@@ -193,6 +204,60 @@ export default async function AdminCrmAnalyticsPage({
   const workflowColumns = buildWorkflowColumnsFromCrmLeads(crmMetrics.leads, {
     revisionLeadIds,
   });
+  const customerRoster = Array.from(
+    crmMetrics.leads.reduce((map, lead) => {
+      const customerKey = lead.clientId || lead.email.toLowerCase() || lead.id;
+      const current = map.get(customerKey);
+
+      if (current) {
+        current.opportunities.push(lead);
+        current.outstandingBalance += Number(lead.outstandingBalance ?? 0);
+        if (lead.stage === "booked") current.bookedCount += 1;
+        if (!["booked", "lost"].includes(lead.stage)) current.activeCount += 1;
+        if (!current.latestEventDate || new Date(lead.eventDate) > new Date(current.latestEventDate)) {
+          current.latestEventDate = lead.eventDate;
+          current.primaryLead = lead;
+        }
+        return map;
+      }
+
+      map.set(customerKey, {
+        key: customerKey,
+        clientName: lead.clientName,
+        email: lead.email,
+        phone: lead.phone,
+        owner: lead.owner,
+        nextAction: lead.nextAction || "Not set",
+        nextActionDueAt: lead.nextActionDueAt ?? null,
+        latestEventDate: lead.eventDate,
+        outstandingBalance: Number(lead.outstandingBalance ?? 0),
+        bookedCount: lead.stage === "booked" ? 1 : 0,
+        activeCount: ["booked", "lost"].includes(lead.stage) ? 0 : 1,
+        primaryLead: lead,
+        opportunities: [lead],
+      });
+      return map;
+    }, new Map<string, {
+      key: string;
+      clientName: string;
+      email: string;
+      phone: string;
+      owner: string;
+      nextAction: string;
+      nextActionDueAt: string | null;
+      latestEventDate: string;
+      outstandingBalance: number;
+      bookedCount: number;
+      activeCount: number;
+      primaryLead: (typeof crmMetrics.leads)[number];
+      opportunities: typeof crmMetrics.leads;
+    }>())
+  )
+    .map(([, value]) => value)
+    .sort((a, b) => {
+      if (b.activeCount !== a.activeCount) return b.activeCount - a.activeCount;
+      return new Date(b.latestEventDate).getTime() - new Date(a.latestEventDate).getTime();
+    });
   const revenueTrend = buildRevenueTrend(filteredLeads);
   const teamPerformance = buildTeamPerformance(filteredLeads);
   const dashboardAlerts = [
@@ -289,28 +354,27 @@ export default async function AdminCrmAnalyticsPage({
 
       <section className="admin-reference-summary-shell">
         <p className="admin-reference-summary-lead">
-          Keep lead health, follow-up pressure, sales forecasting, revenue signals, and relationship history inside one polished operating workspace instead of splitting the view across separate tools
+          Use CRM as the single lifecycle workspace for inquiry-to-booked movement, customer context, next actions, and sales coordination. Reports and revenue signals stay secondary to the live pipeline.
         </p>
       </section>
 
       <div className="admin-workspace-tabs admin-workspace-tabs--inline admin-reference-tabs">
         <Link href="/admin/crm-analytics" className={`admin-workspace-tab${activeTab === "pipeline" ? " is-active" : ""}`}>Pipeline</Link>
-        <Link href="/admin/crm-analytics?tab=reports" className={`admin-workspace-tab${activeTab === "reports" ? " is-active" : ""}`}>Reports</Link>
-        <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads</Link>
+        <Link href="/admin/crm-analytics?tab=leads" className={`admin-workspace-tab${activeTab === "leads" ? " is-active" : ""}`}>Leads / Inquiries</Link>
         <Link href="/admin/crm-analytics?tab=customers" className={`admin-workspace-tab${activeTab === "customers" ? " is-active" : ""}`}>Customers</Link>
-        <Link href="/admin/crm-analytics?tab=revenue" className={`admin-workspace-tab${activeTab === "revenue" ? " is-active" : ""}`}>Revenue Signals</Link>
         <Link href="/admin/crm-analytics?tab=tasks" className={`admin-workspace-tab${activeTab === "tasks" ? " is-active" : ""}`}>Tasks</Link>
+        <Link href="/admin/crm-analytics?tab=reports" className={`admin-workspace-tab${activeTab === "reports" ? " is-active" : ""}`}>Reports</Link>
       </div>
 
-      <CrmKpiGrid items={kpis} />
+      {activeTab !== "revenue" ? <CrmKpiGrid items={kpis} /> : null}
 
       {activeTab === "pipeline" ? (
         <>
           <section className="card admin-section-card admin-panel admin-panel--wide">
             <AdminSectionHeader
-              eyebrow="Operating lane"
-              title="Shared workflow from request to booked event"
-              description="Use the same five-stage lane across intake, consultation, quote, contract, and handoff."
+              eyebrow="Canonical CRM pipeline"
+              title="Lead lifecycle from inquiry to booked event"
+              description="This is the source of truth for stage movement, ownership, next actions, contract readiness, and deposit follow-through."
             />
 
             <div className="admin-workflow-lane">
@@ -364,17 +428,6 @@ export default async function AdminCrmAnalyticsPage({
           </section>
 
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-            <CrmForecastCard
-              confirmed={formatMoney(totalBookedRevenue)}
-              likely={formatMoney(likelyRevenue)}
-              pipeline={formatMoney(totalPipelineValue)}
-              forecast={formatMoney(forecastedRevenue)}
-            />
-            <CrmAlertsPanel items={dashboardAlerts} />
-          </div>
-
-          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
-            <CrmFunnelCard items={funnelItems} />
             <section className="card admin-section-card admin-panel">
               <AdminSectionHeader eyebrow="Follow-up queue" title="Needs action" />
               <div className="admin-mini-metrics admin-mini-metrics--plain">
@@ -386,6 +439,17 @@ export default async function AdminCrmAnalyticsPage({
                 <div><strong>{followupCounts.contracts}</strong><span>Unsigned contracts</span></div>
               </div>
             </section>
+            <CrmAlertsPanel items={dashboardAlerts} />
+          </div>
+
+          <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
+            <CrmForecastCard
+              confirmed={formatMoney(totalBookedRevenue)}
+              likely={formatMoney(likelyRevenue)}
+              pipeline={formatMoney(totalPipelineValue)}
+              forecast={formatMoney(forecastedRevenue)}
+            />
+            <CrmFunnelCard items={funnelItems} />
           </div>
 
           <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
@@ -480,13 +544,25 @@ export default async function AdminCrmAnalyticsPage({
 
       {activeTab === "customers" ? (
         <section className="card admin-section-card admin-panel admin-panel--wide">
-          <AdminSectionHeader eyebrow="Customers" title="Relationship roster" />
+          <AdminSectionHeader
+            eyebrow="Customer center"
+            title="Customer and event portfolio"
+            description="Group active opportunities, booked work, and outstanding balances around the customer rather than treating every inquiry as an isolated record."
+          />
           <div className="crm-customer-grid">
-            {filteredLeads.map((lead) => (
-              <Link key={lead.id} href={buildCrmLeadDetailHref(lead.id)} className="crm-customer-card">
-                <strong>{lead.clientName}</strong>
-                <span>{lead.eventType} · {formatDate(lead.eventDate)}</span>
-                <small>{lead.quoteSummary}</small>
+            {customerRoster.map((customer) => (
+              <Link key={customer.key} href={buildCrmLeadDetailHref(customer.primaryLead.id)} className="crm-customer-card">
+                <strong>{customer.clientName}</strong>
+                <span>
+                  {customer.activeCount} active · {customer.bookedCount} booked · {formatMoney(Math.round(customer.outstandingBalance))} open
+                </span>
+                <small>
+                  {customer.primaryLead.eventType} · {formatDateOrFallback(customer.latestEventDate)} · {customer.owner}
+                </small>
+                <small>
+                  Next: {customer.nextAction}
+                  {customer.nextActionDueAt ? ` · due ${formatDateOrFallback(customer.nextActionDueAt)}` : ""}
+                </small>
               </Link>
             ))}
           </div>

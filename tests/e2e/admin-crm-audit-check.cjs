@@ -183,7 +183,7 @@ async function run() {
 
     await record("Sidebar CRM pipeline route", async () => {
       await page.goto(`${BASE_URL}/admin/crm-analytics`, { waitUntil: "networkidle" });
-      await page.getByText("Shared workflow from request to booked event").waitFor();
+      await page.getByText("Lead lifecycle from inquiry to booked event").waitFor();
       return "CRM pipeline loaded.";
     });
 

@@ -7,12 +7,15 @@ import CustomerTimeline from "@/components/admin/customer-timeline";
 import {
   buildContractDetailHref,
   buildCrmLeadDetailHref,
+  buildDocumentDetailHref,
+  buildInvoiceCreateHref,
   buildInquiryDetailHref,
   buildQuoteCreateHref,
   buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
+import { normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { getLiveCrmSnapshot } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -48,6 +51,28 @@ function getTaskActionTone(task: { status: string; title: string }) {
   }
 
   return "internal" as const;
+}
+
+function formatMoney(value: number | null | undefined) {
+  return `$${Number(value ?? 0).toLocaleString()}`;
+}
+
+function formatDateOrFallback(value?: string | null) {
+  if (!value) return "Not set";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Not set";
+  return parsed.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDocumentTypeLabel(value: string) {
+  if (value === "quote") return "Quote";
+  if (value === "invoice") return "Invoice";
+  if (value === "receipt") return "Receipt";
+  return value;
 }
 
 export default async function AdminCrmLeadDetailPage({
@@ -102,9 +127,33 @@ export default async function AdminCrmLeadDetailPage({
     .limit(20);
   const { data: inquiryRecord } = await supabaseAdmin
     .from("event_inquiries")
-    .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature")
+    .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature, event_type, event_date, venue_name, venue_status, guest_count, services, preferred_contact_method, follow_up_details_json, inspiration_notes, additional_info, colors_theme, estimated_price, consultation_at, booked_at, reserved_at, completed_at")
     .eq("id", leadId)
     .maybeSingle();
+  const { data: relatedDocuments } = await supabaseAdmin
+    .from("client_documents")
+    .select("id, document_number, document_type, status, total_amount, balance_due, created_at, inquiry_id, contract_id")
+    .or(
+      lead.contractId
+        ? `inquiry_id.eq.${leadId},contract_id.eq.${lead.contractId}`
+        : `inquiry_id.eq.${leadId}`
+    )
+    .order("created_at", { ascending: false })
+    .limit(12);
+  const { data: contractPayments } = lead.contractId
+    ? await supabaseAdmin
+        .from("contract_payments")
+        .select("id, payment_kind, amount, due_date, paid_at, status")
+        .eq("contract_id", lead.contractId)
+        .order("created_at", { ascending: false })
+    : { data: [] as Array<{
+        id: string;
+        payment_kind: string;
+        amount: number | null;
+        due_date: string | null;
+        paid_at: string | null;
+        status: string;
+      }> };
   const { data: siblingOpportunities } =
     lead.clientId
       ? await supabaseAdmin
@@ -130,6 +179,24 @@ export default async function AdminCrmLeadDetailPage({
     return a.title.localeCompare(b.title);
   });
   const contractHref = lead.contractId ? buildContractDetailHref(lead.contractId) : null;
+  const structuredFollowUp = normalizeInquiryFollowUpDetails(
+    inquiryRecord?.follow_up_details_json ?? null
+  );
+  const services =
+    inquiryRecord && Array.isArray(inquiryRecord.services)
+      ? inquiryRecord.services.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      : [];
+  const relatedDocumentRows = relatedDocuments ?? [];
+  const quoteDocuments = relatedDocumentRows.filter((document) => document.document_type === "quote");
+  const invoiceDocuments = relatedDocumentRows.filter((document) => document.document_type === "invoice");
+  const receiptDocuments = relatedDocumentRows.filter((document) => document.document_type === "receipt");
+  const paidPayments = (contractPayments ?? []).filter((payment) => payment.status === "paid");
+  const pendingPayments = (contractPayments ?? []).filter((payment) => payment.status !== "paid");
+  const projectStatus = lead.bookingStage ?? inquiryRecord?.status ?? "Not set";
+  const projectValue =
+    Number(lead.estimatedValue ?? 0) > 0
+      ? Number(lead.estimatedValue ?? 0)
+      : Number(inquiryRecord?.estimated_price ?? 0);
 
   const unifiedTimeline = buildCustomerTimeline({
     workflowTransitions,
@@ -163,16 +230,25 @@ export default async function AdminCrmLeadDetailPage({
 
       <section className="admin-reference-summary-shell">
         <p className="admin-reference-summary-lead">
-          Keep the active opportunity, customer context, ownership, follow-up pressure, reply review, and account history in one structured lead record
+          Use this as the active customer and project hub for the opportunity, event brief, sales documents, payment progress, internal ownership, and account history.
         </p>
       </section>
 
+      <div className="summary-pills">
+        <a href="#relationship" className="summary-chip">Overview</a>
+        <a href="#project" className="summary-chip">Event / Project</a>
+        <a href="#financials" className="summary-chip">Financials</a>
+        <a href="#files" className="summary-chip">Files & Inspiration</a>
+        <a href="#timeline" className="summary-chip">Timeline</a>
+        <a href="#account-history" className="summary-chip">Other events</a>
+      </div>
+
       <div className="admin-dashboard-row">
-        <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+        <section id="relationship" className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Customer info</p>
-              <h3>Relationship overview</h3>
+              <h3>Customer and opportunity overview</h3>
             </div>
           </div>
           <div className="admin-reference-head-pills">
@@ -190,6 +266,7 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Email</small><span>{lead.email}</span></div>
             <div><small>Phone</small><span>{lead.phone}</span></div>
             <div><small>Budget range</small><span>{lead.budgetRange}</span></div>
+            <div><small>Consultation preference</small><span>{inquiryRecord?.preferred_contact_method || "Not set"}</span></div>
             <div><small>Stage</small><span>{CRM_STAGE_LABELS[lead.stage]}</span></div>
             <div><small>Owner</small><span>{lead.owner}</span></div>
             <div><small>Next action</small><span>{lead.nextAction || "Not set"}</span></div>
@@ -281,6 +358,204 @@ export default async function AdminCrmLeadDetailPage({
         </aside>
       </div>
 
+      <div className="admin-dashboard-row">
+        <section id="project" className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Event / Project</p>
+              <h3>Project brief and planning context</h3>
+            </div>
+          </div>
+          <div className="admin-reference-head-pills">
+            <span className="admin-reference-head-pill admin-reference-head-pill--strong">
+              {inquiryRecord?.event_type || lead.eventType}
+            </span>
+            <span className="admin-reference-head-pill">Guest count</span>
+            <span className="admin-reference-head-pill">{inquiryRecord?.guest_count ?? "Not set"}</span>
+            <span className="admin-reference-head-pill">Project status</span>
+            <span className="admin-reference-head-pill">{projectStatus.replaceAll("_", " ")}</span>
+            <span className="admin-reference-head-pill">Estimated value</span>
+            <span className="admin-reference-head-pill">{formatMoney(projectValue)}</span>
+          </div>
+          <div className="booking-final-summary-grid">
+            <div><small>Event date</small><span>{formatDateOrFallback(inquiryRecord?.event_date || lead.eventDate)}</span></div>
+            <div><small>Venue</small><span>{inquiryRecord?.venue_name || lead.venue}</span></div>
+            <div><small>Venue status</small><span>{inquiryRecord?.venue_status || "Not set"}</span></div>
+            <div><small>Guest count</small><span>{inquiryRecord?.guest_count ?? "Not set"}</span></div>
+            <div><small>Consultation at</small><span>{formatDateOrFallback(inquiryRecord?.consultation_at || lead.consultationAt)}</span></div>
+            <div><small>Reserved at</small><span>{formatDateOrFallback(inquiryRecord?.reserved_at)}</span></div>
+            <div><small>Booked at</small><span>{formatDateOrFallback(inquiryRecord?.booked_at || lead.bookedAt)}</span></div>
+            <div><small>Completed at</small><span>{formatDateOrFallback(inquiryRecord?.completed_at)}</span></div>
+            <div><small>Services requested</small><span>{services.length ? services.join(", ") : "Not set"}</span></div>
+            <div><small>Color / theme</small><span>{inquiryRecord?.colors_theme || "Not set"}</span></div>
+            <div><small>Vision notes</small><span>{inquiryRecord?.inspiration_notes || "Not set"}</span></div>
+            <div><small>Additional brief</small><span>{inquiryRecord?.additional_info || "Not set"}</span></div>
+          </div>
+        </section>
+
+        <aside id="financials" className="card admin-section-card admin-panel admin-reference-records-shell">
+          <div className="admin-panel-head">
+            <div>
+              <p className="eyebrow">Financials</p>
+              <h3>Documents and payments</h3>
+            </div>
+          </div>
+          <div className="summary-pills">
+            <Link href={buildQuoteCreateHref({ inquiryId: leadId })} className="summary-chip">
+              Create quote
+            </Link>
+            <Link
+              href={buildInvoiceCreateHref({ inquiryId: leadId, contractId: lead.contractId })}
+              className="summary-chip"
+            >
+              Create invoice
+            </Link>
+            {contractHref ? (
+              <Link href={contractHref} className="summary-chip">
+                Open contract
+              </Link>
+            ) : (
+              <Link href={buildInquiryDetailHref(leadId)} className="summary-chip">
+                Open inquiry workflow
+              </Link>
+            )}
+          </div>
+          <div className="admin-placeholder-list">
+            <div>
+              <strong>Quotes</strong>
+              <span>{quoteDocuments.length ? `${quoteDocuments.length} linked` : "No quote created yet"}</span>
+            </div>
+            <div>
+              <strong>Invoices</strong>
+              <span>{invoiceDocuments.length ? `${invoiceDocuments.length} linked` : "No invoice created yet"}</span>
+            </div>
+            <div>
+              <strong>Receipts</strong>
+              <span>{receiptDocuments.length ? `${receiptDocuments.length} linked` : "No receipt created yet"}</span>
+            </div>
+            <div>
+              <strong>Paid payments</strong>
+              <span>{paidPayments.length ? `${paidPayments.length} posted` : "No cash recorded yet"}</span>
+            </div>
+            <div>
+              <strong>Pending payments</strong>
+              <span>{pendingPayments.length ? `${pendingPayments.length} still open` : "Nothing outstanding"}</span>
+            </div>
+            <div>
+              <strong>Outstanding balance</strong>
+              <span>{formatMoney(lead.outstandingBalance ?? 0)}</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Sales record</p>
+            <h3>Related documents and payment history</h3>
+          </div>
+        </div>
+        <div className="admin-dashboard-row">
+          <div className="admin-placeholder-list">
+            {relatedDocumentRows.length ? (
+              relatedDocumentRows.map((document) => (
+                <div key={document.id}>
+                  <strong>
+                    <Link href={buildDocumentDetailHref(document.id)}>
+                      {document.document_number || formatDocumentTypeLabel(document.document_type)}
+                    </Link>
+                  </strong>
+                  <span>
+                    {formatDocumentTypeLabel(document.document_type)} · {document.status} · {formatMoney(document.total_amount)} · created {formatDateOrFallback(document.created_at)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div>
+                <strong>No sales documents</strong>
+                <span>Create quotes, invoices, and receipts from this hub so customer finance history stays connected.</span>
+              </div>
+            )}
+          </div>
+          <div className="admin-placeholder-list">
+            {(contractPayments ?? []).length ? (
+              contractPayments!.map((payment) => (
+                <div key={payment.id}>
+                  <strong>{payment.payment_kind.replaceAll("_", " ")}</strong>
+                  <span>
+                    {formatMoney(payment.amount)} · {payment.status} · due {formatDateOrFallback(payment.due_date)} · paid {formatDateOrFallback(payment.paid_at)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div>
+                <strong>No payment ledger yet</strong>
+                <span>Deposit and balance obligations will appear here once a contract drives the payment schedule.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section id="files" className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Files and inspiration</p>
+            <h3>Vision references and uploaded assets</h3>
+          </div>
+        </div>
+        <div className="admin-dashboard-row">
+          <div className="admin-placeholder-list">
+            <div>
+              <strong>Follow-up note</strong>
+              <span>{structuredFollowUp?.note || "No follow-up note recorded."}</span>
+            </div>
+            <div>
+              <strong>Style notes</strong>
+              <span>
+                {structuredFollowUp?.selected_styles?.length
+                  ? structuredFollowUp.selected_styles.join(", ")
+                  : "No structured style selections recorded."}
+              </span>
+            </div>
+            <div>
+              <strong>Additional inspiration</strong>
+              <span>{inquiryRecord?.inspiration_notes || "No inspiration notes recorded."}</span>
+            </div>
+          </div>
+          <div className="admin-placeholder-list">
+            {(structuredFollowUp?.inspiration_links?.length || 0) > 0 ? (
+              structuredFollowUp!.inspiration_links!.map((link) => (
+                <div key={link}>
+                  <strong>Reference link</strong>
+                  <span><a href={link} target="_blank" rel="noreferrer">{link}</a></span>
+                </div>
+              ))
+            ) : (
+              <div>
+                <strong>Reference links</strong>
+                <span>No shared inspiration links yet.</span>
+              </div>
+            )}
+            {(structuredFollowUp?.uploaded_urls?.length || 0) > 0 ? (
+              structuredFollowUp!.uploaded_urls!.map((url) => (
+                <div key={url}>
+                  <strong>Uploaded file</strong>
+                  <span><a href={url} target="_blank" rel="noreferrer">Open uploaded inspiration</a></span>
+                </div>
+              ))
+            ) : (
+              <div>
+                <strong>Uploaded inspiration</strong>
+                <span>No uploaded inspiration files yet.</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <div id="timeline">
       <CustomerTimeline
         eyebrow="Client timeline"
         title="Workflow, replies, and internal actions"
@@ -288,6 +563,7 @@ export default async function AdminCrmLeadDetailPage({
         items={unifiedTimeline}
         emptyMessage="No CRM timeline entries yet."
       />
+      </div>
 
       {hasUnmatchedReplyCandidate ? (
         <section className="card admin-section-card admin-panel admin-reference-records-shell">
@@ -322,7 +598,7 @@ export default async function AdminCrmLeadDetailPage({
         </section>
       ) : null}
 
-      <section className="card admin-section-card admin-panel admin-reference-records-shell">
+      <section id="account-history" className="card admin-section-card admin-panel admin-reference-records-shell">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Client account history</p>
