@@ -36,6 +36,14 @@ export default function DocumentsList({
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
+    setTypeFilter(initialTypeFilter || "all");
+  }, [initialTypeFilter]);
+
+  useEffect(() => {
+    setStatusFilter(initialStatusFilter || "all");
+  }, [initialStatusFilter]);
+
+  useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node;
       if (menuRootRef.current?.contains(target)) return;
