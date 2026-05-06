@@ -17451,6 +17451,23 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.admin-create-link--secondary {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.admin-create-link--secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: none;
+}
+
+.admin-create-link--secondary span {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .admin-sidebar-footer {
   gap: 2px;
   margin-top: auto;

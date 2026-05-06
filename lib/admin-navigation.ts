@@ -197,6 +197,19 @@ export function buildEventProjectDetailHref(id: string) {
   return `/admin/events/projects/${id}`;
 }
 
+export function buildAdminSopPdfHref({
+  download = true,
+}: {
+  download?: boolean;
+} = {}) {
+  const params = new URLSearchParams();
+  if (!download) {
+    params.set("download", "0");
+  }
+  const query = params.toString();
+  return query ? `/api/admin/sop/pdf?${query}` : "/api/admin/sop/pdf";
+}
+
 export function buildCrmWorkspaceHref(
   tab: "pipeline" | "leads" | "customers" | "tasks" | "reports" | "revenue" = "pipeline"
 ) {

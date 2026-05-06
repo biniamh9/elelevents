@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { canAccessModule, type AdminModule } from "@/lib/admin-access";
-import { buildCrmWorkspaceHref, buildInquiryCreateHref } from "@/lib/admin-navigation";
+import {
+  buildAdminSopPdfHref,
+  buildCrmWorkspaceHref,
+  buildInquiryCreateHref,
+} from "@/lib/admin-navigation";
 
 type NavChild = {
   href: string;
@@ -219,6 +223,15 @@ export default function AdminSidebar({
           <Link href={buildInquiryCreateHref()} className="admin-create-link">
             <span>+</span>
             <strong>Add Inquiry</strong>
+          </Link>
+          <Link
+            href={buildAdminSopPdfHref()}
+            className="admin-create-link admin-create-link--secondary"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span>↓</span>
+            <strong>Download Admin SOP PDF</strong>
           </Link>
         </div>
 
