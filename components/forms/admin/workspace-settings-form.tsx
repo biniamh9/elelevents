@@ -6,8 +6,10 @@ import type { WorkspaceSettings } from "@/lib/workspace-settings";
 
 export default function WorkspaceSettingsForm({
   initialSettings,
+  schemaReady,
 }: {
   initialSettings: WorkspaceSettings;
+  schemaReady?: boolean;
 }) {
   const [form, setForm] = useState({
     business_name: initialSettings.business_name,
@@ -44,6 +46,15 @@ export default function WorkspaceSettingsForm({
 
   return (
     <form className="admin-settings-form" onSubmit={handleSubmit}>
+      {!schemaReady ? (
+        <div className="admin-inline-note admin-inline-note--warning">
+          Workspace settings are showing safe defaults because the `admin_workspace_settings` table is not available in this environment yet. Apply
+          {" "}
+          <code>supabase.workspace-settings.sql</code>
+          {" "}
+          before trying to save changes.
+        </div>
+      ) : null}
       <div className="admin-dashboard-form-grid">
         <label>
           <span>Business name</span>
@@ -102,7 +113,7 @@ export default function WorkspaceSettingsForm({
       </div>
       <AdminActionRow
         primary={
-          <button type="submit" className="btn" disabled={saving}>
+          <button type="submit" className="btn" disabled={saving || !schemaReady}>
             {saving ? "Saving..." : "Save workspace settings"}
           </button>
         }

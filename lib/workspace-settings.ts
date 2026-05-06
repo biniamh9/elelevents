@@ -30,6 +30,11 @@ export type WorkspaceModuleSummary = {
   defaultRoles: AdminRole[];
 };
 
+export type WorkspaceSettingsResult = {
+  settings: WorkspaceSettings;
+  schemaReady: boolean;
+};
+
 const DEFAULT_SETTINGS: Omit<WorkspaceSettings, "id" | "created_at" | "updated_at"> = {
   business_name: "Elel Events",
   business_type: "Luxury event design",
@@ -40,7 +45,28 @@ const DEFAULT_SETTINGS: Omit<WorkspaceSettings, "id" | "created_at" | "updated_a
   default_timezone: "America/New_York",
 };
 
-export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
+export function buildDefaultWorkspaceSettings(): WorkspaceSettings {
+  const now = new Date().toISOString();
+  return {
+    id: "default",
+    ...DEFAULT_SETTINGS,
+    created_at: now,
+    updated_at: now,
+  };
+}
+
+export function isMissingWorkspaceSettingsSchema(message: string | undefined) {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("admin_workspace_settings") &&
+    (normalized.includes("does not exist") ||
+      normalized.includes("schema cache") ||
+      normalized.includes("could not find"))
+  );
+}
+
+export async function getWorkspaceSettingsResult(): Promise<WorkspaceSettingsResult> {
   const { data, error } = await supabaseAdmin
     .from("admin_workspace_settings")
     .select("*")
@@ -48,19 +74,31 @@ export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
     .maybeSingle();
 
   if (error) {
+    if (isMissingWorkspaceSettingsSchema(error.message)) {
+      return {
+        settings: buildDefaultWorkspaceSettings(),
+        schemaReady: false,
+      };
+    }
     throw new Error(error.message);
   }
 
   if (!data) {
     return {
-      id: "default",
-      ...DEFAULT_SETTINGS,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      settings: buildDefaultWorkspaceSettings(),
+      schemaReady: true,
     };
   }
 
-  return data as WorkspaceSettings;
+  return {
+    settings: data as WorkspaceSettings,
+    schemaReady: true,
+  };
+}
+
+export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
+  const result = await getWorkspaceSettingsResult();
+  return result.settings;
 }
 
 export async function getWorkspaceRoleSummaries(): Promise<WorkspaceRoleSummary[]> {

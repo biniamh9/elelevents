@@ -9,7 +9,7 @@ import { requireAdminPage } from "@/lib/auth/admin";
 import {
   getWorkspaceModuleSummaries,
   getWorkspaceRoleSummaries,
-  getWorkspaceSettings,
+  getWorkspaceSettingsResult,
 } from "@/lib/workspace-settings";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +23,19 @@ export default async function AdminSettingsPage({
 
   const { tab = "access" } = await searchParams;
   const users = tab === "users" ? await getAdminWorkspaceUsers() : [];
-  const workspaceSettings = tab === "workspace" ? await getWorkspaceSettings() : null;
+  let workspaceSettings = null;
+  let workspaceSchemaReady = true;
+  let workspaceSettingsError: string | null = null;
+  if (tab === "workspace") {
+    try {
+      const result = await getWorkspaceSettingsResult();
+      workspaceSettings = result.settings;
+      workspaceSchemaReady = result.schemaReady;
+    } catch (error) {
+      workspaceSettingsError =
+        error instanceof Error ? error.message : "Unable to load workspace settings.";
+    }
+  }
   const roleSummaries = tab === "access" ? await getWorkspaceRoleSummaries() : [];
   const moduleSummaries = tab === "modules" ? await getWorkspaceModuleSummaries() : [];
 
@@ -64,7 +76,10 @@ export default async function AdminSettingsPage({
               title="Workspace defaults"
               description="Define the business identity and default admin settings so this system can be reused for other business types without code changes."
             />
-            <WorkspaceSettingsForm initialSettings={workspaceSettings} />
+            <WorkspaceSettingsForm
+              initialSettings={workspaceSettings}
+              schemaReady={workspaceSchemaReady}
+            />
           </section>
 
           <aside className="card admin-section-card">
@@ -88,6 +103,17 @@ export default async function AdminSettingsPage({
             </div>
           </aside>
         </div>
+      ) : tab === "workspace" ? (
+        <section className="card admin-section-card">
+          <AdminSectionHeader
+            title="Workspace defaults"
+            description="Workspace settings could not be loaded from the database, so this panel is currently unavailable."
+          />
+          <AdminEmptyState
+            title="Workspace settings unavailable"
+            description={workspaceSettingsError ?? "The workspace settings record is not available yet."}
+          />
+        </section>
       ) : tab === "access" ? (
         <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
           <section className="card admin-section-card">

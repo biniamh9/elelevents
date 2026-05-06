@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
+import { buildDefaultWorkspaceSettings, isMissingWorkspaceSettingsSchema } from "@/lib/workspace-settings";
 
 export async function GET() {
   const { errorResponse } = await requireAdminApi("settings");
@@ -13,10 +14,17 @@ export async function GET() {
     .maybeSingle();
 
   if (error) {
+    if (isMissingWorkspaceSettingsSchema(error.message)) {
+      return NextResponse.json({
+        settings: buildDefaultWorkspaceSettings(),
+        schemaReady: false,
+        message: "Workspace settings table is not installed yet. Apply supabase.workspace-settings.sql.",
+      });
+    }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ settings: data });
+  return NextResponse.json({ settings: data, schemaReady: true });
 }
 
 export async function PATCH(request: Request) {
@@ -41,6 +49,15 @@ export async function PATCH(request: Request) {
     .upsert(payload, { onConflict: "id" });
 
   if (error) {
+    if (isMissingWorkspaceSettingsSchema(error.message)) {
+      return NextResponse.json(
+        {
+          error: "Workspace settings cannot be saved until supabase.workspace-settings.sql is applied.",
+          schemaReady: false,
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
