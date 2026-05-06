@@ -188,13 +188,45 @@ async function run() {
     });
 
     await record("CRM leads tab", async () => {
-      await page.goto(`${BASE_URL}/admin/crm-analytics?tab=leads`, { waitUntil: "networkidle" });
+      await page.goto(`${BASE_URL}/admin/crm-analytics/leads`, { waitUntil: "networkidle" });
       await page.getByText("Leads", { exact: false }).first().waitFor();
-      const leadLink = page.locator("a[href^='/admin/crm-analytics/']").first();
-      await leadLink.waitFor({ state: "visible", timeout: 15000 });
-      await leadLink.click();
-      await page.waitForURL(/\/admin\/crm-analytics\/.+/, { timeout: 15000 });
+      await page.getByRole("button", { name: "Actions" }).first().click();
+      await page.getByRole("link", { name: "View lead" }).first().click();
+      await page.waitForURL(/\/admin\/(crm-analytics\/(?!leads$|customers$|tasks$|reports$)[^/?#]+|events\/projects\/[^/?#]+)$/, {
+        timeout: 15000,
+      });
       return page.url();
+    });
+
+    await record("CRM customer hub route", async () => {
+      const customerHubLink = page.getByRole("link", { name: "Open customer hub" }).first();
+      if (await customerHubLink.isVisible()) {
+        await customerHubLink.click();
+        await page.waitForURL(/\/admin\/crm-analytics\/customers\/.+/, { timeout: 15000 });
+        await page.getByText("Customer summary").waitFor();
+        return page.url();
+      }
+
+      return "Lead had no client-linked customer hub available.";
+    });
+
+    await record("Event project hub route", async () => {
+      await page.goto(`${BASE_URL}/admin/crm-analytics/leads`, { waitUntil: "networkidle" });
+      await page.getByRole("button", { name: "Actions" }).first().click();
+      await page.getByRole("link", { name: "View lead" }).first().click();
+      await page.waitForURL(/\/admin\/(crm-analytics\/(?!leads$|customers$|tasks$|reports$)[^/?#]+|events\/projects\/[^/?#]+)$/, {
+        timeout: 15000,
+      });
+
+      const projectHubLink = page.getByRole("link", { name: "Open project hub" }).first();
+      if (await projectHubLink.isVisible()) {
+        await projectHubLink.click();
+        await page.waitForURL(/\/admin\/events\/projects\/.+/, { timeout: 15000 });
+        await page.getByText("Event and ownership summary").waitFor();
+        return page.url();
+      }
+
+      return "Lead had no linked event project yet.";
     });
 
     await record("Sales filtered quote view", async () => {
@@ -247,7 +279,7 @@ async function run() {
       );
       const dialogPromise = page.waitForEvent("dialog");
       await page.getByRole("button", { name: "Actions" }).first().click();
-      await page.getByRole("button", { name: "Delete" }).click();
+      await page.getByRole("button", { name: "Delete" }).click({ noWaitAfter: true });
       const dialog = await dialogPromise;
       await dialog.accept();
       await page.getByText("Archive instead, or remove linked records first.").waitFor({

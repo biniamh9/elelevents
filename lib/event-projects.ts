@@ -263,3 +263,24 @@ export async function getEventProjectByInquiryId(
 
   return data;
 }
+
+export async function getEventProjectById(
+  supabase: SupabaseClient,
+  projectId: string
+) {
+  const support = await getEventProjectSupport(supabase);
+  if (!support.projectsTable) return null;
+
+  const { data, error } = await supabase
+    .from("event_projects")
+    .select("*")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingSchemaError(error)) return null;
+    throw new Error(error.message);
+  }
+
+  return data;
+}

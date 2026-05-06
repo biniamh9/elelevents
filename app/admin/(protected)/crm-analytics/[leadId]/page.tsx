@@ -2,12 +2,14 @@ import Link from "next/link";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import AttachUnmatchedReplyShortcut from "@/components/forms/admin/attach-unmatched-reply-shortcut";
 import CrmLeadOperationsForm from "@/components/forms/admin/crm-lead-operations-form";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import {
   buildContractDetailHref,
+  buildCrmCustomerDetailHref,
   buildCrmLeadDetailHref,
   buildDocumentDetailHref,
+  buildEventProjectDetailHref,
   buildInvoiceCreateHref,
   buildInquiryDetailHref,
   buildQuoteCreateHref,
@@ -132,6 +134,13 @@ export default async function AdminCrmLeadDetailPage({
     .eq("id", leadId)
     .maybeSingle();
   const eventProject = await getEventProjectByInquiryId(supabaseAdmin, leadId);
+  const eventProjectHref = eventProject?.id
+    ? buildEventProjectDetailHref(eventProject.id)
+    : null;
+
+  if (eventProjectHref) {
+    redirect(eventProjectHref);
+  }
   const { data: relatedDocuments } = await supabaseAdmin
     .from("client_documents")
     .select("id, document_number, document_type, status, total_amount, balance_due, created_at, inquiry_id, contract_id")
@@ -226,6 +235,16 @@ export default async function AdminCrmLeadDetailPage({
         </div>
         <div className="admin-page-head-aside">
           <Link href="/admin/crm-analytics" className="admin-head-pill">Back to CRM</Link>
+          {lead.clientId ? (
+            <Link href={buildCrmCustomerDetailHref(lead.clientId)} className="admin-head-pill">
+              Open customer hub
+            </Link>
+          ) : null}
+          {eventProjectHref ? (
+            <Link href={eventProjectHref} className="admin-head-pill">
+              Open project hub
+            </Link>
+          ) : null}
           <Link href={buildQuoteCreateHref({ inquiryId: leadId })} className="admin-head-pill">Create quote</Link>
         </div>
       </header>
@@ -379,6 +398,11 @@ export default async function AdminCrmLeadDetailPage({
             <span className="admin-reference-head-pill">{(eventProject?.status || projectStatus).replaceAll("_", " ")}</span>
             <span className="admin-reference-head-pill">Estimated value</span>
             <span className="admin-reference-head-pill">{formatMoney(projectValue)}</span>
+            {eventProjectHref ? (
+              <Link href={eventProjectHref} className="admin-reference-head-pill">
+                Open project hub
+              </Link>
+            ) : null}
           </div>
           <div className="booking-final-summary-grid">
             <div><small>Event date</small><span>{formatDateOrFallback(inquiryRecord?.event_date || lead.eventDate)}</span></div>
@@ -426,6 +450,11 @@ export default async function AdminCrmLeadDetailPage({
                 Open inquiry workflow
               </Link>
             )}
+            {eventProjectHref ? (
+              <Link href={eventProjectHref} className="summary-chip">
+                Open project hub
+              </Link>
+            ) : null}
           </div>
           <div className="admin-placeholder-list">
             <div>

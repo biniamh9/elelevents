@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { canAccessModule, type AdminModule } from "@/lib/admin-access";
-import { buildInquiryCreateHref } from "@/lib/admin-navigation";
+import { buildCrmWorkspaceHref, buildInquiryCreateHref } from "@/lib/admin-navigation";
 
 type NavChild = {
   href: string;
@@ -37,10 +37,10 @@ const navSections: NavSection[] = [
     description: "Leads and follow-up",
     module: "crm",
     children: [
-      { href: "/admin/crm-analytics", label: "Pipeline" },
-      { href: "/admin/crm-analytics?tab=leads", label: "Leads / Inquiries" },
-      { href: "/admin/crm-analytics?tab=customers", label: "Customers" },
-      { href: "/admin/crm-analytics?tab=tasks", label: "Tasks" },
+      { href: buildCrmWorkspaceHref("pipeline"), label: "Pipeline" },
+      { href: buildCrmWorkspaceHref("leads"), label: "Leads / Inquiries" },
+      { href: buildCrmWorkspaceHref("customers"), label: "Customers" },
+      { href: buildCrmWorkspaceHref("tasks"), label: "Tasks" },
     ],
   },
   {

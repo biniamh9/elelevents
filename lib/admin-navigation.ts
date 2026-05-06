@@ -189,6 +189,25 @@ export function buildCrmLeadDetailHref(id: string) {
   return `/admin/crm-analytics/${id}`;
 }
 
+export function buildCrmCustomerDetailHref(id: string) {
+  return `/admin/crm-analytics/customers/${id}`;
+}
+
+export function buildEventProjectDetailHref(id: string) {
+  return `/admin/events/projects/${id}`;
+}
+
+export function buildCrmWorkspaceHref(
+  tab: "pipeline" | "leads" | "customers" | "tasks" | "reports" | "revenue" = "pipeline"
+) {
+  if (tab === "pipeline") return "/admin/crm-analytics";
+  if (tab === "leads") return "/admin/crm-analytics/leads";
+  if (tab === "customers") return "/admin/crm-analytics/customers";
+  if (tab === "tasks") return "/admin/crm-analytics/tasks";
+  if (tab === "reports" || tab === "revenue") return "/admin/crm-analytics/reports";
+  return "/admin/crm-analytics";
+}
+
 export function buildRentalRequestDetailHref(id: string) {
   return `/admin/rentals/requests/${id}`;
 }
