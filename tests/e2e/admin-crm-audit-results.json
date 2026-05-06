@@ -1,66 +1,66 @@
 [
   {
-    "testedAt": "2026-05-06T02:57:49.580Z",
+    "testedAt": "2026-05-06T13:07:14.541Z",
     "step": "Admin login",
     "result": "PASS",
     "detail": "http://127.0.0.1:3001/admin/inquiries?tab=inquiries"
   },
   {
-    "testedAt": "2026-05-06T02:58:02.724Z",
+    "testedAt": "2026-05-06T13:07:21.737Z",
     "step": "Overview loads",
     "result": "PASS",
     "detail": "Overview loaded with CRM preview."
   },
   {
-    "testedAt": "2026-05-06T02:58:05.896Z",
+    "testedAt": "2026-05-06T13:07:24.441Z",
     "step": "Sidebar CRM pipeline route",
     "result": "PASS",
     "detail": "CRM pipeline loaded."
   },
   {
-    "testedAt": "2026-05-06T02:58:10.391Z",
+    "testedAt": "2026-05-06T13:07:29.185Z",
     "step": "CRM leads tab",
     "result": "PASS",
     "detail": "http://127.0.0.1:3001/admin/crm-analytics/fdcf868a-7bc9-41b4-9ad6-89efae05e1bb"
   },
   {
-    "testedAt": "2026-05-06T02:58:13.344Z",
+    "testedAt": "2026-05-06T13:07:36.042Z",
     "step": "Sales filtered quote view",
     "result": "PASS",
     "detail": "Documents quote filter route loaded."
   },
   {
-    "testedAt": "2026-05-06T02:58:27.153Z",
+    "testedAt": "2026-05-06T13:07:46.674Z",
     "step": "Archive inquiry from actions menu",
     "result": "PASS",
     "detail": "Archive action persisted status=archived."
   },
   {
-    "testedAt": "2026-05-06T02:58:34.322Z",
+    "testedAt": "2026-05-06T13:07:55.433Z",
     "step": "Archived inquiry hidden by default",
     "result": "PASS",
     "detail": "Archived inquiry was hidden from default list."
   },
   {
-    "testedAt": "2026-05-06T02:58:46.416Z",
+    "testedAt": "2026-05-06T13:08:04.499Z",
     "step": "Archived inquiry can be filtered back in",
     "result": "PASS",
     "detail": "Archived inquiry visible in archived filter."
   },
   {
-    "testedAt": "2026-05-06T02:58:54.411Z",
+    "testedAt": "2026-05-06T13:08:20.659Z",
     "step": "Hard delete is blocked when related records exist",
     "result": "PASS",
     "detail": "Delete was blocked with related-record warning."
   },
   {
-    "testedAt": "2026-05-06T02:59:20.218Z",
+    "testedAt": "2026-05-06T13:08:47.159Z",
     "step": "Sidebar route smoke",
     "result": "PASS",
     "detail": "Sidebar routes returned successful responses."
   },
   {
-    "testedAt": "2026-05-06T02:59:20.219Z",
+    "testedAt": "2026-05-06T13:08:47.159Z",
     "step": "Browser console/network",
     "result": "PASS",
     "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"

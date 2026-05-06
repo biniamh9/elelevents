@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
+import { ensureEventProjectForInquiry, getEventProjectSupport, syncEventProjectLinks } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { getDocumentById } from "@/lib/admin-documents";
 import {
@@ -61,9 +62,26 @@ export async function POST(request: Request) {
       depositRequired: Number(body.deposit_required ?? 0),
     });
 
+    const inquiryRecord =
+      body.inquiry_id
+        ? (
+            await supabaseAdmin
+              .from("event_inquiries")
+              .select("id, client_id, first_name, last_name, event_type, event_date, venue_name, guest_count, services, additional_info, status, booking_stage, quote_response_status, consultation_status, crm_next_action, crm_next_action_due_at, quoted_at, reserved_at, booked_at, completed_at, crm_lost_at, admin_notes, crm_owner, crm_lead_score, crm_lead_temperature")
+              .eq("id", body.inquiry_id)
+              .maybeSingle()
+          ).data
+        : null;
+    const { projectId, support } = inquiryRecord
+      ? await ensureEventProjectForInquiry(supabaseAdmin, inquiryRecord)
+      : { projectId: null as string | null, support: await getEventProjectSupport(supabaseAdmin) };
+
     const insertPayload = {
       inquiry_id: body.inquiry_id ?? null,
       contract_id: body.contract_id ?? null,
+      ...(support.documentsProjectColumn && projectId
+        ? { event_project_id: projectId }
+        : {}),
       document_type: type,
       document_number: body.document_number,
       status: body.send_after_save === true && body.status === "draft" ? "sent" : body.status,
@@ -143,6 +161,12 @@ export async function POST(request: Request) {
     });
 
     const hydrated = await getDocumentById(document.id);
+
+    await syncEventProjectLinks(supabaseAdmin, {
+      projectId,
+      inquiryId: document.inquiry_id,
+      contractId: document.contract_id,
+    });
 
     return NextResponse.json({
       success: true,

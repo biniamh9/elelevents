@@ -503,7 +503,7 @@ export default async function InquiryDetailPage({
 
       <section className="admin-reference-summary-shell">
         <p className="admin-reference-summary-lead">
-          Keep inquiry qualification, consultation movement, quote state, contract readiness, follow-up context, and customer visual direction in one structured lead record
+          Use this page for intake qualification, consultation scheduling, and early lead handling. Ongoing customer, project, document, and payment ownership now belongs in the CRM record.
         </p>
       </section>
 

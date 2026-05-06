@@ -3,6 +3,7 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import { sendBookingLifecycleEmail } from "@/lib/booking-email";
 import { normalizeContractDetails } from "@/lib/contracts";
 import { logActivity } from "@/lib/crm";
+import { ensureEventProjectForInquiry, getEventProjectSupport, syncEventProjectLinks } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -161,6 +162,7 @@ export async function PATCH(
 
     if (typeof body.deposit_paid === "boolean") {
       if (body.deposit_paid) {
+        const projectSupport = await getEventProjectSupport(supabaseAdmin);
         const { data: existingDeposit } = await supabaseAdmin
           .from("contract_payments")
           .select("id")
@@ -176,12 +178,18 @@ export async function PATCH(
               paid_at: updated.deposit_paid_at,
               amount: updated.deposit_amount ?? 0,
               client_id: updated.client_id ?? null,
+              ...(projectSupport.paymentsProjectColumn && updated.event_project_id
+                ? { event_project_id: updated.event_project_id }
+                : {}),
             })
             .eq("id", existingDeposit.id);
         } else if ((updated.deposit_amount ?? 0) > 0) {
           await supabaseAdmin.from("contract_payments").insert({
             contract_id: updated.id,
             client_id: updated.client_id ?? null,
+            ...(projectSupport.paymentsProjectColumn && updated.event_project_id
+              ? { event_project_id: updated.event_project_id }
+              : {}),
             payment_kind: "deposit",
             amount: updated.deposit_amount ?? 0,
             due_date: new Date().toISOString().split("T")[0],
@@ -218,6 +226,7 @@ export async function PATCH(
     }
 
     if (typeof body.balance_paid === "boolean") {
+      const projectSupport = await getEventProjectSupport(supabaseAdmin);
       const { data: existingBalance } = await supabaseAdmin
         .from("contract_payments")
         .select("id")
@@ -234,12 +243,18 @@ export async function PATCH(
               paid_at: new Date().toISOString(),
               amount: updated.balance_due ?? 0,
               client_id: updated.client_id ?? null,
+              ...(projectSupport.paymentsProjectColumn && updated.event_project_id
+                ? { event_project_id: updated.event_project_id }
+                : {}),
             })
             .eq("id", existingBalance.id);
         } else if ((updated.balance_due ?? 0) > 0) {
           await supabaseAdmin.from("contract_payments").insert({
             contract_id: updated.id,
             client_id: updated.client_id ?? null,
+            ...(projectSupport.paymentsProjectColumn && updated.event_project_id
+              ? { event_project_id: updated.event_project_id }
+              : {}),
             payment_kind: "balance",
             amount: updated.balance_due ?? 0,
             due_date: updated.balance_due_date ?? null,
@@ -283,6 +298,31 @@ export async function PATCH(
         balance_paid: balancePaid,
       },
     });
+
+    if (updated.inquiry_id) {
+      const { data: inquiryForProject } = await supabaseAdmin
+        .from("event_inquiries")
+        .select("id, client_id, first_name, last_name, event_type, event_date, venue_name, guest_count, services, additional_info, status, booking_stage, quote_response_status, consultation_status, crm_next_action, crm_next_action_due_at, quoted_at, reserved_at, booked_at, completed_at, crm_lost_at, admin_notes, crm_owner, crm_lead_score, crm_lead_temperature")
+        .eq("id", updated.inquiry_id)
+        .maybeSingle();
+
+      if (inquiryForProject) {
+        const paymentStatus = balancePaid
+          ? "paid"
+          : updated.deposit_paid
+            ? "deposit_paid"
+            : "pending";
+        const { projectId } = await ensureEventProjectForInquiry(supabaseAdmin, inquiryForProject, {
+          contractStatus: updated.contract_status,
+          paymentStatus,
+        });
+        await syncEventProjectLinks(supabaseAdmin, {
+          projectId,
+          inquiryId: updated.inquiry_id,
+          contractId: updated.id,
+        });
+      }
+    }
 
     if (updated.inquiry_id) {
       await syncInquiryWorkflowStage(supabaseAdmin, {

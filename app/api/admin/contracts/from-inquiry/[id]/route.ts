@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { buildContractDetailsFromInquiry } from "@/lib/contracts";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
+import { ensureEventProjectForInquiry, syncEventProjectLinks } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export async function POST(
@@ -73,11 +74,19 @@ export async function POST(
         .eq("id", inquiry.id);
     }
 
+    const { projectId, support } = await ensureEventProjectForInquiry(supabaseAdmin, {
+      ...inquiry,
+      client_id: client.id,
+    });
+
     const { data: contract, error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
         inquiry_id: inquiry.id,
         client_id: client.id,
+        ...(support.contractsProjectColumn && projectId
+          ? { event_project_id: projectId }
+          : {}),
         client_name: `${inquiry.first_name} ${inquiry.last_name}`,
         client_email: inquiry.email,
         client_phone: inquiry.phone,
@@ -114,6 +123,9 @@ export async function POST(
       {
         contract_id: contract.id,
         client_id: client.id,
+        ...(support.paymentsProjectColumn && projectId
+          ? { event_project_id: projectId }
+          : {}),
         payment_kind: "deposit",
         amount: deposit,
         due_date: new Date().toISOString().split("T")[0],
@@ -122,6 +134,9 @@ export async function POST(
       {
         contract_id: contract.id,
         client_id: client.id,
+        ...(support.paymentsProjectColumn && projectId
+          ? { event_project_id: projectId }
+          : {}),
         payment_kind: "balance",
         amount: total - deposit,
         due_date: balanceDueDate,
@@ -138,6 +153,12 @@ export async function POST(
         console.error("Failed to seed contract payments:", paymentError.message);
       }
     }
+
+    await syncEventProjectLinks(supabaseAdmin, {
+      projectId,
+      inquiryId: inquiry.id,
+      contractId: contract.id,
+    });
 
     await logActivity(supabaseAdmin, {
       entityType: "contract",

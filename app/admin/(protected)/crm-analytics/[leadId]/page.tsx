@@ -15,6 +15,7 @@ import {
 } from "@/lib/admin-navigation";
 import { CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
+import { getEventProjectByInquiryId } from "@/lib/event-projects";
 import { normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { getLiveCrmSnapshot } from "@/lib/crm-live";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
@@ -130,6 +131,7 @@ export default async function AdminCrmLeadDetailPage({
     .select("id, status, admin_notes, crm_owner, crm_next_action, crm_next_action_due_at, crm_lead_score, crm_lead_temperature, event_type, event_date, venue_name, venue_status, guest_count, services, preferred_contact_method, follow_up_details_json, inspiration_notes, additional_info, colors_theme, estimated_price, consultation_at, booked_at, reserved_at, completed_at")
     .eq("id", leadId)
     .maybeSingle();
+  const eventProject = await getEventProjectByInquiryId(supabaseAdmin, leadId);
   const { data: relatedDocuments } = await supabaseAdmin
     .from("client_documents")
     .select("id, document_number, document_type, status, total_amount, balance_due, created_at, inquiry_id, contract_id")
@@ -267,6 +269,7 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Phone</small><span>{lead.phone}</span></div>
             <div><small>Budget range</small><span>{lead.budgetRange}</span></div>
             <div><small>Consultation preference</small><span>{inquiryRecord?.preferred_contact_method || "Not set"}</span></div>
+            <div><small>Project record</small><span>{eventProject?.project_name || "Not created yet"}</span></div>
             <div><small>Stage</small><span>{CRM_STAGE_LABELS[lead.stage]}</span></div>
             <div><small>Owner</small><span>{lead.owner}</span></div>
             <div><small>Next action</small><span>{lead.nextAction || "Not set"}</span></div>
@@ -373,7 +376,7 @@ export default async function AdminCrmLeadDetailPage({
             <span className="admin-reference-head-pill">Guest count</span>
             <span className="admin-reference-head-pill">{inquiryRecord?.guest_count ?? "Not set"}</span>
             <span className="admin-reference-head-pill">Project status</span>
-            <span className="admin-reference-head-pill">{projectStatus.replaceAll("_", " ")}</span>
+            <span className="admin-reference-head-pill">{(eventProject?.status || projectStatus).replaceAll("_", " ")}</span>
             <span className="admin-reference-head-pill">Estimated value</span>
             <span className="admin-reference-head-pill">{formatMoney(projectValue)}</span>
           </div>
@@ -382,6 +385,10 @@ export default async function AdminCrmLeadDetailPage({
             <div><small>Venue</small><span>{inquiryRecord?.venue_name || lead.venue}</span></div>
             <div><small>Venue status</small><span>{inquiryRecord?.venue_status || "Not set"}</span></div>
             <div><small>Guest count</small><span>{inquiryRecord?.guest_count ?? "Not set"}</span></div>
+            <div><small>Project name</small><span>{eventProject?.project_name || "Not created yet"}</span></div>
+            <div><small>Project next action</small><span>{eventProject?.next_action || lead.nextAction || "Not set"}</span></div>
+            <div><small>Project owner</small><span>{eventProject?.metadata?.crm_owner || lead.owner}</span></div>
+            <div><small>Project source stage</small><span>{eventProject?.source_inquiry_status?.replaceAll("_", " ") || inquiryRecord?.status || "Not set"}</span></div>
             <div><small>Consultation at</small><span>{formatDateOrFallback(inquiryRecord?.consultation_at || lead.consultationAt)}</span></div>
             <div><small>Reserved at</small><span>{formatDateOrFallback(inquiryRecord?.reserved_at)}</span></div>
             <div><small>Booked at</small><span>{formatDateOrFallback(inquiryRecord?.booked_at || lead.bookedAt)}</span></div>

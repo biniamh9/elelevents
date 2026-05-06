@@ -3,6 +3,7 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import { buildEventInquiryCreatedActivityEvent } from "@/lib/email-activity-events";
 import { buildInquiryConversationKey } from "@/lib/crm-opportunity-identity";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
+import { ensureEventProjectForInquiry } from "@/lib/event-projects";
 import { estimateEventPrice } from "@/lib/pricing";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { inquirySchema } from "@/lib/validations/inquiry";
@@ -110,6 +111,8 @@ export async function POST(request: Request) {
       },
       actorId: auth.user?.id ?? null,
     });
+
+    await ensureEventProjectForInquiry(supabaseAdmin, inserted);
 
     return NextResponse.json(
       { success: true, inquiry: { ...inserted, crm_conversation_key: conversationKey } },

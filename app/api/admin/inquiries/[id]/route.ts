@@ -9,6 +9,7 @@ import {
   isCrmLostReason,
 } from "@/lib/crm-options";
 import { logActivity } from "@/lib/crm";
+import { ensureEventProjectForInquiry } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -437,6 +438,8 @@ export async function PATCH(
         lead_closed_lost: data.status === "closed_lost",
       },
     });
+
+    await ensureEventProjectForInquiry(supabaseAdmin, data);
 
     return NextResponse.json({ success: true, data, consultationEmailMessage });
   } catch (error) {

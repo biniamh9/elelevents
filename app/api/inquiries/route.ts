@@ -4,6 +4,7 @@ import { inquirySchema } from "@/lib/validations/inquiry";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { estimateEventPrice } from "@/lib/pricing";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
+import { ensureEventProjectForInquiry } from "@/lib/event-projects";
 import { canSendConsultationEmail, sendInquiryConfirmationEmail } from "@/lib/consultation-email";
 import { buildAdminEventInquiryEmailVariables } from "@/lib/email-template-variables";
 import {
@@ -100,6 +101,8 @@ export async function POST(request: Request) {
         consultationRequestTime: inserted.consultation_request_time,
       }),
     });
+
+    await ensureEventProjectForInquiry(supabaseAdmin, inserted);
 
     if (resend && process.env.NOTIFICATION_TO_EMAIL) {
       try {
