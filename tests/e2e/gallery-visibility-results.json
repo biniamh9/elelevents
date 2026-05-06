@@ -1,5 +1,5 @@
 {
-  "baseUrl": "http://127.0.0.1:3001",
+  "baseUrl": "https://elelevents.com",
   "result": {
     "title": "Elel Events",
     "galleryItems": 48,
@@ -9,6 +9,14 @@
   },
   "consoleErrors": [],
   "pageErrors": [],
-  "requestFailures": [],
+  "requestFailures": [
+    "GET https://elelevents.com/gallery/cc0431e6-47d5-4301-8947-826e1967a724?_rsc=u4o14 :: net::ERR_ABORTED",
+    "GET https://elelevents.com/gallery/06665955-73ac-46b6-8ac0-336865e5afe1?_rsc=u4o14 :: net::ERR_ABORTED",
+    "GET https://elelevents.com/gallery/9f11c950-54c2-4b77-b203-52d9161d34f3?_rsc=u4o14 :: net::ERR_ABORTED",
+    "GET https://elelevents.com/gallery/07f75298-b152-408e-b284-040644c97ede?_rsc=u4o14 :: net::ERR_ABORTED",
+    "GET https://elelevents.com/gallery/97971d96-5adb-4c27-adf0-b34319491ea1?_rsc=m8fsl :: net::ERR_ABORTED",
+    "GET https://elelevents.com/gallery/6f7a6df7-206d-455a-a73a-2d245c1583f3?_rsc=m8fsl :: net::ERR_ABORTED",
+    "GET https://elelevents.com/?_rsc=m8fsl :: net::ERR_ABORTED"
+  ],
   "screenshot": "/Users/biniamhaile/Desktop/Files/elel-events-corrected-styled/tests/e2e/gallery-visibility.png"
 }
