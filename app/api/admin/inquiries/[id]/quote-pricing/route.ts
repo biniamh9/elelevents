@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import {
-  calculateLineTotal,
-  calculateQuoteTotals,
   DEFAULT_ITEMIZED_DISCLAIMER,
   DEFAULT_BASE_FEE,
+  calculateLineTotal,
+  calculateQuoteTotals,
 } from "@/lib/admin-pricing";
+import { upsertQuoteDocumentForInquiry } from "@/lib/admin-documents";
 import { logActivity } from "@/lib/crm";
+import {
+  ensureEventProjectForInquiry,
+  syncEventProjectLifecycleForInquiryId,
+} from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export async function PUT(
@@ -106,31 +111,19 @@ export async function PUT(
 
     const totals = calculateQuoteTotals(pricingInput, lineItems);
 
-    const { error: pricingError } = await supabaseAdmin
-      .from("inquiry_quote_pricing")
-      .upsert({
-        inquiry_id: id,
-        ...pricingInput,
-      });
+    const { projectId } = await ensureEventProjectForInquiry(supabaseAdmin, inquiry);
 
-    if (pricingError) {
-      return NextResponse.json({ error: pricingError.message }, { status: 500 });
-    }
-
-    await supabaseAdmin
-      .from("inquiry_quote_line_items")
-      .delete()
-      .eq("inquiry_id", id);
-
-    if (lineItems.length > 0) {
-      const { error: lineItemsError } = await supabaseAdmin
-        .from("inquiry_quote_line_items")
-        .insert(lineItems);
-
-      if (lineItemsError) {
-        return NextResponse.json({ error: lineItemsError.message }, { status: 500 });
-      }
-    }
+    const quoteDocument = await upsertQuoteDocumentForInquiry({
+      inquiryId: id,
+      inquiry,
+      eventProjectId: projectId,
+      status:
+        body.mark_as_quoted === true || pricingInput.draft_status === "shared_with_customer"
+          ? "sent"
+          : "draft",
+      pricing: pricingInput,
+      lineItems,
+    });
 
     const inquiryStatusUpdate: Record<string, unknown> = {
       estimated_price: totals.grandTotal,
@@ -138,6 +131,8 @@ export async function PUT(
 
     if (body.mark_as_quoted === true) {
       inquiryStatusUpdate.status = "quoted";
+      inquiryStatusUpdate.booking_stage = "quote_sent";
+      inquiryStatusUpdate.quote_response_status = "awaiting_response";
       inquiryStatusUpdate.quoted_at = new Date().toISOString();
     }
 
@@ -167,13 +162,19 @@ export async function PUT(
         line_item_count: lineItems.length,
         base_fee: pricingInput.base_fee,
         draft_status: pricingInput.draft_status,
+        quote_document_id: quoteDocument?.id ?? null,
       },
+    });
+
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, id, {
+      explicitStatus: body.mark_as_quoted === true ? "quote_sent" : "quote_drafted",
     });
 
     return NextResponse.json({
       success: true,
       inquiry: updatedInquiry,
       totals,
+      quoteDocument,
     });
   } catch (error) {
     console.error("Failed to save itemized quote pricing:", error);

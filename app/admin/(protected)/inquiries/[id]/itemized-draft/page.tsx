@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ItemizedPricePreview from "@/components/forms/admin/itemized-price-preview";
+import {
+  getQuoteDocumentByInquiryId,
+  mapQuoteDocumentToLegacyLineItems,
+  mapQuoteDocumentToLegacyPricing,
+} from "@/lib/admin-documents";
 import { buildInquiryDetailHref } from "@/lib/admin-navigation";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
@@ -26,18 +31,9 @@ export default async function InquiryItemizedDraftPage({
     notFound();
   }
 
-  const { data: pricing } = await supabaseAdmin
-    .from("inquiry_quote_pricing")
-    .select("inquiry_id, base_fee, discount_amount, delivery_fee, labor_adjustment, tax_amount, manual_total_override, notes, draft_status, client_disclaimer, generated_at, ready_to_send_at, shared_with_customer_at")
-    .eq("inquiry_id", id)
-    .maybeSingle();
-
-  const { data: lineItems } = await supabaseAdmin
-    .from("inquiry_quote_line_items")
-    .select("id, inquiry_id, pricing_catalog_item_id, item_name, category, variant, unit_label, unit_price, quantity, line_total, notes, sort_order, is_custom")
-    .eq("inquiry_id", id)
-    .order("sort_order", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true });
+  const quoteDocument = await getQuoteDocumentByInquiryId(id);
+  const pricing = mapQuoteDocumentToLegacyPricing(quoteDocument);
+  const lineItems = mapQuoteDocumentToLegacyLineItems(quoteDocument);
 
   return (
     <main className="admin-page section">

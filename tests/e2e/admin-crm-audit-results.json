@@ -1,78 +1,78 @@
 [
   {
-    "testedAt": "2026-05-07T19:59:07.483Z",
+    "testedAt": "2026-05-07T20:15:58.865Z",
     "step": "Admin login",
     "result": "PASS",
     "detail": "http://127.0.0.1:3001/admin/inquiries?tab=inquiries"
   },
   {
-    "testedAt": "2026-05-07T19:59:13.850Z",
+    "testedAt": "2026-05-07T20:16:06.017Z",
     "step": "Overview loads",
     "result": "PASS",
     "detail": "Overview loaded with CRM preview."
   },
   {
-    "testedAt": "2026-05-07T19:59:15.885Z",
+    "testedAt": "2026-05-07T20:16:08.717Z",
     "step": "Sidebar CRM pipeline route",
     "result": "PASS",
     "detail": "CRM pipeline loaded."
   },
   {
-    "testedAt": "2026-05-07T19:59:26.898Z",
+    "testedAt": "2026-05-07T20:16:20.098Z",
     "step": "CRM leads tab",
     "result": "PASS",
     "detail": "http://127.0.0.1:3001/admin/events/projects/703c9ada-f4b3-4a0a-85a1-637f9ddca70b"
   },
   {
-    "testedAt": "2026-05-07T19:59:27.892Z",
+    "testedAt": "2026-05-07T20:16:22.444Z",
     "step": "CRM customer hub route",
     "result": "PASS",
     "detail": "http://127.0.0.1:3001/admin/crm-analytics/customers/0700822e-30bb-4016-867d-5604260cfd98"
   },
   {
-    "testedAt": "2026-05-07T19:59:31.782Z",
+    "testedAt": "2026-05-07T20:16:26.577Z",
     "step": "Event project hub route",
     "result": "PASS",
     "detail": "Lead had no linked event project yet."
   },
   {
-    "testedAt": "2026-05-07T19:59:35.187Z",
+    "testedAt": "2026-05-07T20:16:29.203Z",
     "step": "Sales filtered quote view",
     "result": "PASS",
     "detail": "Documents quote filter route loaded."
   },
   {
-    "testedAt": "2026-05-07T19:59:43.954Z",
+    "testedAt": "2026-05-07T20:16:44.519Z",
     "step": "Archive inquiry from actions menu",
     "result": "PASS",
     "detail": "Archive action persisted status=archived."
   },
   {
-    "testedAt": "2026-05-07T19:59:55.004Z",
+    "testedAt": "2026-05-07T20:16:51.390Z",
     "step": "Archived inquiry hidden by default",
     "result": "PASS",
     "detail": "Archived inquiry was hidden from default list."
   },
   {
-    "testedAt": "2026-05-07T20:00:01.871Z",
+    "testedAt": "2026-05-07T20:16:58.129Z",
     "step": "Archived inquiry can be filtered back in",
     "result": "PASS",
     "detail": "Archived inquiry visible in archived filter."
   },
   {
-    "testedAt": "2026-05-07T20:00:15.303Z",
+    "testedAt": "2026-05-07T20:17:05.672Z",
     "step": "Hard delete is blocked when related records exist",
     "result": "PASS",
     "detail": "Delete was blocked with related-record warning."
   },
   {
-    "testedAt": "2026-05-07T20:00:45.633Z",
+    "testedAt": "2026-05-07T20:17:33.833Z",
     "step": "Sidebar route smoke",
     "result": "PASS",
     "detail": "Sidebar routes returned successful responses."
   },
   {
-    "testedAt": "2026-05-07T20:00:45.633Z",
+    "testedAt": "2026-05-07T20:17:33.833Z",
     "step": "Browser console/network",
     "result": "PASS",
     "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"

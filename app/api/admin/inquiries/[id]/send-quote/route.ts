@@ -21,8 +21,17 @@ import {
   renderEmailTemplate,
   renderQuoteItemizedScopeSection,
 } from "@/lib/email-template-renderer";
+import {
+  getQuoteDocumentByInquiryId,
+  mapQuoteDocumentToLegacyLineItems,
+  mapQuoteDocumentToLegacyPricing,
+  upsertQuoteDocumentForInquiry,
+} from "@/lib/admin-documents";
 import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
-import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
+import {
+  ensureEventProjectForInquiry,
+  syncEventProjectLifecycleForInquiryId,
+} from "@/lib/event-projects";
 import { createQuoteActionToken } from "@/lib/quote-client-actions";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
@@ -71,18 +80,33 @@ export async function POST(
 
     const fromEmail = getNotificationFromEmail();
 
-    const [{ data: pricing }, { data: lineItems }] = await Promise.all([
-      supabaseAdmin
-        .from("inquiry_quote_pricing")
-        .select("*")
-        .eq("inquiry_id", id)
-        .maybeSingle(),
-      supabaseAdmin
-        .from("inquiry_quote_line_items")
-        .select("*")
-        .eq("inquiry_id", id)
-        .order("sort_order", { ascending: true }),
-    ]);
+    let quoteDocument = await getQuoteDocumentByInquiryId(id);
+    if (!quoteDocument) {
+      const { projectId } = await ensureEventProjectForInquiry(supabaseAdmin, inquiry);
+      quoteDocument = await upsertQuoteDocumentForInquiry({
+        inquiryId: id,
+        inquiry,
+        eventProjectId: projectId,
+        status: "draft",
+        pricing: {
+          base_fee:
+            typeof body.quoteAmount === "number"
+              ? body.quoteAmount
+              : Number(inquiry.estimated_price ?? 0),
+          discount_amount: 0,
+          delivery_fee: 0,
+          labor_adjustment: 0,
+          tax_amount: 0,
+          manual_total_override: null,
+          notes: null,
+          client_disclaimer: null,
+        },
+        lineItems: [],
+      });
+    }
+
+    const pricing = mapQuoteDocumentToLegacyPricing(quoteDocument);
+    const lineItems = mapQuoteDocumentToLegacyLineItems(quoteDocument);
 
     const normalizedLineItems = (lineItems ?? []).map((item) => ({
       item_name: item.item_name,
@@ -139,6 +163,10 @@ export async function POST(
     }
 
     const quotedAt = normalizeQuotedAt(updatedInquiry.quoted_at);
+    await supabaseAdmin
+      .from("client_documents")
+      .update({ status: "sent" })
+      .eq("id", quoteDocument.id);
     const siteUrl =
       getBusinessTemplateVariables().website_url ||
       process.env.NEXT_PUBLIC_SITE_URL ||

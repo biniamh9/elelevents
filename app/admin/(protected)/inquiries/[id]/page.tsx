@@ -10,6 +10,11 @@ import {
   buildQuoteCreateHref,
   buildUnmatchedReplyReviewHref,
 } from "@/lib/admin-navigation";
+import {
+  getQuoteDocumentByInquiryId,
+  mapQuoteDocumentToLegacyLineItems,
+  mapQuoteDocumentToLegacyPricing,
+} from "@/lib/admin-documents";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import InquiryStatusForm from "@/components/forms/admin/inquiry-status-form";
 import BookingLifecycleForm from "@/components/forms/admin/booking-lifecycle-form";
@@ -274,18 +279,9 @@ export default async function InquiryDetailPage({
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("name", { ascending: true });
 
-  const { data: inquiryQuotePricing } = await supabaseAdmin
-    .from("inquiry_quote_pricing")
-    .select("inquiry_id, base_fee, discount_amount, delivery_fee, labor_adjustment, tax_amount, manual_total_override, notes, draft_status, client_disclaimer, generated_at, ready_to_send_at, shared_with_customer_at")
-    .eq("inquiry_id", id)
-    .maybeSingle();
-
-  const { data: inquiryQuoteLineItems } = await supabaseAdmin
-    .from("inquiry_quote_line_items")
-    .select("id, inquiry_id, pricing_catalog_item_id, item_name, category, variant, unit_label, unit_price, quantity, line_total, notes, sort_order, is_custom")
-    .eq("inquiry_id", id)
-    .order("sort_order", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true });
+  const quoteDocument = await getQuoteDocumentByInquiryId(id);
+  const inquiryQuotePricing = mapQuoteDocumentToLegacyPricing(quoteDocument);
+  const inquiryQuoteLineItems = mapQuoteDocumentToLegacyLineItems(quoteDocument);
 
   const { data: linkedContract } = await supabaseAdmin
     .from("contracts")

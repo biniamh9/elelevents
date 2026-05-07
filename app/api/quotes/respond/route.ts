@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { upsertFollowUpTask } from "@/lib/crm-follow-up-tasks";
+import { getQuoteDocumentByInquiryId } from "@/lib/admin-documents";
 import { recordCustomerInteraction } from "@/lib/customer-interactions";
+import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { verifyQuoteActionToken } from "@/lib/quote-client-actions";
 import { logActivity } from "@/lib/crm";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
@@ -157,6 +159,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    const quoteDocument = await getQuoteDocumentByInquiryId(inquiryId);
+    if (quoteDocument) {
+      await supabaseAdmin
+        .from("client_documents")
+        .update({
+          status: action === "approve" ? "accepted" : "draft",
+        })
+        .eq("id", quoteDocument.id);
+    }
+
     const interactionBody =
       action === "approve"
         ? comment
@@ -223,6 +235,10 @@ export async function POST(request: Request) {
         action === "approve"
           ? "inquiry.quote_accepted"
           : "inquiry.quote_changes_requested",
+    });
+
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, inquiryId, {
+      explicitStatus: action === "approve" ? "quote_accepted" : "quote_drafted",
     });
 
     await syncInquiryWorkflowStage(supabaseAdmin, {
