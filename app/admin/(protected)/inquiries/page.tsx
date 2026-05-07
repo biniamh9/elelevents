@@ -18,6 +18,11 @@ import StatusBadge from "@/components/forms/admin/status-badge";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { getLiveCrmMetrics } from "@/lib/crm-live";
+import { getEventProjectsByInquiryIds } from "@/lib/event-projects";
+import {
+  deriveEventProjectStatusFromLegacy,
+  humanizeEventProjectStatus,
+} from "@/lib/project-lifecycle";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +144,43 @@ function getPaymentState(contract: {
   return "Paid";
 }
 
+function getCanonicalInquiryProjectStatus(
+  inquiry: {
+    status: string | null;
+    booking_stage: string | null;
+    consultation_status: string | null;
+    quote_response_status: string | null;
+    completed_at?: string | null;
+  },
+  projectStatus: string | null | undefined,
+  contract?: {
+    contract_status?: string | null;
+    deposit_paid?: boolean | null;
+    balance_due?: number | null;
+  } | null
+) {
+  return (
+    projectStatus ??
+    deriveEventProjectStatusFromLegacy({
+      inquiryStatus: inquiry.status,
+      bookingStage: inquiry.booking_stage,
+      consultationStatus: inquiry.consultation_status,
+      quoteResponseStatus: inquiry.quote_response_status,
+      contractStatus: contract?.contract_status ?? null,
+      paymentStatus:
+        contract && contract.deposit_paid && Number(contract.balance_due ?? 0) <= 0
+          ? "paid"
+          : contract?.deposit_paid
+            ? "deposit_paid"
+            : contract
+              ? "pending"
+              : null,
+      depositPaid: contract?.deposit_paid ?? null,
+      completedAt: inquiry.completed_at ?? null,
+    })
+  );
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
@@ -218,16 +260,9 @@ export default async function AdminInquiriesPage({
   let query = supabaseAdmin
     .from("event_inquiries")
     .select(
-      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_details_json, crm_next_action_due_at",
-      { count: "exact" }
+      "id, created_at, first_name, last_name, email, phone, event_type, event_date, guest_count, venue_name, status, booking_stage, estimated_price, consultation_status, consultation_at, quote_response_status, follow_up_details_json, crm_next_action_due_at"
     )
     ;
-
-  if (status) {
-    query = query.eq("status", status);
-  } else {
-    query = query.neq("status", "archived");
-  }
 
   if (eventType) {
     query = query.eq("event_type", eventType);
@@ -258,7 +293,7 @@ export default async function AdminInquiriesPage({
     query = query.order("created_at", { ascending: false });
   }
 
-  const { data, error, count: filteredCount } = await query;
+  const { data, error } = await query;
   let orderedRows = data ?? [];
   const inquiryIds = orderedRows.map((item) => item.id);
   const unmatchedReplyCandidatesByInquiry = await getStrongUnmatchedReplyCandidatesByInquiry(
@@ -284,6 +319,24 @@ export default async function AdminInquiriesPage({
       };
 
   const contractMap = new Map((pageContracts ?? []).map((item) => [item.inquiry_id, item]));
+  const pageProjects = await getEventProjectsByInquiryIds(supabaseAdmin, inquiryIds);
+  const projectMap = new Map(
+    pageProjects
+      .filter((item) => item.inquiry_id)
+      .map((item) => [item.inquiry_id as string, item])
+  );
+
+  orderedRows = orderedRows.filter((row) => {
+    const effectiveStatus = getCanonicalInquiryProjectStatus(
+      row,
+      projectMap.get(row.id)?.status ?? null,
+      contractMap.get(row.id) ?? null
+    );
+    if (status) {
+      return effectiveStatus === status;
+    }
+    return effectiveStatus !== "archived";
+  });
   const { data: pageInvoices } = inquiryIds.length
     ? await supabaseAdmin
         .from("client_documents")
@@ -358,6 +411,7 @@ export default async function AdminInquiriesPage({
     });
   }
 
+  const filteredCount = orderedRows.length;
   const pagedRows = orderedRows.slice(from, to + 1);
 
   const { count: totalCount } = await supabaseAdmin
@@ -526,6 +580,22 @@ export default async function AdminInquiriesPage({
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 5);
 
+  const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
+  const newLeadCount = crmMetrics.leads.filter((lead) => lead.stage === "new_inquiry").length;
+  const quoteSentCount = crmMetrics.leads.filter((lead) => lead.stage === "quote_sent").length;
+  const bookedLeadCount = crmMetrics.leads.filter((lead) => lead.stage === "booked").length;
+  const responseSamples = crmMetrics.leads.filter(
+    (lead) => lead.firstResponseHours !== null && lead.firstResponseHours !== undefined
+  );
+  const averageResponseHours = responseSamples.length
+    ? Number(
+        (
+          responseSamples.reduce((sum, lead) => sum + Number(lead.firstResponseHours ?? 0), 0) /
+          responseSamples.length
+        ).toFixed(1)
+      )
+    : null;
+
   const alerts: Array<{ tone: "warning" | "attention" | "info"; label: string; detail: string }> = [];
 
   if ((upcomingConsultations ?? []).some((item) => item.consultation_type === "in_person" && !item.consultation_location)) {
@@ -566,26 +636,31 @@ export default async function AdminInquiriesPage({
     .order("created_at", { ascending: false })
     .limit(8);
 
-  const crmMetrics = await getLiveCrmMetrics(supabaseAdmin);
-  const responseSamples = crmMetrics.leads.filter(
-    (lead) => lead.firstResponseHours !== null && lead.firstResponseHours !== undefined
-  );
-  const averageResponseHours = responseSamples.length
-    ? Number(
-        (
-          responseSamples.reduce((sum, lead) => sum + Number(lead.firstResponseHours ?? 0), 0) /
-          responseSamples.length
-        ).toFixed(1)
-      )
-    : null;
-
   const { data: pipelineBoardRows } = await supabaseAdmin
     .from("event_inquiries")
     .select("id, first_name, last_name, event_type, event_date, status, consultation_status, booking_stage, consultation_at, created_at")
     .order("created_at", { ascending: false })
     .limit(60);
 
-  const statuses = ["new", "contacted", "quoted", "booked", "closed_lost", "archived"];
+  const statuses = [
+    "new_inquiry",
+    "under_review",
+    "contacted",
+    "consultation_scheduled",
+    "consultation_completed",
+    "quote_sent",
+    "quote_accepted",
+    "contract_sent",
+    "contract_signed",
+    "deposit_paid",
+    "event_reserved",
+    "planning_in_progress",
+    "final_payment_due",
+    "final_payment_paid",
+    "completed",
+    "lost_cancelled",
+    "archived",
+  ];
   const eventTypes = [
     "Wedding",
     "Traditional (Melsi)",
@@ -600,10 +675,10 @@ export default async function AdminInquiriesPage({
   const reportCards = [
     {
       label: "New inquiries",
-      value: String(pendingCount ?? 0),
+      value: String(newLeadCount),
       note: "Need first response",
       tone: "amber",
-      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new_inquiry" }),
     },
     {
       label: "Active leads",
@@ -614,17 +689,17 @@ export default async function AdminInquiriesPage({
     },
     {
       label: "Booked events",
-      value: String(bookedCount ?? 0),
+      value: String(bookedLeadCount),
       note: "Confirmed work on calendar",
       tone: "green",
       href: buildInquiryWorkspaceHref({ tab: "schedule", state: inquiryWorkspaceState }),
     },
     {
       label: "Pending quotes",
-      value: String(quotedCount ?? 0),
+      value: String(quoteSentCount),
       note: "Awaiting client movement",
       tone: "violet",
-      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quoted" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "quote_sent" }),
     },
     {
       label: "Pending payments",
@@ -655,7 +730,7 @@ export default async function AdminInquiriesPage({
       count: pendingCount ?? 0,
       detail: "Fresh leads that still need a first touch or triage.",
       tone: "warning" as const,
-      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new" }),
+      href: buildInquiryWorkspaceHref({ tab: "inquiries", state: inquiryWorkspaceState, nextStatus: "new_inquiry" }),
       cta: "Review leads",
     },
     {
@@ -725,30 +800,27 @@ export default async function AdminInquiriesPage({
   const pipelineSnapshot = [
     {
       label: "New",
-      count: pipelineRows?.filter((row) => row.status === "new").length ?? 0,
+      count: newLeadCount,
       note: "Incoming requests",
     },
     {
       label: "Contacted",
-      count: pipelineRows?.filter((row) => row.status === "contacted").length ?? 0,
+      count: crmMetrics.leads.filter((lead) => lead.stage === "contacted").length,
       note: "Follow-up in motion",
     },
     {
       label: "Consultation Scheduled",
-      count: pipelineRows?.filter((row) => row.consultation_status === "scheduled").length ?? 0,
+      count: crmMetrics.leads.filter((lead) => lead.stage === "consultation_scheduled").length,
       note: "Meetings confirmed",
     },
     {
       label: "Quote Sent",
-      count: pipelineRows?.filter((row) => row.status === "quoted").length ?? 0,
+      count: quoteSentCount,
       note: "Awaiting response",
     },
     {
       label: "Booked",
-      count:
-        pipelineRows?.filter(
-          (row) => row.booking_stage === "reserved" || row.status === "booked"
-        ).length ?? 0,
+      count: bookedLeadCount,
       note: "Dates reserved",
     },
   ];
@@ -756,36 +828,77 @@ export default async function AdminInquiriesPage({
   const pipelineColumns = [
     {
       label: "New",
-      items: pipelineBoardRows?.filter((row) => row.status === "new").slice(0, 8) ?? [],
+      items:
+        crmMetrics.leads
+          .filter((lead) => lead.stage === "new_inquiry")
+          .slice(0, 8)
+          .map((lead) => ({
+            id: lead.id,
+            first_name: lead.clientName.split(" ")[0] ?? "Client",
+            last_name: lead.clientName.split(" ").slice(1).join(" "),
+            event_type: lead.eventType,
+            event_date: lead.eventDate,
+          })) ?? [],
     },
     {
       label: "Under Review",
       items:
-        pipelineBoardRows?.filter(
-          (row) => row.consultation_status === "under_review" || row.status === "contacted"
-        ).slice(0, 8) ?? [],
+        crmMetrics.leads
+          .filter((lead) => ["contacted", "consultation_completed"].includes(lead.stage))
+          .slice(0, 8)
+          .map((lead) => ({
+            id: lead.id,
+            first_name: lead.clientName.split(" ")[0] ?? "Client",
+            last_name: lead.clientName.split(" ").slice(1).join(" "),
+            event_type: lead.eventType,
+            event_date: lead.eventDate,
+          })) ?? [],
     },
     {
       label: "Consultation",
       items:
-        pipelineBoardRows?.filter(
-          (row) => row.consultation_status === "scheduled" || Boolean(row.consultation_at)
-        ).slice(0, 8) ?? [],
+        crmMetrics.leads
+          .filter((lead) => lead.stage === "consultation_scheduled")
+          .slice(0, 8)
+          .map((lead) => ({
+            id: lead.id,
+            first_name: lead.clientName.split(" ")[0] ?? "Client",
+            last_name: lead.clientName.split(" ").slice(1).join(" "),
+            event_type: lead.eventType,
+            event_date: lead.eventDate,
+          })) ?? [],
     },
     {
       label: "Quoted",
-      items: pipelineBoardRows?.filter((row) => row.status === "quoted").slice(0, 8) ?? [],
+      items:
+        crmMetrics.leads
+          .filter((lead) => lead.stage === "quote_sent")
+          .slice(0, 8)
+          .map((lead) => ({
+            id: lead.id,
+            first_name: lead.clientName.split(" ")[0] ?? "Client",
+            last_name: lead.clientName.split(" ").slice(1).join(" "),
+            event_type: lead.eventType,
+            event_date: lead.eventDate,
+          })) ?? [],
     },
     {
       label: "Booked",
       items:
-        pipelineBoardRows?.filter(
-          (row) => row.booking_stage === "reserved" || row.status === "booked"
-        ).slice(0, 8) ?? [],
+        crmMetrics.leads
+          .filter((lead) => lead.stage === "booked")
+          .slice(0, 8)
+          .map((lead) => ({
+            id: lead.id,
+            first_name: lead.clientName.split(" ")[0] ?? "Client",
+            last_name: lead.clientName.split(" ").slice(1).join(" "),
+            event_type: lead.eventType,
+            event_date: lead.eventDate,
+          })) ?? [],
     },
   ];
 
-  const totalPages = Math.max(1, Math.ceil((filteredCount ?? 0) / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
   const previousPage = page > 1 ? page - 1 : null;
   const nextPage = page < totalPages ? page + 1 : null;
 
@@ -1410,6 +1523,7 @@ export default async function AdminInquiriesPage({
                   {pagedRows.length ? (
                     pagedRows.map((row) => {
                       const contract = contractMap.get(row.id) ?? null;
+                      const project = projectMap.get(row.id) ?? null;
                       const needsQuoteRevision =
                         row.quote_response_status === "changes_requested";
                       const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
@@ -1419,6 +1533,11 @@ export default async function AdminInquiriesPage({
                         unmatchedReplyCandidatesByInquiry[row.id] ?? [];
                       const hasUnmatchedReplyCandidate =
                         unmatchedReplyCandidates.length > 0;
+                      const effectiveProjectStatus = getCanonicalInquiryProjectStatus(
+                        row,
+                        project?.status ?? null,
+                        contract
+                      );
                       const unmatchedReplyReviewHref = buildUnmatchedReplyReviewHref({
                         status: "pending_review",
                         replyId: unmatchedReplyCandidates[0]?.replyId ?? null,
@@ -1446,7 +1565,7 @@ export default async function AdminInquiriesPage({
                           <td>{formatDateTime(row.consultation_at)}</td>
                           <td>
                             <div className="admin-record-status-stack">
-                              <StatusBadge status={row.status ?? "new"} />
+                              <StatusBadge status={effectiveProjectStatus} />
                               <span className="admin-record-substatus admin-record-substatus--compact">
                                 {needsQuoteRevision
                                   ? "Responded follow-up reply"
@@ -1454,7 +1573,7 @@ export default async function AdminInquiriesPage({
                                     ? "Follow-up inspiration added"
                                   : hasUnmatchedReplyCandidate
                                     ? "Reply review pending"
-                                  : `${humanizeBookingStage(row.booking_stage)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
+                                  : `${humanizeEventProjectStatus(effectiveProjectStatus)} • ${humanizeLabel(row.consultation_status ?? "not_scheduled")}`}
                               </span>
                             </div>
                           </td>
@@ -1486,6 +1605,7 @@ export default async function AdminInquiriesPage({
                             <InquiryRecordActions
                               inquiryId={row.id}
                               contractId={contract?.id ?? null}
+                              project_status={effectiveProjectStatus}
                               status={row.status ?? "new"}
                               consultationStatus={row.consultation_status ?? "not_scheduled"}
                               bookingStage={row.booking_stage ?? null}
@@ -1523,6 +1643,12 @@ export default async function AdminInquiriesPage({
             <div className="admin-mobile-records">
               {pagedRows.map((row) => {
                 const contract = contractMap.get(row.id) ?? null;
+                const project = projectMap.get(row.id) ?? null;
+                const effectiveProjectStatus = getCanonicalInquiryProjectStatus(
+                  row,
+                  project?.status ?? null,
+                  contract
+                );
                 const needsQuoteRevision =
                   row.quote_response_status === "changes_requested";
                 const hasFollowUpInspiration = inquiryFollowUpNeedsReview(
@@ -1565,7 +1691,7 @@ export default async function AdminInquiriesPage({
                           </span>
                         ) : null}
                       </div>
-                      <StatusBadge status={row.status ?? "new"} />
+                      <StatusBadge status={effectiveProjectStatus} />
                     </div>
 
                     <div className="admin-mobile-record-grid">
@@ -1579,7 +1705,7 @@ export default async function AdminInquiriesPage({
                       </p>
                       <p>
                         <span>Booking</span>
-                        {humanizeBookingStage(row.booking_stage)}
+                        {humanizeEventProjectStatus(effectiveProjectStatus)}
                       </p>
                       <p>
                         <span>Quote</span>
@@ -1610,6 +1736,7 @@ export default async function AdminInquiriesPage({
                     <InquiryRecordActions
                       inquiryId={row.id}
                       contractId={contract?.id ?? null}
+                      project_status={effectiveProjectStatus}
                       status={row.status ?? "new"}
                       consultationStatus={row.consultation_status ?? "not_scheduled"}
                       bookingStage={row.booking_stage ?? null}

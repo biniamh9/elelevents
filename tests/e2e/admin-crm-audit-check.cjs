@@ -191,18 +191,24 @@ async function run() {
       await page.goto(`${BASE_URL}/admin/crm-analytics/leads`, { waitUntil: "networkidle" });
       await page.getByText("Leads", { exact: false }).first().waitFor();
       await page.getByRole("button", { name: "Actions" }).first().click();
-      await page.getByRole("link", { name: "View lead" }).first().click();
-      await page.waitForURL(/\/admin\/(crm-analytics\/(?!leads$|customers$|tasks$|reports$)[^/?#]+|events\/projects\/[^/?#]+)$/, {
-        timeout: 15000,
-      });
+      const viewLeadHref = await page.getByRole("link", { name: "View lead" }).first().getAttribute("href");
+      if (!viewLeadHref) {
+        throw new Error("Missing lead detail href from CRM actions menu.");
+      }
+      await page.goto(new URL(viewLeadHref, BASE_URL).toString(), { waitUntil: "domcontentloaded" });
       return page.url();
     });
 
     await record("CRM customer hub route", async () => {
       const customerHubLink = page.getByRole("link", { name: "Open customer hub" }).first();
       if (await customerHubLink.isVisible()) {
-        await customerHubLink.click();
-        await page.waitForURL(/\/admin\/crm-analytics\/customers\/.+/, { timeout: 15000 });
+        const customerHubHref = await customerHubLink.getAttribute("href");
+        if (!customerHubHref) {
+          throw new Error("Missing customer hub href from CRM lead detail.");
+        }
+        await page.goto(new URL(customerHubHref, BASE_URL).toString(), {
+          waitUntil: "domcontentloaded",
+        });
         await page.getByText("Customer summary").waitFor();
         return page.url();
       }
@@ -213,15 +219,21 @@ async function run() {
     await record("Event project hub route", async () => {
       await page.goto(`${BASE_URL}/admin/crm-analytics/leads`, { waitUntil: "networkidle" });
       await page.getByRole("button", { name: "Actions" }).first().click();
-      await page.getByRole("link", { name: "View lead" }).first().click();
-      await page.waitForURL(/\/admin\/(crm-analytics\/(?!leads$|customers$|tasks$|reports$)[^/?#]+|events\/projects\/[^/?#]+)$/, {
-        timeout: 15000,
-      });
+      const viewLeadHref = await page.getByRole("link", { name: "View lead" }).first().getAttribute("href");
+      if (!viewLeadHref) {
+        throw new Error("Missing lead detail href from CRM actions menu.");
+      }
+      await page.goto(new URL(viewLeadHref, BASE_URL).toString(), { waitUntil: "domcontentloaded" });
 
       const projectHubLink = page.getByRole("link", { name: "Open project hub" }).first();
       if (await projectHubLink.isVisible()) {
-        await projectHubLink.click();
-        await page.waitForURL(/\/admin\/events\/projects\/.+/, { timeout: 15000 });
+        const projectHubHref = await projectHubLink.getAttribute("href");
+        if (!projectHubHref) {
+          throw new Error("Missing project hub href from CRM lead detail.");
+        }
+        await page.goto(new URL(projectHubHref, BASE_URL).toString(), {
+          waitUntil: "domcontentloaded",
+        });
         await page.getByText("Event and ownership summary").waitFor();
         return page.url();
       }

@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { buildContractDetailsFromInquiry } from "@/lib/contracts";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
-import { ensureEventProjectForInquiry, syncEventProjectLinks } from "@/lib/event-projects";
+import {
+  ensureEventProjectForInquiry,
+  syncEventProjectLifecycleForInquiryId,
+  syncEventProjectLinks,
+} from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export async function POST(
@@ -158,6 +162,13 @@ export async function POST(
       projectId,
       inquiryId: inquiry.id,
       contractId: contract.id,
+    });
+
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, inquiry.id, {
+      explicitStatus: "quote_accepted",
+      contractStatus: contract.contract_status,
+      paymentStatus: paymentRows.length > 0 ? "pending" : null,
+      depositPaid: false,
     });
 
     await logActivity(supabaseAdmin, {

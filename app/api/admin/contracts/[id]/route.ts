@@ -3,7 +3,12 @@ import { requireAdminApi } from "@/lib/auth/admin";
 import { sendBookingLifecycleEmail } from "@/lib/booking-email";
 import { normalizeContractDetails } from "@/lib/contracts";
 import { logActivity } from "@/lib/crm";
-import { ensureEventProjectForInquiry, getEventProjectSupport, syncEventProjectLinks } from "@/lib/event-projects";
+import {
+  ensureEventProjectForInquiry,
+  getEventProjectSupport,
+  syncEventProjectLifecycleForInquiryId,
+  syncEventProjectLinks,
+} from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -315,6 +320,7 @@ export async function PATCH(
         const { projectId } = await ensureEventProjectForInquiry(supabaseAdmin, inquiryForProject, {
           contractStatus: updated.contract_status,
           paymentStatus,
+          depositPaid: updated.deposit_paid,
         });
         await syncEventProjectLinks(supabaseAdmin, {
           projectId,
@@ -322,6 +328,30 @@ export async function PATCH(
           contractId: updated.id,
         });
       }
+    }
+
+    if (updated.inquiry_id) {
+      const explicitStatus = balancePaid
+        ? "final_payment_paid"
+        : updated.deposit_paid
+          ? "deposit_paid"
+          : updated.contract_status === "signed"
+            ? "contract_signed"
+            : updated.contract_status === "sent"
+              ? "contract_sent"
+              : null;
+      const paymentStatus = balancePaid
+        ? "paid"
+        : updated.deposit_paid
+          ? "deposit_paid"
+          : "pending";
+
+      await syncEventProjectLifecycleForInquiryId(supabaseAdmin, updated.inquiry_id, {
+        explicitStatus,
+        contractStatus: updated.contract_status,
+        paymentStatus,
+        depositPaid: updated.deposit_paid,
+      });
     }
 
     if (updated.inquiry_id) {

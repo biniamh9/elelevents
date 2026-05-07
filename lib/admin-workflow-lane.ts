@@ -11,6 +11,7 @@ import {
   getWorkflowStageFromBookingStage,
   type WorkflowStage,
 } from "@/lib/workflow-stage";
+import { mapEventProjectStatusToWorkflowStage } from "@/lib/project-lifecycle";
 
 export type WorkflowLaneKey = WorkflowStage;
 
@@ -84,6 +85,7 @@ const WORKFLOW_LANE_META: Array<{
 export const getLaneFromBookingStage = getWorkflowStageFromBookingStage;
 
 export function getInquiryWorkflowLane(input: {
+  project_status?: string | null;
   status: string | null;
   consultation_status: string | null;
   booking_stage: string | null;
@@ -92,6 +94,10 @@ export function getInquiryWorkflowLane(input: {
   deposit_paid?: boolean | null;
   completed_at?: string | null;
 }) {
+  if (input.project_status) {
+    return mapEventProjectStatusToWorkflowStage(input.project_status);
+  }
+
   return deriveWorkflowStage({
     bookingStage: input.booking_stage,
     inquiryStatus: input.status,
@@ -106,6 +112,7 @@ export function getInquiryWorkflowLane(input: {
 export function getInquiryWorkflowPrimaryAction(input: {
   inquiryId: string;
   contractId?: string | null;
+  project_status?: string | null;
   status: string | null;
   consultation_status: string | null;
   booking_stage: string | null;
@@ -225,6 +232,7 @@ export function getInquiryWorkflowPrimaryAction(input: {
 export function getInquiryWorkflowSecondaryAction(input: {
   inquiryId: string;
   contractId?: string | null;
+  project_status?: string | null;
   status: string | null;
   consultation_status: string | null;
   booking_stage: string | null;
@@ -292,6 +300,7 @@ export function buildWorkflowColumnsFromInquiries(
     consultation_status: string | null;
     booking_stage: string | null;
     quote_response_status: string | null;
+    project_status?: string | null;
     quoted_at?: string | null;
     completed_at?: string | null;
     contract_status?: string | null;
@@ -305,14 +314,15 @@ export function buildWorkflowColumnsFromInquiries(
   }
 
   for (const inquiry of inquiries) {
-    const lane = deriveWorkflowStage({
-      bookingStage: inquiry.booking_stage,
-      inquiryStatus: inquiry.status,
-      consultationStatus: inquiry.consultation_status,
-      quoteResponseStatus: inquiry.quote_response_status,
-      contractStatus: inquiry.contract_status,
-      depositPaid: inquiry.deposit_paid,
-      completedAt: inquiry.completed_at ?? null,
+    const lane = getInquiryWorkflowLane({
+      project_status: inquiry.project_status ?? null,
+      status: inquiry.status,
+      consultation_status: inquiry.consultation_status,
+      booking_stage: inquiry.booking_stage,
+      quote_response_status: inquiry.quote_response_status,
+      contract_status: inquiry.contract_status ?? null,
+      deposit_paid: inquiry.deposit_paid ?? null,
+      completed_at: inquiry.completed_at ?? null,
     });
     grouped.get(lane)?.push({
       id: inquiry.id,
@@ -328,6 +338,7 @@ export function buildWorkflowColumnsFromInquiries(
           : null,
       primaryAction: getInquiryWorkflowPrimaryAction({
         inquiryId: inquiry.id,
+        project_status: inquiry.project_status ?? null,
         status: inquiry.status,
         consultation_status: inquiry.consultation_status,
         booking_stage: inquiry.booking_stage,
@@ -355,13 +366,14 @@ export function buildWorkflowColumnsFromInquiries(
               : "/admin/inquiries?tab=schedule",
     items: (grouped.get(lane.key) ?? [])
       .sort((a, b) => Number(Boolean(b.attention)) - Number(Boolean(a.attention)))
-      .slice(0, 4),
+            .slice(0, 4),
   }));
 }
 
 export function getInquiryWorkflowActionGroups(input: {
   inquiryId: string;
   contractId?: string | null;
+  project_status?: string | null;
   status: string | null;
   consultation_status: string | null;
   booking_stage: string | null;

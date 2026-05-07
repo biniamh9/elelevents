@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { deriveWorkflowStage, type WorkflowStage } from "@/lib/workflow-stage";
+import { mapEventProjectStatusToWorkflowStage } from "@/lib/project-lifecycle";
 
 type SyncInquiryWorkflowStageInput = {
   inquiryId: string;
@@ -25,6 +26,10 @@ type ContractWorkflowSnapshot = {
   deposit_paid: boolean | null;
 };
 
+type ProjectWorkflowSnapshot = {
+  status: string | null;
+};
+
 function isWorkflowStage(value: string | null): value is WorkflowStage {
   return (
     value === "intake" ||
@@ -39,7 +44,11 @@ export async function syncInquiryWorkflowStage(
   supabase: SupabaseClient,
   input: SyncInquiryWorkflowStageInput
 ) {
-  const [{ data: inquiry, error: inquiryError }, { data: contractRows, error: contractError }] =
+  const [
+    { data: inquiry, error: inquiryError },
+    { data: contractRows, error: contractError },
+    { data: project },
+  ] =
     await Promise.all([
       supabase
         .from("event_inquiries")
@@ -54,6 +63,11 @@ export async function syncInquiryWorkflowStage(
         .eq("inquiry_id", input.inquiryId)
         .order("created_at", { ascending: false })
         .limit(1),
+      supabase
+        .from("event_projects")
+        .select("status")
+        .eq("inquiry_id", input.inquiryId)
+        .maybeSingle<ProjectWorkflowSnapshot>(),
     ]);
 
   if (inquiryError || !inquiry) {
@@ -66,15 +80,17 @@ export async function syncInquiryWorkflowStage(
 
   const contract = (contractRows?.[0] as ContractWorkflowSnapshot | undefined) ?? null;
 
-  const nextWorkflowStage = deriveWorkflowStage({
-    bookingStage: inquiry.booking_stage,
-    inquiryStatus: inquiry.status,
-    consultationStatus: inquiry.consultation_status,
-    quoteResponseStatus: inquiry.quote_response_status,
-    contractStatus: contract?.contract_status,
-    depositPaid: contract?.deposit_paid,
-    completedAt: inquiry.completed_at,
-  });
+  const nextWorkflowStage = project?.status
+    ? mapEventProjectStatusToWorkflowStage(project.status)
+    : deriveWorkflowStage({
+        bookingStage: inquiry.booking_stage,
+        inquiryStatus: inquiry.status,
+        consultationStatus: inquiry.consultation_status,
+        quoteResponseStatus: inquiry.quote_response_status,
+        contractStatus: contract?.contract_status,
+        depositPaid: contract?.deposit_paid,
+        completedAt: inquiry.completed_at,
+      });
 
   const currentWorkflowStage = isWorkflowStage(inquiry.workflow_stage)
     ? inquiry.workflow_stage

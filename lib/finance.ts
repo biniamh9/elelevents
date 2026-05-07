@@ -1,4 +1,5 @@
 import { syncRecurringExpenses } from "@/lib/finance-recurring";
+import { humanizeEventProjectStatus } from "@/lib/project-lifecycle";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export type FinanceOverview = {
@@ -13,9 +14,11 @@ export type FinanceOverview = {
   payments: Array<{
     id: string;
     contract_id: string | null;
+    event_project_id: string | null;
     client_name: string;
     event_type: string | null;
     event_date: string | null;
+    lifecycle_status: string | null;
     payment_kind: string;
     amount: number;
     due_date: string | null;
@@ -62,7 +65,7 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     await Promise.all([
       supabaseAdmin
         .from("contract_payments")
-        .select("id, contract_id, payment_kind, amount, due_date, paid_at, status, contract:contracts(id,client_name,event_type,event_date)")
+        .select("id, contract_id, payment_kind, amount, due_date, paid_at, status, contract:contracts(id,client_name,event_type,event_date,event_project_id)")
         .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("finance_expenses")
@@ -98,12 +101,43 @@ export async function getFinanceOverview(): Promise<FinanceOverview> {
     throw new Error(contractsError.message);
   }
 
+  const eventProjectIds = Array.from(
+    new Set(
+      (payments ?? [])
+        .map((item: any) =>
+          Array.isArray(item.contract)
+            ? item.contract[0]?.event_project_id ?? null
+            : item.contract?.event_project_id ?? null
+        )
+        .filter((value: string | null): value is string => Boolean(value))
+    )
+  );
+
+  const { data: projectRows, error: projectError } = eventProjectIds.length
+    ? await supabaseAdmin
+        .from("event_projects")
+        .select("id, status")
+        .in("id", eventProjectIds)
+    : { data: [], error: null };
+
+  if (projectError) {
+    throw new Error(projectError.message);
+  }
+
+  const projectStatusMap = new Map(
+    (projectRows ?? []).map((item: any) => [item.id, humanizeEventProjectStatus(item.status)])
+  );
+
   const normalizedPayments = (payments ?? []).map((item: any) => ({
     id: item.id,
     contract_id: item.contract_id ?? (Array.isArray(item.contract) ? item.contract[0]?.id ?? null : item.contract?.id ?? null),
+    event_project_id: Array.isArray(item.contract) ? item.contract[0]?.event_project_id ?? null : item.contract?.event_project_id ?? null,
     client_name: Array.isArray(item.contract) ? item.contract[0]?.client_name ?? "Unknown client" : item.contract?.client_name ?? "Unknown client",
     event_type: Array.isArray(item.contract) ? item.contract[0]?.event_type ?? null : item.contract?.event_type ?? null,
     event_date: Array.isArray(item.contract) ? item.contract[0]?.event_date ?? null : item.contract?.event_date ?? null,
+    lifecycle_status: projectStatusMap.get(
+      Array.isArray(item.contract) ? item.contract[0]?.event_project_id ?? "" : item.contract?.event_project_id ?? ""
+    ) ?? null,
     payment_kind: item.payment_kind,
     amount: Number(item.amount ?? 0),
     due_date: item.due_date,

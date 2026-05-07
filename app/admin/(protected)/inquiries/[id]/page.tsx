@@ -24,6 +24,8 @@ import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type 
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
+import { getEventProjectByInquiryId } from "@/lib/event-projects";
+import { humanizeEventProjectStatus } from "@/lib/project-lifecycle";
 import {
   getInquiryWorkflowPrimaryAction,
   getInquiryWorkflowSecondaryAction,
@@ -290,6 +292,7 @@ export default async function InquiryDetailPage({
     .select("id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, event_date, balance_due_date")
     .eq("inquiry_id", id)
     .maybeSingle();
+  const eventProject = await getEventProjectByInquiryId(supabaseAdmin, id);
   const { data: relatedInvoices } = await supabaseAdmin
     .from("client_documents")
     .select("id, document_number, status")
@@ -411,6 +414,7 @@ export default async function InquiryDetailPage({
   const primaryWorkflowAction = getInquiryWorkflowPrimaryAction({
     inquiryId: inquiry.id,
     contractId: linkedContract?.id ?? null,
+    project_status: eventProject?.status ?? null,
     status: inquiry.status,
     consultation_status: inquiry.consultation_status,
     booking_stage: inquiry.booking_stage,
@@ -423,6 +427,7 @@ export default async function InquiryDetailPage({
   const secondaryWorkflowAction = getInquiryWorkflowSecondaryAction({
     inquiryId: inquiry.id,
     contractId: linkedContract?.id ?? null,
+    project_status: eventProject?.status ?? null,
     status: inquiry.status,
     consultation_status: inquiry.consultation_status,
     booking_stage: inquiry.booking_stage,
@@ -483,6 +488,7 @@ export default async function InquiryDetailPage({
     extractLabeledSection(inquiry.additional_info, "Consultation preference") ??
     inquiry.preferred_contact_method ??
     "—";
+  const lifecycleStatusLabel = humanizeEventProjectStatus(eventProject?.status);
 
   return (
     <main className="admin-page section admin-page--workspace">
@@ -515,7 +521,8 @@ export default async function InquiryDetailPage({
             {inquiry.event_type} {inquiry.event_date ? `• ${inquiry.event_date}` : ""} {inquiry.venue_name ? `• ${inquiry.venue_name}` : ""}
           </p>
           <div className="summary-pills">
-            <span className="summary-chip">Status: {inquiry.status ?? "new"}</span>
+            <span className="summary-chip">Lifecycle: {lifecycleStatusLabel}</span>
+            <span className="summary-chip">Inquiry status: {humanizeLabel(inquiry.status ?? "new")}</span>
             <span className="summary-chip">Booking: {humanizeBookingStage(bookingStage)}</span>
             <span className="summary-chip">Quote: ${Number(inquiry.estimated_price ?? 0).toLocaleString()}</span>
             <span className="summary-chip">Guest count: {inquiry.guest_count ?? "—"}</span>
@@ -544,6 +551,10 @@ export default async function InquiryDetailPage({
 
         <div className="crm-timeline card admin-reference-records-shell">
           <p className="eyebrow">Current workflow</p>
+          <div className="timeline-row neutral">
+            <strong>Lifecycle</strong>
+            <span>{lifecycleStatusLabel}</span>
+          </div>
           <div className="timeline-row neutral">
             <strong>Workflow stage</strong>
             <span>{humanizeLabel(inquiry.workflow_stage ?? workflow.currentStep)}</span>
@@ -616,6 +627,9 @@ export default async function InquiryDetailPage({
               ) : null}
             </div>
             <div className="summary-pills">
+              <span className="summary-chip">
+                Lifecycle: {lifecycleStatusLabel}
+              </span>
               <span className="summary-chip">
                 Lead status: {humanizeLabel(inquiry.status ?? "new")}
               </span>

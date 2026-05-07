@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { deriveBookingStage } from "@/lib/booking-lifecycle";
 import {
   getAverageEventValue,
   getBookedRevenue,
@@ -23,6 +22,11 @@ import {
   normalizeInquiryFollowUpDetails,
 } from "@/lib/inquiry-follow-up";
 import { isCrmLeadTemperature, isCrmLostReason } from "@/lib/crm-options";
+import {
+  deriveEventProjectStatusFromLegacy,
+  isClosedEventProjectStatus,
+  mapEventProjectStatusToCrmStage,
+} from "@/lib/project-lifecycle";
 
 type InquiryRow = {
   id: string;
@@ -67,6 +71,7 @@ type InquiryRow = {
 type ContractRow = {
   id: string;
   inquiry_id: string | null;
+  event_project_id?: string | null;
   contract_status: string | null;
   contract_total: number | null;
   deposit_amount: number | null;
@@ -76,6 +81,22 @@ type ContractRow = {
   signed_at: string | null;
   closed_at: string | null;
   balance_due_date: string | null;
+};
+
+type ProjectRow = {
+  id: string;
+  inquiry_id: string | null;
+  project_name: string | null;
+  status: string | null;
+  event_type: string | null;
+  event_date: string | null;
+  venue_name: string | null;
+  guest_count: number | null;
+  investment_range: string | null;
+  next_action: string | null;
+  next_action_due_at: string | null;
+  payment_status: string | null;
+  contract_status: string | null;
 };
 
 type InteractionRow = {
@@ -181,47 +202,48 @@ function mapInteractionType(channel: string | null | undefined, subject: string 
   return "note";
 }
 
-function mapCrmStage(inquiry: InquiryRow, contract: ContractRow | null): CrmStage {
-  if (inquiry.status === "closed_lost" || inquiry.quote_response_status === "declined") {
-    return "lost";
-  }
+function mapCrmStage(
+  inquiry: InquiryRow,
+  contract: ContractRow | null,
+  project: ProjectRow | null
+): CrmStage {
+  const projectStatus =
+    project?.status ??
+    deriveEventProjectStatusFromLegacy({
+      inquiryStatus: inquiry.status,
+      bookingStage: inquiry.booking_stage,
+      quoteResponseStatus: inquiry.quote_response_status,
+      consultationStatus: inquiry.consultation_status,
+      contractStatus: contract?.contract_status,
+      paymentStatus: contract?.deposit_paid ? "deposit_paid" : null,
+      depositPaid: contract?.deposit_paid,
+      completedAt: inquiry.completed_at,
+    });
 
-  const bookingStage = deriveBookingStage({
-    bookingStage: inquiry.booking_stage,
-    inquiryStatus: inquiry.status,
-    consultationStatus: inquiry.consultation_status,
-    quoteResponseStatus: inquiry.quote_response_status,
-    contractStatus: contract?.contract_status,
-    depositPaid: contract?.deposit_paid,
-    completedAt: inquiry.completed_at,
-  });
-
-  if (bookingStage === "completed" || bookingStage === "reserved" || bookingStage === "signed_deposit_paid") {
-    return "booked";
-  }
-  if (bookingStage === "contract_sent") {
-    return "awaiting_deposit";
-  }
-  if (bookingStage === "quote_sent") {
-    return "quote_sent";
-  }
-  if (bookingStage === "consultation_scheduled") {
-    return inquiry.consultation_status === "completed"
-      ? "consultation_completed"
-      : "consultation_scheduled";
-  }
-  if (inquiry.status === "contacted") {
-    return "contacted";
-  }
-  return "new_inquiry";
+  return mapEventProjectStatusToCrmStage(projectStatus);
 }
 
-function getContractStatus(contract: ContractRow | null): CrmLead["contractStatus"] {
-  if (!contract || !contract.contract_status || contract.contract_status === "draft") return "unsigned";
-  if (contract.contract_status === "signed" || contract.contract_status === "deposit_paid" || contract.contract_status === "closed") {
+function getContractStatus(
+  contract: ContractRow | null,
+  project: ProjectRow | null
+): CrmLead["contractStatus"] {
+  if (!contract && !project?.contract_status) return "unsigned";
+  if (
+    project?.contract_status === "contract_signed" ||
+    contract?.contract_status === "signed" ||
+    contract?.contract_status === "deposit_paid" ||
+    contract?.contract_status === "closed"
+  ) {
     return "signed";
   }
-  return "sent";
+  if (
+    project?.contract_status === "contract_sent" ||
+    contract?.contract_status === "sent" ||
+    contract?.contract_status === "draft"
+  ) {
+    return "sent";
+  }
+  return "unsigned";
 }
 
 function getOutstandingBalance(inquiry: InquiryRow, contract: ContractRow | null, stage: CrmStage) {
@@ -613,6 +635,7 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
   if (!inquiryIds.length) {
     return {
       inquiries: [],
+      projects: [],
       contracts: [],
       customerInteractions: [],
       activities: [],
@@ -621,15 +644,22 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
   }
 
   const [
+    projectsResult,
     contractsResult,
     customerInteractionsResult,
     activityResult,
     tasksResult,
   ] = await Promise.all([
     supabase
+      .from("event_projects")
+      .select(
+        "id, inquiry_id, project_name, status, event_type, event_date, venue_name, guest_count, investment_range, next_action, next_action_due_at, payment_status, contract_status"
+      )
+      .in("inquiry_id", inquiryIds),
+    supabase
       .from("contracts")
       .select(
-        "id, inquiry_id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, deposit_paid_at, signed_at, closed_at, balance_due_date"
+        "id, inquiry_id, event_project_id, contract_status, contract_total, deposit_amount, balance_due, deposit_paid, deposit_paid_at, signed_at, closed_at, balance_due_date"
       )
       .in("inquiry_id", inquiryIds),
     supabase
@@ -651,6 +681,7 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
       .order("created_at", { ascending: false }),
   ]);
 
+  if (projectsResult.error) throw new Error(projectsResult.error.message);
   if (contractsResult.error) throw new Error(contractsResult.error.message);
   if (customerInteractionsResult.error) throw new Error(customerInteractionsResult.error.message);
   if (activityResult.error) throw new Error(activityResult.error.message);
@@ -658,6 +689,7 @@ async function fetchSnapshotContext(supabase: SupabaseClient, options: SnapshotO
 
   return {
     inquiries: inquiryRows,
+    projects: (projectsResult.data ?? []) as ProjectRow[],
     contracts: (contractsResult.data ?? []) as ContractRow[],
     customerInteractions: (customerInteractionsResult.data ?? []) as InteractionRow[],
     activities: (activityResult.data ?? []) as ActivityRow[],
@@ -670,10 +702,17 @@ export async function getLiveCrmSnapshot(
   options: SnapshotOptions = {}
 ): Promise<LiveCrmSnapshot> {
   const context = await fetchSnapshotContext(supabase, options);
+  const projectByInquiryId = new Map<string, ProjectRow>();
   const contractByInquiryId = new Map<string, ContractRow>();
   const interactionsByInquiryId = new Map<string, InteractionRow[]>();
   const activitiesByInquiryId = new Map<string, ActivityRow[]>();
   const tasksByInquiryId = new Map<string, TaskRow[]>();
+
+  for (const project of context.projects) {
+    if (project.inquiry_id) {
+      projectByInquiryId.set(project.inquiry_id, project);
+    }
+  }
 
   for (const contract of context.contracts) {
     if (contract.inquiry_id) {
@@ -705,7 +744,20 @@ export async function getLiveCrmSnapshot(
 
   const leads = context.inquiries.map((inquiry) => {
     const contract = contractByInquiryId.get(inquiry.id) ?? null;
-    const stage = mapCrmStage(inquiry, contract);
+    const project = projectByInquiryId.get(inquiry.id) ?? null;
+    const projectStatus =
+      project?.status ??
+      deriveEventProjectStatusFromLegacy({
+        inquiryStatus: inquiry.status,
+        bookingStage: inquiry.booking_stage,
+        quoteResponseStatus: inquiry.quote_response_status,
+        consultationStatus: inquiry.consultation_status,
+        contractStatus: contract?.contract_status,
+        paymentStatus: project?.payment_status ?? (contract?.deposit_paid ? "deposit_paid" : null),
+        depositPaid: contract?.deposit_paid,
+        completedAt: inquiry.completed_at,
+      });
+    const stage = mapCrmStage(inquiry, contract, project);
     const interactions = interactionsByInquiryId.get(inquiry.id) ?? [];
     const activities = activitiesByInquiryId.get(inquiry.id) ?? [];
     const followUpDetails = normalizeInquiryFollowUpDetails(inquiry.follow_up_details_json);
@@ -743,30 +795,31 @@ export async function getLiveCrmSnapshot(
       clientName: formatName(inquiry.first_name, inquiry.last_name),
       email: inquiry.email?.trim().toLowerCase() ?? "",
       phone: inquiry.phone ?? "Not provided",
-      eventType: inquiry.event_type ?? "Event",
-      eventDate: inquiry.event_date ?? inquiry.created_at,
-      venue: inquiry.venue_name ?? "Venue pending",
+      eventType: project?.event_type ?? inquiry.event_type ?? "Event",
+      eventDate: project?.event_date ?? inquiry.event_date ?? inquiry.created_at,
+      venue: project?.venue_name ?? inquiry.venue_name ?? "Venue pending",
       stage,
       estimatedValue,
       lastContact: lastContactSource.sort((a, b) => +new Date(b) - +new Date(a))[0] ?? inquiry.created_at,
       nextFollowUp:
+        project?.next_action_due_at ??
         inquiry.crm_next_action_due_at ??
         inquiry.follow_up_at ??
         inquiry.event_date ??
         inquiry.created_at,
       owner,
-      nextAction: inquiry.crm_next_action?.trim() || null,
-      nextActionDueAt: inquiry.crm_next_action_due_at,
+      nextAction: project?.next_action?.trim() || inquiry.crm_next_action?.trim() || null,
+      nextActionDueAt: project?.next_action_due_at ?? inquiry.crm_next_action_due_at,
       leadScore: inquiry.crm_lead_score,
       leadTemperature: isCrmLeadTemperature(inquiry.crm_lead_temperature)
         ? inquiry.crm_lead_temperature
         : null,
       source: normalizeSource(inquiry.referral_source),
-      budgetRange: getBudgetRange(inquiry, estimatedValue),
+      budgetRange: project?.investment_range ?? getBudgetRange(inquiry, estimatedValue),
       quoteSummary: getQuoteSummary(stage, inquiry, contract),
       paymentSummary: getPaymentSummary(paymentStatus, outstandingBalance),
       notes: buildLeadNotes(inquiry),
-      contractStatus: getContractStatus(contract),
+      contractStatus: getContractStatus(contract, project),
       paymentStatus,
       decorStatus: getDecorStatus(inquiry, stage),
       lostReason: stage === "lost" && isCrmLostReason(inquiry.lost_reason) ? inquiry.lost_reason : undefined,
@@ -777,7 +830,7 @@ export async function getLiveCrmSnapshot(
       inquiryStatus: inquiry.status,
       consultationStatus: inquiry.consultation_status,
       quoteResponseStatus: inquiry.quote_response_status,
-      bookingStage: inquiry.booking_stage,
+      bookingStage: projectStatus,
       createdAt: inquiry.created_at,
       consultationAt: inquiry.consultation_at,
       bookedAt:
@@ -789,7 +842,7 @@ export async function getLiveCrmSnapshot(
       firstResponseHours,
       outstandingBalance,
     } satisfies CrmLead;
-  });
+  }).filter((lead) => !isClosedEventProjectStatus(projectByInquiryId.get(lead.id)?.status) || lead.stage !== "lost");
 
   const persistedTasks: CrmTask[] = context.tasks.map((task) => ({
     id: task.id,

@@ -13,6 +13,10 @@ import {
   getEventProjectByInquiryId,
   getEventProjectSupport,
 } from "@/lib/event-projects";
+import {
+  deriveEventProjectStatusFromLegacy,
+  humanizeEventProjectStatus,
+} from "@/lib/project-lifecycle";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -31,11 +35,6 @@ function formatDate(value?: string | null) {
 
 function formatMoney(value?: number | null) {
   return `$${Number(value ?? 0).toLocaleString()}`;
-}
-
-function formatStatusLabel(value?: string | null) {
-  if (!value) return "Not set";
-  return value.replaceAll("_", " ");
 }
 
 export default async function AdminEventProjectDetailPage({
@@ -193,7 +192,12 @@ export default async function AdminEventProjectDetailPage({
           guest_count: inquiryRecord.guest_count,
           services: inquiryRecord.services,
           investment_range: null,
-          status: inquiryRecord.booking_stage || inquiryRecord.status || "new_inquiry",
+          status: deriveEventProjectStatusFromLegacy({
+            inquiryStatus: inquiryRecord.status,
+            bookingStage: inquiryRecord.booking_stage,
+            contractStatus: contractRecord?.contract_status ?? null,
+            paymentStatus: (payments ?? []).some((payment) => payment.status === "paid") ? "paid" : "pending",
+          }),
           assigned_to: null,
           next_action: null,
           next_action_due_at: null,
@@ -268,7 +272,7 @@ export default async function AdminEventProjectDetailPage({
       </section>
 
       <div className="summary-pills">
-        <span className="summary-chip">Status: {formatStatusLabel(project.status)}</span>
+        <span className="summary-chip">Status: {humanizeEventProjectStatus(project.status)}</span>
         <span className="summary-chip">Event date: {formatDate(project.event_date)}</span>
         <span className="summary-chip">Guest count: {project.guest_count || "Not set"}</span>
         <span className="summary-chip">Outstanding balance: {formatMoney(outstandingBalance)}</span>
@@ -284,7 +288,7 @@ export default async function AdminEventProjectDetailPage({
           </div>
           <div className="booking-final-summary-grid">
             <div><small>Project name</small><span>{project.project_name || "Not set"}</span></div>
-            <div><small>Status</small><span>{formatStatusLabel(project.status)}</span></div>
+            <div><small>Status</small><span>{humanizeEventProjectStatus(project.status)}</span></div>
             <div><small>Event type</small><span>{project.event_type || "Not set"}</span></div>
             <div><small>Event date</small><span>{formatDate(project.event_date)}</span></div>
             <div><small>Venue</small><span>{project.venue_name || "Not set"}</span></div>
@@ -293,8 +297,8 @@ export default async function AdminEventProjectDetailPage({
             <div><small>Assigned to</small><span>{project.assigned_to || "Not set"}</span></div>
             <div><small>Next action</small><span>{project.next_action || "Not set"}</span></div>
             <div><small>Next action due</small><span>{formatDate(project.next_action_due_at)}</span></div>
-            <div><small>Contract status</small><span>{formatStatusLabel(project.contract_status || contractRecord?.contract_status)}</span></div>
-            <div><small>Payment status</small><span>{formatStatusLabel(project.payment_status)}</span></div>
+            <div><small>Contract status</small><span>{humanizeEventProjectStatus(project.contract_status || contractRecord?.contract_status)}</span></div>
+            <div><small>Payment status</small><span>{humanizeEventProjectStatus(project.payment_status)}</span></div>
           </div>
         </section>
 
@@ -357,7 +361,7 @@ export default async function AdminEventProjectDetailPage({
                     </Link>
                   </strong>
                   <span>
-                    {formatStatusLabel(document.status)} · {formatMoney(document.total_amount)} · {formatDate(document.created_at)}
+                    {humanizeEventProjectStatus(document.status)} · {formatMoney(document.total_amount)} · {formatDate(document.created_at)}
                   </span>
                 </div>
               ))

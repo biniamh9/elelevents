@@ -22,6 +22,7 @@ import {
   renderQuoteItemizedScopeSection,
 } from "@/lib/email-template-renderer";
 import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
+import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { createQuoteActionToken } from "@/lib/quote-client-actions";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
@@ -224,6 +225,10 @@ export async function POST(
       entityType: "inquiry",
       entityId: id,
       ...quoteActivityEvent,
+    });
+
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, id, {
+      explicitStatus: "quote_sent",
     });
 
     await syncInquiryWorkflowStage(supabaseAdmin, {

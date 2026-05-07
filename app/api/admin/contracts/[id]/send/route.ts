@@ -16,6 +16,7 @@ import {
   renderEmailTemplate,
 } from "@/lib/email-template-renderer";
 import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
+import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -101,6 +102,13 @@ export async function POST(
           .from("event_inquiries")
           .update({ booking_stage: "contract_sent" })
           .eq("id", updated.inquiry_id);
+
+        await syncEventProjectLifecycleForInquiryId(supabaseAdmin, updated.inquiry_id, {
+          explicitStatus: "contract_sent",
+          contractStatus: updated.contract_status,
+          paymentStatus: updated.deposit_paid ? "deposit_paid" : "pending",
+          depositPaid: updated.deposit_paid,
+        });
 
         await syncInquiryWorkflowStage(supabaseAdmin, {
           inquiryId: updated.inquiry_id,
@@ -236,6 +244,13 @@ export async function POST(
         .from("event_inquiries")
         .update({ booking_stage: "contract_sent" })
         .eq("id", updated.inquiry_id);
+
+        await syncEventProjectLifecycleForInquiryId(supabaseAdmin, updated.inquiry_id, {
+          explicitStatus: "contract_sent",
+          contractStatus: updated.contract_status,
+          paymentStatus: updated.deposit_paid ? "deposit_paid" : "pending",
+          depositPaid: updated.deposit_paid,
+        });
 
         await syncInquiryWorkflowStage(supabaseAdmin, {
           inquiryId: updated.inquiry_id,

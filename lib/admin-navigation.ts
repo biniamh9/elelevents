@@ -80,7 +80,6 @@ export function buildCrmLeadsHref({
   nextDateRange?: string;
 }) {
   const params = new URLSearchParams();
-  params.set("tab", "leads");
   if (state?.q) params.set("q", state.q);
   const stage = nextStage !== undefined ? nextStage : state?.stage;
   const eventType = nextEventType !== undefined ? nextEventType : state?.eventType;
@@ -96,7 +95,8 @@ export function buildCrmLeadsHref({
   if (nextActionValue) params.set("nextAction", nextActionValue);
   if (dateRange) params.set("dateRange", dateRange);
   if (followUp) params.set("followUp", followUp);
-  return `/admin/crm-analytics?${params.toString()}`;
+  const query = params.toString();
+  return query ? `/admin/crm-analytics/leads?${query}` : "/admin/crm-analytics/leads";
 }
 
 export type RentalWorkspaceTab = "requests" | "inventory";

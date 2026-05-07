@@ -8,9 +8,9 @@ import {
   buildDocumentDetailHref,
   buildCrmWorkspaceHref,
 } from "@/lib/admin-navigation";
-import { CRM_STAGE_LABELS } from "@/lib/crm-analytics";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getEventProjectSupport } from "@/lib/event-projects";
+import { humanizeEventProjectStatus } from "@/lib/project-lifecycle";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -264,7 +264,7 @@ export default async function AdminCrmCustomerDetailPage({
                   </Link>
                 </strong>
                 <span>
-                  {CRM_STAGE_LABELS[(inquiry.status === "quoted" ? "quote_sent" : inquiry.status === "contacted" ? "contacted" : inquiry.booking_stage === "signed_deposit_paid" ? "booked" : "new_inquiry") as keyof typeof CRM_STAGE_LABELS] || inquiry.status}
+                  {humanizeEventProjectStatus(projectByInquiryId.get(inquiry.id)?.status ?? inquiry.status)}
                 </span>
                 {projectByInquiryId.get(inquiry.id) ? (
                   <span>Project linked · {projectByInquiryId.get(inquiry.id)!.project_name || "Project record"}</span>
@@ -298,7 +298,7 @@ export default async function AdminCrmCustomerDetailPage({
                   </Link>
                 </strong>
                 <span>
-                  {inquiry.venue_name || "Venue pending"} · {inquiry.guest_count ?? "—"} guests · status {inquiry.status?.replaceAll("_", " ") || "not set"} · booking {inquiry.booking_stage?.replaceAll("_", " ") || "inquiry"} · next {inquiry.crm_next_action || "Not set"}
+                  {inquiry.venue_name || "Venue pending"} · {inquiry.guest_count ?? "—"} guests · lifecycle {humanizeEventProjectStatus(projectByInquiryId.get(inquiry.id)?.status ?? inquiry.status)} · next {inquiry.crm_next_action || "Not set"}
                 </span>
                 {projectByInquiryId.get(inquiry.id) ? (
                   <span>Project: {projectByInquiryId.get(inquiry.id)!.project_name || "Linked record"}</span>

@@ -141,7 +141,10 @@ export default async function AdminFinancePage({
                         <td>{payment.client_name}</td>
                         <td>
                           <strong>{payment.event_type ?? "Event"}</strong>
-                          <span className="muted">{payment.event_date ?? "Date pending"}</span>
+                          <span className="muted">
+                            {payment.event_date ?? "Date pending"}
+                            {payment.lifecycle_status ? ` • ${payment.lifecycle_status}` : ""}
+                          </span>
                         </td>
                         <td>{payment.payment_kind.replace(/_/g, " ")}</td>
                         <td>{payment.due_date ?? "—"}</td>
@@ -232,7 +235,12 @@ export default async function AdminFinancePage({
                     <tr key={payment.id}>
                       <td>{payment.client_name}</td>
                       <td>{payment.event_type ?? "—"}</td>
-                      <td>{payment.event_date ?? "—"}</td>
+                      <td>
+                        {payment.event_date ?? "—"}
+                        {payment.lifecycle_status ? (
+                          <span className="muted"> · {payment.lifecycle_status}</span>
+                        ) : null}
+                      </td>
                       <td>{payment.payment_kind.replace(/_/g, " ")}</td>
                       <td>{payment.due_date ?? "—"}</td>
                       <td>{payment.paid_at ?? "—"}</td>

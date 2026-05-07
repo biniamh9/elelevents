@@ -9,7 +9,7 @@ import {
   isCrmLostReason,
 } from "@/lib/crm-options";
 import { logActivity } from "@/lib/crm";
-import { ensureEventProjectForInquiry } from "@/lib/event-projects";
+import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { syncInquiryWorkflowStage } from "@/lib/workflow-write";
 
@@ -330,6 +330,29 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const { data: latestContract } = await supabaseAdmin
+      .from("contracts")
+      .select("contract_status, deposit_paid, balance_due")
+      .eq("inquiry_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const paymentStatus =
+      latestContract && latestContract.deposit_paid && Number(latestContract.balance_due ?? 0) <= 0
+        ? "paid"
+        : latestContract?.deposit_paid
+          ? "deposit_paid"
+          : latestContract
+            ? "pending"
+            : null;
+
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, id, {
+      contractStatus: latestContract?.contract_status ?? null,
+      paymentStatus,
+      depositPaid: latestContract?.deposit_paid ?? null,
+    });
+
     await syncInquiryWorkflowStage(supabaseAdmin, {
       inquiryId: id,
       actorId: auth.user.id,
@@ -439,7 +462,11 @@ export async function PATCH(
       },
     });
 
-    await ensureEventProjectForInquiry(supabaseAdmin, data);
+    await syncEventProjectLifecycleForInquiryId(supabaseAdmin, data.id, {
+      contractStatus: latestContract?.contract_status ?? null,
+      paymentStatus,
+      depositPaid: latestContract?.deposit_paid ?? null,
+    });
 
     return NextResponse.json({ success: true, data, consultationEmailMessage });
   } catch (error) {

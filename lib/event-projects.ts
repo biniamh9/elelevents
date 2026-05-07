@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  deriveEventProjectStatusFromLegacy,
+  normalizeEventProjectStatus,
+  type EventProjectStatus,
+} from "@/lib/project-lifecycle";
 
 type InquiryProjectSource = {
   id: string;
@@ -94,32 +99,6 @@ function extractInvestmentRange(source: string | null | undefined) {
   return match?.[1]?.trim() || null;
 }
 
-function deriveProjectStatus(input: InquiryProjectSource, contractStatus?: string | null, paymentStatus?: string | null) {
-  if (input.status === "archived") return "archived";
-  if (input.status === "closed_lost") return "lost_cancelled";
-  if (input.booking_stage === "completed") return "completed";
-  if (paymentStatus === "paid" || input.booking_stage === "signed_deposit_paid") return "deposit_paid";
-  if (input.booking_stage === "reserved") return "event_reserved";
-  if (contractStatus === "signed" || contractStatus === "sent" || input.quote_response_status === "accepted") {
-    return "contract_sent";
-  }
-  if (
-    input.quote_response_status === "awaiting_response" ||
-    input.quote_response_status === "changes_requested" ||
-    input.status === "quoted"
-  ) {
-    return "quote_sent";
-  }
-  if (input.consultation_status === "scheduled" || input.consultation_status === "approved") {
-    return "consultation_scheduled";
-  }
-  if (input.consultation_status === "completed") {
-    return "planning_in_progress";
-  }
-  if (input.status === "contacted") return "contacted";
-  return "new_inquiry";
-}
-
 function normalizeServices(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
@@ -129,8 +108,10 @@ export async function ensureEventProjectForInquiry(
   supabase: SupabaseClient,
   inquiry: InquiryProjectSource,
   options?: {
+    explicitStatus?: EventProjectStatus | string | null;
     contractStatus?: string | null;
     paymentStatus?: string | null;
+    depositPaid?: boolean | null;
   }
 ) {
   const support = await getEventProjectSupport(supabase);
@@ -148,7 +129,18 @@ export async function ensureEventProjectForInquiry(
     guest_count: inquiry.guest_count ?? null,
     services: normalizeServices(inquiry.services),
     investment_range: extractInvestmentRange(inquiry.additional_info),
-    status: deriveProjectStatus(inquiry, options?.contractStatus, options?.paymentStatus),
+    status:
+      normalizeEventProjectStatus(options?.explicitStatus) ??
+      deriveEventProjectStatusFromLegacy({
+        inquiryStatus: inquiry.status,
+        bookingStage: inquiry.booking_stage,
+        quoteResponseStatus: inquiry.quote_response_status,
+        consultationStatus: inquiry.consultation_status,
+        contractStatus: options?.contractStatus,
+        paymentStatus: options?.paymentStatus,
+        depositPaid: options?.depositPaid,
+        completedAt: inquiry.completed_at,
+      }),
     next_action: inquiry.crm_next_action ?? null,
     next_action_due_at: inquiry.crm_next_action_due_at ?? null,
     assigned_to: inquiry.assigned_to ?? null,
@@ -262,6 +254,63 @@ export async function getEventProjectByInquiryId(
   }
 
   return data;
+}
+
+export async function syncEventProjectLifecycleForInquiryId(
+  supabase: SupabaseClient,
+  inquiryId: string,
+  options?: {
+    explicitStatus?: EventProjectStatus | string | null;
+    contractStatus?: string | null;
+    paymentStatus?: string | null;
+    depositPaid?: boolean | null;
+  }
+) {
+  const support = await getEventProjectSupport(supabase);
+  if (!support.projectsTable) {
+    return { projectId: null as string | null, support };
+  }
+
+  const { data: inquiry, error } = await supabase
+    .from("event_inquiries")
+    .select(
+      "id, client_id, first_name, last_name, event_type, event_date, venue_name, guest_count, services, additional_info, status, booking_stage, quote_response_status, consultation_status, crm_next_action, crm_next_action_due_at, quoted_at, reserved_at, booked_at, completed_at, crm_lost_at, admin_notes, assigned_to, crm_owner, crm_lead_score, crm_lead_temperature"
+    )
+    .eq("id", inquiryId)
+    .maybeSingle<InquiryProjectSource>();
+
+  if (error) {
+    if (isMissingSchemaError(error)) {
+      return { projectId: null as string | null, support: { ...support, projectsTable: false } };
+    }
+    throw new Error(error.message);
+  }
+
+  if (!inquiry) {
+    return { projectId: null as string | null, support };
+  }
+
+  return ensureEventProjectForInquiry(supabase, inquiry, options);
+}
+
+export async function getEventProjectsByInquiryIds(
+  supabase: SupabaseClient,
+  inquiryIds: string[]
+) {
+  const support = await getEventProjectSupport(supabase);
+  if (!support.projectsTable || !inquiryIds.length) return [];
+
+  const { data, error } = await supabase
+    .from("event_projects")
+    .select("*")
+    .in("inquiry_id", inquiryIds);
+
+  if (error) {
+    if (isMissingSchemaError(error)) return [];
+    throw new Error(error.message);
+  }
+
+  return data ?? [];
 }
 
 export async function getEventProjectById(

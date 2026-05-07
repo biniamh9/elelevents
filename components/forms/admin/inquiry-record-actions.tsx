@@ -16,6 +16,7 @@ import {
 export default function InquiryRecordActions({
   inquiryId,
   contractId,
+  project_status,
   status,
   consultationStatus,
   bookingStage,
@@ -30,6 +31,7 @@ export default function InquiryRecordActions({
 }: {
   inquiryId: string;
   contractId?: string | null;
+  project_status?: string | null;
   status: string | null;
   consultationStatus: string | null;
   bookingStage: string | null;
@@ -49,6 +51,7 @@ export default function InquiryRecordActions({
   const actionGroups = getInquiryWorkflowActionGroups({
     inquiryId,
     contractId,
+    project_status,
     status,
     consultation_status: consultationStatus,
     booking_stage: bookingStage,
@@ -59,6 +62,7 @@ export default function InquiryRecordActions({
   const primaryAction = getInquiryWorkflowPrimaryAction({
     inquiryId,
     contractId,
+    project_status,
     status,
     consultation_status: consultationStatus,
     booking_stage: bookingStage,
