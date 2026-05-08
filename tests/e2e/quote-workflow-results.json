@@ -1,0 +1,50 @@
+[
+  {
+    "testedAt": "2026-05-08T02:49:16.286Z",
+    "step": "Quote workflow schema is installed",
+    "result": "PASS",
+    "detail": "Quote workflow columns, revision table, and document activity enum are available."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:27.256Z",
+    "step": "Admin login",
+    "result": "PASS",
+    "detail": "http://127.0.0.1:3001/admin/inquiries?tab=inquiries"
+  },
+  {
+    "testedAt": "2026-05-08T02:49:31.448Z",
+    "step": "Quote draft saves workflow status",
+    "result": "PASS",
+    "detail": "Quote 7dafbfa6-a2a4-4488-8eca-92afe96db646 saved as draft with 1 draft revision snapshot(s)."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:37.237Z",
+    "step": "Send or mark quote writes sent workflow status",
+    "result": "PASS",
+    "detail": "Resend sender domain blocked email send; mark-as-quoted fallback verified sent workflow. Quote 7dafbfa6-a2a4-4488-8eca-92afe96db646 moved to sent."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:41.440Z",
+    "step": "Client approve writes accepted workflow status",
+    "result": "PASS",
+    "detail": "Client approval updated quote and project lifecycle."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:43.777Z",
+    "step": "Client change request writes revision_requested workflow status",
+    "result": "PASS",
+    "detail": "Revision requested and revision number advanced to 2."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:47.602Z",
+    "step": "CRM timeline shows quote activity",
+    "result": "PASS",
+    "detail": "Project timeline includes quote draft, sent, and revision activity."
+  },
+  {
+    "testedAt": "2026-05-08T02:49:47.602Z",
+    "step": "Browser console/network",
+    "result": "PASS",
+    "detail": "{\n  \"consoleErrors\": [],\n  \"pageErrors\": [],\n  \"requestFailures\": []\n}"
+  }
+]

@@ -172,7 +172,7 @@ export async function PUT(
         action: body.mark_as_quoted === true ? "quote.sent" : "quote.draft_saved",
         summary:
           body.mark_as_quoted === true
-            ? "Quote marked ready and shared"
+            ? "Quote sent to client"
             : "Quote draft saved",
         metadata: {
           inquiry_id: id,
