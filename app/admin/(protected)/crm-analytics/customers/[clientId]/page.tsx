@@ -11,6 +11,7 @@ import {
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getEventProjectSupport } from "@/lib/event-projects";
 import { humanizeEventProjectStatus } from "@/lib/project-lifecycle";
+import { getCommercialDocumentStatus } from "@/lib/quote-workflow";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -137,6 +138,26 @@ export default async function AdminCrmCustomerDetailPage({
             )
         ).data ?? []
       : [];
+  const linkedDocumentIds = linkedDocuments.map((document) => document.id);
+  const paymentIds = (payments ?? []).map((payment) => payment.id);
+  const { data: documentActivityLog } = linkedDocumentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "document")
+        .in("entity_id", linkedDocumentIds)
+        .order("created_at", { ascending: false })
+        .limit(40)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
+  const { data: paymentActivityLog } = paymentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "payment")
+        .in("entity_id", paymentIds)
+        .order("created_at", { ascending: false })
+        .limit(40)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
 
   const activeOpportunities = (inquiries ?? []).filter(
     (item) => !["closed_lost", "archived"].includes(item.status ?? "")
@@ -155,7 +176,7 @@ export default async function AdminCrmCustomerDetailPage({
         action: entry.action,
         summary: entry.summary,
         created_at: entry.created_at,
-      })) ?? [],
+      })).concat(documentActivityLog ?? [], paymentActivityLog ?? []) ?? [],
     customerInteractions:
       (interactions ?? []).map((entry) => ({
         id: entry.id,
@@ -332,7 +353,7 @@ export default async function AdminCrmCustomerDetailPage({
                     </Link>
                   </strong>
                   <span>
-                    {document.document_type} · {document.status} · {formatMoney(document.total_amount)} · balance {formatMoney(document.balance_due)} · {formatDate(document.created_at)}
+                    {document.document_type} · {getCommercialDocumentStatus({ document }).label ?? document.status.replaceAll("_", " ")} · {formatMoney(document.total_amount)} · balance {formatMoney(document.balance_due)} · {formatDate(document.created_at)}
                   </span>
                 </div>
               ))

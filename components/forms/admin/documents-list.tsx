@@ -12,6 +12,7 @@ import {
 import type { ClientDocumentRecord } from "@/lib/client-documents";
 import { documentTypeLabels, formatDocumentDate, formatMoney } from "@/lib/client-documents";
 import DocumentStatusBadge from "@/components/forms/admin/document-status-badge";
+import { getCommercialDocumentStatus } from "@/lib/quote-workflow";
 
 export default function DocumentsList({
   documents,
@@ -151,7 +152,11 @@ export default function DocumentsList({
         const matchesType =
           typeFilter === "all" || document.document_type === typeFilter;
         const matchesStatus =
-          statusFilter === "all" || document.status === statusFilter;
+          statusFilter === "all" ||
+          getCommercialDocumentStatus({
+            document,
+            projectStatus: document.event_project_status,
+          }).value === statusFilter;
         return matchesSearch && matchesType && matchesStatus;
       }),
     [documents, search, statusFilter, typeFilter]
@@ -175,6 +180,8 @@ export default function DocumentsList({
 
   const statusOptions = [
     { value: "all", label: "All statuses" },
+    { value: "revision_requested", label: "Revision Requested" },
+    { value: "accepted", label: "Accepted" },
     { value: "paid", label: "Paid" },
     { value: "sent", label: "Sent" },
     { value: "draft", label: "Draft" },
@@ -289,7 +296,13 @@ export default function DocumentsList({
                     <td>{document.customer_name}</td>
                     <td>{formatDocumentDate(document.event_date)}</td>
                     <td className="admin-documents-amount-cell">${formatMoney(document.total_amount)}</td>
-                    <td><DocumentStatusBadge status={document.status} /></td>
+                    <td>
+                      <DocumentStatusBadge
+                        document={document}
+                        status={document.status}
+                        projectStatus={document.event_project_status}
+                      />
+                    </td>
                     <td>{formatDocumentDate(document.created_at)}</td>
                     <td>
                       <div className="admin-row-action-shell admin-document-action-shell">

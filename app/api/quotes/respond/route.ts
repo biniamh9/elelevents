@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { upsertFollowUpTask } from "@/lib/crm-follow-up-tasks";
-import { getQuoteDocumentByInquiryId } from "@/lib/admin-documents";
+import {
+  buildQuoteWorkflowPatch,
+  getQuoteDocumentByInquiryId,
+  recordQuoteRevisionSnapshot,
+} from "@/lib/admin-documents";
 import { recordCustomerInteraction } from "@/lib/customer-interactions";
 import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { verifyQuoteActionToken } from "@/lib/quote-client-actions";
@@ -161,12 +165,26 @@ export async function POST(request: Request) {
 
     const quoteDocument = await getQuoteDocumentByInquiryId(inquiryId);
     if (quoteDocument) {
+      const workflowStatus = action === "approve" ? "accepted" : "revision_requested";
       await supabaseAdmin
         .from("client_documents")
         .update({
           status: action === "approve" ? "accepted" : "draft",
+          ...(await buildQuoteWorkflowPatch(workflowStatus, quoteDocument)),
         })
         .eq("id", quoteDocument.id);
+      const updatedQuoteDocument = await getQuoteDocumentByInquiryId(inquiryId);
+      if (updatedQuoteDocument) {
+        await recordQuoteRevisionSnapshot({
+          document: updatedQuoteDocument,
+          workflowStatus,
+          snapshot: {
+            source: "client_quote_response",
+            response_action: action,
+            comment,
+          },
+        });
+      }
     }
 
     const interactionBody =
@@ -211,6 +229,23 @@ export async function POST(request: Request) {
         comment,
       },
     });
+    if (quoteDocument) {
+      await logActivity(supabaseAdmin, {
+        entityType: "document",
+        entityId: quoteDocument.id,
+        action: action === "approve" ? "quote.accepted" : "quote.revision_requested",
+        summary:
+          action === "approve"
+            ? "Client approved the quote"
+            : "Client requested quote changes",
+        metadata: {
+          inquiry_id: inquiryId,
+          client_id: inquiry.client_id ?? null,
+          client_email: inquiry.email,
+          comment,
+        },
+      });
+    }
 
     await upsertFollowUpTask(supabaseAdmin, {
       inquiryId,

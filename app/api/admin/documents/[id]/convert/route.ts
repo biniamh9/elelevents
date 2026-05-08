@@ -41,6 +41,7 @@ export async function POST(
       .insert({
         inquiry_id: seed.inquiry_id,
         contract_id: seed.contract_id,
+        event_project_id: source.event_project_id ?? null,
         document_type: targetType,
         document_number: documentNumber,
         issue_date: seed.issue_date,
@@ -123,13 +124,18 @@ export async function POST(
     }
 
     await logActivity(supabaseAdmin, {
-      entityType: "contract",
+      entityType: "document",
       entityId: document.id,
       action: "document.converted",
       summary: `${source.document_type} converted to ${targetType}`,
       metadata: {
         source_document_id: id,
+        source_document_type: source.document_type,
         target_type: targetType,
+        inquiry_id: document.inquiry_id,
+        contract_id: document.contract_id,
+        event_project_id: document.event_project_id ?? source.event_project_id ?? null,
+        total_amount: document.total_amount,
       },
     });
 

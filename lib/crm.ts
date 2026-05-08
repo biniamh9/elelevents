@@ -16,6 +16,7 @@ type ActivityInput = {
     | "client"
     | "inquiry"
     | "contract"
+    | "document"
     | "payment"
     | "vendor"
     | "referral"

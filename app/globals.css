@@ -15809,6 +15809,12 @@ tbody tr:last-child td {
 .document-status-badge--overdue { background: #fde8e3; color: #9e3c33; }
 .document-status-badge--unpaid { background: #fff3dd; color: #95621c; }
 .document-status-badge--partially_paid { background: #ede8fb; color: #6f43ad; }
+.document-status-badge--revision_requested,
+.quote-status-badge--revision_requested { background: #fff4df; color: #9a5019; }
+.admin-reference-head-pill--badge {
+  padding: 0;
+  background: transparent;
+}
 
 .admin-document-builder {
   display: grid;

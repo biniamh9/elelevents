@@ -54,6 +54,7 @@ function buildActionHref(input: {
 
   if (
     haystack.includes("quote_changes_requested") ||
+    haystack.includes("quote.revision_requested") ||
     haystack.includes("revise quote") ||
     haystack.includes("quote change") ||
     haystack.includes("itemized")
@@ -63,7 +64,9 @@ function buildActionHref(input: {
 
   if (
     haystack.includes("quote_accepted") ||
+    haystack.includes("quote.accepted") ||
     haystack.includes("quote sent") ||
+    haystack.includes("quote.sent") ||
     haystack.includes("proposal")
   ) {
     return `${input.workflowHref}#quote-stage`;
@@ -177,6 +180,8 @@ export function buildCustomerTimeline(input: {
       entry.action.includes("reply")
       || entry.action.includes("quote_accepted")
       || entry.action.includes("quote_changes_requested")
+      || entry.action.includes("quote.accepted")
+      || entry.action.includes("quote.revision_requested")
         ? "email"
         : entry.action.includes("docusign")
           ? "sync"

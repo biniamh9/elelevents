@@ -165,6 +165,9 @@ export async function PATCH(
       );
     }
 
+    let depositPaymentId: string | null = null;
+    let balancePaymentId: string | null = null;
+
     if (typeof body.deposit_paid === "boolean") {
       if (body.deposit_paid) {
         const projectSupport = await getEventProjectSupport(supabaseAdmin);
@@ -176,6 +179,7 @@ export async function PATCH(
           .maybeSingle();
 
         if (existingDeposit) {
+          depositPaymentId = existingDeposit.id;
           await supabaseAdmin
             .from("contract_payments")
             .update({
@@ -189,7 +193,7 @@ export async function PATCH(
             })
             .eq("id", existingDeposit.id);
         } else if ((updated.deposit_amount ?? 0) > 0) {
-          await supabaseAdmin.from("contract_payments").insert({
+          const { data: createdDeposit } = await supabaseAdmin.from("contract_payments").insert({
             contract_id: updated.id,
             client_id: updated.client_id ?? null,
             ...(projectSupport.paymentsProjectColumn && updated.event_project_id
@@ -200,7 +204,8 @@ export async function PATCH(
             due_date: new Date().toISOString().split("T")[0],
             paid_at: updated.deposit_paid_at,
             status: "paid",
-          });
+          }).select("id").single();
+          depositPaymentId = createdDeposit?.id ?? null;
         }
 
         if (updated.inquiry_id) {
@@ -241,6 +246,7 @@ export async function PATCH(
 
       if (body.balance_paid) {
         if (existingBalance) {
+          balancePaymentId = existingBalance.id;
           await supabaseAdmin
             .from("contract_payments")
             .update({
@@ -254,7 +260,7 @@ export async function PATCH(
             })
             .eq("id", existingBalance.id);
         } else if ((updated.balance_due ?? 0) > 0) {
-          await supabaseAdmin.from("contract_payments").insert({
+          const { data: createdBalance } = await supabaseAdmin.from("contract_payments").insert({
             contract_id: updated.id,
             client_id: updated.client_id ?? null,
             ...(projectSupport.paymentsProjectColumn && updated.event_project_id
@@ -265,7 +271,8 @@ export async function PATCH(
             due_date: updated.balance_due_date ?? null,
             paid_at: new Date().toISOString(),
             status: "paid",
-          });
+          }).select("id").single();
+          balancePaymentId = createdBalance?.id ?? null;
         }
 
         if (updated.inquiry_id) {
@@ -303,6 +310,43 @@ export async function PATCH(
         balance_paid: balancePaid,
       },
     });
+
+    if (typeof body.deposit_paid === "boolean") {
+      await logActivity(supabaseAdmin, {
+        entityType: depositPaymentId ? "payment" : "contract",
+        entityId: depositPaymentId ?? updated.id,
+        action: body.deposit_paid ? "payment.deposit_recorded" : "payment.deposit_reopened",
+        summary: body.deposit_paid ? "Deposit payment recorded" : "Deposit payment reopened",
+        metadata: {
+          contract_id: updated.id,
+          inquiry_id: updated.inquiry_id ?? null,
+          client_id: updated.client_id ?? null,
+          event_project_id: updated.event_project_id ?? null,
+          payment_kind: "deposit",
+          amount: updated.deposit_amount ?? 0,
+          paid_at: updated.deposit_paid_at ?? null,
+          contract_status: updated.contract_status,
+        },
+      });
+    }
+
+    if (typeof body.balance_paid === "boolean") {
+      await logActivity(supabaseAdmin, {
+        entityType: balancePaymentId ? "payment" : "contract",
+        entityId: balancePaymentId ?? updated.id,
+        action: body.balance_paid ? "payment.final_recorded" : "payment.final_reopened",
+        summary: body.balance_paid ? "Final payment recorded" : "Final payment reopened",
+        metadata: {
+          contract_id: updated.id,
+          inquiry_id: updated.inquiry_id ?? null,
+          client_id: updated.client_id ?? null,
+          event_project_id: updated.event_project_id ?? null,
+          payment_kind: "balance",
+          amount: updated.balance_due ?? 0,
+          contract_status: updated.contract_status,
+        },
+      });
+    }
 
     if (updated.inquiry_id) {
       const { data: inquiryForProject } = await supabaseAdmin

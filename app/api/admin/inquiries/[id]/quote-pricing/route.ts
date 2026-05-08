@@ -165,6 +165,26 @@ export async function PUT(
         quote_document_id: quoteDocument?.id ?? null,
       },
     });
+    if (quoteDocument?.id) {
+      await logActivity(supabaseAdmin, {
+        entityType: "document",
+        entityId: quoteDocument.id,
+        action: body.mark_as_quoted === true ? "quote.sent" : "quote.draft_saved",
+        summary:
+          body.mark_as_quoted === true
+            ? "Quote marked ready and shared"
+            : "Quote draft saved",
+        metadata: {
+          inquiry_id: id,
+          client_id: inquiry.client_id,
+          estimated_price: updatedInquiry.estimated_price,
+          line_item_count: lineItems.length,
+          base_fee: pricingInput.base_fee,
+          draft_status: pricingInput.draft_status,
+          workflow_status: body.mark_as_quoted === true ? "sent" : "draft",
+        },
+      });
+    }
 
     await syncEventProjectLifecycleForInquiryId(supabaseAdmin, id, {
       explicitStatus: body.mark_as_quoted === true ? "quote_sent" : "quote_drafted",

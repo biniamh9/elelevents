@@ -25,6 +25,7 @@ import DocumentLineItemsTable from "@/components/forms/admin/document-line-items
 import PricingSummaryCard from "@/components/forms/admin/pricing-summary-card";
 import DocumentNotesSection from "@/components/forms/admin/document-notes-section";
 import PaymentRecordForm from "@/components/forms/admin/payment-record-form";
+import DocumentStatusBadge from "@/components/forms/admin/document-status-badge";
 
 type EditableDocument = ClientDocumentWithRelations;
 
@@ -263,7 +264,9 @@ export default function DocumentEditor({
             {documentTypeLabels[document.document_type]}
           </span>
           <span className="admin-reference-head-pill">Status</span>
-          <span className="admin-reference-head-pill">{document.status.replaceAll("_", " ")}</span>
+          <span className="admin-reference-head-pill admin-reference-head-pill--badge">
+            <DocumentStatusBadge document={document} status={document.status} />
+          </span>
           <span className="admin-reference-head-pill">Items</span>
           <span className="admin-reference-head-pill">{document.line_items.length}</span>
           <span className="admin-reference-head-pill">Total</span>

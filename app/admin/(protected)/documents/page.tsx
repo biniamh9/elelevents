@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import DocumentsList from "@/components/forms/admin/documents-list";
 import { requireAdminPage } from "@/lib/auth/admin";
+import type { ClientDocumentRecord } from "@/lib/client-documents";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,27 @@ export default async function DocumentsPage({
     .from("client_documents")
     .select("*", { count: "exact", head: true })
     .eq("document_type", "receipt");
+
+  const typedDocuments = (documents ?? []) as ClientDocumentRecord[];
+  const projectIds = Array.from(
+    new Set(
+      typedDocuments
+        .map((document) => document.event_project_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  const { data: projects } = projectIds.length
+    ? await supabaseAdmin.from("event_projects").select("id, status").in("id", projectIds)
+    : { data: [] as { id: string; status: string | null }[] };
+  const projectStatusById = new Map(
+    (projects ?? []).map((project) => [project.id, project.status])
+  );
+  const documentsWithProjectStatus = typedDocuments.map((document) => ({
+    ...document,
+    event_project_status: document.event_project_id
+      ? projectStatusById.get(document.event_project_id) ?? null
+      : null,
+  }));
 
   return (
     <main className="section admin-page admin-page--workspace">
@@ -77,7 +99,7 @@ export default async function DocumentsPage({
         </div>
       ) : (
         <DocumentsList
-          documents={documents ?? []}
+          documents={documentsWithProjectStatus}
           initialTypeFilter={params.type}
           initialStatusFilter={params.status}
         />

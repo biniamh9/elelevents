@@ -28,7 +28,7 @@ export async function POST(
       return NextResponse.json({ error: "Valid payment amount is required" }, { status: 400 });
     }
 
-    const { error: paymentError } = await supabaseAdmin
+    const { data: invoicePayment, error: paymentError } = await supabaseAdmin
       .from("client_document_payments")
       .insert({
         document_id: id,
@@ -37,7 +37,9 @@ export async function POST(
         payment_method: body.payment_method || null,
         reference_number: body.reference_number || null,
         notes: body.notes || null,
-      });
+      })
+      .select("id")
+      .single();
 
     if (paymentError) {
       return NextResponse.json({ error: paymentError.message }, { status: 500 });
@@ -72,6 +74,7 @@ export async function POST(
       .insert({
         inquiry_id: invoice.inquiry_id,
         contract_id: invoice.contract_id,
+        event_project_id: invoice.event_project_id ?? null,
         document_type: "receipt",
         document_number: buildDocumentNumber("receipt", receiptCount),
         status: "paid",
@@ -125,16 +128,40 @@ export async function POST(
     }
 
     await logActivity(supabaseAdmin, {
-      entityType: "contract",
+      entityType: "document",
       entityId: id,
       action: "document.payment_recorded",
       summary: "Payment recorded against invoice",
       metadata: {
         amount,
         payment_method: body.payment_method || null,
+        payment_id: invoicePayment?.id ?? null,
         receipt_id: receipt?.id ?? null,
+        inquiry_id: invoice.inquiry_id,
+        contract_id: invoice.contract_id,
+        event_project_id: invoice.event_project_id ?? null,
+        next_status: nextStatus,
+        balance_due: totals.balanceDue,
       },
     });
+
+    if (invoicePayment?.id) {
+      await logActivity(supabaseAdmin, {
+        entityType: "payment",
+        entityId: invoicePayment.id,
+        action: "payment.recorded",
+        summary: `Payment recorded: $${amount.toLocaleString()}`,
+        metadata: {
+          document_id: id,
+          receipt_id: receipt?.id ?? null,
+          amount,
+          payment_method: body.payment_method || null,
+          inquiry_id: invoice.inquiry_id,
+          contract_id: invoice.contract_id,
+          event_project_id: invoice.event_project_id ?? null,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, receipt });
   } catch (error) {

@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
+import { syncEventProjectLifecycleForInquiryId } from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import { getDocumentById } from "@/lib/admin-documents";
+import {
+  buildQuoteWorkflowPatch,
+  getDocumentById,
+  recordQuoteRevisionSnapshot,
+} from "@/lib/admin-documents";
 import {
   calculateDocumentLineTotal,
   calculateDocumentTotals,
@@ -49,6 +54,10 @@ export async function PATCH(
   try {
     const { id } = await context.params;
     const body = await request.json();
+    const existing = await getDocumentById(id);
+    if (!existing) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
     const lineItems = normalizeLineItems(body.line_items);
     const totals = calculateDocumentTotals({
       lineItems,
@@ -60,11 +69,26 @@ export async function PATCH(
       depositRequired: Number(body.deposit_required ?? 0),
     });
 
+    const finalStatus = body.send_after_save === true && body.status === "draft" ? "sent" : body.status;
+    const quoteWorkflowStatus =
+      existing.document_type === "quote"
+        ? finalStatus === "accepted"
+          ? "accepted"
+          : finalStatus === "sent"
+            ? "sent"
+            : finalStatus === "expired"
+              ? "expired"
+              : "draft"
+        : null;
+    const quoteWorkflowPatch = quoteWorkflowStatus
+      ? await buildQuoteWorkflowPatch(quoteWorkflowStatus, existing)
+      : {};
+
     const { data: document, error } = await supabaseAdmin
       .from("client_documents")
       .update({
         document_number: body.document_number,
-        status: body.send_after_save === true && body.status === "draft" ? "sent" : body.status,
+        status: finalStatus,
         issue_date: body.issue_date || null,
         due_date: body.due_date || null,
         expiration_date: body.expiration_date || null,
@@ -95,6 +119,7 @@ export async function PATCH(
         balance_due: totals.balanceDue,
         related_quote_id: body.related_quote_id || null,
         related_invoice_id: body.related_invoice_id || null,
+        ...quoteWorkflowPatch,
       })
       .eq("id", id)
       .select("*")
@@ -122,18 +147,46 @@ export async function PATCH(
       }
     }
 
+    const hydrated = await getDocumentById(id);
+    if (hydrated?.document_type === "quote" && quoteWorkflowStatus) {
+      await recordQuoteRevisionSnapshot({
+        document: hydrated,
+        workflowStatus: quoteWorkflowStatus,
+        actorId: auth.user.id,
+        snapshot: {
+          line_item_count: lineItems.length,
+          source: "document_update",
+        },
+      });
+    }
+
     await logActivity(supabaseAdmin, {
-      entityType: "contract",
+      entityType: "document",
       entityId: id,
-      action: "document.updated",
-      summary: `${document.document_type} updated`,
+      action: document.document_type === "quote" ? "quote.updated" : "document.updated",
+      summary: document.document_type === "quote" ? "Quote updated" : `${document.document_type} updated`,
       metadata: {
         status: document.status,
+        previous_status: existing.status,
+        workflow_status: quoteWorkflowStatus,
+        inquiry_id: document.inquiry_id,
+        contract_id: document.contract_id,
+        event_project_id: document.event_project_id ?? existing.event_project_id ?? null,
         total_amount: document.total_amount,
       },
     });
 
-    const hydrated = await getDocumentById(id);
+    if (document.document_type === "quote" && document.inquiry_id && quoteWorkflowStatus) {
+      await syncEventProjectLifecycleForInquiryId(supabaseAdmin, document.inquiry_id, {
+        explicitStatus:
+          quoteWorkflowStatus === "accepted"
+            ? "quote_accepted"
+            : quoteWorkflowStatus === "sent"
+              ? "quote_sent"
+              : "quote_drafted",
+      });
+    }
+
     return NextResponse.json({
       success: true,
       document,

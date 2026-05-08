@@ -43,9 +43,17 @@ export type ClientDocumentRecord = {
   id: string;
   inquiry_id: string | null;
   contract_id: string | null;
+  event_project_id?: string | null;
+  event_project_status?: string | null;
   document_type: ClientDocumentType;
   document_number: string;
   status: ClientDocumentStatus;
+  quote_workflow_status?: string | null;
+  quote_revision_number?: number | null;
+  quote_last_sent_at?: string | null;
+  quote_last_client_response_at?: string | null;
+  quote_last_accepted_at?: string | null;
+  quote_last_revision_requested_at?: string | null;
   issue_date: string | null;
   due_date: string | null;
   expiration_date: string | null;

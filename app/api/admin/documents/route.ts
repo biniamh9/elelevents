@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/admin";
 import { logActivity } from "@/lib/crm";
-import { ensureEventProjectForInquiry, getEventProjectSupport, syncEventProjectLinks } from "@/lib/event-projects";
+import {
+  ensureEventProjectForInquiry,
+  getEventProjectSupport,
+  syncEventProjectLifecycleForInquiryId,
+  syncEventProjectLinks,
+} from "@/lib/event-projects";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
-import { getDocumentById } from "@/lib/admin-documents";
+import {
+  buildQuoteWorkflowPatch,
+  getDocumentById,
+  recordQuoteRevisionSnapshot,
+} from "@/lib/admin-documents";
 import {
   calculateDocumentLineTotal,
   calculateDocumentTotals,
@@ -76,6 +85,12 @@ export async function POST(request: Request) {
       ? await ensureEventProjectForInquiry(supabaseAdmin, inquiryRecord)
       : { projectId: null as string | null, support: await getEventProjectSupport(supabaseAdmin) };
 
+    const finalStatus = body.send_after_save === true && body.status === "draft" ? "sent" : body.status;
+    const quoteWorkflowPatch =
+      type === "quote"
+        ? await buildQuoteWorkflowPatch(finalStatus === "sent" ? "sent" : "draft")
+        : {};
+
     const insertPayload = {
       inquiry_id: body.inquiry_id ?? null,
       contract_id: body.contract_id ?? null,
@@ -84,7 +99,7 @@ export async function POST(request: Request) {
         : {}),
       document_type: type,
       document_number: body.document_number,
-      status: body.send_after_save === true && body.status === "draft" ? "sent" : body.status,
+      status: finalStatus,
       issue_date: body.issue_date || null,
       due_date: body.due_date || null,
       expiration_date: body.expiration_date || null,
@@ -115,6 +130,7 @@ export async function POST(request: Request) {
       balance_due: totals.balanceDue,
       related_quote_id: body.related_quote_id || null,
       related_invoice_id: body.related_invoice_id || null,
+      ...quoteWorkflowPatch,
     };
 
     const { data: document, error } = await supabaseAdmin
@@ -147,26 +163,45 @@ export async function POST(request: Request) {
       }
     }
 
+    const hydrated = await getDocumentById(document.id);
+    if (hydrated?.document_type === "quote") {
+      await recordQuoteRevisionSnapshot({
+        document: hydrated,
+        workflowStatus: finalStatus === "sent" ? "sent" : "draft",
+        actorId: auth.user.id,
+        snapshot: {
+          line_item_count: lineItems.length,
+          source: "document_create",
+        },
+      });
+    }
+
     await logActivity(supabaseAdmin, {
-      entityType: "contract",
+      entityType: "document",
       entityId: document.id,
-      action: "document.created",
-      summary: `${type} created`,
+      action: type === "quote" ? "quote.created" : "document.created",
+      summary: type === "quote" ? "Quote created" : `${type} created`,
       metadata: {
         document_type: type,
         inquiry_id: document.inquiry_id,
         contract_id: document.contract_id,
+        event_project_id: projectId,
+        status: document.status,
         total_amount: document.total_amount,
       },
     });
-
-    const hydrated = await getDocumentById(document.id);
 
     await syncEventProjectLinks(supabaseAdmin, {
       projectId,
       inquiryId: document.inquiry_id,
       contractId: document.contract_id,
     });
+
+    if (type === "quote" && document.inquiry_id) {
+      await syncEventProjectLifecycleForInquiryId(supabaseAdmin, document.inquiry_id, {
+        explicitStatus: finalStatus === "sent" ? "quote_sent" : "quote_drafted",
+      });
+    }
 
     return NextResponse.json({
       success: true,

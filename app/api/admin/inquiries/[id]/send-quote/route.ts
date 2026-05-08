@@ -22,9 +22,11 @@ import {
   renderQuoteItemizedScopeSection,
 } from "@/lib/email-template-renderer";
 import {
+  buildQuoteWorkflowPatch,
   getQuoteDocumentByInquiryId,
   mapQuoteDocumentToLegacyLineItems,
   mapQuoteDocumentToLegacyPricing,
+  recordQuoteRevisionSnapshot,
   upsertQuoteDocumentForInquiry,
 } from "@/lib/admin-documents";
 import { recordOutboundEmailInteraction } from "@/lib/customer-interactions";
@@ -165,8 +167,24 @@ export async function POST(
     const quotedAt = normalizeQuotedAt(updatedInquiry.quoted_at);
     await supabaseAdmin
       .from("client_documents")
-      .update({ status: "sent" })
+      .update({
+        status: "sent",
+        ...(await buildQuoteWorkflowPatch("sent", quoteDocument)),
+      })
       .eq("id", quoteDocument.id);
+    const sentQuoteDocument = await getQuoteDocumentByInquiryId(id);
+    if (sentQuoteDocument) {
+      await recordQuoteRevisionSnapshot({
+        document: sentQuoteDocument,
+        workflowStatus: "sent",
+        actorId: auth.user.id,
+        snapshot: {
+          source: "send_quote_email",
+          line_item_count: normalizedLineItems.length,
+          quote_amount: quoteAmount,
+        },
+      });
+    }
     const siteUrl =
       getBusinessTemplateVariables().website_url ||
       process.env.NEXT_PUBLIC_SITE_URL ||
@@ -253,6 +271,19 @@ export async function POST(
       entityType: "inquiry",
       entityId: id,
       ...quoteActivityEvent,
+    });
+    await logActivity(supabaseAdmin, {
+      entityType: "document",
+      entityId: quoteDocument.id,
+      action: "quote.sent",
+      summary: "Quote sent to client",
+      metadata: {
+        inquiry_id: id,
+        client_id: updatedInquiry.client_id ?? inquiry.client_id ?? null,
+        quote_amount: quoteAmount,
+        line_item_count: normalizedLineItems.length,
+        sent_email_id: sentEmail?.id ?? null,
+      },
     });
 
     await syncEventProjectLifecycleForInquiryId(supabaseAdmin, id, {

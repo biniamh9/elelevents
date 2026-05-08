@@ -20,6 +20,7 @@ import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getEventProjectByInquiryId } from "@/lib/event-projects";
 import { normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
 import { getLiveCrmSnapshot } from "@/lib/crm-live";
+import { getCommercialDocumentStatus } from "@/lib/quote-workflow";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { getStrongUnmatchedReplyCandidatesByInquiry } from "@/lib/unmatched-inbound-replies";
@@ -203,6 +204,26 @@ export default async function AdminCrmLeadDetailPage({
   const receiptDocuments = relatedDocumentRows.filter((document) => document.document_type === "receipt");
   const paidPayments = (contractPayments ?? []).filter((payment) => payment.status === "paid");
   const pendingPayments = (contractPayments ?? []).filter((payment) => payment.status !== "paid");
+  const relatedDocumentIds = relatedDocumentRows.map((document) => document.id);
+  const relatedPaymentIds = (contractPayments ?? []).map((payment) => payment.id);
+  const { data: documentActivityLog } = relatedDocumentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "document")
+        .in("entity_id", relatedDocumentIds)
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
+  const { data: paymentActivityLog } = relatedPaymentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "payment")
+        .in("entity_id", relatedPaymentIds)
+        .order("created_at", { ascending: false })
+        .limit(20)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
   const projectStatus = lead.bookingStage ?? inquiryRecord?.status ?? "Not set";
   const projectValue =
     Number(lead.estimatedValue ?? 0) > 0
@@ -211,7 +232,11 @@ export default async function AdminCrmLeadDetailPage({
 
   const unifiedTimeline = buildCustomerTimeline({
     workflowTransitions,
-    activityLog,
+    activityLog: [
+      ...(activityLog ?? []),
+      ...(documentActivityLog ?? []),
+      ...(paymentActivityLog ?? []),
+    ],
     customerInteractions: (persistedInteractions ?? []).map((item) => ({
       id: item.id,
       subject: item.subject,
@@ -503,7 +528,7 @@ export default async function AdminCrmLeadDetailPage({
                     </Link>
                   </strong>
                   <span>
-                    {formatDocumentTypeLabel(document.document_type)} · {document.status} · {formatMoney(document.total_amount)} · created {formatDateOrFallback(document.created_at)}
+                    {formatDocumentTypeLabel(document.document_type)} · {getCommercialDocumentStatus({ document, projectStatus: eventProject?.status ?? null }).label ?? document.status.replaceAll("_", " ")} · {formatMoney(document.total_amount)} · created {formatDateOrFallback(document.created_at)}
                   </span>
                 </div>
               ))

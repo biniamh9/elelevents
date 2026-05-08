@@ -201,7 +201,7 @@ export default function DocumentPreviewBase({
           <h2>{primaryHeading}</h2>
         </div>
         <div className="document-preview-meta-card">
-          <DocumentStatusBadge status={document.status} />
+          <DocumentStatusBadge document={document} status={document.status} />
           <p className="document-preview-meta-eyebrow">{emphasisLabel}</p>
           <div className="document-preview-meta-list">
             <div><span>Reference</span><strong>#{document.document_number}</strong></div>

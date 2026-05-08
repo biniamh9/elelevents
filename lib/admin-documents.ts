@@ -16,8 +16,51 @@ import {
   type InquiryQuoteLineItem,
   type InquiryQuotePricing,
 } from "@/lib/admin-pricing";
+import {
+  type QuoteWorkflowStatus,
+} from "@/lib/quote-workflow";
 
 const QUOTE_BASE_FEE_TITLE = "Base event fee";
+
+type QuoteWorkflowSupport = {
+  documentColumns: boolean;
+  revisionTable: boolean;
+};
+
+let quoteWorkflowSupportCache: Promise<QuoteWorkflowSupport> | null = null;
+
+function isMissingSchemaError(error: { code?: string | null; message?: string | null } | null) {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "42703" ||
+    message.includes("schema cache") ||
+    (message.includes("relation") && message.includes("does not exist")) ||
+    (message.includes("column") && message.includes("does not exist"))
+  );
+}
+
+async function probeSelect(table: string, selectClause: string) {
+  const { error } = await supabaseAdmin.from(table).select(selectClause).limit(1);
+  if (error && isMissingSchemaError(error)) {
+    return false;
+  }
+  return true;
+}
+
+export async function getQuoteWorkflowSupport(): Promise<QuoteWorkflowSupport> {
+  if (!quoteWorkflowSupportCache) {
+    quoteWorkflowSupportCache = (async () => ({
+      documentColumns: await probeSelect(
+        "client_documents",
+        "quote_workflow_status, quote_revision_number, quote_last_sent_at, quote_last_client_response_at, quote_last_accepted_at, quote_last_revision_requested_at"
+      ),
+      revisionTable: await probeSelect("client_document_quote_revisions", "id"),
+    }))();
+  }
+
+  return quoteWorkflowSupportCache;
+}
 
 export async function getDocumentCount(type: ClientDocumentType) {
   const { count } = await supabaseAdmin
@@ -187,6 +230,62 @@ export function mapQuoteDocumentToLegacyLineItems(
     }));
 }
 
+export async function buildQuoteWorkflowPatch(
+  status: QuoteWorkflowStatus,
+  existing?: Pick<ClientDocumentRecord, "quote_revision_number"> | null
+) {
+  const support = await getQuoteWorkflowSupport();
+  if (!support.documentColumns) return {};
+
+  const now = new Date().toISOString();
+  const currentRevision = Number(existing?.quote_revision_number ?? 1);
+  const nextRevision =
+    status === "revision_requested" ? Math.max(currentRevision + 1, 1) : Math.max(currentRevision, 1);
+
+  return {
+    quote_workflow_status: status,
+    quote_revision_number: nextRevision,
+    ...(status === "sent" ? { quote_last_sent_at: now } : {}),
+    ...(status === "accepted" ? { quote_last_accepted_at: now, quote_last_client_response_at: now } : {}),
+    ...(status === "revision_requested"
+      ? { quote_last_revision_requested_at: now, quote_last_client_response_at: now }
+      : {}),
+  };
+}
+
+export async function recordQuoteRevisionSnapshot(input: {
+  document: ClientDocumentWithRelations | ClientDocumentRecord;
+  workflowStatus: QuoteWorkflowStatus;
+  actorId?: string | null;
+  snapshot?: Record<string, unknown>;
+}) {
+  const support = await getQuoteWorkflowSupport();
+  if (!support.revisionTable || input.document.document_type !== "quote") return;
+
+  const revisionNumber = Number(input.document.quote_revision_number ?? 1);
+  const { error } = await supabaseAdmin.from("client_document_quote_revisions").insert({
+    document_id: input.document.id,
+    inquiry_id: input.document.inquiry_id ?? null,
+    event_project_id: input.document.event_project_id ?? null,
+    revision_number: revisionNumber,
+    workflow_status: input.workflowStatus,
+    total_amount: input.document.total_amount ?? null,
+    created_by: input.actorId ?? null,
+    snapshot: {
+      document_number: input.document.document_number,
+      status: input.document.status,
+      workflow_status: input.workflowStatus,
+      total_amount: input.document.total_amount,
+      balance_due: input.document.balance_due,
+      ...input.snapshot,
+    },
+  });
+
+  if (error && !isMissingSchemaError(error)) {
+    console.error("Failed to write quote revision snapshot:", error.message);
+  }
+}
+
 export async function upsertQuoteDocumentForInquiry(input: {
   inquiryId: string;
   inquiry: {
@@ -217,6 +316,15 @@ export async function upsertQuoteDocumentForInquiry(input: {
   lineItems: InquiryQuoteLineItem[];
 }) {
   const existing = await getQuoteDocumentByInquiryId(input.inquiryId);
+  const workflowStatus: QuoteWorkflowStatus =
+    input.status === "accepted"
+      ? "accepted"
+      : input.status === "sent"
+        ? "sent"
+        : input.status === "expired"
+          ? "expired"
+          : "draft";
+  const quoteWorkflowPatch = await buildQuoteWorkflowPatch(workflowStatus, existing);
 
   const customerName =
     [input.inquiry.first_name, input.inquiry.last_name].filter(Boolean).join(" ").trim() || "Client";
@@ -292,6 +400,7 @@ export async function upsertQuoteDocumentForInquiry(input: {
     balance_due: balanceDue,
     related_quote_id: existing?.related_quote_id ?? null,
     related_invoice_id: existing?.related_invoice_id ?? null,
+    ...quoteWorkflowPatch,
   };
 
   const { data: saved, error } = existing
@@ -330,7 +439,19 @@ export async function upsertQuoteDocumentForInquiry(input: {
     }
   }
 
-  return getDocumentById(saved.id);
+  const hydrated = await getDocumentById(saved.id);
+  if (hydrated) {
+    await recordQuoteRevisionSnapshot({
+      document: hydrated,
+      workflowStatus,
+      snapshot: {
+        line_item_count: quoteLineItems.length,
+        source: "quote_builder",
+      },
+    });
+  }
+
+  return hydrated;
 }
 
 export async function buildSeedDocument(input: {

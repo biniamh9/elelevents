@@ -17,6 +17,7 @@ import {
   deriveEventProjectStatusFromLegacy,
   humanizeEventProjectStatus,
 } from "@/lib/project-lifecycle";
+import { getCommercialDocumentStatus } from "@/lib/quote-workflow";
 import { requireAdminPage } from "@/lib/auth/admin";
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
@@ -210,9 +211,35 @@ export default async function AdminEventProjectDetailPage({
     notFound();
   }
 
+  const documentIds = (documents ?? []).map((document) => document.id);
+  const paymentIds = (payments ?? []).map((payment) => payment.id);
+  const { data: documentActivity } = documentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "document")
+        .in("entity_id", documentIds)
+        .order("created_at", { ascending: false })
+        .limit(40)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
+  const { data: paymentActivity } = paymentIds.length
+    ? await supabaseAdmin
+        .from("activity_log")
+        .select("id, action, summary, created_at")
+        .eq("entity_type", "payment")
+        .in("entity_id", paymentIds)
+        .order("created_at", { ascending: false })
+        .limit(40)
+    : { data: [] as Array<{ id: string; action: string; summary: string | null; created_at: string }> };
+
   const timelineItems = buildCustomerTimeline({
     workflowTransitions: workflowTransitions ?? [],
-    activityLog: [...(projectActivity ?? []), ...(inquiryActivity ?? [])],
+    activityLog: [
+      ...(projectActivity ?? []),
+      ...(inquiryActivity ?? []),
+      ...(documentActivity ?? []),
+      ...(paymentActivity ?? []),
+    ],
     customerInteractions: (interactions ?? []).map((item) => ({
       id: item.id,
       subject: item.subject,
@@ -361,7 +388,7 @@ export default async function AdminEventProjectDetailPage({
                     </Link>
                   </strong>
                   <span>
-                    {humanizeEventProjectStatus(document.status)} · {formatMoney(document.total_amount)} · {formatDate(document.created_at)}
+                    {getCommercialDocumentStatus({ document, projectStatus: project.status }).label ?? humanizeEventProjectStatus(document.status)} · {formatMoney(document.total_amount)} · {formatDate(document.created_at)}
                   </span>
                 </div>
               ))
