@@ -33,6 +33,8 @@ export const RENTAL_REQUEST_STATUSES = [
   "requested",
   "reviewing",
   "quoted",
+  "accepted",
+  "paid",
   "reserved",
   "completed",
   "cancelled",
@@ -52,10 +54,12 @@ export const rentalRequestItemSchema = z.object({
 export const rentalRequestSchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().min(7),
+  email: optionalText,
+  phone: optionalText,
   eventDate: optionalDate,
   venueName: optionalText,
+  eventAddress: z.string().min(3),
+  eventZip: z.string().min(5),
   occasionLabel: optionalText,
   guestCount: optionalNumber,
   notes: optionalText,
@@ -69,6 +73,30 @@ export const rentalRequestSchema = z.object({
   securityDeposit: z.number().min(0),
   total: z.number().min(0),
   items: z.array(rentalRequestItemSchema).min(1),
+}).superRefine((value, ctx) => {
+  if (!value.email && !value.phone) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Add either an email address or phone number.",
+      path: ["email"],
+    });
+  }
+
+  if (value.email && !z.string().email().safeParse(value.email).success) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter a valid email address.",
+      path: ["email"],
+    });
+  }
+
+  if (value.phone && value.phone.length < 7) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter a valid phone number.",
+      path: ["phone"],
+    });
+  }
 });
 
 export type RentalRequestInput = z.infer<typeof rentalRequestSchema>;

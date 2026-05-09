@@ -450,8 +450,8 @@ export function getBusinessTemplateVariables(overrides: EmailTemplateVariables =
 export function getNotificationFromEmail() {
   return (
     process.env.NOTIFICATION_FROM_EMAIL ||
-    process.env.BUSINESS_EMAIL ||
     process.env.RESEND_FROM_EMAIL ||
+    process.env.BUSINESS_EMAIL ||
     "Elel Events <info@elelevents.com>"
   );
 }

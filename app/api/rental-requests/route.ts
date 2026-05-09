@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { randomUUID } from "crypto";
 
 import { buildRentalRequestCreatedActivityEvent } from "@/lib/email-activity-events";
 import { logActivity, upsertClientByEmail } from "@/lib/crm";
@@ -30,12 +31,15 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    const email = data.email?.trim() || null;
+    const phone = data.phone?.trim() || null;
+    const clientEmail = email ?? `${phone?.replace(/\D/g, "") || randomUUID()}@rental-request.elelevents.local`;
 
     const client = await upsertClientByEmail(supabaseAdmin, {
       firstName: data.firstName,
       lastName: data.lastName,
-      email: data.email,
-      phone: data.phone,
+      email: clientEmail,
+      phone: phone ?? "",
       preferredContactMethod: "email",
       source: "website_rental_inquiry",
     });
@@ -46,10 +50,12 @@ export async function POST(request: Request) {
         client_id: client.id,
         first_name: data.firstName,
         last_name: data.lastName,
-        email: data.email,
-        phone: data.phone,
+        email,
+        phone,
         event_date: data.eventDate,
         venue_name: data.venueName,
+        event_address: data.eventAddress,
+        event_zip: data.eventZip,
         occasion_label: data.occasionLabel,
         guest_count: data.guestCount,
         notes: data.notes,
@@ -120,8 +126,8 @@ export async function POST(request: Request) {
           "admin_rental_request",
           buildAdminRentalRequestEmailVariables({
             customerFullName: `${data.firstName} ${data.lastName}`,
-            customerEmail: data.email,
-            customerPhone: data.phone,
+            customerEmail: email ?? "Not provided",
+            customerPhone: phone ?? "Not provided",
             rentalItemsHtml: renderRentalRequestItemsSection(
               requestItems.map((item) => ({
                 item_name: item.item_name,

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin-client";
 import { formatMoney } from "@/lib/rental-shared";
+import { formatDeliveryFeeLabel } from "@/lib/rental-quote-pricing";
 import type { RentalRequestStatus } from "@/lib/rental-requests.types";
 
 export type { RentalRequestStatus } from "@/lib/rental-requests.types";
@@ -23,10 +24,12 @@ export type RentalQuoteRequest = {
   client_id: string | null;
   first_name: string;
   last_name: string;
-  email: string;
-  phone: string;
+  email: string | null;
+  phone: string | null;
   event_date: string | null;
   venue_name: string | null;
+  event_address: string | null;
+  event_zip: string | null;
   occasion_label: string | null;
   guest_count: number | null;
   notes: string | null;
@@ -35,6 +38,8 @@ export type RentalQuoteRequest = {
   include_breakdown: boolean;
   rental_subtotal: number;
   delivery_fee: number;
+  distance_miles: number | null;
+  delivery_custom_quote_required: boolean;
   setup_fee: number;
   breakdown_fee: number;
   refundable_security_deposit: number;
@@ -48,6 +53,31 @@ export type RentalQuoteRequest = {
   created_at: string;
   updated_at: string;
   items?: RentalQuoteRequestItem[];
+  quote?: RentalQuote | null;
+};
+
+export type RentalQuote = {
+  id: string;
+  rental_request_id: string;
+  chair_quantity: number;
+  chair_unit_price: number;
+  chair_subtotal: number;
+  distance_miles: number | null;
+  delivery_fee: number;
+  delivery_custom_quote_required: boolean;
+  setup_fee: number;
+  breakdown_fee: number;
+  refundable_deposit: number;
+  total_quote: number;
+  quote_notes: string | null;
+  status: "draft" | "sent" | "accepted" | "paid" | "completed" | "cancelled";
+  sent_at: string | null;
+  accepted_at: string | null;
+  paid_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 function toNumber(value: unknown, fallback = 0) {
@@ -65,10 +95,12 @@ function mapRequest(row: Record<string, unknown>): RentalQuoteRequest {
     client_id: row.client_id ? String(row.client_id) : null,
     first_name: String(row.first_name ?? ""),
     last_name: String(row.last_name ?? ""),
-    email: String(row.email ?? ""),
-    phone: String(row.phone ?? ""),
+    email: row.email ? String(row.email) : null,
+    phone: row.phone ? String(row.phone) : null,
     event_date: row.event_date ? String(row.event_date) : null,
     venue_name: row.venue_name ? String(row.venue_name) : null,
+    event_address: row.event_address ? String(row.event_address) : null,
+    event_zip: row.event_zip ? String(row.event_zip) : null,
     occasion_label: row.occasion_label ? String(row.occasion_label) : null,
     guest_count: row.guest_count == null ? null : Math.trunc(toNumber(row.guest_count, 0)),
     notes: row.notes ? String(row.notes) : null,
@@ -77,6 +109,8 @@ function mapRequest(row: Record<string, unknown>): RentalQuoteRequest {
     include_breakdown: Boolean(row.include_breakdown),
     rental_subtotal: toNumber(row.rental_subtotal, 0),
     delivery_fee: toNumber(row.delivery_fee, 0),
+    distance_miles: row.distance_miles == null ? null : toNumber(row.distance_miles, 0),
+    delivery_custom_quote_required: Boolean(row.delivery_custom_quote_required),
     setup_fee: toNumber(row.setup_fee, 0),
     breakdown_fee: toNumber(row.breakdown_fee, 0),
     refundable_security_deposit: toNumber(row.refundable_security_deposit, 0),
@@ -85,6 +119,32 @@ function mapRequest(row: Record<string, unknown>): RentalQuoteRequest {
     admin_notes: row.admin_notes ? String(row.admin_notes) : null,
     quoted_at: row.quoted_at ? String(row.quoted_at) : null,
     reserved_at: row.reserved_at ? String(row.reserved_at) : null,
+    completed_at: row.completed_at ? String(row.completed_at) : null,
+    cancelled_at: row.cancelled_at ? String(row.cancelled_at) : null,
+    created_at: String(row.created_at ?? new Date().toISOString()),
+    updated_at: String(row.updated_at ?? new Date().toISOString()),
+  };
+}
+
+function mapQuote(row: Record<string, unknown>): RentalQuote {
+  return {
+    id: String(row.id),
+    rental_request_id: String(row.rental_request_id),
+    chair_quantity: Math.max(Math.trunc(toNumber(row.chair_quantity, 0)), 0),
+    chair_unit_price: toNumber(row.chair_unit_price, 0),
+    chair_subtotal: toNumber(row.chair_subtotal, 0),
+    distance_miles: row.distance_miles == null ? null : toNumber(row.distance_miles, 0),
+    delivery_fee: toNumber(row.delivery_fee, 0),
+    delivery_custom_quote_required: Boolean(row.delivery_custom_quote_required),
+    setup_fee: toNumber(row.setup_fee, 0),
+    breakdown_fee: toNumber(row.breakdown_fee, 0),
+    refundable_deposit: toNumber(row.refundable_deposit, 0),
+    total_quote: toNumber(row.total_quote, 0),
+    quote_notes: row.quote_notes ? String(row.quote_notes) : null,
+    status: (row.status as RentalQuote["status"]) || "draft",
+    sent_at: row.sent_at ? String(row.sent_at) : null,
+    accepted_at: row.accepted_at ? String(row.accepted_at) : null,
+    paid_at: row.paid_at ? String(row.paid_at) : null,
     completed_at: row.completed_at ? String(row.completed_at) : null,
     cancelled_at: row.cancelled_at ? String(row.cancelled_at) : null,
     created_at: String(row.created_at ?? new Date().toISOString()),
@@ -147,9 +207,16 @@ export async function getRentalQuoteRequestById(id: string) {
     .eq("rental_request_id", id)
     .order("created_at", { ascending: true });
 
+  const { data: quote } = await supabaseAdmin
+    .from("rental_quotes")
+    .select("*")
+    .eq("rental_request_id", id)
+    .maybeSingle();
+
   return {
     ...mapRequest(request as Record<string, unknown>),
     items: (items ?? []).map((row) => mapItem(row as Record<string, unknown>)),
+    quote: quote ? mapQuote(quote as Record<string, unknown>) : null,
   } satisfies RentalQuoteRequest;
 }
 
@@ -159,12 +226,15 @@ export function getRentalRequestMetrics(requests: RentalQuoteRequest[]) {
     requested: requests.filter((request) => request.status === "requested").length,
     reviewing: requests.filter((request) => request.status === "reviewing").length,
     quoted: requests.filter((request) => request.status === "quoted").length,
+    accepted: requests.filter((request) => request.status === "accepted").length,
+    paid: requests.filter((request) => request.status === "paid").length,
     reserved: requests.filter((request) => request.status === "reserved").length,
     totalValue: requests.reduce((sum, request) => sum + request.estimated_total, 0),
   };
 }
 
 export function getRentalRequestStatusLabel(status: RentalRequestStatus) {
+  if (status === "requested") return "New";
   return status.replace(/_/g, " ");
 }
 
@@ -179,5 +249,13 @@ export function getRentalRequestSummary(request: RentalQuoteRequest) {
 }
 
 export function getRentalRequestTotalLabel(request: RentalQuoteRequest) {
-  return `${formatMoney(request.estimated_total)} total`;
+  if (request.quote) {
+    return `${formatMoney(request.quote.total_quote)} total`;
+  }
+
+  if (request.delivery_custom_quote_required) {
+    return `Delivery ${formatDeliveryFeeLabel(request)}`;
+  }
+
+  return request.estimated_total > 0 ? `${formatMoney(request.estimated_total)} total` : "Awaiting quote";
 }

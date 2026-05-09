@@ -72,7 +72,7 @@ export default function RentalRequestManagement({
                   <div className="admin-table-primary">
                     <div>
                       <strong>{request.first_name} {request.last_name}</strong>
-                      <span>{request.email}</span>
+                      <span>{request.email ?? request.phone ?? "No contact provided"}</span>
                     </div>
                   </div>
                 </td>

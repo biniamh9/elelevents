@@ -79,6 +79,12 @@ export default async function AdminRentalsPage({
               <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "quoted" })} className={`admin-documents-chip${status === "quoted" ? " is-active" : ""}`}>
                 Quoted
               </Link>
+              <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "accepted" })} className={`admin-documents-chip${status === "accepted" ? " is-active" : ""}`}>
+                Accepted
+              </Link>
+              <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "paid" })} className={`admin-documents-chip${status === "paid" ? " is-active" : ""}`}>
+                Paid
+              </Link>
               <Link href={buildRentalWorkspaceHref({ state: rentalWorkspaceState, nextTab: "requests", nextStatus: "reserved" })} className={`admin-documents-chip${status === "reserved" ? " is-active" : ""}`}>
                 Reserved
               </Link>
@@ -102,7 +108,8 @@ export default async function AdminRentalsPage({
                 { label: "Requested", value: requestMetrics.requested, note: "New intake awaiting review", tone: "amber" },
                 { label: "Reviewing", value: requestMetrics.reviewing, note: "Being priced or checked", tone: "blue" },
                 { label: "Quoted", value: requestMetrics.quoted, note: "Sent to client", tone: "violet" },
-                { label: "Reserved", value: requestMetrics.reserved, note: "Ready for fulfillment", tone: "green" },
+                { label: "Accepted", value: requestMetrics.accepted, note: "Client approved quote", tone: "blue" },
+                { label: "Paid", value: requestMetrics.paid, note: "Payment/deposit confirmed", tone: "green" },
               ]
         }
       />

@@ -28,12 +28,13 @@ type RentalLineState = {
 };
 
 type RentalRequestState = {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
   eventDate: string;
   venueName: string;
+  eventAddress: string;
+  eventZip: string;
   occasionLabel: string;
   guestCount: string;
   notes: string;
@@ -43,12 +44,13 @@ type RentalRequestState = {
 };
 
 const initialFormState: RentalRequestState = {
-  firstName: "",
-  lastName: "",
+  fullName: "",
   email: "",
   phone: "",
   eventDate: "",
   venueName: "",
+  eventAddress: "",
+  eventZip: "",
   occasionLabel: "",
   guestCount: "",
   notes: "",
@@ -237,8 +239,26 @@ export default function RentalRequestForm({
       return;
     }
 
-    if (!form.firstName || !form.lastName || !form.email || !form.phone) {
-      setError("Add your contact details before requesting a rental quote.");
+    const [firstName, ...lastNameParts] = form.fullName.trim().split(/\s+/);
+    const lastName = lastNameParts.join(" ") || "Rental Request";
+
+    if (!form.fullName.trim()) {
+      setError("Add your full name before requesting a rental quote.");
+      return;
+    }
+
+    if (!form.email.trim() && !form.phone.trim()) {
+      setError("Add either a phone number or email address so we can send the rental quote.");
+      return;
+    }
+
+    if (!form.eventZip.trim()) {
+      setError("Add the event ZIP code so we can review delivery distance from storage ZIP 30083.");
+      return;
+    }
+
+    if (!form.eventAddress.trim()) {
+      setError("Add the event address so our team can confirm mileage and delivery access.");
       return;
     }
 
@@ -269,7 +289,9 @@ export default function RentalRequestForm({
       "Rental quote request",
       form.occasionLabel ? `Occasion: ${form.occasionLabel}` : null,
       form.eventDate ? `Requested date: ${form.eventDate}` : null,
-      form.venueName ? `Venue / delivery location: ${form.venueName}` : null,
+      form.venueName ? `Venue: ${form.venueName}` : null,
+      form.eventAddress ? `Event address: ${form.eventAddress}` : null,
+      form.eventZip ? `Event ZIP: ${form.eventZip}` : null,
       form.guestCount ? `Guest count: ${form.guestCount}` : null,
       "",
       "Requested rental items:",
@@ -280,26 +302,21 @@ export default function RentalRequestForm({
       `Setup: ${form.includeSetup ? "Yes" : "No"}`,
       `Breakdown: ${form.includeBreakdown ? "Yes" : "No"}`,
       "",
-      "Preliminary pricing:",
-      `Rental subtotal: ${formatMoney(quoteTotals.subtotal)}`,
-      `Delivery fee: ${formatMoney(quoteTotals.deliveryFee)}`,
-      `Setup fee: ${formatMoney(quoteTotals.setupFee)}`,
-      `Breakdown fee: ${formatMoney(quoteTotals.breakdownFee)}`,
-      `Refundable security deposit: ${formatMoney(quoteTotals.securityDeposit)}`,
-      `Estimated total incl. deposit: ${formatMoney(quoteTotals.total)}`,
       form.notes ? `\nClient notes:\n${form.notes}` : null,
     ]
       .filter(Boolean)
       .join("\n");
 
     const inquiryPayload = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
+      firstName,
+      lastName,
+      email: form.email.trim() || null,
+      phone: form.phone.trim() || null,
       eventDate: form.eventDate || null,
       guestCount: form.guestCount ? Number(form.guestCount) || null : null,
       venueName: form.venueName.trim() || null,
+      eventAddress: form.eventAddress.trim(),
+      eventZip: form.eventZip.trim(),
       occasionLabel: form.occasionLabel.trim() || null,
       notes,
       includeDelivery: form.includeDelivery,
@@ -388,7 +405,10 @@ export default function RentalRequestForm({
         <Card className="rental-request-panel">
           <div className="section-heading section-heading--tight">
             <p className="eyebrow">Rental quote request</p>
-            <h2>Request pricing, quantity confirmation, and logistics for your selected rentals.</h2>
+            <h2>Request chair rental pricing, delivery review, setup, breakdown, and refundable deposit details.</h2>
+            <p className="muted">
+              Submit your rental request and our team will send you a custom quote based on chair quantity, event location, delivery distance, setup, and breakdown needs.
+            </p>
           </div>
 
           <form className="rental-request-form" onSubmit={handleSubmit}>
@@ -495,9 +515,32 @@ export default function RentalRequestForm({
                   <span>Venue or delivery location</span>
                   <input
                     type="text"
-                    placeholder="Venue name or delivery address"
+                    placeholder="Venue name"
                     value={form.venueName}
                     onChange={(e) => setForm((prev) => ({ ...prev, venueName: e.target.value }))}
+                  />
+                </label>
+
+                <label>
+                  <span>Event address</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Street address for delivery"
+                    value={form.eventAddress}
+                    onChange={(e) => setForm((prev) => ({ ...prev, eventAddress: e.target.value }))}
+                  />
+                </label>
+
+                <label>
+                  <span>Event ZIP code</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    placeholder="Required for mileage review"
+                    value={form.eventZip}
+                    onChange={(e) => setForm((prev) => ({ ...prev, eventZip: e.target.value }))}
                   />
                 </label>
 
@@ -563,19 +606,12 @@ export default function RentalRequestForm({
 
               <div className="rental-request-fields rental-request-fields--two">
                 <label>
-                  <span>First name</span>
+                  <span>Customer full name</span>
                   <input
                     type="text"
-                    value={form.firstName}
-                    onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
-                  />
-                </label>
-                <label>
-                  <span>Last name</span>
-                  <input
-                    type="text"
-                    value={form.lastName}
-                    onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
+                    required
+                    value={form.fullName}
+                    onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
                   />
                 </label>
                 <label>
@@ -618,49 +654,34 @@ export default function RentalRequestForm({
 
       <aside className="rental-request-sidebar">
         <Card className="rental-request-summary">
-          <p className="eyebrow">Quote preview</p>
-          <h3>Estimated rental total</h3>
+          <p className="eyebrow">Admin-reviewed quote</p>
+          <h3>Your custom rental quote will be prepared by our team.</h3>
+          <p className="muted">
+            We quote chair rentals after reviewing quantity, delivery distance from storage ZIP 30083, venue access, setup, breakdown, and refundable deposit requirements.
+          </p>
 
           <div className="rental-request-summary__lines">
             {selectedItems.map(({ item, quantity }) => {
-              const totals = calculateRentalQuoteTotals({
-                quantity,
-                baseRentalPrice: item.base_rental_price,
-                priceType: item.price_type,
-                includeDelivery: form.includeDelivery && item.delivery_available,
-                includeSetup: form.includeSetup && item.setup_available,
-                includeBreakdown: form.includeBreakdown && item.breakdown_available,
-                deliveryFee: item.default_delivery_fee,
-                setupFee: item.default_setup_fee,
-                breakdownFee: item.default_breakdown_fee,
-                depositRequired: item.deposit_required,
-                depositType: item.deposit_type,
-                depositAmount: item.deposit_amount,
-              });
-
               return (
                 <div key={item.slug} className="rental-request-summary__item">
                   <div>
                     <strong>{item.name}</strong>
-                    <span>{quantity} × {formatRentalPrice(item.base_rental_price, item.price_type)}</span>
+                    <span>{quantity} requested</span>
                   </div>
-                  <strong>{formatMoney(totals.subtotal)}</strong>
                 </div>
               );
             })}
           </div>
 
           <div className="rental-request-summary__totals">
-            <div><span>Rental subtotal</span><strong>{formatMoney(quoteTotals.subtotal)}</strong></div>
-            <div><span>Delivery fee</span><strong>{formatMoney(quoteTotals.deliveryFee)}</strong></div>
-            <div><span>Setup fee</span><strong>{formatMoney(quoteTotals.setupFee)}</strong></div>
-            <div><span>Breakdown fee</span><strong>{formatMoney(quoteTotals.breakdownFee)}</strong></div>
-            <div><span>Refundable security deposit</span><strong>{formatMoney(quoteTotals.securityDeposit)}</strong></div>
-            <div className="is-total"><span>Estimated total</span><strong>{formatMoney(quoteTotals.total)}</strong></div>
+            <div><span>Storage ZIP</span><strong>30083</strong></div>
+            <div><span>Delivery</span><strong>{form.includeDelivery ? "Requested" : "Not requested"}</strong></div>
+            <div><span>Setup</span><strong>{form.includeSetup ? "Requested" : "Not requested"}</strong></div>
+            <div><span>Breakdown</span><strong>{form.includeBreakdown ? "Requested" : "Not requested"}</strong></div>
           </div>
 
           <p className="muted">
-            Refundable security deposits stay separate from service charges and are reviewed after return inspection.
+            Detailed delivery, labor, and refundable deposit pricing is reviewed by admin before the quote is sent.
           </p>
         </Card>
       </aside>

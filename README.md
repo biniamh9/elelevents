@@ -46,4 +46,5 @@ npm run dev
 ## Notes
 
 - Email notifications are optional. If `RESEND_API_KEY` is missing, inserts still work.
+- For real outbound email, verify your sending domain in Resend and set `RESEND_FROM_EMAIL` to an address on that verified domain, for example `Elel Events & Design <hello@elelevents.com>`. Do not use Gmail/Yahoo/Outlook addresses as the Resend sender.
 - After earlier screenshots, rotate any exposed secret keys.

@@ -7,12 +7,15 @@ import Card from "@/components/ui/card";
 import StatusBadge from "@/components/forms/admin/status-badge";
 import { type RentalQuoteRequest } from "@/lib/rental-requests";
 import { formatMoney } from "@/lib/rental-shared";
+import { formatDeliveryFeeLabel, RENTAL_REFUNDABLE_DEPOSIT_NOTE } from "@/lib/rental-quote-pricing";
 import type { RentalRequestStatus } from "@/lib/rental-requests.types";
 
 const STATUS_OPTIONS: Array<{ value: RentalRequestStatus; label: string }> = [
   { value: "requested", label: "Requested" },
   { value: "reviewing", label: "Reviewing" },
   { value: "quoted", label: "Quoted" },
+  { value: "accepted", label: "Accepted" },
+  { value: "paid", label: "Paid" },
   { value: "reserved", label: "Reserved" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
@@ -25,6 +28,16 @@ export default function RentalRequestDetail({
 }) {
   const [status, setStatus] = useState<RentalRequestStatus>(request.status);
   const [adminNotes, setAdminNotes] = useState(request.admin_notes ?? "");
+  const [distanceMiles, setDistanceMiles] = useState(
+    request.quote?.distance_miles?.toString() ?? request.distance_miles?.toString() ?? ""
+  );
+  const initialChairQuantity = request.quote?.chair_quantity
+    ?? (request.items ?? []).reduce((sum, item) => sum + item.quantity, 0);
+  const [chairUnitPrice, setChairUnitPrice] = useState(
+    request.quote?.chair_unit_price?.toString()
+      ?? (initialChairQuantity > 0 ? (request.rental_subtotal / initialChairQuantity).toFixed(2) : "0")
+  );
+  const [quoteNotes, setQuoteNotes] = useState(request.quote?.quote_notes ?? RENTAL_REFUNDABLE_DEPOSIT_NOTE);
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -52,6 +65,41 @@ export default function RentalRequestDetail({
     setMessage("Rental request updated.");
   }
 
+  async function runQuoteAction(action: "generate_quote" | "send_quote" | "mark_paid" | "mark_completed") {
+    setSaving(true);
+    setMessage("");
+
+    const response = await fetch(`/api/admin/rental-requests/${request.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        distanceMiles: distanceMiles ? Number(distanceMiles) : null,
+        chairUnitPrice: chairUnitPrice ? Number(chairUnitPrice) : 0,
+        quoteNotes,
+      }),
+    });
+
+    const data = await response.json();
+    setSaving(false);
+
+    if (!response.ok) {
+      setMessage(data.error || "Failed to update rental quote.");
+      return;
+    }
+
+    const labels = {
+      generate_quote: "Rental quote generated.",
+      send_quote: "Rental quote marked sent to customer.",
+      mark_paid: "Rental quote marked paid.",
+      mark_completed: "Rental request marked completed.",
+    };
+    setMessage(labels[action]);
+    window.location.reload();
+  }
+
+  const quote = request.quote;
+
   return (
     <div className="admin-dashboard-row admin-dashboard-row--overview-clean">
       <section className="card admin-section-card admin-reference-records-shell">
@@ -59,7 +107,7 @@ export default function RentalRequestDetail({
           <div>
             <p className="eyebrow">Rental request</p>
             <h3>{request.first_name} {request.last_name}</h3>
-            <p className="muted">{request.email} • {request.phone}</p>
+            <p className="muted">{request.email ?? "No email"} • {request.phone ?? "No phone"}</p>
           </div>
           <StatusBadge status={status} />
         </div>
@@ -88,6 +136,14 @@ export default function RentalRequestDetail({
           <div>
             <strong>Venue</strong>
             <span>{request.venue_name ?? "Pending"}</span>
+          </div>
+          <div>
+            <strong>Event address</strong>
+            <span>{request.event_address ?? "Pending"}</span>
+          </div>
+          <div>
+            <strong>Event ZIP</strong>
+            <span>{request.event_zip ?? "Pending"}</span>
           </div>
           <div>
             <strong>Guest count</strong>
@@ -123,28 +179,50 @@ export default function RentalRequestDetail({
         <div className="admin-mini-metrics admin-mini-metrics--plain">
           <div>
             <strong>Rental subtotal</strong>
-            <span>{formatMoney(request.rental_subtotal)}</span>
+            <span>{formatMoney(quote?.chair_subtotal ?? request.rental_subtotal)}</span>
           </div>
           <div>
-            <strong>Delivery</strong>
-            <span>{formatMoney(request.delivery_fee)}</span>
+            <strong>Distance from 30083</strong>
+            <span>{quote?.distance_miles ?? request.distance_miles ?? "Admin review"} miles</span>
+          </div>
+          <div>
+            <strong>Mileage delivery</strong>
+            <span>{quote ? formatDeliveryFeeLabel(quote) : formatMoney(request.delivery_fee)}</span>
           </div>
           <div>
             <strong>Setup</strong>
-            <span>{formatMoney(request.setup_fee)}</span>
+            <span>{formatMoney(quote?.setup_fee ?? request.setup_fee)}</span>
           </div>
           <div>
             <strong>Breakdown</strong>
-            <span>{formatMoney(request.breakdown_fee)}</span>
+            <span>{formatMoney(quote?.breakdown_fee ?? request.breakdown_fee)}</span>
           </div>
           <div>
             <strong>Refundable deposit</strong>
-            <span>{formatMoney(request.refundable_security_deposit)}</span>
+            <span>{formatMoney(quote?.refundable_deposit ?? request.refundable_security_deposit)}</span>
           </div>
           <div>
-            <strong>Estimated total</strong>
-            <span>{formatMoney(request.estimated_total)}</span>
+            <strong>Total quote</strong>
+            <span>{formatMoney(quote?.total_quote ?? request.estimated_total)}</span>
           </div>
+        </div>
+
+        <div className="admin-record-grid admin-record-grid--three">
+          <Card className="admin-note-card">
+            <strong>Customer Information</strong>
+            <p className="muted">{request.first_name} {request.last_name}</p>
+            <p className="muted">{request.email ?? "No email"} • {request.phone ?? "No phone"}</p>
+          </Card>
+          <Card className="admin-note-card">
+            <strong>Event Information</strong>
+            <p className="muted">{request.venue_name ?? "Venue pending"}</p>
+            <p className="muted">{request.event_address ?? "Address pending"} {request.event_zip ?? ""}</p>
+          </Card>
+          <Card className="admin-note-card">
+            <strong>Refundable Deposit</strong>
+            <p className="muted">{formatMoney(quote?.refundable_deposit ?? request.refundable_security_deposit)}</p>
+            <p className="muted">Minimum $500. More than 100 chairs adds $10 per chair.</p>
+          </Card>
         </div>
 
         {request.notes ? (
@@ -165,6 +243,56 @@ export default function RentalRequestDetail({
         </div>
 
         <div className="admin-stack">
+          <label className="field">
+            <span className="label">Distance from storage ZIP 30083</span>
+            <input
+              className="input"
+              type="number"
+              min={0}
+              step="0.1"
+              value={distanceMiles}
+              onChange={(event) => setDistanceMiles(event.target.value)}
+              placeholder="Enter mileage after route review"
+            />
+          </label>
+
+          <label className="field">
+            <span className="label">Chair unit price</span>
+            <input
+              className="input"
+              type="number"
+              min={0}
+              step="0.01"
+              value={chairUnitPrice}
+              onChange={(event) => setChairUnitPrice(event.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span className="label">Quote notes</span>
+            <textarea
+              className="input"
+              rows={5}
+              value={quoteNotes}
+              onChange={(event) => setQuoteNotes(event.target.value)}
+            />
+          </label>
+
+          <div className="btn-row">
+            <Button onClick={() => runQuoteAction("generate_quote")}>
+              {saving ? "Working..." : "Generate Quote"}
+            </Button>
+            <Button variant="secondary" onClick={() => runQuoteAction("send_quote")}>
+              Send Quote to Customer
+            </Button>
+            <Button variant="secondary" onClick={() => runQuoteAction("mark_paid")}>
+              Mark as Paid
+            </Button>
+            <Button variant="secondary" onClick={() => runQuoteAction("mark_completed")}>
+              Mark as Completed
+            </Button>
+          </div>
+
           <label className="field">
             <span className="label">Status</span>
             <select
