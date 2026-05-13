@@ -105,6 +105,7 @@ export default function RentalRequestForm({
 }: RentalRequestFormProps) {
   const [form, setForm] = useState<RentalRequestState>(initialFormState);
   const [lines, setLines] = useState<RentalLineState[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -185,6 +186,7 @@ export default function RentalRequestForm({
   const canRequestDelivery = selectedItems.some(({ item }) => item.delivery_available);
   const canRequestSetup = selectedItems.some(({ item }) => item.setup_available);
   const canRequestBreakdown = selectedItems.some(({ item }) => item.breakdown_available);
+  const rentalSteps = ["Chairs", "Event", "Services", "Contact"];
 
   function updateLine(slug: string, quantity: number) {
     setLines((current) =>
@@ -229,6 +231,52 @@ export default function RentalRequestForm({
 
   function removeLine(slug: string) {
     setLines((current) => current.filter((line) => line.slug !== slug));
+  }
+
+  function validateStep(step = currentStep) {
+    if (step === 0 && !selectedItems.length) {
+      setError("Choose at least one chair rental item.");
+      return false;
+    }
+
+    if (step === 1) {
+      if (!form.eventAddress.trim()) {
+        setError("Add the event address so our team can confirm mileage and delivery access.");
+        return false;
+      }
+
+      if (!form.eventZip.trim()) {
+        setError("Add the event ZIP code so we can review delivery distance from storage ZIP 30083.");
+        return false;
+      }
+    }
+
+    if (step === 3) {
+      if (!form.fullName.trim()) {
+        setError("Add your full name before requesting a rental quote.");
+        return false;
+      }
+
+      if (!form.email.trim() && !form.phone.trim()) {
+        setError("Add either a phone number or email address so we can send the rental quote.");
+        return false;
+      }
+    }
+
+    setError("");
+    return true;
+  }
+
+  function goNext() {
+    if (!validateStep()) {
+      return;
+    }
+    setCurrentStep((step) => Math.min(step + 1, rentalSteps.length - 1));
+  }
+
+  function goBack() {
+    setCurrentStep((step) => Math.max(step - 1, 0));
+    setError("");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -405,17 +453,37 @@ export default function RentalRequestForm({
         <Card className="rental-request-panel">
           <div className="section-heading section-heading--tight">
             <p className="eyebrow">Rental quote request</p>
-            <h2>Request chair rental pricing, delivery review, setup, breakdown, and refundable deposit details.</h2>
+            <h2>Get a chair rental quote in a few quick steps.</h2>
             <p className="muted">
               Submit your rental request and our team will send you a custom quote based on chair quantity, event location, delivery distance, setup, and breakdown needs.
             </p>
           </div>
 
           <form className="rental-request-form" onSubmit={handleSubmit}>
+            <div className="form-stepper" aria-label="Rental quote progress">
+              {rentalSteps.map((step, index) => (
+                <button
+                  key={step}
+                  type="button"
+                  className={`form-stepper__item${index === currentStep ? " is-active" : ""}${index < currentStep ? " is-complete" : ""}`}
+                  onClick={() => {
+                    if (index <= currentStep) {
+                      setCurrentStep(index);
+                      setError("");
+                    }
+                  }}
+                >
+                  <span>{index + 1}</span>
+                  {step}
+                </button>
+              ))}
+            </div>
+
+            {currentStep === 0 ? (
             <section className="rental-request-section">
               <div className="rental-request-section__head">
-                <h3>Selected rental items</h3>
-                <p className="muted">Confirm the pieces you need and adjust quantity before sending the request.</p>
+                <h3>What chairs do you need?</h3>
+                <p className="muted">Choose the chair type and estimated quantity. An estimate is fine.</p>
               </div>
 
               <div className="rental-request-lines">
@@ -484,11 +552,13 @@ export default function RentalRequestForm({
                 </Button>
               </div>
             </section>
+            ) : null}
 
+            {currentStep === 1 ? (
             <section className="rental-request-section">
               <div className="rental-request-section__head">
-                <h3>Event and logistics</h3>
-                <p className="muted">Tell us when and where the rentals are needed so we can quote the right support.</p>
+                <h3>Where is the event?</h3>
+                <p className="muted">We use the address and ZIP code to review mileage from storage ZIP 30083.</p>
               </div>
 
               <div className="rental-request-fields rental-request-fields--two">
@@ -555,6 +625,15 @@ export default function RentalRequestForm({
                   />
                 </label>
               </div>
+            </section>
+            ) : null}
+
+            {currentStep === 2 ? (
+            <section className="rental-request-section">
+              <div className="rental-request-section__head">
+                <h3>What support do you need?</h3>
+                <p className="muted">Select the logistics support you want included in the quote.</p>
+              </div>
 
               <div className="rental-request-options">
                 <label className={`rental-request-toggle ${!canRequestDelivery ? "is-disabled" : ""}`}>
@@ -597,10 +676,12 @@ export default function RentalRequestForm({
                 </label>
               </div>
             </section>
+            ) : null}
 
+            {currentStep === 3 ? (
             <section className="rental-request-section">
               <div className="rental-request-section__head">
-                <h3>Contact details</h3>
+                <h3>Where should we send the quote?</h3>
                 <p className="muted">We use this to confirm availability and send the formal rental quote.</p>
               </div>
 
@@ -642,11 +723,23 @@ export default function RentalRequestForm({
                 />
               </label>
             </section>
+            ) : null}
 
             {error ? <p className="form-error">{error}</p> : null}
 
             <div className="rental-request-actions">
-              <Button type="submit">{loading ? "Submitting..." : "Request Rental Quote"}</Button>
+              {currentStep > 0 ? (
+                <Button type="button" variant="secondary" onClick={goBack}>
+                  Back
+                </Button>
+              ) : null}
+              {currentStep < rentalSteps.length - 1 ? (
+                <Button type="button" onClick={goNext}>
+                  Continue
+                </Button>
+              ) : (
+                <Button type="submit">{loading ? "Submitting..." : "Request Rental Quote"}</Button>
+              )}
             </div>
           </form>
         </Card>

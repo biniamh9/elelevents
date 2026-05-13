@@ -180,6 +180,7 @@ const CONSULTATION_ICON_MAP = {
 export default function EventRequestForm() {
   const router = useRouter();
   const [form, setForm] = useState<RequestFormState>(INITIAL_STATE);
+  const [currentStep, setCurrentStep] = useState(0);
   const [errors, setErrors] = useState<RequestFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -191,6 +192,13 @@ export default function EventRequestForm() {
     () => (isLargeGuestCount ? DISABLED_BUDGET_OPTIONS : new Set<string>()),
     [isLargeGuestCount]
   );
+  const requestSteps = [
+    "Event",
+    "Services",
+    "Investment",
+    "Consultation",
+    "Contact",
+  ];
 
   function updateField<Key extends keyof RequestFormState>(
     key: Key,
@@ -254,6 +262,69 @@ export default function EventRequestForm() {
       ...current,
       services: undefined,
     }));
+  }
+
+  function validateStep(step = currentStep) {
+    const nextErrors: RequestFormErrors = {};
+    const guestCountNumber = Number(form.guestCount);
+
+    if (step === 0) {
+      if (!form.eventType.trim()) {
+        nextErrors.eventType = "Please choose your event type.";
+      }
+      if (!form.guestCount.trim()) {
+        nextErrors.guestCount = "Please enter the estimated number of guests.";
+      } else if (!Number.isFinite(guestCountNumber) || guestCountNumber < 1) {
+        nextErrors.guestCount = "Guest count must be at least 1.";
+      }
+    }
+
+    if (step === 2) {
+      if (!form.budgetRange.trim()) {
+        nextErrors.budgetRange = "Please select your investment range.";
+      } else if (guestCountNumber > 300 && DISABLED_BUDGET_OPTIONS.has(form.budgetRange)) {
+        nextErrors.budgetRange =
+          "For events over 300 guests, please choose a higher investment range.";
+      }
+    }
+
+    if (step === 3 && !form.consultationPreference.trim()) {
+      nextErrors.consultationPreference = "Please select a consultation preference.";
+    }
+
+    if (step === 4) {
+      if (!form.name.trim()) {
+        nextErrors.name = "Please enter your name.";
+      } else {
+        const { firstName, lastName } = splitFullName(form.name);
+        if (!firstName || !lastName) {
+          nextErrors.name = "Please enter your full name.";
+        }
+      }
+
+      if (!form.email.trim()) {
+        nextErrors.email = "Please enter your email address.";
+      }
+
+      if (!form.phone.trim()) {
+        nextErrors.phone = "Please enter your phone number.";
+      }
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function goNext() {
+    if (!validateStep()) {
+      return;
+    }
+    setCurrentStep((step) => Math.min(step + 1, requestSteps.length - 1));
+  }
+
+  function goBack() {
+    setCurrentStep((step) => Math.max(step - 1, 0));
+    setErrors({});
   }
 
   function validate() {
@@ -407,6 +478,26 @@ export default function EventRequestForm() {
         </div>
 
         <form className="request-form" onSubmit={handleSubmit} noValidate>
+          <div className="form-stepper" aria-label="Request progress">
+            {requestSteps.map((step, index) => (
+              <button
+                key={step}
+                type="button"
+                className={`form-stepper__item${index === currentStep ? " is-active" : ""}${index < currentStep ? " is-complete" : ""}`}
+                onClick={() => {
+                  if (index <= currentStep) {
+                    setCurrentStep(index);
+                    setErrors({});
+                  }
+                }}
+              >
+                <span>{index + 1}</span>
+                {step}
+              </button>
+            ))}
+          </div>
+
+          {currentStep === 0 ? (
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 1</span>
@@ -459,7 +550,9 @@ export default function EventRequestForm() {
               </label>
             </div>
           </div>
+          ) : null}
 
+          {currentStep === 1 ? (
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 2</span>
@@ -483,7 +576,9 @@ export default function EventRequestForm() {
               })}
             </div>
           </div>
+          ) : null}
 
+          {currentStep === 2 ? (
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 3</span>
@@ -536,7 +631,9 @@ export default function EventRequestForm() {
               <p className="request-form-error request-form-error--inline">{errors.budgetRange}</p>
             ) : null}
           </div>
+          ) : null}
 
+          {currentStep === 3 ? (
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 4</span>
@@ -577,7 +674,9 @@ export default function EventRequestForm() {
               </p>
             ) : null}
           </div>
+          ) : null}
 
+          {currentStep === 4 ? (
           <div className="request-form-section">
             <div className="request-form-section-copy">
               <span>Section 5</span>
@@ -622,6 +721,7 @@ export default function EventRequestForm() {
               </label>
             </div>
           </div>
+          ) : null}
 
           {error ? <p className="request-form-error">{error}</p> : null}
 
@@ -630,9 +730,20 @@ export default function EventRequestForm() {
               <strong>After you submit, our team will review your request and contact you to design your event.</strong>
             </div>
             <div className="request-form-button-row">
-              <Button type="submit" disabled={submitting}>
-                {submitting ? "Sending..." : "Check Availability"}
-              </Button>
+              {currentStep > 0 ? (
+                <Button type="button" variant="secondary" onClick={goBack}>
+                  Back
+                </Button>
+              ) : null}
+              {currentStep < requestSteps.length - 1 ? (
+                <Button type="button" onClick={goNext}>
+                  Continue
+                </Button>
+              ) : (
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? "Sending..." : "Check Availability"}
+                </Button>
+              )}
             </div>
           </div>
         </form>
