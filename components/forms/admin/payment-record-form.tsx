@@ -55,8 +55,11 @@ export default function PaymentRecordForm({
     <section className="card admin-document-section">
       <div className="admin-document-section-head">
         <div>
-          <p className="eyebrow">Record Payment</p>
-          <h3>Capture deposit or balance</h3>
+          <p className="eyebrow">Pay invoice</p>
+          <h3>Record customer payment</h3>
+          <p className="muted">
+            Use this for cash, Zelle, check, bank transfer, or card payments received outside the website. A receipt draft is created automatically.
+          </p>
         </div>
       </div>
 
@@ -119,7 +122,7 @@ export default function PaymentRecordForm({
 
       <div className="admin-document-inline-actions">
         <button type="button" className="btn" onClick={submitPayment} disabled={loading}>
-          {loading ? "Recording..." : "Record Payment"}
+          {loading ? "Recording..." : "Pay / Record Payment"}
         </button>
         {message ? <p className="muted">{message}</p> : null}
       </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
+import ProjectStatusQuickUpdate from "@/components/admin/project-status-quick-update";
 import {
   buildContractDetailHref,
   buildEventProjectDetailHref,
@@ -185,6 +186,13 @@ export default async function AdminCrmCustomerDetailPage({
         (a, b) =>
           new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
       )[0] ?? null;
+  const latestReceipt =
+    linkedDocuments
+      .filter((document) => document.document_type === "receipt")
+      .sort(
+        (a, b) =>
+          new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+      )[0] ?? null;
   const latestQuote = latestInquiryId
     ? linkedDocuments.find(
         (document) =>
@@ -363,6 +371,14 @@ export default async function AdminCrmCustomerDetailPage({
               description="Payments are recorded from invoice documents, so create or open an invoice first."
             />
           ) : null}
+          {latestInvoice ? (
+            <AdminWorkflowAction
+              href={buildDocumentDetailHref(latestInvoice.id)}
+              tone="sync"
+              label={latestReceipt ? "Open invoice / receipts" : "Generate receipt"}
+              description="Open the invoice to generate or review receipt records for this customer."
+            />
+          ) : null}
           {latestProject ? (
             <AdminWorkflowAction
               href={buildEventProjectDetailHref(latestProject.id)}
@@ -377,6 +393,14 @@ export default async function AdminCrmCustomerDetailPage({
               label="Open project hub"
               description="Open the linked project route, with inquiry fallback if the project record is still being backfilled."
             />
+          ) : null}
+          {latestInquiryId ? (
+            <div className="project-status-command-card">
+              <ProjectStatusQuickUpdate
+                projectId={latestProject?.id ?? latestInquiryId}
+                currentStatus={latestProject?.status ?? latestOpportunity?.status}
+              />
+            </div>
           ) : null}
         </div>
       </section>

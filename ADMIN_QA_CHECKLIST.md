@@ -60,5 +60,44 @@ Workspace: `/Users/biniamhaile/Desktop/Files/elel-events-corrected-styled`
   - sidebar route smoke across calendar, vendors, contracts, finance, rentals, packages, pricing, flow, gallery, testimonials, social, settings
   - browser console/network clean for the tested admin path
 
-## Notes
-- Do not mark this checklist complete until the admin journey has been rerun after the refactor.
+## Full Admin Journey Retest - 2026-05-23
+
+Environment: local Next app at `http://127.0.0.1:3001` with `.env.local`
+Evidence script: `tests/e2e/admin-full-journey-check.cjs`
+
+| Area | Workflow | Result | Issue Found | Fix Applied | Retest Result |
+| --- | --- | --- | --- | --- | --- |
+| Admin auth | Sign in as QA admin | Pass | None in current run | None | Pass |
+| Manual/admin intake | Create authenticated admin inquiry payload | Pass | Prior payload friction was fixed earlier | Existing admin API accepted full payload and persisted `guest_count` | Pass |
+| Inquiry detail | Open newly created inquiry detail | Pass | None in current run | None | Pass |
+| Customer hub | Open customer command center | Pass | Needed easy next-step access | Added command center actions and lifecycle status updater | Pass |
+| Project hub | Open project command center | Pass | Project detail lacked immediate quote/invoice/payment/status actions | Added project command center with quote, invoice, contract, payment, receipt, and lifecycle controls | Pass |
+| Quote workflow | Create quote linked to inquiry/project | Pass | Needed durable commercial flow verification | API created quote and project lifecycle moved to `quote_drafted` | Pass |
+| Invoice workflow | Convert quote to invoice | Pass | Needed easier sales workflow access | Row/menu and API conversion verified | Pass |
+| Payment workflow | Open invoice payment screen and record payment | Pass | Payment was too buried in document editor | Added `Pay / Record Payment` action and verified invoice settles to paid | Pass |
+| Receipt workflow | Receipt generated from payment | Pass | Receipt generation needed to be part of payment path | Existing payment route created receipt draft automatically and test verified it | Pass |
+| Documents actions | Invoice row actions expose payment/receipt actions | Pass | Invoice menu previously only exposed output/edit actions | Added `Pay / Record Payment` and `Generate Receipt` to invoice actions | Pass |
+| Lifecycle status | Update event project status from project hub | Pass | Status updates were not surfaced from the hub | Added authenticated project status API and quick updater | Pass |
+| Route smoke | Core admin routes after workflow mutations | Pass | None in current run | None | Pass |
+| Console/network | Browser console, page errors, failed requests | Pass | None in current run | None | Pass |
+
+Full admin journey result: Pass.
+
+Verified steps:
+- admin login
+- create admin inquiry
+- open inquiry detail
+- open customer hub
+- open project hub
+- create quote
+- convert quote to invoice
+- open invoice payment panel
+- record payment
+- verify receipt generation
+- verify invoice Actions menu payment/receipt controls
+- update project lifecycle status
+- smoke-test CRM, documents, contracts, finance, calendar, rentals, gallery, and settings routes
+- confirm no console errors, page errors, or failed network requests in the tested journey
+
+Remaining QA note:
+- This does not replace every possible edge-case test, but the core admin operating journey has now been exercised end-to-end after the command-center refactor.

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -23,10 +24,12 @@ export default function DocumentsList({
   initialTypeFilter?: string;
   initialStatusFilter?: string;
 }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState(initialTypeFilter || "all");
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter || "all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [convertingDocumentId, setConvertingDocumentId] = useState<string | null>(null);
   const [openMenuDirection, setOpenMenuDirection] = useState<"down" | "up">("down");
   const [openMenuStyle, setOpenMenuStyle] = useState<{
     top: number;
@@ -186,6 +189,30 @@ export default function DocumentsList({
     { value: "sent", label: "Sent" },
     { value: "draft", label: "Draft" },
   ] as const;
+
+  async function convertDocument(document: ClientDocumentRecord) {
+    if (document.document_type === "receipt") return;
+
+    setConvertingDocumentId(document.id);
+    setOpenMenuId(null);
+    try {
+      const targetType = document.document_type === "quote" ? "invoice" : "receipt";
+      const response = await fetch(`/api/admin/documents/${document.id}/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_type: targetType }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.document?.id) {
+        throw new Error(data.error || "Failed to create the next document.");
+      }
+      router.push(buildDocumentDetailHref(data.document.id));
+      router.refresh();
+    } catch {
+      setConvertingDocumentId(null);
+      window.alert("Could not create the next document. Please open the document and try again.");
+    }
+  }
 
   return (
     <div className="admin-record-section" ref={menuRootRef}>
@@ -389,6 +416,32 @@ export default function DocumentsList({
 
                                 <div className="admin-row-action-group">
                                   <p className="admin-row-action-group-label">Record</p>
+                                  {document.document_type === "invoice" ? (
+                                    <Link
+                                      href={buildDocumentDetailHref(document.id, {
+                                        openPayment: true,
+                                        paymentMethod: "cash",
+                                      })}
+                                      className="admin-table-text-action admin-table-text-action--primary"
+                                      onClick={() => setOpenMenuId(null)}
+                                    >
+                                      Pay / Record Payment
+                                    </Link>
+                                  ) : null}
+                                  {document.document_type !== "receipt" ? (
+                                    <button
+                                      type="button"
+                                      className="admin-table-text-action admin-table-text-action--button"
+                                      onClick={() => convertDocument(document)}
+                                      disabled={convertingDocumentId === document.id}
+                                    >
+                                      {convertingDocumentId === document.id
+                                        ? "Creating..."
+                                        : document.document_type === "quote"
+                                          ? "Create Invoice"
+                                          : "Generate Receipt"}
+                                    </button>
+                                  ) : null}
                                   <Link
                                     href={buildDocumentDetailHref(document.id)}
                                     className="admin-table-text-action admin-table-text-action--muted"

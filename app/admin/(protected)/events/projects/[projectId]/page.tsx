@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
+import ProjectStatusQuickUpdate from "@/components/admin/project-status-quick-update";
 import {
   buildContractDetailHref,
   buildCrmCustomerDetailHref,
   buildCrmLeadDetailHref,
   buildDocumentDetailHref,
+  buildInvoiceCreateHref,
+  buildQuoteCreateHref,
 } from "@/lib/admin-navigation";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import {
@@ -264,6 +268,45 @@ export default async function AdminEventProjectDetailPage({
   const outstandingBalance = (payments ?? [])
     .filter((payment) => payment.status !== "paid")
     .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const latestQuote =
+    (documents ?? []).find((document) => document.document_type === "quote") ?? null;
+  const latestInvoice =
+    (documents ?? []).find((document) => document.document_type === "invoice") ?? null;
+  const latestReceipt =
+    (documents ?? []).find((document) => document.document_type === "receipt") ?? null;
+  const recordPaymentHref = latestInvoice
+    ? buildDocumentDetailHref(latestInvoice.id, {
+        openPayment: true,
+        paymentMethod: "cash",
+      })
+    : null;
+  const recommendedAction = !latestQuote
+    ? {
+        label: "Create quote",
+        detail: "Start the client-facing scope and pricing from this project.",
+        href: inquiryId ? buildQuoteCreateHref({ inquiryId }) : null,
+        tone: "record" as const,
+      }
+    : !contractRecord
+      ? {
+          label: "Create contract",
+          detail: "Move accepted scope into the agreement and deposit workflow.",
+          href: inquiryId ? buildCrmLeadDetailHref(inquiryId) : null,
+          tone: "record" as const,
+        }
+      : outstandingBalance > 0 && recordPaymentHref
+        ? {
+            label: "Pay / Record Payment",
+            detail: "Record cash, Zelle, check, transfer, or card payment against the invoice.",
+            href: recordPaymentHref,
+            tone: "record" as const,
+          }
+        : {
+            label: "Update project status",
+            detail: "Keep the lifecycle current so CRM, finance, and reporting stay aligned.",
+            href: null,
+            tone: "internal" as const,
+          };
   const serviceList = Array.isArray(project.services)
     ? project.services.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -304,6 +347,92 @@ export default async function AdminEventProjectDetailPage({
         <span className="summary-chip">Guest count: {project.guest_count || "Not set"}</span>
         <span className="summary-chip">Outstanding balance: {formatMoney(outstandingBalance)}</span>
       </div>
+
+      <section className="card admin-section-card admin-panel admin-reference-records-shell customer-command-center">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Next step</p>
+            <h3>{recommendedAction.label}</h3>
+            <p className="muted">{recommendedAction.detail}</p>
+          </div>
+        </div>
+        <div className="customer-command-grid">
+          {recommendedAction.href ? (
+            <AdminWorkflowAction
+              href={recommendedAction.href}
+              tone={recommendedAction.tone}
+              label={recommendedAction.label}
+              description="Recommended next move based on project documents, contract, and payment state."
+            />
+          ) : null}
+          {inquiryId ? (
+            <AdminWorkflowAction
+              href={buildQuoteCreateHref({ inquiryId })}
+              tone="record"
+              label={latestQuote ? "Revise / create quote" : "Create quote"}
+              description="Open quote builder linked to this project’s active opportunity."
+            />
+          ) : null}
+          {inquiryId ? (
+            <AdminWorkflowAction
+              href={buildInvoiceCreateHref({
+                inquiryId,
+                contractId: contractRecord?.id ?? null,
+              })}
+              tone="record"
+              label="Create invoice"
+              description="Create a payment request without leaving the project workflow."
+            />
+          ) : null}
+          {contractRecord?.id ? (
+            <AdminWorkflowAction
+              href={buildContractDetailHref(contractRecord.id)}
+              tone={contractRecord.deposit_paid ? "sync" : "email"}
+              label={contractRecord.deposit_paid ? "Open contract" : "Send / collect deposit"}
+              description="Open the contract, signing, and deposit state."
+            />
+          ) : inquiryId ? (
+            <AdminWorkflowAction
+              href={buildCrmLeadDetailHref(inquiryId)}
+              tone="record"
+              label="Create contract"
+              description="Open the opportunity workflow to generate the agreement."
+            />
+          ) : null}
+          {recordPaymentHref ? (
+            <AdminWorkflowAction
+              href={recordPaymentHref}
+              tone="record"
+              label="Pay / Record Payment"
+              description="Open invoice payment entry and create the receipt draft automatically."
+            />
+          ) : inquiryId ? (
+            <AdminWorkflowAction
+              href={buildInvoiceCreateHref({
+                inquiryId,
+                contractId: contractRecord?.id ?? null,
+              })}
+              tone="record"
+              label="Create invoice first"
+              description="Payments are recorded from invoice documents."
+            />
+          ) : null}
+          {latestInvoice ? (
+            <AdminWorkflowAction
+              href={buildDocumentDetailHref(latestInvoice.id)}
+              tone="sync"
+              label={latestReceipt ? "Open invoice / receipts" : "Generate receipt"}
+              description="Open the invoice to generate or review payment receipt records."
+            />
+          ) : null}
+          <div className="project-status-command-card">
+            <ProjectStatusQuickUpdate
+              projectId={realProject?.id ?? inquiryId ?? projectId}
+              currentStatus={project.status}
+            />
+          </div>
+        </div>
+      </section>
 
       <div className="admin-dashboard-row">
         <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">

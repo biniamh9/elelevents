@@ -244,7 +244,7 @@ export default function DocumentEditor({
               ? "Generate Receipt"
               : undefined
         }
-        paymentLabel={document.document_type === "invoice" ? "Record Payment" : undefined}
+        paymentLabel={document.document_type === "invoice" ? "Pay / Record Payment" : undefined}
         message={message}
         busy={saving}
       />
@@ -406,8 +406,8 @@ export default function DocumentEditor({
             {document.document_type === "invoice" ? (
               <AdminWorkflowAction
                 tone="record"
-                label={showPaymentForm ? "Hide Payment Entry" : "Record Payment"}
-                description="Open payment entry so balances update and a receipt can be generated."
+                label={showPaymentForm ? "Hide Payment Entry" : "Pay / Record Payment"}
+                description="Open payment entry so balances update and a receipt draft is created."
                 onClick={() => setShowPaymentForm((current) => !current)}
                 disabled={saving}
               />

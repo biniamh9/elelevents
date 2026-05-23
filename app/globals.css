@@ -10766,6 +10766,35 @@ tbody tr:last-child td {
   background: linear-gradient(180deg, #fff8f1, #fff);
   box-shadow: 0 16px 34px rgba(82, 47, 23, 0.08);
 }
+
+.project-status-command-card {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.1);
+  background: #fff;
+}
+
+.project-status-quick-update {
+  display: grid;
+  gap: 8px;
+}
+
+.project-status-quick-update__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .project-status-quick-update__controls {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-row-action-primary strong {
   display: block;
   width: 100%;
@@ -16348,9 +16377,34 @@ tbody tr:last-child td {
   white-space: nowrap;
 }
 
+.admin-table-text-action--button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.admin-table-text-action--button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .admin-table-text-action:hover,
 .admin-table-text-action:focus-visible {
   color: var(--brand-800);
+}
+
+.admin-table-text-action--primary {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.admin-table-text-action--primary:hover,
+.admin-table-text-action--primary:focus-visible {
+  color: var(--accent-dark);
 }
 
 .admin-table-text-action--muted {
