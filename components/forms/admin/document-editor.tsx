@@ -317,6 +317,9 @@ export default function DocumentEditor({
           {document.document_type === "invoice" && document.id && showPaymentForm ? (
             <PaymentRecordForm
               documentId={document.id}
+              invoiceTotal={totals.totalAmount}
+              amountPaid={document.amount_paid}
+              balanceDue={totals.balanceDue}
               initialPaymentMethod={initialPaymentMethod}
               onRecorded={() => router.refresh()}
             />
@@ -417,6 +420,7 @@ export default function DocumentEditor({
 
         <div className="admin-document-sidebar">
           <PricingSummaryCard
+            documentType={document.document_type}
             lineItems={document.line_items}
             deliveryFee={document.delivery_fee}
             setupFee={document.setup_fee}

@@ -6,10 +6,16 @@ export default function PaymentRecordForm({
   documentId,
   onRecorded,
   initialPaymentMethod = "bank_transfer",
+  invoiceTotal = 0,
+  amountPaid = 0,
+  balanceDue,
 }: {
   documentId: string;
   onRecorded?: () => void;
   initialPaymentMethod?: string;
+  invoiceTotal?: number;
+  amountPaid?: number;
+  balanceDue?: number;
 }) {
   const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
@@ -18,8 +24,32 @@ export default function PaymentRecordForm({
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const remainingBalance = Number(balanceDue ?? Math.max(invoiceTotal - amountPaid, 0));
+  const parsedAmount = Number(amount || 0);
+
+  function formatMoney(value: number) {
+    return Number(value || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
 
   async function submitPayment() {
+    if (remainingBalance <= 0) {
+      setMessage("This invoice is already fully paid. No remaining balance is available to record.");
+      return;
+    }
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setMessage("Enter a payment amount greater than $0.");
+      return;
+    }
+
+    if (parsedAmount > remainingBalance) {
+      setMessage("Payment amount cannot be greater than the remaining invoice balance.");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
     try {
@@ -27,7 +57,7 @@ export default function PaymentRecordForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Number(amount || 0),
+          amount: parsedAmount,
           payment_date: paymentDate,
           payment_method: paymentMethod,
           reference_number: referenceNumber || null,
@@ -58,22 +88,41 @@ export default function PaymentRecordForm({
           <p className="eyebrow">Pay invoice</p>
           <h3>Record customer payment</h3>
           <p className="muted">
-            Use this for cash, Zelle, check, bank transfer, or card payments received outside the website. A receipt draft is created automatically.
+            Add the exact amount received. Partial payments update the invoice balance, and a receipt draft is created automatically.
           </p>
+        </div>
+      </div>
+
+      <div className="invoice-payment-summary">
+        <div>
+          <span>Total invoice</span>
+          <strong>${formatMoney(invoiceTotal)}</strong>
+        </div>
+        <div>
+          <span>Already paid</span>
+          <strong>${formatMoney(amountPaid)}</strong>
+        </div>
+        <div>
+          <span>Remaining balance</span>
+          <strong>${formatMoney(remainingBalance)}</strong>
         </div>
       </div>
 
       <div className="admin-document-grid">
         <div className="field">
-          <label className="label">Amount</label>
+          <label className="label">Partial payment amount</label>
           <input
             className="input"
             type="number"
             min="0"
             step="0.01"
+            placeholder="Amount received"
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
           />
+          <p className="muted">
+            Enter the amount the customer paid now. Use the full balance only when the invoice is fully paid.
+          </p>
         </div>
         <div className="field">
           <label className="label">Payment Date</label>
@@ -124,6 +173,16 @@ export default function PaymentRecordForm({
         <button type="button" className="btn" onClick={submitPayment} disabled={loading}>
           {loading ? "Recording..." : "Pay / Record Payment"}
         </button>
+        {remainingBalance > 0 ? (
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => setAmount(String(remainingBalance))}
+            disabled={loading}
+          >
+            Use full balance
+          </button>
+        ) : null}
         {message ? <p className="muted">{message}</p> : null}
       </div>
     </section>

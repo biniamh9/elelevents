@@ -1,8 +1,14 @@
 "use client";
 
-import { calculateDocumentTotals, formatMoney, type ClientDocumentLineItem } from "@/lib/client-documents";
+import {
+  calculateDocumentTotals,
+  formatMoney,
+  type ClientDocumentLineItem,
+  type ClientDocumentType,
+} from "@/lib/client-documents";
 
 export default function PricingSummaryCard({
+  documentType,
   lineItems,
   deliveryFee,
   setupFee,
@@ -12,6 +18,7 @@ export default function PricingSummaryCard({
   depositRequired,
   onChange,
 }: {
+  documentType?: ClientDocumentType;
   lineItems: ClientDocumentLineItem[];
   deliveryFee: number;
   setupFee: number;
@@ -56,7 +63,11 @@ export default function PricingSummaryCard({
           ["Discount", "discount_amount", discountAmount],
           ["Tax", "tax_amount", taxAmount],
           ["Deposit required", "deposit_required", depositRequired],
-          ["Amount paid", "amount_paid", amountPaid],
+          [
+            documentType === "invoice" ? "Partial payment / amount paid" : "Amount paid",
+            "amount_paid",
+            amountPaid,
+          ],
         ].map(([label, key, value]) => (
           <div key={String(key)} className="field">
             <label className="label">{label}</label>
@@ -79,6 +90,11 @@ export default function PricingSummaryCard({
                 )
               }
             />
+            {key === "amount_paid" && documentType === "invoice" ? (
+              <p className="muted">
+                Enter any deposit or partial payment already received. The invoice will show the remaining balance due.
+              </p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -95,6 +111,10 @@ export default function PricingSummaryCard({
         <div>
           <span>Total amount</span>
           <strong>${formatMoney(totals.totalAmount)}</strong>
+        </div>
+        <div>
+          <span>Paid / credited</span>
+          <strong>${formatMoney(amountPaid)}</strong>
         </div>
         <div>
           <span>Balance due</span>

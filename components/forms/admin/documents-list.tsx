@@ -302,6 +302,8 @@ export default function DocumentsList({
                 <th>Client</th>
                 <th>Event Date</th>
                 <th>Amount</th>
+                <th>Paid</th>
+                <th>Balance</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -323,6 +325,12 @@ export default function DocumentsList({
                     <td>{document.customer_name}</td>
                     <td>{formatDocumentDate(document.event_date)}</td>
                     <td className="admin-documents-amount-cell">${formatMoney(document.total_amount)}</td>
+                    <td className="admin-documents-amount-cell admin-documents-paid-cell">
+                      ${formatMoney(document.amount_paid)}
+                    </td>
+                    <td className="admin-documents-amount-cell admin-documents-balance-cell">
+                      ${formatMoney(document.balance_due)}
+                    </td>
                     <td>
                       <DocumentStatusBadge
                         document={document}
@@ -460,7 +468,7 @@ export default function DocumentsList({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="admin-records-empty">
+                  <td colSpan={10} className="admin-records-empty">
                     No documents match the current filters.
                   </td>
                 </tr>

@@ -241,26 +241,54 @@ async function run() {
       });
       await page.getByText("Pay invoice", { exact: true }).waitFor({ timeout: 15000 });
       await page.getByText("Record customer payment", { exact: true }).waitFor({ timeout: 15000 });
+      await page.getByText("Remaining balance", { exact: true }).waitFor({ timeout: 15000 });
+      await page.getByText("Partial payment amount", { exact: true }).waitFor({ timeout: 15000 });
+      await page.getByRole("button", { name: "Use full balance" }).waitFor({ timeout: 15000 });
       return page.url();
     });
 
-    await record("Record invoice payment and receipt", async () => {
+    await record("Record partial invoice payment", async () => {
       const body = await requestJson(
         page,
         "POST",
         `${BASE_URL}/api/admin/documents/${invoiceId}/payments`,
         {
-          amount: 3500,
+          amount: 1000,
           payment_date: "2026-05-23",
           payment_method: "cash",
           reference_number: null,
-          notes: "QA payment.",
+          notes: "QA partial payment.",
         }
       );
       if (body.receipt?.id) created.documentIds.push(body.receipt.id);
-      const invoice = await queryOne("client_documents", "id, status, balance_due", "id", invoiceId);
-      if (invoice.status !== "paid" || Number(invoice.balance_due) !== 0) {
-        throw new Error(`Invoice payment did not settle invoice: ${JSON.stringify(invoice)}`);
+      const invoice = await queryOne("client_documents", "id, status, amount_paid, balance_due", "id", invoiceId);
+      if (
+        invoice.status !== "partially_paid" ||
+        Number(invoice.amount_paid) !== 1000 ||
+        Number(invoice.balance_due) !== 2500
+      ) {
+        throw new Error(`Invoice partial payment did not update balance correctly: ${JSON.stringify(invoice)}`);
+      }
+      return body.receipt?.id;
+    });
+
+    await record("Record remaining invoice balance and receipt", async () => {
+      const body = await requestJson(
+        page,
+        "POST",
+        `${BASE_URL}/api/admin/documents/${invoiceId}/payments`,
+        {
+          amount: 2500,
+          payment_date: "2026-05-23",
+          payment_method: "cash",
+          reference_number: null,
+          notes: "QA remaining balance payment.",
+        }
+      );
+      if (body.receipt?.id) created.documentIds.push(body.receipt.id);
+      const invoice = await queryOne("client_documents", "id, status, amount_paid, balance_due", "id", invoiceId);
+      if (invoice.status !== "paid" || Number(invoice.amount_paid) !== 3500 || Number(invoice.balance_due) !== 0) {
+        throw new Error(`Invoice remaining payment did not settle invoice: ${JSON.stringify(invoice)}`);
       }
       return body.receipt?.id;
     });

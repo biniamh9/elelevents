@@ -101,3 +101,17 @@ Verified steps:
 
 Remaining QA note:
 - This does not replace every possible edge-case test, but the core admin operating journey has now been exercised end-to-end after the command-center refactor.
+
+## Partial Payment Retest - 2026-05-23
+
+Environment: local Next app at `http://127.0.0.1:3001` with `.env.local`
+Evidence script: `tests/e2e/admin-full-journey-check.cjs`
+
+| Area | Workflow | Result | Issue Found | Fix Applied | Retest Result |
+| --- | --- | --- | --- | --- | --- |
+| Invoice editor | Show partial payment context before sending or updating invoice | Pass | Existing amount-paid field was hard to understand for deposits/partial payments | Renamed invoice pricing field to `Partial payment / amount paid` and added helper copy explaining remaining balance | Pass |
+| Invoice list | Track invoice amount, paid amount, and remaining balance from the table | Pass | Admin could see invoice status but not easily track partial amount vs balance due | Added `Paid` and `Balance` columns to document rows | Pass |
+| Payment form | Record a partial payment and then the remaining balance against an invoice | Pass | Payment entry did not show total, already-paid amount, or remaining balance together | Added payment summary, `Partial payment amount`, and `Use full balance` shortcut | Pass |
+| Payment validation | Prevent invalid or over-balance payment entries | Pass | Overpayment could be confusing if the amount entered exceeded the remaining balance | Added client validation for zero, negative, fully-paid, and over-balance amounts | Pass |
+| Receipt workflow | Generate receipts for partial and final payment entries | Pass | Needed confirmation the payment path still worked after UI changes | Full admin journey recorded a $1,000 partial payment, verified `partially_paid` with $2,500 balance, then recorded the $2,500 remainder and verified `paid` with $0 balance | Pass |
+| Console/network | Browser console, page errors, failed requests | Pass | None in current run | None | Pass |

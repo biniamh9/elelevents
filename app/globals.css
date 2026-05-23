@@ -10795,6 +10795,41 @@ tbody tr:last-child td {
   }
 }
 
+.invoice-payment-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.invoice-payment-summary > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(73, 49, 31, 0.1);
+  background: #fffdfa;
+}
+
+.invoice-payment-summary span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.invoice-payment-summary strong {
+  color: var(--text-primary);
+  font-size: 1.15rem;
+}
+
+@media (max-width: 760px) {
+  .invoice-payment-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-row-action-primary strong {
   display: block;
   width: 100%;
@@ -16410,6 +16445,14 @@ tbody tr:last-child td {
 .admin-table-text-action--muted {
   color: var(--muted);
   font-weight: 600;
+}
+
+.admin-documents-paid-cell {
+  color: #257748;
+}
+
+.admin-documents-balance-cell {
+  color: var(--accent-dark);
 }
 
 .admin-document-output-page {
