@@ -19,8 +19,13 @@ export async function POST(request: Request) {
     const parsed = inquirySchema.safeParse(body);
 
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstFieldError = Object.values(fieldErrors).flat().find(Boolean);
       return NextResponse.json(
-        { error: "Invalid inquiry payload", details: parsed.error.flatten() },
+        {
+          error: firstFieldError || "Invalid inquiry payload",
+          details: parsed.error.flatten(),
+        },
         { status: 400 }
       );
     }

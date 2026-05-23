@@ -124,6 +124,8 @@ export default function ManualInquiryForm() {
           eventDate: form.eventDate || null,
           guestCount,
           services: [],
+          budgetRange: form.budgetRange || "Not provided",
+          consultationPreference: "Admin entered",
           inspirationNotes: form.vision.trim() || null,
           additionalInfo: buildAdditionalInfo({
             budgetRange: form.budgetRange,
@@ -138,7 +140,10 @@ export default function ManualInquiryForm() {
       const data = await response.json();
 
       if (!response.ok || !data?.inquiry?.id) {
-        throw new Error(data?.error || "Failed to create inquiry.");
+        const detailMessage = data?.details?.fieldErrors
+          ? Object.values(data.details.fieldErrors).flat().filter(Boolean).join(" ")
+          : "";
+        throw new Error(detailMessage || data?.error || "Failed to create inquiry.");
       }
 
       router.push(buildInquiryDetailHref(data.inquiry.id));
