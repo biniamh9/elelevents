@@ -10749,6 +10749,23 @@ tbody tr:last-child td {
   overflow: visible;
   text-overflow: clip;
 }
+
+.customer-command-center {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.customer-command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.customer-command-grid .admin-workflow-action:first-child {
+  border-color: rgba(232, 112, 39, 0.34);
+  background: linear-gradient(180deg, #fff8f1, #fff);
+  box-shadow: 0 16px 34px rgba(82, 47, 23, 0.08);
+}
 .admin-row-action-primary strong {
   display: block;
   width: 100%;

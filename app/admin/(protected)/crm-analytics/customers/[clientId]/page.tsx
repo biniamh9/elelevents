@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import {
   buildContractDetailHref,
@@ -7,6 +8,9 @@ import {
   buildCrmLeadDetailHref,
   buildDocumentDetailHref,
   buildCrmWorkspaceHref,
+  buildInquiryDetailHref,
+  buildInvoiceCreateHref,
+  buildQuoteCreateHref,
 } from "@/lib/admin-navigation";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { getEventProjectSupport } from "@/lib/event-projects";
@@ -168,6 +172,59 @@ export default async function AdminCrmCustomerDetailPage({
   const outstandingBalance = (payments ?? [])
     .filter((payment) => payment.status !== "paid")
     .reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const latestOpportunity = activeOpportunities[0] ?? inquiries?.[0] ?? null;
+  const latestInquiryId = latestOpportunity?.id ?? null;
+  const latestProject = latestInquiryId ? projectByInquiryId.get(latestInquiryId) : null;
+  const latestContract = latestInquiryId
+    ? (contracts ?? []).find((contract) => contract.inquiry_id === latestInquiryId) ?? null
+    : null;
+  const latestInvoice =
+    linkedDocuments
+      .filter((document) => document.document_type === "invoice")
+      .sort(
+        (a, b) =>
+          new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+      )[0] ?? null;
+  const latestQuote = latestInquiryId
+    ? linkedDocuments.find(
+        (document) =>
+          document.inquiry_id === latestInquiryId && document.document_type === "quote"
+      ) ?? null
+    : null;
+  const recordPaymentHref = latestInvoice
+    ? buildDocumentDetailHref(latestInvoice.id, {
+        openPayment: true,
+        paymentMethod: "cash",
+      })
+    : null;
+  const nextStepTitle = !latestInquiryId
+    ? "Create an opportunity first"
+    : !latestQuote
+      ? "Build and send the quote"
+      : !latestContract
+        ? "Create the contract"
+        : outstandingBalance > 0
+          ? "Record payment"
+          : "Move project forward";
+  const nextStepDetail = !latestInquiryId
+    ? "This customer exists, but no inquiry/project is linked yet."
+    : !latestQuote
+      ? "Start with a client-ready quote so the customer can approve scope and pricing."
+      : !latestContract
+        ? "Turn the approved scope into a contract and deposit path."
+        : outstandingBalance > 0
+          ? "Use the invoice payment entry to record cash, Zelle, check, or transfer."
+          : "Open the project hub to update planning, handoff, or completion.";
+  const nextStepHref = !latestInquiryId
+    ? buildCrmWorkspaceHref("leads")
+    : !latestQuote
+      ? buildQuoteCreateHref({ inquiryId: latestInquiryId })
+      : !latestContract
+        ? buildInquiryDetailHref(latestInquiryId)
+        : recordPaymentHref ??
+          (latestProject
+            ? buildEventProjectDetailHref(latestProject.id)
+            : buildInquiryDetailHref(latestInquiryId));
 
   const timelineItems = buildCustomerTimeline({
     activityLog:
@@ -238,6 +295,91 @@ export default async function AdminCrmCustomerDetailPage({
         <span className="summary-chip">Booked events: {bookedEvents.length}</span>
         <span className="summary-chip">Outstanding balance: {formatMoney(outstandingBalance)}</span>
       </div>
+
+      <section className="card admin-section-card admin-panel admin-reference-records-shell customer-command-center">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Next step</p>
+            <h3>{nextStepTitle}</h3>
+            <p className="muted">{nextStepDetail}</p>
+          </div>
+        </div>
+        <div className="customer-command-grid">
+          <AdminWorkflowAction
+            href={nextStepHref}
+            tone={outstandingBalance > 0 ? "record" : "internal"}
+            label={nextStepTitle}
+            description="Recommended next action based on this customer’s linked opportunity, documents, contract, and payment state."
+          />
+          {latestInquiryId ? (
+            <AdminWorkflowAction
+              href={buildQuoteCreateHref({ inquiryId: latestInquiryId })}
+              tone="record"
+              label={latestQuote ? "Revise / create quote" : "Create quote"}
+              description="Open the quote builder already linked to this customer’s active opportunity."
+            />
+          ) : null}
+          {latestInquiryId ? (
+            <AdminWorkflowAction
+              href={buildInvoiceCreateHref({
+                inquiryId: latestInquiryId,
+                contractId: latestContract?.id ?? null,
+              })}
+              tone="record"
+              label="Create invoice"
+              description="Prepare a payment request tied to the same inquiry, customer, and project context."
+            />
+          ) : null}
+          {latestContract ? (
+            <AdminWorkflowAction
+              href={buildContractDetailHref(latestContract.id)}
+              tone={latestContract.deposit_paid ? "sync" : "email"}
+              label={latestContract.deposit_paid ? "Open contract" : "Send / collect deposit"}
+              description="Open contract signing and deposit tracking."
+            />
+          ) : latestInquiryId ? (
+            <AdminWorkflowAction
+              href={buildInquiryDetailHref(latestInquiryId)}
+              tone="record"
+              label="Create contract"
+              description="Open the inquiry workflow contract stage to generate the agreement."
+            />
+          ) : null}
+          {recordPaymentHref ? (
+            <AdminWorkflowAction
+              href={recordPaymentHref}
+              tone="record"
+              label="Record payment"
+              description="Open the invoice payment entry with cash selected so receipts and balances update."
+            />
+          ) : latestInquiryId ? (
+            <AdminWorkflowAction
+              href={buildInvoiceCreateHref({
+                inquiryId: latestInquiryId,
+                contractId: latestContract?.id ?? null,
+              })}
+              tone="record"
+              label="Create invoice first"
+              description="Payments are recorded from invoice documents, so create or open an invoice first."
+            />
+          ) : null}
+          {latestProject ? (
+            <AdminWorkflowAction
+              href={buildEventProjectDetailHref(latestProject.id)}
+              tone="sync"
+              label="Open project hub"
+              description="Update lifecycle, planning context, handoff, and event readiness."
+            />
+          ) : latestInquiryId ? (
+            <AdminWorkflowAction
+              href={buildEventProjectDetailHref(latestInquiryId)}
+              tone="sync"
+              label="Open project hub"
+              description="Open the linked project route, with inquiry fallback if the project record is still being backfilled."
+            />
+          ) : null}
+        </div>
+      </section>
 
       <div className="admin-dashboard-row">
         <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
