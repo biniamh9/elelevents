@@ -30,6 +30,8 @@ export default function DocumentsList({
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter || "all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [convertingDocumentId, setConvertingDocumentId] = useState<string | null>(null);
+  const [sendingDocumentId, setSendingDocumentId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [openMenuDirection, setOpenMenuDirection] = useState<"down" | "up">("down");
   const [openMenuStyle, setOpenMenuStyle] = useState<{
     top: number;
@@ -194,6 +196,7 @@ export default function DocumentsList({
     if (document.document_type === "receipt") return;
 
     setConvertingDocumentId(document.id);
+    setActionMessage(null);
     setOpenMenuId(null);
     try {
       const targetType = document.document_type === "quote" ? "invoice" : "receipt";
@@ -211,6 +214,28 @@ export default function DocumentsList({
     } catch {
       setConvertingDocumentId(null);
       window.alert("Could not create the next document. Please open the document and try again.");
+    }
+  }
+
+  async function sendDocumentEmail(document: ClientDocumentRecord) {
+    setSendingDocumentId(document.id);
+    setActionMessage(null);
+    try {
+      const response = await fetch(`/api/admin/documents/${document.id}/send`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setActionMessage(data.error || "Could not email this invoice.");
+        return;
+      }
+      setOpenMenuId(null);
+      setActionMessage(`Invoice ${document.document_number} emailed to ${document.customer_email || "customer"}.`);
+      router.refresh();
+    } catch {
+      setActionMessage("Could not email this invoice. Please try again.");
+    } finally {
+      setSendingDocumentId(null);
     }
   }
 
@@ -252,6 +277,10 @@ export default function DocumentsList({
           <span className="admin-documents-head-pill">Receipts</span>
           <span className="admin-documents-head-pill">{visibleTotals.receipts}</span>
         </div>
+
+        {actionMessage ? (
+          <p className="admin-documents-action-message">{actionMessage}</p>
+        ) : null}
 
         <div className="admin-documents-filter-split">
           <div className="admin-documents-chip-group">
@@ -420,6 +449,18 @@ export default function DocumentsList({
                                   >
                                     Download PDF
                                   </Link>
+                                  {document.document_type === "invoice" ? (
+                                    <button
+                                      type="button"
+                                      className="admin-table-text-action admin-table-text-action--button admin-table-text-action--primary"
+                                      onClick={() => sendDocumentEmail(document)}
+                                      disabled={sendingDocumentId === document.id}
+                                    >
+                                      {sendingDocumentId === document.id
+                                        ? "Sending..."
+                                        : "Email Invoice to Customer"}
+                                    </button>
+                                  ) : null}
                                 </div>
 
                                 <div className="admin-row-action-group">

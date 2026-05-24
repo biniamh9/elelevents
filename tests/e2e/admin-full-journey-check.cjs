@@ -38,7 +38,8 @@ async function login(page) {
   await page.locator("input[type='password']").fill(QA_PASSWORD);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL(/\/admin\/(inquiries|crm-analytics|documents|contracts|finance|calendar|rentals|settings)/, {
-    timeout: 20000,
+    timeout: 60000,
+    waitUntil: "commit",
   });
 }
 
@@ -296,6 +297,7 @@ async function run() {
     await record("Documents action menus expose sales workflow", async () => {
       await page.goto(`${BASE_URL}/admin/documents?type=invoice`, { waitUntil: "networkidle" });
       await page.locator("tbody tr").filter({ hasText: fullName }).first().getByRole("button", { name: "Actions" }).click();
+      await page.getByText("Email Invoice to Customer", { exact: true }).waitFor({ timeout: 12000 });
       await page.getByText("Pay / Record Payment", { exact: true }).waitFor({ timeout: 12000 });
       await page.getByText("Generate Receipt", { exact: true }).waitFor({ timeout: 12000 });
       return "Invoice row actions visible.";

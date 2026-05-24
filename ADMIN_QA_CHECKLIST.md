@@ -81,6 +81,17 @@ Evidence script: `tests/e2e/admin-full-journey-check.cjs`
 | Route smoke | Core admin routes after workflow mutations | Pass | None in current run | None | Pass |
 | Console/network | Browser console, page errors, failed requests | Pass | None in current run | None | Pass |
 
+## Invoice Email Action Retest - 2026-05-23
+
+Environment: local Next app at `http://127.0.0.1:3001` with `.env.local`
+Evidence script: `tests/e2e/admin-command-center-check.cjs`
+
+| Area | Workflow | Result | Issue Found | Fix Applied | Retest Result |
+| --- | --- | --- | --- | --- | --- |
+| Invoice Actions menu | Open invoice row Actions dropdown | Pass | Admin could record payment and generate receipt, but could not email the invoice from the row menu | Added `Email Invoice to Customer` to invoice row Actions | Pass |
+| Invoice email route | Server-side invoice email endpoint compiles | Pass | No dedicated invoice document send endpoint existed | Added `/api/admin/documents/[id]/send` to render the PDF and send it as an email attachment through Resend | Pass |
+| Action-menu regression | Quote, customer, and project command-center smoke checks | Pass | Needed to confirm existing menu actions were not displaced | Targeted smoke test passed for invoice, quote, customer hub, and project hub actions | Pass |
+
 Full admin journey result: Pass.
 
 Verified steps:

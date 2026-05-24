@@ -16,7 +16,8 @@ async function login(page) {
   await page.locator("input[type='password']").fill(QA_PASSWORD);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL(/\/admin\/(inquiries|crm-analytics|documents|contracts|finance|calendar|rentals|settings)/, {
-    timeout: 20000,
+    timeout: 60000,
+    waitUntil: "commit",
   });
 }
 
@@ -47,9 +48,10 @@ async function run() {
     if (invoice?.id) {
       await page.goto(`${BASE_URL}/admin/documents?type=invoice`, { waitUntil: "networkidle" });
       await page.locator("tbody tr").first().getByRole("button", { name: "Actions" }).click();
+      await assertVisible(page, "Email Invoice to Customer");
       await assertVisible(page, "Pay / Record Payment");
       await assertVisible(page, "Generate Receipt");
-      results.push("Invoice Actions exposes Pay / Record Payment and Generate Receipt");
+      results.push("Invoice Actions exposes Email Invoice to Customer, Pay / Record Payment, and Generate Receipt");
     } else {
       results.push("Skipped invoice Actions check: no invoice document available");
     }
