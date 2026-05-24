@@ -7,6 +7,7 @@ import {
   buildAdminSopPdfHref,
   buildCrmWorkspaceHref,
   buildInquiryCreateHref,
+  buildSalesPipelineHref,
 } from "@/lib/admin-navigation";
 
 type NavChild = {
@@ -64,6 +65,7 @@ const navSections: NavSection[] = [
     description: "Documents and contracts",
     module: "sales",
     children: [
+      { href: buildSalesPipelineHref(), label: "Sales Pipeline" },
       { href: "/admin/documents?type=quote", label: "Quotes" },
       { href: "/admin/documents?type=invoice", label: "Invoices" },
       { href: "/admin/documents?type=receipt", label: "Receipts" },

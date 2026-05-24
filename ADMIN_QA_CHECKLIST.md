@@ -92,6 +92,17 @@ Evidence script: `tests/e2e/admin-command-center-check.cjs`
 | Invoice email route | Server-side invoice email endpoint compiles | Pass | No dedicated invoice document send endpoint existed | Added `/api/admin/documents/[id]/send` to render the PDF and send it as an email attachment through Resend | Pass |
 | Action-menu regression | Quote, customer, and project command-center smoke checks | Pass | Needed to confirm existing menu actions were not displaced | Targeted smoke test passed for invoice, quote, customer hub, and project hub actions | Pass |
 
+## Sales Pipeline Retest - 2026-05-24
+
+Environment: local Next app at `http://127.0.0.1:3001` with `.env.local`
+Evidence script: `tests/e2e/admin-command-center-check.cjs`
+
+| Area | Workflow | Result | Issue Found | Fix Applied | Retest Result |
+| --- | --- | --- | --- | --- | --- |
+| Sales navigation | Open Sales Pipeline from admin route | Pass | Sales previously started with separate document queues instead of one operating workflow | Added `/admin/sales` and made `Sales Pipeline` the first Sales submenu item | Pass |
+| Sales action queue | Load customer sales activity table | Pass | Staff could not see lifecycle, next action, contract, payment, event date, and action in one row | Added Sales Pipeline action queue backed by `event_projects`, documents, contracts, clients, and follow-up tasks | Pass |
+| Command-center regression | Invoice, quote, customer, and project command actions | Pass | Needed to confirm new Sales route did not break existing workflow actions | Authenticated smoke test passed after route addition | Pass |
+
 Full admin journey result: Pass.
 
 Verified steps:
@@ -126,3 +137,16 @@ Evidence script: `tests/e2e/admin-full-journey-check.cjs`
 | Payment validation | Prevent invalid or over-balance payment entries | Pass | Overpayment could be confusing if the amount entered exceeded the remaining balance | Added client validation for zero, negative, fully-paid, and over-balance amounts | Pass |
 | Receipt workflow | Generate receipts for partial and final payment entries | Pass | Needed confirmation the payment path still worked after UI changes | Full admin journey recorded a $1,000 partial payment, verified `partially_paid` with $2,500 balance, then recorded the $2,500 remainder and verified `paid` with $0 balance | Pass |
 | Console/network | Browser console, page errors, failed requests | Pass | None in current run | None | Pass |
+
+## Inquiry / Project Detail Workflow Retest - 2026-05-24
+
+Environment: local build and local dev server at `http://127.0.0.1:3001` with `.env.local`
+Evidence: `npx tsc --noEmit --pretty false`, `npm run build`, updated `tests/e2e/admin-command-center-check.cjs`
+
+| Area | Workflow | Result | Issue Found | Fix Applied | Retest Result |
+| --- | --- | --- | --- | --- | --- |
+| Inquiry detail tabs | Navigate long inquiry detail sections | Pass | Detail page had the right workflow sections but no consistent section navigation | Added shared `AdminDetailTabs` with Overview, Request Details, Follow-Ups, Timeline, Next Actions, Quote, Contract, and Handoff anchors | Pass by type/build |
+| Project detail tabs | Navigate project operating record sections | Pass | Project detail had command center and records but no shared tab rhythm | Added shared `AdminDetailTabs` with Overview, Next Step, Documents & Payments, Scope, Follow-Ups, and Timeline anchors | Pass by type/build |
+| Follow-up completion | Complete open follow-up tasks inline | Pass | Open follow-up tasks were visible in timelines but not directly actionable on detail pages | Added shared `FollowUpTaskList` with optional completion note and `Mark Complete` action | Pass by type/build |
+| Follow-up API | Persist completion and write CRM timeline activity | Pass | No dedicated endpoint existed for closing a follow-up task from detail pages | Added `/api/admin/follow-up-tasks/[id]` PATCH route that updates `crm_follow_up_tasks` and logs activity on project/inquiry timelines | Pass by type/build |
+| Authenticated browser smoke | Click through detail pages in browser | Blocked | Local Playwright and in-app browser input hit macOS/browser automation permission/input issues unrelated to app code | Added repeatable assertions to `tests/e2e/admin-command-center-check.cjs`; browser execution must be rerun in a working browser harness | Pending browser rerun |

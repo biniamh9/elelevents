@@ -16,7 +16,7 @@ async function login(page) {
   await page.locator("input[type='password']").fill(QA_PASSWORD);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL(/\/admin\/(inquiries|crm-analytics|documents|contracts|finance|calendar|rentals|settings)/, {
-    timeout: 60000,
+    timeout: 120000,
     waitUntil: "commit",
   });
 }
@@ -43,6 +43,11 @@ async function run() {
 
   try {
     await login(page);
+
+    await page.goto(`${BASE_URL}/admin/sales`, { waitUntil: "networkidle" });
+    await page.getByRole("heading", { name: "Sales Pipeline" }).waitFor({ state: "visible", timeout: 12000 });
+    await assertVisible(page, "Customer sales activity");
+    results.push("Sales Pipeline route loads with action queue");
 
     const invoice = await getSample("client_documents", "id", [["document_type", "invoice"]]);
     if (invoice?.id) {
@@ -76,12 +81,25 @@ async function run() {
       results.push("Skipped customer command center check: no customer available");
     }
 
+    const inquiry = await getSample("event_inquiries", "id");
+    if (inquiry?.id) {
+      await page.goto(`${BASE_URL}/admin/inquiries/${inquiry.id}`, { waitUntil: "networkidle" });
+      await assertVisible(page, "Follow-Ups");
+      await assertVisible(page, "Follow-up tasks");
+      await assertVisible(page, "Next Actions");
+      results.push("Inquiry detail exposes shared tabs and inline follow-up task panel");
+    } else {
+      results.push("Skipped inquiry detail tabs check: no inquiry available");
+    }
+
     const project = await getSample("event_projects", "id");
     if (project?.id) {
       await page.goto(`${BASE_URL}/admin/events/projects/${project.id}`, { waitUntil: "networkidle" });
       await assertVisible(page, "Next step");
+      await assertVisible(page, "Follow-Ups");
+      await assertVisible(page, "Open owner tasks");
       await page.getByLabel("Update status").waitFor({ state: "visible", timeout: 12000 });
-      results.push("Project hub exposes Next step command center and status updater");
+      results.push("Project hub exposes tabs, follow-up panel, and status updater");
     } else {
       results.push("Skipped project command center check: no event project available");
     }

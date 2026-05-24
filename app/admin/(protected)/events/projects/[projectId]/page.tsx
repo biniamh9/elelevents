@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import AdminDetailTabs from "@/components/admin/admin-detail-tabs";
+import FollowUpTaskList from "@/components/admin/follow-up-task-list";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import ProjectStatusQuickUpdate from "@/components/admin/project-status-quick-update";
@@ -143,14 +145,14 @@ export default async function AdminEventProjectDetailPage({
     support.tasksProjectColumn
       ? supabaseAdmin
           .from("crm_follow_up_tasks")
-          .select("id, inquiry_id, title, detail, status, due_at")
+          .select("id, inquiry_id, title, detail, task_kind, status, due_at, created_at, owner_name")
           .eq("event_project_id", projectId)
           .order("created_at", { ascending: false })
           .limit(40)
       : (realProject?.inquiry_id ?? fallbackInquiryId)
         ? supabaseAdmin
             .from("crm_follow_up_tasks")
-            .select("id, inquiry_id, title, detail, status, due_at")
+            .select("id, inquiry_id, title, detail, task_kind, status, due_at, created_at, owner_name")
             .eq("inquiry_id", realProject?.inquiry_id ?? fallbackInquiryId)
             .order("created_at", { ascending: false })
             .limit(40)
@@ -341,6 +343,17 @@ export default async function AdminEventProjectDetailPage({
         </p>
       </section>
 
+      <AdminDetailTabs
+        tabs={[
+          { href: "#overview", label: "Overview" },
+          { href: "#next-step", label: "Next Step" },
+          { href: "#documents-payments", label: "Documents & Payments" },
+          { href: "#scope", label: "Scope" },
+          { href: "#follow-up", label: "Follow-Ups", count: (tasks ?? []).filter((task) => task.status === "open").length },
+          { href: "#timeline", label: "Timeline" },
+        ]}
+      />
+
       <div className="summary-pills">
         <span className="summary-chip">Status: {humanizeEventProjectStatus(project.status)}</span>
         <span className="summary-chip">Event date: {formatDate(project.event_date)}</span>
@@ -348,7 +361,7 @@ export default async function AdminEventProjectDetailPage({
         <span className="summary-chip">Outstanding balance: {formatMoney(outstandingBalance)}</span>
       </div>
 
-      <section className="card admin-section-card admin-panel admin-reference-records-shell customer-command-center">
+      <section id="next-step" className="card admin-section-card admin-panel admin-reference-records-shell customer-command-center">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Next step</p>
@@ -435,7 +448,7 @@ export default async function AdminEventProjectDetailPage({
       </section>
 
       <div className="admin-dashboard-row">
-        <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+        <section id="overview" className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Project overview</p>
@@ -492,7 +505,7 @@ export default async function AdminEventProjectDetailPage({
       </div>
 
       <div className="admin-dashboard-row">
-        <section className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
+        <section id="documents-payments" className="card admin-section-card admin-panel admin-panel--wide admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Commercial state</p>
@@ -530,7 +543,7 @@ export default async function AdminEventProjectDetailPage({
           </div>
         </section>
 
-        <aside className="card admin-section-card admin-panel admin-reference-records-shell">
+        <aside id="scope" className="card admin-section-card admin-panel admin-reference-records-shell">
           <div className="admin-panel-head">
             <div>
               <p className="eyebrow">Services</p>
@@ -554,7 +567,20 @@ export default async function AdminEventProjectDetailPage({
         </aside>
       </div>
 
-      <section className="card admin-section-card admin-panel admin-reference-records-shell">
+      <section id="follow-up" className="card admin-section-card admin-panel admin-reference-records-shell">
+        <div className="admin-panel-head">
+          <div>
+            <p className="eyebrow">Follow-ups</p>
+            <h3>Open owner tasks</h3>
+            <p className="muted">
+              Complete project follow-ups inline so the event timeline stays operationally accurate.
+            </p>
+          </div>
+        </div>
+        <FollowUpTaskList tasks={tasks ?? []} />
+      </section>
+
+      <section id="timeline" className="card admin-section-card admin-panel admin-reference-records-shell">
         <div className="admin-panel-head">
           <div>
             <p className="eyebrow">Timeline</p>

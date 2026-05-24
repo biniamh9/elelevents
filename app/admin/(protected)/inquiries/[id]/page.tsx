@@ -23,6 +23,8 @@ import FollowUpReviewForm from "@/components/forms/admin/follow-up-review-form";
 import QuoteManagementForm from "@/components/forms/admin/quote-management-form";
 import CreateContractButton from "@/components/forms/admin/create-contract-button";
 import VendorReferralForm from "@/components/forms/admin/vendor-referral-form";
+import AdminDetailTabs from "@/components/admin/admin-detail-tabs";
+import FollowUpTaskList from "@/components/admin/follow-up-task-list";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
@@ -315,7 +317,7 @@ export default async function InquiryDetailPage({
 
   const { data: followUpTasks } = await supabaseAdmin
     .from("crm_follow_up_tasks")
-    .select("id, title, detail, task_kind, status, due_at, created_at")
+    .select("id, title, detail, task_kind, status, due_at, created_at, owner_name")
     .eq("inquiry_id", id)
     .eq("status", "open")
     .order("created_at", { ascending: false });
@@ -509,7 +511,20 @@ export default async function InquiryDetailPage({
         </p>
       </section>
 
-      <div className="crm-overview">
+      <AdminDetailTabs
+        tabs={[
+          { href: "#overview", label: "Overview" },
+          { href: "#request-details", label: "Request Details" },
+          { href: "#follow-up", label: "Follow-Ups", count: followUpTasks?.length ?? 0 },
+          { href: "#timeline", label: "Timeline" },
+          { href: "#next-action", label: "Next Actions" },
+          { href: "#quote-stage", label: "Quote" },
+          { href: "#contract-stage", label: "Contract" },
+          { href: "#handoff-stage", label: "Handoff" },
+        ]}
+      />
+
+      <div id="overview" className="crm-overview">
         <div className="crm-hero-card card admin-reference-records-shell">
           <p className="eyebrow">Lead summary</p>
           <h3>{inquiry.first_name} {inquiry.last_name}</h3>
@@ -593,7 +608,7 @@ export default async function InquiryDetailPage({
         </div>
       </div>
 
-      <section className="admin-record-section">
+      <section id="request-details" className="admin-record-section">
         <div className="admin-section-title">
           <h3>Workflow control</h3>
           <p className="muted">
@@ -1104,13 +1119,27 @@ export default async function InquiryDetailPage({
         </section>
       ) : null}
 
-      <CustomerTimeline
-        eyebrow="Client timeline"
-        title="Workflow, replies, and admin activity"
-        description="One shared history for workflow movement, client replies, admin actions, and follow-up tasks."
-        items={unifiedTimeline}
-        emptyMessage="No workflow or client activity has been recorded yet."
-      />
+      <section id="follow-up" className="admin-record-section">
+        <div className="admin-section-title">
+          <h3>Follow-up tasks</h3>
+          <p className="muted">
+            Complete owner follow-ups inline so the open task list and client timeline stay current.
+          </p>
+        </div>
+        <div className="card admin-reference-records-shell">
+          <FollowUpTaskList tasks={followUpTasks ?? []} />
+        </div>
+      </section>
+
+      <section id="timeline">
+        <CustomerTimeline
+          eyebrow="Client timeline"
+          title="Workflow, replies, and admin activity"
+          description="One shared history for workflow movement, client replies, admin actions, and follow-up tasks."
+          items={unifiedTimeline}
+          emptyMessage="No workflow or client activity has been recorded yet."
+        />
+      </section>
 
       <section id="next-action" className="admin-record-section">
         <div className="admin-section-title">

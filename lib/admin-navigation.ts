@@ -251,6 +251,19 @@ export function buildDocumentsLibraryHref() {
   return "/admin/documents";
 }
 
+export function buildSalesPipelineHref({
+  stage,
+}: {
+  stage?: string | null;
+} = {}) {
+  const params = new URLSearchParams();
+  if (stage && stage !== "all") {
+    params.set("stage", stage);
+  }
+  const query = params.toString();
+  return query ? `/admin/sales?${query}` : "/admin/sales";
+}
+
 export function buildDocumentOutputHref(
   id: string,
   options?: {
