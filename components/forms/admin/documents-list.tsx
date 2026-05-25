@@ -251,6 +251,9 @@ export default function DocumentsList({
             </p>
           </div>
           <div className="admin-inline-actions">
+            <Link href="/admin/documents/new?type=invoice&mode=manual" className="btn secondary admin-documents-create-btn">
+              Create In-Person Invoice
+            </Link>
             <Link href={buildQuoteCreateHref()} className="btn admin-documents-create-btn">
               Create Quote
             </Link>

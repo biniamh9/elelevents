@@ -42,11 +42,13 @@ export default function DocumentEditor({
   mode,
   initialShowPaymentForm = false,
   initialPaymentMethod = "bank_transfer",
+  manualInvoiceMode = false,
 }: {
   initialDocument: EditableDocument;
   mode: "create" | "edit";
   initialShowPaymentForm?: boolean;
   initialPaymentMethod?: string;
+  manualInvoiceMode?: boolean;
 }) {
   const router = useRouter();
   const [document, setDocument] = useState<EditableDocument>({
@@ -141,6 +143,15 @@ export default function DocumentEditor({
   }
 
   async function saveDocument(sendAfterSave = false) {
+    if (!document.customer_name.trim()) {
+      setMessage("Customer name is required. Use “Walk-in customer” if you do not have a full name.");
+      return;
+    }
+    if (!document.line_items.length) {
+      setMessage("Add at least one invoice line item before saving.");
+      return;
+    }
+
     setSaving(true);
     setMessage("");
     try {
@@ -235,7 +246,9 @@ export default function DocumentEditor({
         publishLabel={
           document.document_type === "quote"
             ? "Mark Quote Ready to Share"
-            : "Mark Invoice Ready to Share"
+            : manualInvoiceMode || !document.customer_email
+              ? "Mark Invoice Ready to Print"
+              : "Mark Invoice Ready to Share"
         }
         convertLabel={
           document.document_type === "quote"
@@ -248,6 +261,24 @@ export default function DocumentEditor({
         message={message}
         busy={saving}
       />
+
+      {document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email) ? (
+        <section className="card admin-manual-invoice-guide admin-reference-records-shell">
+          <div>
+            <p className="eyebrow">In-person collection</p>
+            <h3>No customer email required</h3>
+            <p className="muted">
+              Save the invoice, open the PDF or print view, hand it to the customer, then use
+              <strong> Pay / Record Payment</strong> when cash, Zelle, check, transfer, or card payment is received.
+            </p>
+          </div>
+          <div className="summary-pills">
+            <span className="summary-chip">Email optional</span>
+            <span className="summary-chip">Print-ready invoice</span>
+            <span className="summary-chip">Receipt generated after payment</span>
+          </div>
+        </section>
+      ) : null}
 
       <section className="card admin-table-card admin-management-card admin-reference-records-shell admin-document-editor-shell">
         <div className="admin-panel-head">
@@ -391,8 +422,18 @@ export default function DocumentEditor({
             {document.document_type !== "receipt" ? (
               <AdminWorkflowAction
                 tone="internal"
-                label={document.document_type === "quote" ? "Mark Quote Ready to Share" : "Mark Invoice Ready to Share"}
-                description="Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
+                label={
+                  document.document_type === "quote"
+                    ? "Mark Quote Ready to Share"
+                    : manualInvoiceMode || !document.customer_email
+                      ? "Mark Invoice Ready to Print"
+                      : "Mark Invoice Ready to Share"
+                }
+                description={
+                  document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email)
+                    ? "Use this when the invoice will be printed or handed to the customer instead of emailed."
+                    : "Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
+                }
                 onClick={() => saveDocument(true)}
                 disabled={saving}
               />
@@ -442,7 +483,9 @@ export default function DocumentEditor({
           <div className="card admin-document-summary">
             <p className="eyebrow">Workflow note</p>
             <span>
-              {document.document_type === "quote"
+              {document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email)
+                ? "This invoice can be saved, printed, downloaded, and paid without a customer email. Email sending remains unavailable until an email is added."
+                : document.document_type === "quote"
                 ? "Quote sharing is handled from the inquiry workflow so client approvals and revisions stay connected."
                 : document.document_type === "invoice"
                   ? "Invoice sharing is handled through the contract/payment workflow so receipts and balances stay aligned."

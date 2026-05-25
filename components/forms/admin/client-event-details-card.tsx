@@ -41,9 +41,12 @@ export default function ClientEventDetailsCard({
           <label className="label">Client Email</label>
           <input
             className="input"
+            type="email"
             value={values.customer_email ?? ""}
             onChange={(event) => onChange("customer_email", event.target.value || null)}
+            placeholder="Optional for in-person invoices"
           />
+          <small className="muted">Only needed if you want to email the document.</small>
         </div>
         <div className="field">
           <label className="label">Client Phone</label>

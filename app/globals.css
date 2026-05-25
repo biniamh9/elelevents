@@ -16194,6 +16194,25 @@ tbody tr:last-child td {
   background: linear-gradient(180deg, #fffdfa 0%, #f8f1e7 100%);
 }
 
+.admin-manual-invoice-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  border-color: rgba(245, 112, 35, 0.24);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 246, 236, 0.88));
+}
+
+.admin-manual-invoice-guide h3,
+.admin-manual-invoice-guide p {
+  margin: 0;
+}
+
+.admin-manual-invoice-guide .muted strong {
+  color: var(--text-primary);
+}
+
 .admin-document-summary-fields {
   display: grid;
   gap: 14px;
@@ -21234,5 +21253,9 @@ tbody tr:last-child td {
 
   .admin-follow-up-task__actions .btn {
     flex: 1 1 100%;
+  }
+
+  .admin-manual-invoice-guide {
+    grid-template-columns: 1fr;
   }
 }
