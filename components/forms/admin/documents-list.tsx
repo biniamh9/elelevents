@@ -260,6 +260,19 @@ export default function DocumentsList({
           </div>
         </div>
 
+        <div className="admin-manual-invoice-shortcut">
+          <div>
+            <p className="eyebrow">Walk-in / no-email customer</p>
+            <h3>Need to invoice someone in person?</h3>
+            <p>
+              Use this when the job is already done, you do not have the customer’s email, and you just need to print or download an invoice before collecting payment.
+            </p>
+          </div>
+          <Link href="/admin/documents/new?type=invoice&mode=manual" className="btn">
+            Create In-Person Invoice
+          </Link>
+        </div>
+
         <div className="admin-document-filter-row admin-document-filter-row--reference">
           <input
             className="input"

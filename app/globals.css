@@ -16336,7 +16336,28 @@ tbody tr:last-child td {
 }
 
 .admin-documents-create-btn {
-  display: none;
+  display: inline-flex;
+}
+
+.admin-manual-invoice-shortcut {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(245, 112, 35, 0.22);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 246, 236, 0.86));
+}
+
+.admin-manual-invoice-shortcut h3,
+.admin-manual-invoice-shortcut p {
+  margin: 0;
+}
+
+.admin-manual-invoice-shortcut p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .admin-document-filter-row--reference {
@@ -17743,6 +17764,7 @@ tbody tr:last-child td {
 
   .admin-document-filter-row,
   .admin-document-grid,
+  .admin-manual-invoice-shortcut,
   .admin-document-notes-grid,
   .document-preview-header,
   .document-preview-info-grid,
