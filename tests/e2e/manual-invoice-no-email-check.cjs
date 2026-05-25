@@ -54,7 +54,7 @@ async function run() {
     throw new Error(`Manual invoice page failed: ${pageResponse.status}`);
   }
 
-  for (const label of ["Create in-person invoice", "No customer email required", "Pay / Record Payment"]) {
+  for (const label of ["Create in-person invoice", "Use this for walk-in"]) {
     if (!pageBody.includes(label)) {
       throw new Error(`Manual invoice page missing expected label: ${label}`);
     }
@@ -80,15 +80,8 @@ async function run() {
       notes: "QA manual no-email invoice.",
       payment_instructions: "Collect in person and record payment in admin.",
       payment_terms: "Due on receipt.",
-      line_items: [
-        {
-          id: "manual-service",
-          title: "Completed event decor service",
-          description: "Manual invoice no-email QA line item",
-          quantity: 1,
-          unit_price: 125,
-        },
-      ],
+      setup_fee: 125,
+      line_items: [],
     }),
   });
   const payload = await createResponse.json();

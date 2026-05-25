@@ -58,6 +58,7 @@ export default function DocumentEditor({
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(initialShowPaymentForm);
+  const isManualInvoice = document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email);
 
   const totals = useMemo(
     () =>
@@ -142,13 +143,20 @@ export default function DocumentEditor({
     }));
   }
 
-  async function saveDocument(sendAfterSave = false) {
+  async function saveDocument(
+    sendAfterSave = false,
+    nextAction?: "print" | "payment" | "stay"
+  ) {
     if (!document.customer_name.trim()) {
       setMessage("Customer name is required. Use “Walk-in customer” if you do not have a full name.");
       return;
     }
-    if (!document.line_items.length) {
-      setMessage("Add at least one invoice line item before saving.");
+    if (!document.line_items.length && !(isManualInvoice && totals.totalAmount > 0)) {
+      setMessage(
+        isManualInvoice
+          ? "Enter an invoice amount before saving."
+          : "Add at least one invoice line item before saving."
+      );
       return;
     }
 
@@ -176,8 +184,24 @@ export default function DocumentEditor({
       }
       setMessage(sendAfterSave ? "Document marked ready to send." : "Draft saved.");
       const saved = data.document as EditableDocument;
+      const savedId = saved?.id || document.id;
+      if (nextAction === "print" && savedId) {
+        window.open(
+          buildDocumentOutputHref(savedId, {
+            autoprint: true,
+            intent: "print",
+            compact: true,
+          }),
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }
       if (mode === "create" && saved?.id) {
-        router.push(`/admin/documents/${saved.id}`);
+        router.push(
+          nextAction === "payment"
+            ? `/admin/documents/${saved.id}?openPayment=1`
+            : `/admin/documents/${saved.id}`
+        );
         router.refresh();
         return;
       }
@@ -187,6 +211,9 @@ export default function DocumentEditor({
         line_items: data.lineItems ?? current.line_items,
         payments: data.payments ?? current.payments,
       }));
+      if (nextAction === "payment") {
+        setShowPaymentForm(true);
+      }
       router.refresh();
     } catch {
       setMessage("Failed to save document.");
@@ -228,16 +255,28 @@ export default function DocumentEditor({
   return (
     <div className="admin-document-builder">
       <DocumentActionBar
-        onSaveDraft={() => saveDocument(false)}
-        onPublish={document.document_type !== "receipt" ? () => saveDocument(true) : undefined}
-        onConvert={document.document_type !== "receipt" ? convertDocument : undefined}
+        onSaveDraft={() => saveDocument(isManualInvoice, isManualInvoice ? "print" : "stay")}
+        onPublish={
+          document.document_type !== "receipt" && !isManualInvoice
+            ? () => saveDocument(true)
+            : undefined
+        }
+        onConvert={document.document_type !== "receipt" && !isManualInvoice ? convertDocument : undefined}
         onRecordPayment={
           document.document_type === "invoice"
-            ? () => setShowPaymentForm((current) => !current)
+            ? () => {
+                if (document.id) {
+                  setShowPaymentForm((current) => !current);
+                } else {
+                  void saveDocument(true, "payment");
+                }
+              }
             : undefined
         }
         saveLabel={
-          document.document_type === "quote"
+          isManualInvoice
+            ? "Save & Open Print Invoice"
+            : document.document_type === "quote"
             ? "Save Quote Draft"
             : document.document_type === "invoice"
               ? "Save Invoice Draft"
@@ -257,19 +296,26 @@ export default function DocumentEditor({
               ? "Generate Receipt"
               : undefined
         }
-        paymentLabel={document.document_type === "invoice" ? "Pay / Record Payment" : undefined}
+        paymentLabel={
+          document.document_type === "invoice"
+            ? document.id
+              ? "Pay / Record Payment"
+              : "Save & Record Payment"
+            : undefined
+        }
         message={message}
         busy={saving}
       />
 
-      {document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email) ? (
+      {isManualInvoice ? (
         <section className="card admin-manual-invoice-guide admin-reference-records-shell">
           <div>
-            <p className="eyebrow">In-person collection</p>
-            <h3>No customer email required</h3>
+            <p className="eyebrow">Simple walk-in invoice</p>
+            <h3>One clear path: save, print, collect payment</h3>
             <p className="muted">
-              Save the invoice, open the PDF or print view, hand it to the customer, then use
-              <strong> Pay / Record Payment</strong> when cash, Zelle, check, transfer, or card payment is received.
+              Enter the customer/job details and the invoice amount, then use
+              <strong> Save & Open Print Invoice</strong>. If money is collected now, use
+              <strong> Save & Record Payment</strong> instead.
             </p>
           </div>
           <div className="summary-pills">
@@ -408,60 +454,89 @@ export default function DocumentEditor({
           </section>
 
           <div className="admin-document-footer-actions">
-            <AdminWorkflowAction
-              tone="internal"
-              label={saving ? "Saving..." : document.document_type === "quote"
-                ? "Save Quote Draft"
-                : document.document_type === "invoice"
-                  ? "Save Invoice Draft"
-                  : "Save Receipt Draft"}
-              description="Save the current document details, totals, and preview without changing the external workflow."
-              onClick={() => saveDocument(false)}
-              disabled={saving}
-            />
-            {document.document_type !== "receipt" ? (
-              <AdminWorkflowAction
-                tone="internal"
-                label={
-                  document.document_type === "quote"
-                    ? "Mark Quote Ready to Share"
-                    : manualInvoiceMode || !document.customer_email
-                      ? "Mark Invoice Ready to Print"
-                      : "Mark Invoice Ready to Share"
-                }
-                description={
-                  document.document_type === "invoice" && (manualInvoiceMode || !document.customer_email)
-                    ? "Use this when the invoice will be printed or handed to the customer instead of emailed."
-                    : "Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
-                }
-                onClick={() => saveDocument(true)}
-                disabled={saving}
-              />
-            ) : null}
-            {document.document_type !== "receipt" ? (
-              <AdminWorkflowAction
-                tone="record"
-                label={document.document_type === "quote" ? "Convert Quote to Invoice" : "Generate Receipt"}
-                description="Create the next downstream document record from this document."
-                onClick={convertDocument}
-                disabled={saving}
-              />
-            ) : null}
-            {document.document_type === "invoice" ? (
-              <AdminWorkflowAction
-                tone="record"
-                label={showPaymentForm ? "Hide Payment Entry" : "Pay / Record Payment"}
-                description="Open payment entry so balances update and a receipt draft is created."
-                onClick={() => setShowPaymentForm((current) => !current)}
-                disabled={saving}
-              />
-            ) : null}
+            {isManualInvoice ? (
+              <>
+                <AdminWorkflowAction
+                  tone="record"
+                  label={saving ? "Saving..." : "Save & Open Print Invoice"}
+                  description="Save the invoice and immediately open the print-ready version for the customer."
+                  onClick={() => saveDocument(true, "print")}
+                  disabled={saving}
+                />
+                <AdminWorkflowAction
+                  tone="record"
+                  label={document.id ? "Pay / Record Payment" : "Save & Record Payment"}
+                  description="Use this when cash, Zelle, check, transfer, or card payment is received."
+                  onClick={() => {
+                    if (document.id) {
+                      setShowPaymentForm((current) => !current);
+                    } else {
+                      void saveDocument(true, "payment");
+                    }
+                  }}
+                  disabled={saving}
+                />
+                <AdminWorkflowAction
+                  tone="internal"
+                  label="Save Only"
+                  description="Save the invoice without opening print or payment entry."
+                  onClick={() => saveDocument(false)}
+                  disabled={saving}
+                />
+              </>
+            ) : (
+              <>
+                <AdminWorkflowAction
+                  tone="internal"
+                  label={saving ? "Saving..." : document.document_type === "quote"
+                    ? "Save Quote Draft"
+                    : document.document_type === "invoice"
+                      ? "Save Invoice Draft"
+                      : "Save Receipt Draft"}
+                  description="Save the current document details, totals, and preview without changing the external workflow."
+                  onClick={() => saveDocument(false)}
+                  disabled={saving}
+                />
+                {document.document_type !== "receipt" ? (
+                  <AdminWorkflowAction
+                    tone="internal"
+                    label={
+                      document.document_type === "quote"
+                        ? "Mark Quote Ready to Share"
+                        : "Mark Invoice Ready to Share"
+                    }
+                    description="Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
+                    onClick={() => saveDocument(true)}
+                    disabled={saving}
+                  />
+                ) : null}
+                {document.document_type !== "receipt" ? (
+                  <AdminWorkflowAction
+                    tone="record"
+                    label={document.document_type === "quote" ? "Convert Quote to Invoice" : "Generate Receipt"}
+                    description="Create the next downstream document record from this document."
+                    onClick={convertDocument}
+                    disabled={saving}
+                  />
+                ) : null}
+                {document.document_type === "invoice" ? (
+                  <AdminWorkflowAction
+                    tone="record"
+                    label={showPaymentForm ? "Hide Payment Entry" : "Pay / Record Payment"}
+                    description="Open payment entry so balances update and a receipt draft is created."
+                    onClick={() => setShowPaymentForm((current) => !current)}
+                    disabled={saving}
+                  />
+                ) : null}
+              </>
+            )}
           </div>
         </div>
 
         <div className="admin-document-sidebar">
           <PricingSummaryCard
             documentType={document.document_type}
+            manualInvoiceMode={isManualInvoice}
             lineItems={document.line_items}
             deliveryFee={document.delivery_fee}
             setupFee={document.setup_fee}

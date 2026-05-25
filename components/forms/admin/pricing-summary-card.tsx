@@ -9,6 +9,7 @@ import {
 
 export default function PricingSummaryCard({
   documentType,
+  manualInvoiceMode = false,
   lineItems,
   deliveryFee,
   setupFee,
@@ -19,6 +20,7 @@ export default function PricingSummaryCard({
   onChange,
 }: {
   documentType?: ClientDocumentType;
+  manualInvoiceMode?: boolean;
   lineItems: ClientDocumentLineItem[];
   deliveryFee: number;
   setupFee: number;
@@ -37,6 +39,7 @@ export default function PricingSummaryCard({
     value: number
   ) => void;
 }) {
+  const isManualInvoice = documentType === "invoice" && manualInvoiceMode;
   const totals = calculateDocumentTotals({
     lineItems,
     deliveryFee,
@@ -57,18 +60,25 @@ export default function PricingSummaryCard({
       </div>
 
       <div className="admin-document-summary-fields">
-        {[
-          ["Delivery fee", "delivery_fee", deliveryFee],
-          ["Setup fee", "setup_fee", setupFee],
-          ["Discount", "discount_amount", discountAmount],
-          ["Tax", "tax_amount", taxAmount],
-          ["Deposit required", "deposit_required", depositRequired],
-          [
-            documentType === "invoice" ? "Partial payment / amount paid" : "Amount paid",
-            "amount_paid",
-            amountPaid,
-          ],
-        ].map(([label, key, value]) => (
+        {(isManualInvoice
+          ? [
+              ["Invoice / service amount", "setup_fee", setupFee],
+              ["Discount", "discount_amount", discountAmount],
+              ["Tax", "tax_amount", taxAmount],
+              ["Partial payment / amount paid", "amount_paid", amountPaid],
+            ]
+          : [
+              ["Delivery fee", "delivery_fee", deliveryFee],
+              ["Setup fee", "setup_fee", setupFee],
+              ["Discount", "discount_amount", discountAmount],
+              ["Tax", "tax_amount", taxAmount],
+              ["Deposit required", "deposit_required", depositRequired],
+              [
+                documentType === "invoice" ? "Partial payment / amount paid" : "Amount paid",
+                "amount_paid",
+                amountPaid,
+              ],
+            ]).map(([label, key, value]) => (
           <div key={String(key)} className="field">
             <label className="label">{label}</label>
             <input
@@ -93,6 +103,10 @@ export default function PricingSummaryCard({
             {key === "amount_paid" && documentType === "invoice" ? (
               <p className="muted">
                 Enter any deposit or partial payment already received. The invoice will show the remaining balance due.
+              </p>
+            ) : key === "setup_fee" && isManualInvoice ? (
+              <p className="muted">
+                For a quick walk-in invoice, enter the full job amount here. Use line items only when you need a detailed breakdown.
               </p>
             ) : null}
           </div>
