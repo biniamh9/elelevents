@@ -218,6 +218,12 @@ export default function DocumentsList({
   }
 
   async function sendDocumentEmail(document: ClientDocumentRecord) {
+    const documentLabel =
+      document.document_type === "receipt"
+        ? "receipt"
+        : document.document_type === "quote"
+          ? "quote"
+          : "invoice";
     setSendingDocumentId(document.id);
     setActionMessage(null);
     try {
@@ -226,14 +232,16 @@ export default function DocumentsList({
       });
       const data = await response.json();
       if (!response.ok) {
-        setActionMessage(data.error || "Could not email this invoice.");
+        setActionMessage(data.error || `Could not email this ${documentLabel}.`);
         return;
       }
       setOpenMenuId(null);
-      setActionMessage(`Invoice ${document.document_number} emailed to ${document.customer_email || "customer"}.`);
+      setActionMessage(
+        `${documentLabel.charAt(0).toUpperCase()}${documentLabel.slice(1)} ${document.document_number} emailed to ${document.customer_email || "customer"}.`
+      );
       router.refresh();
     } catch {
-      setActionMessage("Could not email this invoice. Please try again.");
+      setActionMessage(`Could not email this ${documentLabel}. Please try again.`);
     } finally {
       setSendingDocumentId(null);
     }
@@ -465,7 +473,7 @@ export default function DocumentsList({
                                   >
                                     Download PDF
                                   </Link>
-                                  {document.document_type === "invoice" ? (
+                                  {document.document_type === "invoice" || document.document_type === "receipt" ? (
                                     <button
                                       type="button"
                                       className="admin-table-text-action admin-table-text-action--button admin-table-text-action--primary"
@@ -474,7 +482,9 @@ export default function DocumentsList({
                                     >
                                       {sendingDocumentId === document.id
                                         ? "Sending..."
-                                        : "Email Invoice to Customer"}
+                                        : document.document_type === "receipt"
+                                          ? "Email Receipt to Customer"
+                                          : "Email Invoice to Customer"}
                                     </button>
                                   ) : null}
                                 </div>

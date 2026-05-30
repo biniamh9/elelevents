@@ -120,12 +120,15 @@ export async function POST(
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
 
-    if (document.document_type !== "invoice") {
-      return NextResponse.json({ error: "Only invoices can be emailed from this action." }, { status: 400 });
+    if (document.document_type !== "invoice" && document.document_type !== "receipt") {
+      return NextResponse.json({ error: "Only invoices and receipts can be emailed from this action." }, { status: 400 });
     }
 
     if (!document.customer_email?.trim()) {
-      return NextResponse.json({ error: "Customer email is required before sending the invoice." }, { status: 400 });
+      return NextResponse.json(
+        { error: `Customer email is required before sending the ${document.document_type}.` },
+        { status: 400 }
+      );
     }
 
     if (!resend) {
@@ -137,7 +140,7 @@ export async function POST(
     const documentLabel = documentTypeLabels[document.document_type];
     const eventLabel = document.event_type || document.venue_name || "your event";
     const subject = `${documentLabel} ${document.document_number} from Elel Events & Design`;
-    const bodyText = `Invoice ${document.document_number} sent to ${document.customer_email}. Balance due: $${formatMoney(document.balance_due)}.`;
+    const bodyText = `${documentLabel} ${document.document_number} sent to ${document.customer_email}. Balance due: $${formatMoney(document.balance_due)}.`;
     const pdfElement = createElement(DocumentPdfFile, { document, printCompact: true }) as Parameters<
       typeof renderToBuffer
     >[0];
@@ -184,8 +187,8 @@ export async function POST(
     });
 
     if (sendError) {
-      console.error("Invoice email send failed:", sendError);
-      return NextResponse.json({ error: sendError.message || "Invoice email failed to send" }, { status: 500 });
+      console.error(`${documentLabel} email send failed:`, sendError);
+      return NextResponse.json({ error: sendError.message || `${documentLabel} email failed to send` }, { status: 500 });
     }
 
     const nextStatus =
@@ -220,7 +223,7 @@ export async function POST(
         messageId: sentEmail?.id ?? null,
         provider: "resend",
         metadata: {
-          type: "invoice_email",
+          type: `${document.document_type}_email`,
           document_id: document.id,
           document_number: document.document_number,
           total_amount: document.total_amount,
@@ -234,8 +237,8 @@ export async function POST(
     await logActivity(supabaseAdmin, {
       entityType: "document",
       entityId: document.id,
-      action: "invoice.sent",
-      summary: "Invoice emailed to customer",
+      action: `${document.document_type}.sent`,
+      summary: `${documentLabel} emailed to customer`,
       actorId: auth.user.id,
       metadata: {
         customer_email: document.customer_email,
@@ -253,8 +256,8 @@ export async function POST(
       await logActivity(supabaseAdmin, {
         entityType: "inquiry",
         entityId: document.inquiry_id,
-        action: "invoice.sent",
-        summary: "Invoice emailed to customer",
+        action: `${document.document_type}.sent`,
+        summary: `${documentLabel} emailed to customer`,
         actorId: auth.user.id,
         metadata: {
           document_id: document.id,
@@ -271,7 +274,7 @@ export async function POST(
       sentEmailId: sentEmail?.id ?? null,
     });
   } catch (error) {
-    console.error("Send invoice email failed:", error);
-    return NextResponse.json({ error: "Failed to send invoice email" }, { status: 500 });
+    console.error("Send document email failed:", error);
+    return NextResponse.json({ error: "Failed to send document email" }, { status: 500 });
   }
 }
