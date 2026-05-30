@@ -210,29 +210,28 @@ export async function POST(
       );
     }
 
-    if (document.inquiry_id) {
-      await recordOutboundEmailInteraction(supabaseAdmin, {
-        inquiryId: document.inquiry_id,
-        clientId: conversationKey?.client_id ?? null,
-        subject,
-        bodyText,
-        senderEmail: extractEmailAddress(fromEmail),
-        recipientEmail: document.customer_email,
-        conversationKey: conversationKey?.crm_conversation_key ?? null,
-        threadId: sentEmail?.id ?? null,
-        messageId: sentEmail?.id ?? null,
-        provider: "resend",
-        metadata: {
-          type: `${document.document_type}_email`,
-          document_id: document.id,
-          document_number: document.document_number,
-          total_amount: document.total_amount,
-          amount_paid: document.amount_paid,
-          balance_due: document.balance_due,
-          website_url: business.website_url,
-        },
-      });
-    }
+    await recordOutboundEmailInteraction(supabaseAdmin, {
+      inquiryId: document.inquiry_id,
+      clientId: conversationKey?.client_id ?? null,
+      subject,
+      bodyText,
+      senderEmail: extractEmailAddress(fromEmail),
+      recipientEmail: document.customer_email,
+      conversationKey: conversationKey?.crm_conversation_key ?? null,
+      threadId: sentEmail?.id ?? null,
+      messageId: sentEmail?.id ?? null,
+      provider: "resend",
+      metadata: {
+        type: `${document.document_type}_email`,
+        delivery_status: "sent_to_provider",
+        document_id: document.id,
+        document_number: document.document_number,
+        total_amount: document.total_amount,
+        amount_paid: document.amount_paid,
+        balance_due: document.balance_due,
+        website_url: business.website_url,
+      },
+    });
 
     await logActivity(supabaseAdmin, {
       entityType: "document",

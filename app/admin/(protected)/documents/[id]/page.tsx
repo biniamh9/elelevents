@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import EmailHistoryPanel from "@/components/admin/email-history-panel";
 import { getDocumentById } from "@/lib/admin-documents";
 import DocumentEditor from "@/components/forms/admin/document-editor";
 import {
@@ -8,6 +9,7 @@ import {
   buildDocumentsLibraryHref,
 } from "@/lib/admin-navigation";
 import { requireAdminPage } from "@/lib/auth/admin";
+import { supabaseAdmin } from "@/lib/supabase/admin-client";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +29,14 @@ export default async function DocumentDetailPage({
   if (!document) {
     notFound();
   }
+  const { data: emailHistory } = await supabaseAdmin
+    .from("customer_interactions")
+    .select("id, subject, body_text, created_at, sender_email, recipient_email, provider, message_id, thread_id, metadata")
+    .eq("channel", "email")
+    .eq("direction", "outbound")
+    .contains("metadata", { document_id: id })
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   return (
     <main className="section admin-page admin-page--workspace">
@@ -92,6 +102,12 @@ export default async function DocumentDetailPage({
         mode="edit"
         initialShowPaymentForm={query.openPayment === "1"}
         initialPaymentMethod={query.paymentMethod || "bank_transfer"}
+      />
+
+      <EmailHistoryPanel
+        emails={emailHistory ?? []}
+        title="Document email history"
+        description="Shows when this quote, invoice, or receipt was emailed from the admin portal."
       />
     </main>
   );

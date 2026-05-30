@@ -235,7 +235,7 @@ export async function recordInboundEmailReply(
 export async function recordCustomerInteraction(
   supabase: SupabaseClient,
   input: {
-    inquiryId: string;
+    inquiryId?: string | null;
     clientId?: string | null;
     channel?: "email" | "phone" | "note" | "meeting" | "other";
     direction?: "inbound" | "outbound" | "internal";
@@ -256,7 +256,7 @@ export async function recordCustomerInteraction(
 
   const { error } = await supabase.from("customer_interactions").insert({
     client_id: input.clientId ?? null,
-    inquiry_id: input.inquiryId,
+    inquiry_id: input.inquiryId ?? null,
     contract_id: null,
     channel: input.channel ?? "other",
     direction: input.direction ?? "inbound",

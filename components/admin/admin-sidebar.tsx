@@ -49,6 +49,16 @@ const navSections: NavSection[] = [
     ],
   },
   {
+    id: "reports",
+    label: "Reports",
+    description: "Insights and email logs",
+    module: "crm",
+    children: [
+      { href: buildCrmWorkspaceHref("reports"), label: "CRM Reports" },
+      { href: "/admin/crm-analytics/reports/email-log", label: "Email Log" },
+    ],
+  },
+  {
     id: "events",
     label: "Events",
     description: "Projects and schedule",

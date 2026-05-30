@@ -27,6 +27,7 @@ import AdminDetailTabs from "@/components/admin/admin-detail-tabs";
 import FollowUpTaskList from "@/components/admin/follow-up-task-list";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
+import EmailHistoryPanel from "@/components/admin/email-history-panel";
 import { deriveBookingStage, getBookingWarningLabel, humanizeBookingStage, type BookingStage } from "@/lib/booking-lifecycle";
 import { buildCustomerTimeline } from "@/lib/customer-timeline";
 import { inquiryFollowUpNeedsReview, normalizeInquiryFollowUpDetails } from "@/lib/inquiry-follow-up";
@@ -310,10 +311,13 @@ export default async function InquiryDetailPage({
 
   const { data: customerInteractions } = await supabaseAdmin
     .from("customer_interactions")
-    .select("id, subject, body_text, created_at, direction, metadata")
+    .select("id, subject, body_text, created_at, direction, channel, sender_email, recipient_email, provider, message_id, thread_id, metadata")
     .eq("inquiry_id", id)
     .order("created_at", { ascending: false })
     .limit(20);
+  const emailHistory = (customerInteractions ?? []).filter(
+    (interaction) => interaction.channel === "email" && interaction.direction === "outbound"
+  );
 
   const { data: followUpTasks } = await supabaseAdmin
     .from("crm_follow_up_tasks")
@@ -1132,6 +1136,8 @@ export default async function InquiryDetailPage({
       </section>
 
       <section id="timeline">
+        <EmailHistoryPanel emails={emailHistory} />
+
         <CustomerTimeline
           eyebrow="Client timeline"
           title="Workflow, replies, and admin activity"

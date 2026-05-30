@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import EmailHistoryPanel from "@/components/admin/email-history-panel";
 import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import ProjectStatusQuickUpdate from "@/components/admin/project-status-quick-update";
@@ -77,7 +78,7 @@ export default async function AdminCrmCustomerDetailPage({
       .order("created_at", { ascending: false }),
     supabaseAdmin
       .from("customer_interactions")
-      .select("id, inquiry_id, subject, body_text, created_at, channel, direction, client_id")
+      .select("id, inquiry_id, subject, body_text, created_at, channel, direction, client_id, sender_email, recipient_email, provider, message_id, thread_id, metadata")
       .eq("client_id", clientId)
       .order("created_at", { ascending: false })
       .limit(40),
@@ -145,6 +146,9 @@ export default async function AdminCrmCustomerDetailPage({
       : [];
   const linkedDocumentIds = linkedDocuments.map((document) => document.id);
   const paymentIds = (payments ?? []).map((payment) => payment.id);
+  const emailHistory = (interactions ?? []).filter(
+    (interaction) => interaction.channel === "email" && interaction.direction === "outbound"
+  );
   const { data: documentActivityLog } = linkedDocumentIds.length
     ? await supabaseAdmin
         .from("activity_log")
@@ -561,6 +565,8 @@ export default async function AdminCrmCustomerDetailPage({
           </div>
         </section>
       </div>
+
+      <EmailHistoryPanel emails={emailHistory} />
 
       <CustomerTimeline
         eyebrow="Timeline"

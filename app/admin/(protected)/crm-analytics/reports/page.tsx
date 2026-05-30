@@ -107,6 +107,7 @@ export default async function AdminCrmReportsRoute({
         <Link href={buildCrmWorkspaceHref("customers")} className="admin-workspace-tab">Customers</Link>
         <Link href={buildCrmWorkspaceHref("tasks")} className="admin-workspace-tab">Tasks</Link>
         <Link href={buildCrmWorkspaceHref("reports")} className="admin-workspace-tab is-active">Reports</Link>
+        <Link href="/admin/crm-analytics/reports/email-log" className="admin-workspace-tab">Email Log</Link>
       </div>
 
       <div className="summary-pills">
