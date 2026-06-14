@@ -80,9 +80,12 @@ export default function EmailHistoryPanel({
           emails.map((email) => {
             const documentId = getRelatedDocumentId(email);
             return (
-              <div key={email.id}>
+              <div key={email.id} className="admin-email-log-entry">
                 <strong>
-                  <Link href={`/admin/crm-analytics/reports/email-log/${email.id}`}>
+                  <Link
+                    href={`/admin/crm-analytics/reports/email-log/${email.id}`}
+                    className="admin-email-log-entry__title"
+                  >
                     {email.subject || "No subject recorded"}
                   </Link>
                 </strong>
@@ -91,8 +94,11 @@ export default function EmailHistoryPanel({
                   {email.recipient_email || "unknown recipient"} · {formatDate(email.created_at)}
                   {email.provider ? ` · ${email.provider}` : ""}
                   {" "}·{" "}
-                  <Link href={`/admin/crm-analytics/reports/email-log/${email.id}`}>
-                    View email details
+                  <Link
+                    href={`/admin/crm-analytics/reports/email-log/${email.id}`}
+                    className="admin-email-log-entry__action"
+                  >
+                    View details <span aria-hidden="true">→</span>
                   </Link>
                   {documentId ? (
                     <>

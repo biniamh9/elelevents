@@ -9597,6 +9597,51 @@ tbody tr:last-child td {
   color: var(--muted);
 }
 
+.admin-placeholder-list > .admin-email-log-entry {
+  position: relative;
+  border-color: rgba(245, 112, 35, 0.18);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.admin-placeholder-list > .admin-email-log-entry:hover,
+.admin-placeholder-list > .admin-email-log-entry:focus-within {
+  border-color: rgba(245, 112, 35, 0.58);
+  box-shadow: 0 12px 28px rgba(63, 39, 22, 0.1);
+  transform: translateY(-2px);
+}
+
+.admin-email-log-entry__title {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: rgba(245, 112, 35, 0.52);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.admin-email-log-entry__title:hover,
+.admin-email-log-entry__title:focus-visible {
+  color: var(--accent);
+}
+
+.admin-email-log-entry__action {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--accent);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.admin-email-log-entry__action span {
+  color: inherit !important;
+  transition: transform 160ms ease;
+}
+
+.admin-email-log-entry__action:hover span,
+.admin-email-log-entry__action:focus-visible span {
+  transform: translateX(3px);
+}
+
 .admin-email-log-body,
 .admin-email-log-metadata {
   margin: 0;
