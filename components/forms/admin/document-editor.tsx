@@ -145,7 +145,7 @@ export default function DocumentEditor({
 
   async function saveDocument(
     sendAfterSave = false,
-    nextAction?: "print" | "payment" | "stay"
+    nextAction?: "print" | "preview" | "payment" | "emailQuote" | "stay"
   ) {
     if (!document.customer_name.trim()) {
       setMessage("Customer name is required. Use “Walk-in customer” if you do not have a full name.");
@@ -155,7 +155,7 @@ export default function DocumentEditor({
       setMessage(
         isManualInvoice
           ? "Enter an invoice amount before saving."
-          : "Add at least one invoice line item before saving."
+          : `Add at least one ${document.document_type === "quote" ? "quote" : "invoice"} line item before saving.`
       );
       return;
     }
@@ -185,6 +185,12 @@ export default function DocumentEditor({
       setMessage(sendAfterSave ? "Document marked ready to send." : "Draft saved.");
       const saved = data.document as EditableDocument;
       const savedId = saved?.id || document.id;
+      let savedDocument = {
+        ...document,
+        ...saved,
+        line_items: data.lineItems ?? document.line_items,
+        payments: data.payments ?? document.payments,
+      };
       if (nextAction === "print" && savedId) {
         window.open(
           buildDocumentOutputHref(savedId, {
@@ -196,6 +202,47 @@ export default function DocumentEditor({
           "noopener,noreferrer"
         );
       }
+      if (nextAction === "preview" && savedId) {
+        window.open(
+          buildDocumentOutputHref(savedId, { compact: true }),
+          "_blank",
+          "noopener,noreferrer"
+        );
+      }
+      if (nextAction === "emailQuote") {
+        if (!savedDocument.inquiry_id) {
+          setMessage(
+            "Quote saved, but email sending requires a linked inquiry so approval and revision responses can be tracked."
+          );
+        } else if (!savedDocument.customer_email) {
+          setMessage("Quote saved, but a customer email address is required before it can be sent.");
+        } else {
+          const sendResponse = await fetch(
+            `/api/admin/inquiries/${savedDocument.inquiry_id}/send-quote`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                quoteAmount: totals.totalAmount,
+                quoteMessage: savedDocument.notes || undefined,
+              }),
+            }
+          );
+          const sendData = await sendResponse.json();
+          if (!sendResponse.ok) {
+            setMessage(
+              `Quote saved, but email was not sent: ${sendData.error || "Email delivery failed."}`
+            );
+          } else {
+            savedDocument = {
+              ...savedDocument,
+              status: "sent",
+              quote_workflow_status: "sent",
+            };
+            setMessage("Quote saved and emailed to the customer. Email History has been updated.");
+          }
+        }
+      }
       if (mode === "create" && saved?.id) {
         router.push(
           nextAction === "payment"
@@ -205,12 +252,7 @@ export default function DocumentEditor({
         router.refresh();
         return;
       }
-      setDocument((current) => ({
-        ...current,
-        ...saved,
-        line_items: data.lineItems ?? current.line_items,
-        payments: data.payments ?? current.payments,
-      }));
+      setDocument(savedDocument);
       if (nextAction === "payment") {
         setShowPaymentForm(true);
       }
@@ -257,11 +299,25 @@ export default function DocumentEditor({
       <DocumentActionBar
         onSaveDraft={() => saveDocument(isManualInvoice, isManualInvoice ? "print" : "stay")}
         onPublish={
-          document.document_type !== "receipt" && !isManualInvoice
+          document.document_type === "invoice" && !isManualInvoice
             ? () => saveDocument(true)
             : undefined
         }
-        onConvert={document.document_type !== "receipt" && !isManualInvoice ? convertDocument : undefined}
+        onPreview={
+          document.document_type === "quote"
+            ? () => saveDocument(false, "preview")
+            : undefined
+        }
+        onEmail={
+          document.document_type === "quote"
+            ? () => saveDocument(false, "emailQuote")
+            : undefined
+        }
+        onConvert={
+          document.document_type !== "receipt" && !isManualInvoice
+            ? convertDocument
+            : undefined
+        }
         onRecordPayment={
           document.document_type === "invoice"
             ? () => {
@@ -283,9 +339,7 @@ export default function DocumentEditor({
               : "Save Receipt Draft"
         }
         publishLabel={
-          document.document_type === "quote"
-            ? "Mark Quote Ready to Share"
-            : manualInvoiceMode || !document.customer_email
+          manualInvoiceMode || !document.customer_email
               ? "Mark Invoice Ready to Print"
               : "Mark Invoice Ready to Share"
         }
@@ -302,6 +356,22 @@ export default function DocumentEditor({
               ? "Pay / Record Payment"
               : "Save & Record Payment"
             : undefined
+        }
+        title={
+          document.document_type === "quote"
+            ? "Save, review, and send this quote"
+            : isManualInvoice
+              ? "Save, print, or record payment"
+              : "Continue this document workflow"
+        }
+        description={
+          document.document_type === "quote"
+            ? document.status === "accepted"
+              ? "The quote is accepted. You can still save or preview it, or convert it into an invoice."
+              : "Save changes, preview the client-facing quote, then email it. Convert to invoice when you are ready to collect payment."
+            : isManualInvoice
+              ? "Use the invoice in person without requiring a customer email."
+              : "Choose the next action for this document."
         }
         message={message}
         busy={saving}
@@ -497,14 +567,19 @@ export default function DocumentEditor({
                   onClick={() => saveDocument(false)}
                   disabled={saving}
                 />
-                {document.document_type !== "receipt" ? (
+                {document.document_type === "quote" ? (
+                  <AdminWorkflowAction
+                    tone="email"
+                    label="Email Quote to Customer"
+                    description="Save the latest changes, email the quote, and record the delivery in Email History."
+                    onClick={() => saveDocument(false, "emailQuote")}
+                    disabled={saving}
+                  />
+                ) : null}
+                {document.document_type === "invoice" ? (
                   <AdminWorkflowAction
                     tone="internal"
-                    label={
-                      document.document_type === "quote"
-                        ? "Mark Quote Ready to Share"
-                        : "Mark Invoice Ready to Share"
-                    }
+                    label="Mark Invoice Ready to Share"
                     description="Set the document as ready inside the workflow so the related inquiry or contract flow can share it."
                     onClick={() => saveDocument(true)}
                     disabled={saving}
