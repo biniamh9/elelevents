@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminDetailTabs from "@/components/admin/admin-detail-tabs";
 import FollowUpTaskList from "@/components/admin/follow-up-task-list";
-import AdminWorkflowAction from "@/components/admin/admin-workflow-action";
 import CustomerTimeline from "@/components/admin/customer-timeline";
 import ProjectStatusQuickUpdate from "@/components/admin/project-status-quick-update";
 import {
@@ -309,6 +308,71 @@ export default async function AdminEventProjectDetailPage({
             href: null,
             tone: "internal" as const,
           };
+  const projectTasks = [
+    {
+      label: latestQuote ? "Review or revise quote" : "Create quote",
+      detail: latestQuote
+        ? "A quote exists for this project. Open it when scope or pricing needs an update."
+        : "Build the client-facing scope and pricing.",
+      state: latestQuote ? "complete" : "current",
+      href: inquiryId
+        ? latestQuote
+          ? buildDocumentDetailHref(latestQuote.id)
+          : buildQuoteCreateHref({ inquiryId })
+        : null,
+      action: latestQuote ? "Open quote" : "Create quote",
+    },
+    {
+      label: "Prepare contract",
+      detail: contractRecord
+        ? "The agreement exists. Review signing and deposit requirements."
+        : "Create the agreement after the quote scope is ready.",
+      state: contractRecord ? "complete" : latestQuote ? "current" : "blocked",
+      href: contractRecord?.id
+        ? buildContractDetailHref(contractRecord.id)
+        : inquiryId && latestQuote
+          ? buildCrmLeadDetailHref(inquiryId)
+          : null,
+      action: contractRecord ? "Open contract" : "Create contract",
+    },
+    {
+      label: "Prepare invoice",
+      detail: latestInvoice
+        ? "An invoice exists and is ready for payment tracking."
+        : "Create the customer payment request.",
+      state: latestInvoice ? "complete" : contractRecord ? "current" : "blocked",
+      href: latestInvoice
+        ? buildDocumentDetailHref(latestInvoice.id)
+        : inquiryId && contractRecord
+          ? buildInvoiceCreateHref({ inquiryId, contractId: contractRecord.id })
+          : null,
+      action: latestInvoice ? "Open invoice" : "Create invoice",
+    },
+    {
+      label: "Record customer payment",
+      detail:
+        latestInvoice && outstandingBalance <= 0
+          ? "No outstanding invoice balance remains."
+          : "Record deposits, partial payments, or the final payment.",
+      state:
+        latestInvoice && outstandingBalance <= 0
+          ? "complete"
+          : latestInvoice
+            ? "current"
+            : "blocked",
+      href: recordPaymentHref,
+      action: "Record payment",
+    },
+    {
+      label: "Send or review receipt",
+      detail: latestReceipt
+        ? "A payment receipt exists for this project."
+        : "A receipt is created after payment is recorded.",
+      state: latestReceipt ? "complete" : latestInvoice && outstandingBalance <= 0 ? "current" : "blocked",
+      href: latestReceipt ? buildDocumentDetailHref(latestReceipt.id) : null,
+      action: latestReceipt ? "Open receipt" : "Receipt pending",
+    },
+  ] as const;
   const serviceList = Array.isArray(project.services)
     ? project.services.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
     : [];
@@ -364,86 +428,61 @@ export default async function AdminEventProjectDetailPage({
       <section id="next-step" className="card admin-section-card admin-panel admin-reference-records-shell customer-command-center">
         <div className="admin-panel-head">
           <div>
-            <p className="eyebrow">Next step</p>
-            <h3>{recommendedAction.label}</h3>
-            <p className="muted">{recommendedAction.detail}</p>
+            <p className="eyebrow">Admin task plan</p>
+            <h3>Work this project in order</h3>
+            <p className="muted">Complete the highlighted task, then move to the next available step.</p>
           </div>
         </div>
-        <div className="customer-command-grid">
-          {recommendedAction.href ? (
-            <AdminWorkflowAction
-              href={recommendedAction.href}
-              tone={recommendedAction.tone}
-              label={recommendedAction.label}
-              description="Recommended next move based on project documents, contract, and payment state."
-            />
-          ) : null}
-          {inquiryId ? (
-            <AdminWorkflowAction
-              href={buildQuoteCreateHref({ inquiryId })}
-              tone="record"
-              label={latestQuote ? "Revise / create quote" : "Create quote"}
-              description="Open quote builder linked to this project’s active opportunity."
-            />
-          ) : null}
-          {inquiryId ? (
-            <AdminWorkflowAction
-              href={buildInvoiceCreateHref({
-                inquiryId,
-                contractId: contractRecord?.id ?? null,
-              })}
-              tone="record"
-              label="Create invoice"
-              description="Create a payment request without leaving the project workflow."
-            />
-          ) : null}
-          {contractRecord?.id ? (
-            <AdminWorkflowAction
-              href={buildContractDetailHref(contractRecord.id)}
-              tone={contractRecord.deposit_paid ? "sync" : "email"}
-              label={contractRecord.deposit_paid ? "Open contract" : "Send / collect deposit"}
-              description="Open the contract, signing, and deposit state."
-            />
-          ) : inquiryId ? (
-            <AdminWorkflowAction
-              href={buildCrmLeadDetailHref(inquiryId)}
-              tone="record"
-              label="Create contract"
-              description="Open the opportunity workflow to generate the agreement."
-            />
-          ) : null}
-          {recordPaymentHref ? (
-            <AdminWorkflowAction
-              href={recordPaymentHref}
-              tone="record"
-              label="Pay / Record Payment"
-              description="Open invoice payment entry and create the receipt draft automatically."
-            />
-          ) : inquiryId ? (
-            <AdminWorkflowAction
-              href={buildInvoiceCreateHref({
-                inquiryId,
-                contractId: contractRecord?.id ?? null,
-              })}
-              tone="record"
-              label="Create invoice first"
-              description="Payments are recorded from invoice documents."
-            />
-          ) : null}
-          {latestInvoice ? (
-            <AdminWorkflowAction
-              href={buildDocumentDetailHref(latestInvoice.id)}
-              tone="sync"
-              label={latestReceipt ? "Open invoice / receipts" : "Generate receipt"}
-              description="Open the invoice to generate or review payment receipt records."
-            />
-          ) : null}
-          <div className="project-status-command-card">
+        <div className="project-task-plan">
+          <div className="project-task-plan__main">
+            <div className="project-task-plan__primary">
+              <div>
+                <span className="project-task-plan__badge">Recommended now</span>
+                <h4>{recommendedAction.label}</h4>
+                <p>{recommendedAction.detail}</p>
+              </div>
+              {recommendedAction.href ? (
+                <Link href={recommendedAction.href} className="btn">
+                  {recommendedAction.label}
+                </Link>
+              ) : (
+                <span className="summary-chip">Use status control</span>
+              )}
+            </div>
+
+            <ol className="project-task-checklist">
+              {projectTasks.map((task, index) => (
+                <li key={task.label} className={`project-task-checklist__item is-${task.state}`}>
+                  <span className="project-task-checklist__index" aria-hidden="true">
+                    {task.state === "complete" ? "✓" : index + 1}
+                  </span>
+                  <div>
+                    <strong>{task.label}</strong>
+                    <span>{task.detail}</span>
+                  </div>
+                  {task.href ? (
+                    <Link href={task.href} className="project-task-checklist__action">
+                      {task.action} →
+                    </Link>
+                  ) : (
+                    <span className="project-task-checklist__locked">
+                      {task.state === "blocked" ? "Complete prior step" : task.action}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <aside className="project-task-plan__status">
+            <p className="eyebrow">Lifecycle control</p>
+            <h4>{humanizeEventProjectStatus(project.status)}</h4>
+            <p className="muted">Update this only when the project has actually moved to a new lifecycle stage.</p>
             <ProjectStatusQuickUpdate
               projectId={realProject?.id ?? inquiryId ?? projectId}
               currentStatus={project.status}
             />
-          </div>
+          </aside>
         </div>
       </section>
 
