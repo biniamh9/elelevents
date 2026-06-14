@@ -9596,6 +9596,24 @@ tbody tr:last-child td {
 .admin-placeholder-list > div span {
   color: var(--muted);
 }
+
+.admin-email-log-body,
+.admin-email-log-metadata {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(248, 246, 243, 0.72);
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+.admin-email-log-metadata {
+  overflow-x: auto;
+  font-size: 0.84rem;
+}
 .admin-users-workspace {
   display: grid;
   gap: 1.5rem;

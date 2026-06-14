@@ -81,11 +81,19 @@ export default function EmailHistoryPanel({
             const documentId = getRelatedDocumentId(email);
             return (
               <div key={email.id}>
-                <strong>{email.subject || "No subject recorded"}</strong>
+                <strong>
+                  <Link href={`/admin/crm-analytics/reports/email-log/${email.id}`}>
+                    {email.subject || "No subject recorded"}
+                  </Link>
+                </strong>
                 <span>
                   {getEmailType(email)} · {getEmailStatus(email)} · to{" "}
                   {email.recipient_email || "unknown recipient"} · {formatDate(email.created_at)}
                   {email.provider ? ` · ${email.provider}` : ""}
+                  {" "}·{" "}
+                  <Link href={`/admin/crm-analytics/reports/email-log/${email.id}`}>
+                    View email details
+                  </Link>
                   {documentId ? (
                     <>
                       {" "}
